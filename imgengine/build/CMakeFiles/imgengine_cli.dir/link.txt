@@ -1,1 +1,1 @@
-/usr/bin/cc CMakeFiles/imgengine_cli.dir/cli/main.c.o -o imgengine_cli  libimgengine.a -lm 
+/usr/bin/cc CMakeFiles/imgengine_cli.dir/cli/main.c.o -o imgengine_cli  libimgengine.a -lm -lgomp 

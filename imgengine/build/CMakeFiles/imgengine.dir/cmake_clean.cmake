@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/imgengine.dir/src/core/context.c.o.d"
   "CMakeFiles/imgengine.dir/src/core/image.c.o"
   "CMakeFiles/imgengine.dir/src/core/image.c.o.d"
+  "CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o"
+  "CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o.d"
   "CMakeFiles/imgengine.dir/src/core/memory_pool.c.o"
   "CMakeFiles/imgengine.dir/src/core/memory_pool.c.o.d"
   "CMakeFiles/imgengine.dir/src/io/stb_impl.c.o"

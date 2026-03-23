@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = -I/workspaces/imgengine/imgengine/include -I/workspaces/imgengine/imgengine/src -I/workspaces/imgengine/imgengine/third_party
 
-C_FLAGS = -std=gnu11 -Wall -Wextra -Wpedantic
+C_FLAGS = -std=gnu11 -Wall -Wextra -Wpedantic -O3 -mavx2 -mfma -march=native -fopenmp
 

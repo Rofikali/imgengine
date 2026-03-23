@@ -238,6 +238,30 @@ src/core/image.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/src/core/image.c.s
 .PHONY : src/core/image.c.s
 
+src/core/lbit_avx2.o: src/core/lbit_avx2.c.o
+.PHONY : src/core/lbit_avx2.o
+
+# target to build an object file
+src/core/lbit_avx2.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o
+.PHONY : src/core/lbit_avx2.c.o
+
+src/core/lbit_avx2.i: src/core/lbit_avx2.c.i
+.PHONY : src/core/lbit_avx2.i
+
+# target to preprocess a source file
+src/core/lbit_avx2.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.i
+.PHONY : src/core/lbit_avx2.c.i
+
+src/core/lbit_avx2.s: src/core/lbit_avx2.c.s
+.PHONY : src/core/lbit_avx2.s
+
+# target to generate assembly for a file
+src/core/lbit_avx2.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.s
+.PHONY : src/core/lbit_avx2.c.s
+
 src/core/memory_pool.o: src/core/memory_pool.c.o
 .PHONY : src/core/memory_pool.o
 
@@ -428,6 +452,9 @@ help:
 	@echo "... src/core/image.o"
 	@echo "... src/core/image.i"
 	@echo "... src/core/image.s"
+	@echo "... src/core/lbit_avx2.o"
+	@echo "... src/core/lbit_avx2.i"
+	@echo "... src/core/lbit_avx2.s"
 	@echo "... src/core/memory_pool.o"
 	@echo "... src/core/memory_pool.i"
 	@echo "... src/core/memory_pool.s"

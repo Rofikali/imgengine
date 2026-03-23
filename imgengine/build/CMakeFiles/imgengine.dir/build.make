@@ -111,10 +111,24 @@ CMakeFiles/imgengine.dir/src/core/image.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/imgengine.dir/src/core/image.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspaces/imgengine/imgengine/src/core/image.c -o CMakeFiles/imgengine.dir/src/core/image.c.s
 
+CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o: CMakeFiles/imgengine.dir/flags.make
+CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o: /workspaces/imgengine/imgengine/src/core/lbit_avx2.c
+CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o -MF CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o.d -o CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o -c /workspaces/imgengine/imgengine/src/core/lbit_avx2.c
+
+CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /workspaces/imgengine/imgengine/src/core/lbit_avx2.c > CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.i
+
+CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspaces/imgengine/imgengine/src/core/lbit_avx2.c -o CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.s
+
 CMakeFiles/imgengine.dir/src/ops/crop.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/ops/crop.c.o: /workspaces/imgengine/imgengine/src/ops/crop.c
 CMakeFiles/imgengine.dir/src/ops/crop.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/imgengine.dir/src/ops/crop.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/imgengine.dir/src/ops/crop.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/ops/crop.c.o -MF CMakeFiles/imgengine.dir/src/ops/crop.c.o.d -o CMakeFiles/imgengine.dir/src/ops/crop.c.o -c /workspaces/imgengine/imgengine/src/ops/crop.c
 
 CMakeFiles/imgengine.dir/src/ops/crop.c.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/imgengine.dir/src/ops/crop.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/ops/resize.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/ops/resize.c.o: /workspaces/imgengine/imgengine/src/ops/resize.c
 CMakeFiles/imgengine.dir/src/ops/resize.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/imgengine.dir/src/ops/resize.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/imgengine.dir/src/ops/resize.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/ops/resize.c.o -MF CMakeFiles/imgengine.dir/src/ops/resize.c.o.d -o CMakeFiles/imgengine.dir/src/ops/resize.c.o -c /workspaces/imgengine/imgengine/src/ops/resize.c
 
 CMakeFiles/imgengine.dir/src/ops/resize.c.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/imgengine.dir/src/ops/resize.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/ops/border.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/ops/border.c.o: /workspaces/imgengine/imgengine/src/ops/border.c
 CMakeFiles/imgengine.dir/src/ops/border.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/imgengine.dir/src/ops/border.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/imgengine.dir/src/ops/border.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/ops/border.c.o -MF CMakeFiles/imgengine.dir/src/ops/border.c.o.d -o CMakeFiles/imgengine.dir/src/ops/border.c.o -c /workspaces/imgengine/imgengine/src/ops/border.c
 
 CMakeFiles/imgengine.dir/src/ops/border.c.i: cmake_force
@@ -156,7 +170,7 @@ CMakeFiles/imgengine.dir/src/ops/border.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o: /workspaces/imgengine/imgengine/src/layout/grid_layout.c
 CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o -MF CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o.d -o CMakeFiles/imgengine.dir/src/layout/grid_layout.c.o -c /workspaces/imgengine/imgengine/src/layout/grid_layout.c
 
 CMakeFiles/imgengine.dir/src/layout/grid_layout.c.i: cmake_force
@@ -170,7 +184,7 @@ CMakeFiles/imgengine.dir/src/layout/grid_layout.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o: /workspaces/imgengine/imgengine/src/layout/auto_fit.c
 CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o -MF CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o.d -o CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o -c /workspaces/imgengine/imgengine/src/layout/auto_fit.c
 
 CMakeFiles/imgengine.dir/src/layout/auto_fit.c.i: cmake_force
@@ -184,7 +198,7 @@ CMakeFiles/imgengine.dir/src/layout/auto_fit.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/io/stb_impl.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/io/stb_impl.c.o: /workspaces/imgengine/imgengine/src/io/stb_impl.c
 CMakeFiles/imgengine.dir/src/io/stb_impl.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/imgengine.dir/src/io/stb_impl.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/imgengine.dir/src/io/stb_impl.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/io/stb_impl.c.o -MF CMakeFiles/imgengine.dir/src/io/stb_impl.c.o.d -o CMakeFiles/imgengine.dir/src/io/stb_impl.c.o -c /workspaces/imgengine/imgengine/src/io/stb_impl.c
 
 CMakeFiles/imgengine.dir/src/io/stb_impl.c.i: cmake_force
@@ -198,7 +212,7 @@ CMakeFiles/imgengine.dir/src/io/stb_impl.c.s: cmake_force
 CMakeFiles/imgengine.dir/src/api/api.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/src/api/api.c.o: /workspaces/imgengine/imgengine/src/api/api.c
 CMakeFiles/imgengine.dir/src/api/api.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/imgengine.dir/src/api/api.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/imgengine.dir/src/api/api.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/src/api/api.c.o -MF CMakeFiles/imgengine.dir/src/api/api.c.o.d -o CMakeFiles/imgengine.dir/src/api/api.c.o -c /workspaces/imgengine/imgengine/src/api/api.c
 
 CMakeFiles/imgengine.dir/src/api/api.c.i: cmake_force
@@ -214,6 +228,7 @@ imgengine_OBJECTS = \
 "CMakeFiles/imgengine.dir/src/core/memory_pool.c.o" \
 "CMakeFiles/imgengine.dir/src/core/context.c.o" \
 "CMakeFiles/imgengine.dir/src/core/image.c.o" \
+"CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o" \
 "CMakeFiles/imgengine.dir/src/ops/crop.c.o" \
 "CMakeFiles/imgengine.dir/src/ops/resize.c.o" \
 "CMakeFiles/imgengine.dir/src/ops/border.c.o" \
@@ -228,6 +243,7 @@ imgengine_EXTERNAL_OBJECTS =
 libimgengine.a: CMakeFiles/imgengine.dir/src/core/memory_pool.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/core/context.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/core/image.c.o
+libimgengine.a: CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/ops/crop.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/ops/resize.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/ops/border.c.o
@@ -237,7 +253,7 @@ libimgengine.a: CMakeFiles/imgengine.dir/src/io/stb_impl.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/src/api/api.c.o
 libimgengine.a: CMakeFiles/imgengine.dir/build.make
 libimgengine.a: CMakeFiles/imgengine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking C static library libimgengine.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking C static library libimgengine.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/imgengine.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/imgengine.dir/link.txt --verbose=$(VERBOSE)
 

@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/workspaces/imgengine/imgengine/src/api/api.c" "CMakeFiles/imgengine.dir/src/api/api.c.o" "gcc" "CMakeFiles/imgengine.dir/src/api/api.c.o.d"
   "/workspaces/imgengine/imgengine/src/core/context.c" "CMakeFiles/imgengine.dir/src/core/context.c.o" "gcc" "CMakeFiles/imgengine.dir/src/core/context.c.o.d"
   "/workspaces/imgengine/imgengine/src/core/image.c" "CMakeFiles/imgengine.dir/src/core/image.c.o" "gcc" "CMakeFiles/imgengine.dir/src/core/image.c.o.d"
+  "/workspaces/imgengine/imgengine/src/core/lbit_avx2.c" "CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o" "gcc" "CMakeFiles/imgengine.dir/src/core/lbit_avx2.c.o.d"
   "/workspaces/imgengine/imgengine/src/core/memory_pool.c" "CMakeFiles/imgengine.dir/src/core/memory_pool.c.o" "gcc" "CMakeFiles/imgengine.dir/src/core/memory_pool.c.o.d"
   "/workspaces/imgengine/imgengine/src/io/stb_impl.c" "CMakeFiles/imgengine.dir/src/io/stb_impl.c.o" "gcc" "CMakeFiles/imgengine.dir/src/io/stb_impl.c.o.d"
   "/workspaces/imgengine/imgengine/src/layout/auto_fit.c" "CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o" "gcc" "CMakeFiles/imgengine.dir/src/layout/auto_fit.c.o.d"
