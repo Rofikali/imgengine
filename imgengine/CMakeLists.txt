@@ -30,6 +30,7 @@ set(IMGENGINE_PRIVATE_SOURCES
     src/core/memory_pool.c
     src/core/context.c
     src/core/image.c
+    src/core/lbit_avx2.c   # ✅ ADD THIS
 
     # ops
     src/ops/crop.c
@@ -76,6 +77,20 @@ target_include_directories(imgengine
         ${PROJECT_SOURCE_DIR}/third_party
 )
 
+if (MSVC)
+    target_compile_options(imgengine PRIVATE /W4)
+else()
+    target_compile_options(imgengine PRIVATE 
+        -Wall -Wextra -Wpedantic
+        -O3
+        -mavx2
+        -mfma
+        -march=native
+        -fopenmp
+    )
+
+    target_link_libraries(imgengine PRIVATE m gomp)
+endif()
 
 # =========================
 # CLI

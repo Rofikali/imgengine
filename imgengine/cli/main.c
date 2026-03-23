@@ -1,34 +1,5 @@
 // // src/cli/main.c
 
-// #include "imgengine/api.h"
-
-// int main()
-// {
-
-//     img_ctx_t ctx;
-//     img_ctx_init(&ctx, 50 * 1024 * 1024);
-
-//     img_job_t job = {
-//         .photo_w_cm = 4.5,
-//         .photo_h_cm = 3.5,
-//         .dpi = 300,
-//         .cols = 2,
-//         .rows = 3,
-//         .gap = 15,
-//         .border_px = 2,
-//         .mode = IMG_FILL,
-//         .bg_r = 255,
-//         .bg_g = 255,
-//         .bg_b = 255};
-
-//     imgengine_run(&ctx, "input.jpg", "output.png", &job);
-
-//     img_ctx_destroy(&ctx);
-//     return 0;
-// }
-
-// src/cli/main.c
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,20 +21,18 @@ static void print_usage()
     printf("  imgengine_cli --input input.jpg --output output.png [options]\n\n");
 
     printf("Options:\n");
-    printf("  --cols N        number of columns (default 2)\n");
-    printf("  --rows N        number of rows (default 3)\n");
-    printf("  --gap N         gap in pixels (default 15)\n");
-    printf("  --dpi N         DPI (default 300)\n");
-    printf("  --width F       photo width in cm (default 4.5)\n");
-    printf("  --height F      photo height in cm (default 3.5)\n");
-    printf("  --border N      border in px (default 2)\n");
-    printf("  --padding N      padding in px (default 20)\n");
-    // printf("AutoFit → cols: %d rows: %d\n", cols, rows);
+    printf("  --cols N\n");
+    printf("  --rows N\n");
+    printf("  --gap N\n");
+    printf("  --dpi N\n");
+    printf("  --width F (cm)\n");
+    printf("  --height F (cm)\n");
+    printf("  --border N\n");
+    printf("  --padding N\n");
 }
 
 int main(int argc, char **argv)
 {
-    int auto_fit = 0;
     const char *input = NULL;
     const char *output = "output.png";
 
@@ -77,57 +46,28 @@ int main(int argc, char **argv)
     float w_cm = DEFAULT_W_CM;
     float h_cm = DEFAULT_H_CM;
 
-    // =========================
-    // ARG PARSING
-    // =========================
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "--input") == 0 && i + 1 < argc)
-        {
             input = argv[++i];
-        }
         else if (strcmp(argv[i], "--output") == 0 && i + 1 < argc)
-        {
             output = argv[++i];
-        }
         else if (strcmp(argv[i], "--cols") == 0 && i + 1 < argc)
-        {
             cols = atoi(argv[++i]);
-        }
         else if (strcmp(argv[i], "--rows") == 0 && i + 1 < argc)
-        {
             rows = atoi(argv[++i]);
-        }
         else if (strcmp(argv[i], "--gap") == 0 && i + 1 < argc)
-        {
             gap = atoi(argv[++i]);
-        }
         else if (strcmp(argv[i], "--dpi") == 0 && i + 1 < argc)
-        {
             dpi = atoi(argv[++i]);
-        }
         else if (strcmp(argv[i], "--width") == 0 && i + 1 < argc)
-        {
             w_cm = atof(argv[++i]);
-        }
         else if (strcmp(argv[i], "--height") == 0 && i + 1 < argc)
-        {
             h_cm = atof(argv[++i]);
-        }
         else if (strcmp(argv[i], "--border") == 0 && i + 1 < argc)
-        {
             border = atoi(argv[++i]);
-        }
         else if (strcmp(argv[i], "--padding") == 0 && i + 1 < argc)
-        {
             padding = atoi(argv[++i]);
-        }
-
-        else if (strcmp(argv[i], "--auto-fit") == 0)
-        {
-            auto_fit = 1;
-        }
-
         else
         {
             printf("Unknown argument: %s\n\n", argv[i]);
@@ -143,11 +83,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // =========================
-    // ENGINE SETUP
-    // =========================
     img_ctx_t ctx;
-    img_ctx_init(&ctx, 100 * 1024 * 1024); // safer pool
+    img_ctx_init(&ctx, 100 * 1024 * 1024);
 
     img_job_t job = {
         .photo_w_cm = w_cm,
@@ -157,26 +94,18 @@ int main(int argc, char **argv)
         .rows = rows,
         .gap = gap,
         .border_px = border,
-        .padding = padding, // 🔥 ADD THIS LINE
-        .auto_fit = auto_fit,
+        .padding = padding,
         .mode = IMG_FILL,
         .bg_r = 255,
         .bg_g = 255,
         .bg_b = 255};
 
-    // =========================
-    // RUN ENGINE
-    // =========================
     int ret = imgengine_run(&ctx, input, output, &job);
 
     if (ret != 0)
-    {
         printf("❌ Failed with error code: %d\n", ret);
-    }
     else
-    {
         printf("✅ Output generated: %s\n", output);
-    }
 
     img_ctx_destroy(&ctx);
     return ret;

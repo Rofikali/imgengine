@@ -30,18 +30,19 @@
 ### RUN LIKE THIS
 
     ./imgengine_cli \
-  --input input.jpg \
-  --output finel_output.png \
+  --input ../input.jpg \
   --cols 6 \
-  --rows 1 \
-  --gap 20 \
-  --padding 20
+  --rows 6 \
+  --gap 10 \
+  --width 3.5 \
+  --height 3.0 \
+  --padding 10
 
  ./imgengine_cli \
-  --input input.jpg \
+  --input ../input.jpg \
   --output finel_output.png \
   --cols 6 \
-  --rows 1 \
+  --rows  \
   --gap 10 \
   --width 3.5 \
   --height 3.0 \
@@ -60,3 +61,6 @@ mkdir build && cd build
 
 cmake ..
 make
+
+rm -rf build 
+rm -rf build && mkdir build && cd build && cmake .. && make

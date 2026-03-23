@@ -1,174 +1,147 @@
-
-// // #include "imgengine/image.h"
-
-// // int layout_grid(img_t *canvas,
-// //                 const img_t *photo,
-// //                 int cols, int rows, int gap)
-// // {
-
-// //     int total_w = cols * photo->width + (cols - 1) * gap;
-// //     int total_h = rows * photo->height + (rows - 1) * gap;
-
-// //     int start_x = (canvas->width - total_w) / 2;
-// //     int start_y = (canvas->height - total_h) / 2;
-
-// //     for (int r = 0; r < rows; r++)
-// //     {
-// //         for (int c = 0; c < cols; c++)
-// //         {
-
-// //             int x0 = start_x + c * (photo->width + gap);
-// //             int y0 = start_y + r * (photo->height + gap);
-
-// //             for (int y = 0; y < photo->height; y++)
-// //             {
-// //                 for (int x = 0; x < photo->width; x++)
-// //                 {
-
-// //                     int src = (y * photo->width + x) * 3;
-// //                     int dst = ((y0 + y) * canvas->width + (x0 + x)) * 3;
-
-// //                     canvas->data[dst + 0] = photo->data[src + 0];
-// //                     canvas->data[dst + 1] = photo->data[src + 1];
-// //                     canvas->data[dst + 2] = photo->data[src + 2];
-// //                 }
-// //             }
-// //         }
-// //     }
-
-// //     return 1;
-// // }
-
-// // src/layout/layout_grid.c
-
-// #include "imgengine/image.h"
-
-// int layout_grid(img_t *canvas,
-//                 const img_t *photo,
-//                 int cols, int rows, int gap)
-// {
-//     int pw = photo->width;
-//     int ph = photo->height;
-
-//     int padding = 20; // 🔥 default outer padding
-
-//     int x = padding;
-//     int y = padding;
-
-//     for (int r = 0; r < rows; r++)
-//     {
-//         x = padding;
-
-//         for (int c = 0; c < cols; c++)
-//         {
-//             // bounds check (very important)
-//             if (x + pw > canvas->width || y + ph > canvas->height)
-//                 return 0;
-
-//             // copy image
-//             for (int iy = 0; iy < ph; iy++)
-//             {
-//                 for (int ix = 0; ix < pw; ix++)
-//                 {
-//                     int src_idx = (iy * pw + ix) * 3;
-//                     int dst_idx = ((y + iy) * canvas->width + (x + ix)) * 3;
-
-//                     canvas->data[dst_idx + 0] = photo->data[src_idx + 0];
-//                     canvas->data[dst_idx + 1] = photo->data[src_idx + 1];
-//                     canvas->data[dst_idx + 2] = photo->data[src_idx + 2];
-//                 }
-//             }
-
-//             x += pw + gap;
-//         }
-
-//         y += ph + gap;
-//     }
-
-//     return 1;
-// }
-
-// src/layout/grid_layout.c 
+// src/layout/grid_layout.c
 
 #include "imgengine/image.h"
+#include "imgengine/resize.h"
+#include "imgengine/context.h"
+
+extern void img_blit_avx2(img_t *, const img_t *, int, int);
 
 int layout_grid(img_t *canvas,
                 const img_t *photo,
-                int cols, int rows, int gap, int padding)
+                int cols, int rows,
+                int gap, int padding,
+                img_ctx_t *ctx)
 {
     int pw = photo->width;
     int ph = photo->height;
 
-    int x = padding;
-    int y = padding;
+    int usable_w = canvas->width - 2 * padding;
+    int usable_h = canvas->height - 2 * padding;
 
+    // =========================
+    // SCALE (FIT TO PAGE - NEVER BREAK)
+    // =========================
+    float scale_x = (float)usable_w /
+                    (cols * pw + (cols - 1) * gap);
+
+    float scale_y = (float)usable_h /
+                    (rows * ph + (rows - 1) * gap);
+
+    float scale = scale_x < scale_y ? scale_x : scale_y;
+
+    if (scale > 1.0f)
+        scale = 1.0f; // no upscale
+
+    int final_pw = (int)(pw * scale);
+    int final_ph = (int)(ph * scale);
+
+    // =========================
+    // PRE-RESIZE ONCE (ULTRA IMPORTANT)
+    // =========================
+    img_t scaled;
+    if (!img_resize(photo, &scaled, &ctx->pool, final_pw, final_ph))
+        return 0;
+
+    // =========================
+    // GRID TOTAL SIZE
+    // =========================
+    int total_w = cols * final_pw + (cols - 1) * gap;
+    // int total_h = rows * final_ph + (rows - 1) * gap;
+
+    // =========================
+    // ⭐ PRO HYBRID POSITIONING
+    // =========================
+    int start_x = (canvas->width - total_w) / 2; // center horizontally
+    int start_y = padding;                       // top aligned
+
+    // Safety clamp (never go negative)
+    if (start_x < padding)
+        start_x = padding;
+
+    // =========================
+    // GRID PLACEMENT (SIMD READY)
+    // =========================
     for (int r = 0; r < rows; r++)
     {
-        x = padding;
-
         for (int c = 0; c < cols; c++)
         {
-            if (x + pw > canvas->width || y + ph > canvas->height)
-                return 0;
+            int x = start_x + c * (final_pw + gap);
+            int y = start_y + r * (final_ph + gap);
 
-            for (int iy = 0; iy < ph; iy++)
-            {
-                for (int ix = 0; ix < pw; ix++)
-                {
-                    int src_idx = (iy * pw + ix) * 3;
-                    int dst_idx = ((y + iy) * canvas->width + (x + ix)) * 3;
-
-                    canvas->data[dst_idx + 0] = photo->data[src_idx + 0];
-                    canvas->data[dst_idx + 1] = photo->data[src_idx + 1];
-                    canvas->data[dst_idx + 2] = photo->data[src_idx + 2];
-                }
-            }
-
-            x += pw + gap;
+            img_blit_avx2(canvas, &scaled, x, y);
         }
-
-        y += ph + gap;
     }
 
     return 1;
 }
 
+// #include "imgengine/image.h"
+// #include "imgengine/context.h"
+// #include "imgengine/resize.h"
+
+// #include <omp.h>
+
+// // 🔥 use AVX2 blitter
+// extern void img_blit_avx2(img_t *, const img_t *, int, int);
+
 // int layout_grid(img_t *canvas,
 //                 const img_t *photo,
-//                 int cols, int rows, int gap, int padding) // ✅ FIXED
+//                 int cols, int rows,
+//                 int gap, int padding,
+//                 img_ctx_t *ctx)
 // {
 //     int pw = photo->width;
 //     int ph = photo->height;
 
-//     int x = padding;
-//     int y = padding;
+//     int usable_w = canvas->width - 2 * padding;
+//     int usable_h = canvas->height - 2 * padding;
 
+//     // =========================
+//     // FIT WITHOUT BREAKING
+//     // =========================
+//     float scale_x = (float)usable_w /
+//                     (cols * pw + (cols - 1) * gap);
+
+//     float scale_y = (float)usable_h /
+//                     (rows * ph + (rows - 1) * gap);
+
+//     float scale = scale_x < scale_y ? scale_x : scale_y;
+
+//     if (scale > 1.0f)
+//         scale = 1.0f;
+
+//     int final_pw = pw * scale;
+//     int final_ph = ph * scale;
+
+//     // =========================
+//     // PRE-RESIZE ONCE
+//     // =========================
+//     img_t scaled;
+//     if (!img_resize(photo, &scaled, &ctx->pool, final_pw, final_ph))
+//         return 0;
+
+//     // =========================
+//     // CENTER GRID
+//     // =========================
+//     int total_w = cols * final_pw + (cols - 1) * gap;
+//     int total_h = rows * final_ph + (rows - 1) * gap;
+
+//     int start_x = (canvas->width - total_w) / 2;
+//     int start_y = (canvas->height - total_h) / 2;
+
+//     // =========================
+//     // MULTI-THREAD
+//     // =========================
+// #pragma omp parallel for schedule(static)
 //     for (int r = 0; r < rows; r++)
 //     {
-//         x = padding;
-
 //         for (int c = 0; c < cols; c++)
 //         {
-//             if (x + pw > canvas->width || y + ph > canvas->height)
-//                 return 0;
+//             int x = start_x + c * (final_pw + gap);
+//             int y = start_y + r * (final_ph + gap);
 
-//             for (int iy = 0; iy < ph; iy++)
-//             {
-//                 for (int ix = 0; ix < pw; ix++)
-//                 {
-//                     int src_idx = (iy * pw + ix) * 3;
-//                     int dst_idx = ((y + iy) * canvas->width + (x + ix)) * 3;
-
-//                     canvas->data[dst_idx + 0] = photo->data[src_idx + 0];
-//                     canvas->data[dst_idx + 1] = photo->data[src_idx + 1];
-//                     canvas->data[dst_idx + 2] = photo->data[src_idx + 2];
-//                 }
-//             }
-
-//             x += pw + gap;
+//             img_blit_avx2(canvas, &scaled, x, y);
 //         }
-
-//         y += ph + gap;
 //     }
 
 //     return 1;
