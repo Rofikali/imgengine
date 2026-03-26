@@ -3,7 +3,7 @@ services:
 
 
   api:
-    build: ../api-service
+    build: ../backend/api-service
     ports:
       - "8000:8000"
     volumes:
@@ -15,8 +15,8 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: worker-service/Dockerfile
-    # command: celery -A tasks worker --loglevel=info
+      dockerfile: backend/worker-service/Dockerfile
+
     command: uv run celery -A tasks worker --loglevel=info
     volumes:
       - ../data:/data

@@ -33,7 +33,8 @@ def generate(
     request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     job_id = str(uuid.uuid4())
-    logger.info(f"Job created: {job_id}")
+    trace_id = str(uuid.uuid4())
+    logger.info(f"Job created: {job_id}, with trace_id : {trace_id}")
 
     input_path = f"/data/uploads/{job_id}_{file.filename}"
     output_path = f"/data/outputs/{job_id}.png"
@@ -47,7 +48,13 @@ def generate(
     settings = GenerateJob(input=input_path, output=output_path)
 
     # save job in DB
-    job = Job(id=job_id, input=input_path, output=output_path, status="queued")
+    job = Job(
+        id=job_id,
+        trace_id=trace_id,
+        input=input_path,
+        output=output_path,
+        status="queued",
+    )
     db.add(job)
     db.commit()
 
@@ -57,6 +64,7 @@ def generate(
         args=[
             {
                 "job_id": job_id,
+                "trace_id": trace_id,
                 "input": input_path,
                 "output": output_path,
                 **settings.model_dump(),
@@ -67,6 +75,7 @@ def generate(
     # return {"job_id": job_id}
     return {
         "job_id": job.id,
+        "trace_id": trace_id,
         "status": job.status,
         "output": job.output,
         "error": job.error,
@@ -76,5 +85,11 @@ def generate(
 @router.get("/status/{job_id}")
 def status(job_id: str, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
+    trace_id = str(uuid.uuid4())
 
-    return {"job_id": job.id, "status": job.status, "output": job.output}
+    return {
+        "job_id": job.id,
+        "trace_id": trace_id,
+        "status": job.status,
+        "output": job.output,
+    }

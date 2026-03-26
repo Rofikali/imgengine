@@ -24,12 +24,15 @@ celery = Celery(
 def process_image(self, job: dict):
 
     job_id = job["job_id"]
+    trace_id = job.get("trace_id")
+
+    print(f"[TRACE {trace_id}] Processing job {job['job_id']}")
 
     try:
         # 🔥 mark processing
         requests.patch(
             f"{API_URL}/internal/jobs/{job_id}",
-            json={"status": "processing"},
+            json={"status": "processing", "trace_id": trace_id},
         )
         print("CALLING API 1 :", f"{API_URL}/internal/jobs/{job_id}")
 
@@ -42,6 +45,7 @@ def process_image(self, job: dict):
                 f"{API_URL}/internal/jobs/{job_id}",
                 json={
                     "status": "failed",
+                    "trace_id": trace_id,
                     "error": result["stderr"],
                 },
             )
@@ -53,6 +57,7 @@ def process_image(self, job: dict):
             f"{API_URL}/internal/jobs/{job_id}",
             json={
                 "status": "completed",
+                "trace_id": trace_id,
                 "logs": result["stdout"],
             },
         )
@@ -64,6 +69,7 @@ def process_image(self, job: dict):
             f"{API_URL}/internal/jobs/{job_id}",
             json={
                 "status": "retrying",
+                "trace_id": trace_id,
                 "error": str(e),
             },
         )
