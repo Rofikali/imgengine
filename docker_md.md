@@ -1,13 +1,7 @@
 ### python logs
 
-    *** Now that the API is sending jobs, you should check your worker logs to see if it's actually processing the image: ***
-    docker compose logs worker -f
-
-    docker compose logs worker
-
-### api logs
-
-    docker compose logs api
+    docker compose logs -f worker
+    docker compose logs -f api
 
 ### Testing with Curl
 
@@ -18,15 +12,26 @@
   "rows": 2
 }'
 
-### Steps for your Worker
-
-    Now that the API is sending jobs, you should check your worker logs to see if it's actually processing the image:
-    docker compose logs worker -f
 
 ### Standard COMPOSE UP/DOWN ( from anywhere )
+    👉 -v ensures:
 
-    The correct syntax to build and start your containers in detached mode from an outside directory is:
+    DB resets cleanly
+    No old broken state
 
     docker compose -f ./infra/docker-compose.yml up --build -d
 
-    docker compose -f ./infra/docker-compose.yml down
+    docker compose -f ./infra/docker-compose.yml down -v
+
+    ls -R /workspaces/imgengine/imgengine-saas/
+    docker exec -it infra-api-1 uv run python -c "from app.main import app; [print(route.path) for route in app.routes]"
+
+
+### Restarting 
+    docker compose restart api
+
+
+
+
+sudo rm -rf /workspaces/imgengine/imgengine-saas/data/outputs/*
+sudo rm -rf /workspaces/imgengine/imgengine-saas/data/uploads/*

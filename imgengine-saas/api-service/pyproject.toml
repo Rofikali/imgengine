@@ -1,7 +1,7 @@
 [project]
 name = "imgengine"
 version = "0.1.0"
-description = "Add your description here"
+description = "ImgEngine SAAS with fastapi and C "
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -10,6 +10,7 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "python-multipart>=0.0.22",
     "redis>=7.4.0",
+    "requests>=2.33.0",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.48",
     "uvicorn>=0.42.0",

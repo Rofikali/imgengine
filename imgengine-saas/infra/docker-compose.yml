@@ -1,6 +1,7 @@
 # infra/docker-compose.yaml
 services:
 
+
   api:
     build: ../api-service
     ports:
@@ -12,8 +13,11 @@ services:
       - db
 
   worker:
-    build: ../worker-service
-    command: celery -A tasks worker --loglevel=info
+    build:
+      context: ..
+      dockerfile: worker-service/Dockerfile
+    # command: celery -A tasks worker --loglevel=info
+    command: uv run celery -A tasks worker --loglevel=info
     volumes:
       - ../data:/data
     depends_on:

@@ -52,15 +52,16 @@ def generate(
     db.commit()
 
     # 3. Send the FULL dictionary to the worker
-    # celery.send_task("worker.process_image", args=[settings.model_dump()])
     celery.send_task(
-        "worker.process_image",
-        job_payload={
-            "job_id": job_id,
-            "input": input_path,
-            "output": output_path,
-            **settings.model_dump(),
-        },
+        "tasks.process_image",  # ✅ FIXED",
+        args=[
+            {
+                "job_id": job_id,
+                "input": input_path,
+                "output": output_path,
+                **settings.model_dump(),
+            }
+        ],
     )
 
     # return {"job_id": job_id}

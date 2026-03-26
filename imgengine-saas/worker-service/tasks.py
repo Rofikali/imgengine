@@ -1,22 +1,11 @@
-# worker-service/tasks.py
+# # worker-service/tasks.py
 
 from celery import Celery
 from engine_runner import run_engine
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import requests
 import os
-import traceback
-from datetime import datetime
 
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://imgengine:imgengine@db:5432/imgengine"
-)
-
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine)
-
+API_URL = os.getenv("API_URL", "http://api:8000")
 
 celery = Celery(
     "worker",
@@ -26,6 +15,7 @@ celery = Celery(
 
 
 @celery.task(
+    name="tasks.process_image",
     bind=True,
     autoretry_for=(Exception,),
     retry_backoff=5,
@@ -33,42 +23,49 @@ celery = Celery(
 )
 def process_image(self, job: dict):
 
-    logger.info(f"Processing job: {job['job_id']}")
-    logger.error(result["stderr"])
-
-    db = SessionLocal()
+    job_id = job["job_id"]
 
     try:
-        db_job = db.query(job).filter(job.id == job["job_id"]).first()
+        # 🔥 mark processing
+        requests.patch(
+            f"{API_URL}/internal/jobs/{job_id}",
+            json={"status": "processing"},
+        )
+        print("CALLING API 1 :", f"{API_URL}/internal/jobs/{job_id}")
 
-        # 🔥 MARK STARTED
-        db_job.status = "processing"
-        db_job.updated_at = datetime.utcnow()
-        db.commit()
-
-        # 🔥 RUN ENGINE
+        # 🔥 run engine
         result = run_engine(job)
 
-        db_job.logs = result["stdout"]
-
+        # 🔥 success / failure
         if result["returncode"] != 0:
-            db_job.status = "failed"
-            db_job.error = result["stderr"]
-            db.commit()
+            requests.patch(
+                f"{API_URL}/internal/jobs/{job_id}",
+                json={
+                    "status": "failed",
+                    "error": result["stderr"],
+                },
+            )
+            print("CALLING API 2 :", f"{API_URL}/internal/jobs/{job_id}")
             return
 
-        # ✅ SUCCESS
-        db_job.status = "completed"
-        db_job.updated_at = datetime.utcnow()
-        db.commit()
+        # ✅ success
+        requests.patch(
+            f"{API_URL}/internal/jobs/{job_id}",
+            json={
+                "status": "completed",
+                "logs": result["stdout"],
+            },
+        )
+        print("CALLING API 3 :", f"{API_URL}/internal/jobs/{job_id}")
 
     except Exception as e:
-        # 🔥 AUTO RETRY TRIGGER
-        db_job.status = "retrying"
-        db_job.error = traceback.format_exc()
-        db.commit()
-
+        # 🔥 retry + mark retrying
+        requests.patch(
+            f"{API_URL}/internal/jobs/{job_id}",
+            json={
+                "status": "retrying",
+                "error": str(e),
+            },
+        )
+        print("CALLING API 4 :", f"{API_URL}/internal/jobs/{job_id}")
         raise self.retry(exc=e)
-
-    finally:
-        db.close()

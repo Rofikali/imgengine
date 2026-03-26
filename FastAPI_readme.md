@@ -158,59 +158,51 @@
 ### 1. FULL PROJECT STRUCTURE (INDUSTRY GRADE)
 
     imgengine-saas/
-    │
-    ├── backend/                         # FastAPI backend
-    │   ├── app/
-    │   │   ├── api/                     # API layer
-    │   │   │   ├── routes/
-    │   │   │   │   └── generate.py      # Image generation endpoint
-    │   │   │   └── deps.py              # Dependency injection
+    ├── 🚀 backend/                          # CONTROL PLANE (FastAPI)
+    │   ├── 📂 api-service/
+    │   │   ├── 📂 api/                      # API Layer
+    │   │   │   ├── 📂 routes/
+    │   │   │   │   └── 📄 generate.py       # Endpoint: File upload & Task dispatch
+    │   │   │   └── 📄 deps.py               # Dependency Injection (Auth, DB Session)
     │   │   │
-    │   │   ├── core/                    # Core configs & utilities
-    │   │   │   ├── config.py
-    │   │   │   ├── security.py
-    │   │   │   ├── limiter.py           # Rate limiting
-    │   │   │   └── db.py                # DB connection
+    │   │   ├── 📂 core/                     # System Internals
+    │   │   │   ├── 📄 config.py             # Pydantic Settings & Env vars
+    │   │   │   ├── 📄 security.py           # JWT & API Key logic
+    │   │   │   ├── 📄 limiter.py            # Redis-based Rate Limiting
+    │   │   │   ├── 📄 db.py                 # SQLAlchemy/SQLModel Engine setup
+    │   │   │   ├── 📄 celery_client.py      # Task Producer configuration
+    │   │   │   └── 📄 logger.py             # Structured JSON logging
     │   │   │
-    │   │   ├── models/                  # ORM models
-    │   │   │   └── job.py
+    │   │   ├── 📂 models/                   # DB Data Structures
+    │   │   │   └── 📄 job.py                # Job Table (UUID, Status, FilePaths)
     │   │   │
-    │   │   ├── schemas/                 # Pydantic schemas
-    │   │   │   └── job.py
+    │   │   ├── 📂 schemas/                  # Pydantic (Data Validation)
+    │   │   │   └── 📄 job.py                # JobCreate, JobRead, JobUpdate DTOs
     │   │   │
-    │   │   ├── services/                # Business logic
-    │   │   │   └── engine_runner.py     # CLI bridge (C binary executor)
-    │   │   │
-    │   │   ├── workers/                 # Background tasks
-    │   │   │   └── tasks.py             # Celery jobs
-    │   │   │
-    │   │   ├── main.py                  # FastAPI entrypoint
-    │   │   └── __init__.py
+    │   │   └── 📄 main.py                   # FastAPI Application Entrypoint
     │   │
-    │   ├── requirements.txt
-    │   └── Dockerfile
+    │   ├── 📄 pyproject.toml                # 'uv' Project manifest
+    │   ├── 📄 uv.lock                       # Deterministic lockfile
+    │   └── 🐳 Dockerfile                    # Lean Python runtime
     │
-    ├── worker/                          # Celery worker service
-    │   ├── worker.py
-    │   ├── Dockerfile
-    │   ├── imgengine_cli.exe            # Compiled C binary
-    │   ├── pyproject.toml
-    │   ├── uv.lock
-    │   └── .python-version
+    ├── ⚙️ worker-service/                   # DATA PLANE (Task Execution)
+    │   ├── 📄 tasks.py                      # Celery @task definitions
+    │   ├── 📄 engine_runner.py              # C-Binary subprocess wrapper
+    │   ├── ⚙️ imgengine_cli.exe              # High-speed Compiled C Engine
+    │   └── 🐳 Dockerfile                    # Environment with C-libs
     │
-    ├── infra/                           # Infrastructure & DevOps
-    │   ├── docker-compose.yml
-    │   ├── nginx.conf
-    │   └── .devcontainer/
-    │       └── devcontainer.json
+    ├── 🌐 infra/                            # ORCHESTRATION & DEVOPS
+    │   ├── 📄 docker-compose.yml            # Multi-container stack definition
+    │   ├── 📄 nginx.conf                    # Reverse proxy & Static asset routing
+    │   └── 📂 .devcontainer/                # Isolated VS Code Dev Environment
+    │       └── 📄 devcontainer.json
     │
-    ├── data/                            # Persistent storage
-    │   ├── uploads/                     # Incoming images
-    │   └── outputs/                     # Processed results
+    ├── 📁 data/                             # SHARED PERSISTENCE (Volumes)
+    │   ├── 📂 uploads/                      # Raw user assets (Input)
+    │   └── 📂 outputs/                      # Processed results (Output)
     │
-    ├── frontend/                        # Future UI (React / Nuxt)
-    │
-    └── README.md
+    ├── 💻 frontend/                         # UI LAYER (React/Nuxt)
+    └── 📄 README.md                         # Project Documentation
 
 # 🚀 ImgEngine SaaS
 
@@ -502,7 +494,7 @@ If you're building this alone or in a small team:
 
 ---
 
-### Final one imgengine-saas/ Microservices 
+### Final one imgengine-saas/ Microservices
 
     ├── imgengine-saas/
     │   ├── api-service/
