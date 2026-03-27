@@ -196,10 +196,25 @@
     │   ├── 📄 nginx.conf                    # Reverse proxy & Static asset routing
     │   └── 📂 .devcontainer/                # Isolated VS Code Dev Environment
     │       └── 📄 devcontainer.json
+    │   ├── observability/              # ⭐ NEW (VERY IMPORTANT)
+    │   │   ├── logstash/
+    │   │   │   └── logstash.conf
+    │   │   │
+    │   │   ├── elasticsearch/
+    │   │   │   └── elasticsearch.yml
+    │   │   │
+    │   │   └── kibana/
+    │   │   |   └── kibana.yml
+    |   │   ├── prometheus/
+    |   │   │   └── prometheus.yml
+        │   │
+        │   └── grafana/
+        │       └── provisioning/
     │
     ├── 📁 data/                             # SHARED PERSISTENCE (Volumes)
     │   ├── 📂 uploads/                      # Raw user assets (Input)
     │   └── 📂 outputs/                      # Processed results (Output)
+    │   ├── logs/                            # ⭐ shared logs volume
     │
     ├── 💻 frontend/                         # UI LAYER (React/Nuxt)
     └── 📄 README.md                         # Project Documentation

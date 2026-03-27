@@ -1,5 +1,8 @@
 ### python logs
 
+    curl -O "https://example.com/image.jpg"    # download test image from internet using curl 
+
+
     docker compose logs -f worker
     docker compose logs -f api
 
@@ -12,8 +15,8 @@
   "rows": 2
 }'
 
-
 ### Standard COMPOSE UP/DOWN ( from anywhere )
+
     👉 -v ensures:
 
     DB resets cleanly
@@ -26,12 +29,9 @@
     ls -R /workspaces/imgengine/imgengine-saas/
     docker exec -it infra-api-1 uv run python -c "from app.main import app; [print(route.path) for route in app.routes]"
 
+### Restarting
 
-### Restarting 
     docker compose restart api
-
-
-
 
 sudo rm -rf /workspaces/imgengine/imgengine-saas/data/outputs/*
 sudo rm -rf /workspaces/imgengine/imgengine-saas/data/uploads/*
