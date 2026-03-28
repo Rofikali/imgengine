@@ -1,1 +1,54 @@
 *build
+# === Python / uv / Virtual Envs ===
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# === C / Systems Engineering ===
+*.o
+*.out
+*.so
+*.a
+imgengine_cli
+# Ignore all built binaries in the build folder
+build/
+
+# === Docker & Infrastructure ===
+.docker/
+# Ignore local database storage and logs
+data/
+logs/
+*.log
+
+# === Node.js / Nuxt / Vue (Frontend) ===
+node_modules/
+.nuxt/
+.output/
+dist/
+.env
+.env.*
+!.env.example
+
+# === Databases & State ===
+*.sqlite3
+*.db
+# Postgres data (if mounted locally)
+pgdata/
+
+# === OS & IDE Specific ===
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# === Stress Testing & Temporary Files ===
+testing_scripts/*.jpg
+testing_scripts/*.png
+!testing_scripts/4.jpg
