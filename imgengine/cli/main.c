@@ -681,6 +681,14 @@ static void print_usage() {
     printf("  --bleed <px>           Edge bleed (default: %d)\n", DEFAULT_BLEED);
     printf("  --crop-mark <px>       Mark length (default: %d)\n", DEFAULT_CROP_MARK);
     printf("  --crop-offset <px>     Distance from edge (default: %d)\n", DEFAULT_CROP_OFFSET);
+
+    printf("PHOTO SETTINGS:\n");
+    printf("  --width <cm>           Photo width in cm (default: %.1f)\n", DEFAULT_W_CM);
+    printf("  --height <cm>          Photo height in cm (default: %.1f)\n", DEFAULT_H_CM);
+    printf("  --dpi <int>            Print DPI (default: %d)\n", DEFAULT_DPI);
+    printf("  --border <px>          Border thickness (default: %d)\n", DEFAULT_BORDER);
+    printf("\n");
+
     printf("\nEXAMPLES:\n");
     printf("  imgengine_cli --input in.jpg --cols 6 --rows 2 --bleed 15 --crop-mark 30\n\n");
 }

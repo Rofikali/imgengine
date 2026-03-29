@@ -1,0 +1,20 @@
+{
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_fallbackStyle": "LLVM",
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 100, AllowShortFunctionsOnASingleLine: None }",
+    "C_Cpp.intelliSenseEngine": "default",
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c"
+    },
+    "[c]": {
+        "editor.wordBasedSuggestions": "matchingDocuments",
+        "editor.suggestSelection": "recentlyUsed",
+        "editor.semanticHighlighting.enabled": true
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
+}

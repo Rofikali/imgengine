@@ -1,12 +1,11 @@
-// imgengine/memory_pool.h 
+// imgengine/memory_pool.h
 
 #ifndef IMG_MEMORY_POOL_H
 #define IMG_MEMORY_POOL_H
 
 #include <stddef.h>
 
-typedef struct
-{
+typedef struct {
     unsigned char *buffer;
     size_t size;
     size_t offset;

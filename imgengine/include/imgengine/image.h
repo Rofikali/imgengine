@@ -9,6 +9,7 @@ typedef struct {
     int width;
     int height;
     int channels;
+    // int stride;          /* Number of bytes per row, 32-byte aligned */
     unsigned char *data; /* 32-byte aligned for AVX2 */
 } img_t;
 

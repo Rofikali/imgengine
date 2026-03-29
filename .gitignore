@@ -43,7 +43,7 @@ pgdata/
 
 # === OS & IDE Specific ===
 .DS_Store
-.vscode/
+# .vscode/
 .idea/
 *.swp
 *.bak

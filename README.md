@@ -125,47 +125,10 @@ Designed for **print shops, studios, and automation pipelines**, it delivers pre
 
     1. Passport Sheet
     imgengine_cli --input photo.jpg --cols 3 --rows 2
-    2. Studio Layout (A4)
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.png \
-      --cols 6 \
-      --rows 2 \
-      --gap 15 \
-      --padding 20 \
-      --width 3.5 \
-      --height 3.0
-    3. Print-Ready (Bleed + Crop Marks)
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.png \
-      --cols 6 \
-      --rows 2 \
-      --bleed 10 \
-      --crop-mark 25 \
-      --crop-offset 8
-    4. PDF Export
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.pdf \
-      --cols 6 \
-      --rows 2 \
-      --bleed 10
+    ./imgengine_cli --input ../input.jpg --output final.png --cols 4 --rows 2 --gap 120 --padding 80 --bleed 20 --crop-offset 10 --crop-mark 40 --width 4.5 --height 3.5 --dpi 300 --border 2 --crop-thickness 22
 
-## 🚀 Architecture
-
-    Core Components
-    Context System
-    Central memory pool
-    Layout metadata storage
-    Layout Engine
-    Grid-based placement
-    Auto-scaling logic
-    Plugin System
-    Crop marks
-    Bleed rendering
-    SIMD Layer
-    AVX2 accelerated image operations
+    2. PDF EXPORT
+    ./imgengine_cli --input ../input.jpg --output final.pdf --cols 4 --rows 2 --gap 120 --padding 80 --bleed 20 --crop-offset 10 --crop-mark 40 --width 4.5 --height 3.5 --dpi 300 --border 2 --crop-thickness 22
 
 ## ⚡ Performance
 

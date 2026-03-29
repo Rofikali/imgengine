@@ -24,7 +24,7 @@ set(LIB_SOURCES
 
     # layouts 
     src/layout/grid_layout.c
-    src/layout/auto_fit.c
+    # src/layout/auto_fit.c
     src/layout/crop_marks.c
 
     # io
@@ -72,3 +72,29 @@ endif()
 # Build the CLI
 add_executable(imgengine_cli cli/main.c)
 target_link_libraries(imgengine_cli PRIVATE imgengine)
+
+
+# # Add to your root CMakeLists.txt
+# enable_testing()
+
+# # Helper macro to reduce boilerplate
+# macro(add_imgengine_test name src)
+#     add_executable(test_${name} ${src})
+#     target_link_libraries(test_${name} PRIVATE imgengine)
+#     target_include_directories(test_${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+#     add_test(NAME ${name} COMMAND test_${name})
+# endmacro()
+
+# # Register Tests
+# add_imgengine_test(mem_pool tests/unit/test_mem_pool.c)
+# add_imgengine_test(simd_ops tests/unit/test_simd_ops.c)
+
+# # E2E Test (Bash-based)
+# add_test(NAME cli_e2e COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/e2e/cli_suite.sh $<TARGET_FILE:imgengine_cli>)
+
+
+
+# if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+#     add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+#     add_link_options(-fsanitize=address)
+# endif()
