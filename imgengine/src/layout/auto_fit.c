@@ -1,4 +1,4 @@
-// src/layout/auto_fit.c 
+// src/layout/auto_fit.c
 #include "imgengine/layout.h"
 
 void layout_autofit(int canvas_w, int canvas_h,

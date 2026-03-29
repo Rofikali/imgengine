@@ -1,3 +1,5 @@
+// src/layout/crop_layout.c 
+
 #include "imgengine/image.h"
 
 static void draw_line(img_t *img,

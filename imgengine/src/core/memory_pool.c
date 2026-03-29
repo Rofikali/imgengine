@@ -1,31 +1,4 @@
-// #include "imgengine/memory_pool.h"
-// #include <stdlib.h>
-
-// void mp_init(mem_pool_t *mp, size_t size)
-// {
-//     mp->buffer = (unsigned char *)malloc(size);
-//     mp->size = size;
-//     mp->offset = 0;
-// }
-
-// void *mp_alloc(mem_pool_t *mp, size_t size)
-// {
-//     if (mp->offset + size > mp->size)
-//         return NULL;
-//     void *ptr = mp->buffer + mp->offset;
-//     mp->offset += size;
-//     return ptr;
-// }
-
-// void mp_reset(mem_pool_t *mp)
-// {
-//     mp->offset = 0;
-// }
-
-// void mp_destroy(mem_pool_t *mp)
-// {
-//     free(mp->buffer);
-// }
+// src/core/memory_pool.c
 
 #include "imgengine/memory_pool.h"
 #include <stdlib.h>

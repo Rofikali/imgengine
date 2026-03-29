@@ -1,71 +1,32 @@
-// // // imgengine/layout.h
+// imgengine/layout.h
 
 #ifndef IMG_LAYOUT_H
 #define IMG_LAYOUT_H
 
+#include "common.h" // <--- ADD THIS
 #include "image.h"
 
-// forward declarations
-struct img_ctx;
-struct img_job;
+/* Forward declare the EXACT typedefs used in api.h and context.h */
+typedef struct img_ctx img_ctx_t;
+typedef struct img_job img_job_t;
 
-typedef struct img_cell
-{
+typedef struct img_cell {
     int x, y;
     int w, h;
 } img_cell_t;
 
-typedef struct img_layout_info
-{
+typedef struct img_layout_info {
     img_cell_t *cells;
     int count;
 } img_layout_info_t;
 
-// API
-void layout_store(struct img_ctx *ctx,
-                  img_cell_t *cells,
-                  int count);
+/* 6-Year Engineer: ABI-compliant signatures */
+void layout_store(img_ctx_t *ctx, img_cell_t *cells, int count);
 
-img_layout_info_t *layout_get(struct img_ctx *ctx);
+IE_API img_layout_info_t *layout_get(img_ctx_t *ctx);
 
-int layout_grid(img_t *canvas,
-                const img_t *photo,
-                const struct img_job *job,
-                struct img_ctx *ctx);
+// img_layout_info_t *layout_get(img_ctx_t *ctx);
+
+int layout_grid(img_t *canvas, const img_t *photo, const img_job_t *job, img_ctx_t *ctx);
 
 #endif
-
-// #ifndef IMG_LAYOUT_H
-// #define IMG_LAYOUT_H
-
-// #include "image.h"
-// #include "api.h" // 🔥 REQUIRED for img_job_t
-
-// // forward declaration
-// struct img_ctx;
-
-// typedef struct
-// {
-//     int x, y;
-//     int w, h;
-// } img_cell_t;
-
-// typedef struct
-// {
-//     img_cell_t *cells;
-//     int count;
-// } img_layout_info_t;
-
-// // API
-// void layout_store(struct img_ctx *ctx,
-//                   img_cell_t *cells,
-//                   int count);
-
-// img_layout_info_t *layout_get(struct img_ctx *ctx);
-
-// int layout_grid(img_t *canvas,
-//                 const img_t *photo,
-//                 const img_job_t *job, // ✅ FIXED
-//                 struct img_ctx *ctx);
-
-// #endif

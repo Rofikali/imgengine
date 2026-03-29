@@ -171,3 +171,18 @@ make
     --bleed 10 \
     --crop-mark 25 \
     --crop-offset 8
+
+
+rm -rf build
+mkdir build && cd build
+cmake .. -DBUILD_SHARED_LIBS=ON
+make
+
+# Check if the .so was created correctly
+ls -lh libimgengine.so
+
+
+cd build
+rm -rf *
+cmake .. -DBUILD_SHARED_LIBS=ON
+make

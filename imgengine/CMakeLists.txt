@@ -1,134 +1,74 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(imgengine C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-option(IMGENGINE_BUILD_SHARED "Build shared library" OFF)
+# 6-Year Tip: This is the official CMake way to handle Shared vs Static
+option(BUILD_SHARED_LIBS "Build shared library" ON)
 
 # =========================
 # SOURCES
 # =========================
-
-set(IMGENGINE_PUBLIC_HEADERS
-    include/imgengine/api.h
-    include/imgengine/context.h
-    include/imgengine/memory_pool.h
-    include/imgengine/image.h
-    include/imgengine/error.h
-    include/imgengine/io.h
-    include/imgengine/crop.h
-    include/imgengine/resize.h
-    include/imgengine/border.h
-    include/imgengine/layout.h
-    # plugins 
-    include/imgengine/plugins/plugin_registry.h
-    include/imgengine/plugins/plugin_runner.h
-    include/imgengine/plugins/plugin.h
-)
-
-set(IMGENGINE_PRIVATE_SOURCES
-
-    # core
+set(LIB_SOURCES
+    # core 
     src/core/memory_pool.c
     src/core/context.c
     src/core/image.c
-    src/core/lbit_avx2.c   # ✅ ADD THIS
+    src/core/lbit_avx2.c
 
-    # ops
+    # ops 
     src/ops/crop.c
     src/ops/resize.c
     src/ops/border.c
 
-    # layout
+    # layouts 
     src/layout/grid_layout.c
     src/layout/auto_fit.c
     src/layout/crop_marks.c
 
     # io
     src/io/stb_impl.c
+    src/io/image_io.c       # <--- ADD THIS
 
-    # plugin
-    src/plugins/pdf_write.c
+    # plugins 
+    src/plugins/pdf_plugin.c
     src/plugins/bleed_plugin.c
     src/plugins/crop_plugin.c
     src/plugins/plugin_registry.c
     src/plugins/registers_all.c
 
-    # pipeline
+    # pipelines 
     src/pipeline/plugin_runner.c
 
-    # api
+    # apis 
     src/api/api.c
 )
 
 # =========================
-# LIBRARY
+# TARGETS
 # =========================
 
-if(IMGENGINE_BUILD_SHARED)
-    add_library(imgengine SHARED
-        ${IMGENGINE_PUBLIC_HEADERS}
-        ${IMGENGINE_PRIVATE_SOURCES}
-    )
-else()
-    add_library(imgengine STATIC
-        ${IMGENGINE_PUBLIC_HEADERS}
-        ${IMGENGINE_PRIVATE_SOURCES}
-    )
-endif()
+# Build the main library
+add_library(imgengine ${LIB_SOURCES})
 
-# =========================
-# INCLUDE STRUCTURE
-# =========================
+# Critical for shared libraries to work with Python/FFI
+set_target_properties(imgengine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(imgengine
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include   # exposed to users
-
-    PRIVATE
-        ${PROJECT_SOURCE_DIR}/src        # internal only
-        ${PROJECT_SOURCE_DIR}/third_party
+    PUBLIC ${PROJECT_SOURCE_DIR}/include
+    PRIVATE src third_party
 )
 
-if (MSVC)
-    target_compile_options(imgengine PRIVATE /W4)
-else()
+# Compiler Flags
+if(NOT MSVC)
     target_compile_options(imgengine PRIVATE 
+        -O3 -mavx2 -mfma -march=native
         -Wall -Wextra -Wpedantic
-        -O3
-        -mavx2
-        -mfma
-        -march=native
-        -fopenmp
     )
-
-    target_link_libraries(imgengine PRIVATE m gomp)
+    target_link_libraries(imgengine PRIVATE m)
 endif()
 
-# =========================
-# CLI
-# =========================
-
-add_executable(imgengine_cli
-    cli/main.c
-)
-
-target_link_libraries(imgengine_cli PRIVATE imgengine m)
-
-# CLI needs public headers too
-target_include_directories(imgengine_cli
-    PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-# =========================
-# WARNINGS
-# =========================
-
-if (MSVC)
-    target_compile_options(imgengine PRIVATE /W4)
-else()
-    target_compile_options(imgengine PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+# Build the CLI
+add_executable(imgengine_cli cli/main.c)
+target_link_libraries(imgengine_cli PRIVATE imgengine)
