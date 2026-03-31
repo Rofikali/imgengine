@@ -12,27 +12,6 @@ obj/
 *.out
 *.app
 
-# ==========================================
-# 2. Executables (CLI & Benchmarks)
-# ==========================================
-imgengine
-imgengine_cli
-bench_lat
-bench_mem
-test_runner
-
-# ==========================================
-# 3. CMake Metadata & Cache
-# ==========================================
-CMakeCache.txt
-CMakeFiles/
-CMakeScripts/
-cmake_install.cmake
-install_manifest.txt
-Makefile
-_deps/
-vcpkg_installed/
-.cmake/
 
 # ==========================================
 # 4. Dependency & System Specific
