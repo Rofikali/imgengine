@@ -9,6 +9,7 @@
 #include "memory/arena.h"
 #include "core/context_internal.h"
 #include "runtime/task.h"
+#include "api/v1/img_buffer_utils.h"
 
 typedef struct img_worker_s
 {

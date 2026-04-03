@@ -1,5 +1,0 @@
-/workspaces/imgengine/imgengine/build/CMakeFiles/imgengine.dir
-/workspaces/imgengine/imgengine/build/CMakeFiles/imgengine_cli.dir
-/workspaces/imgengine/imgengine/build/CMakeFiles/bench_lat.dir
-/workspaces/imgengine/imgengine/build/CMakeFiles/edit_cache.dir
-/workspaces/imgengine/imgengine/build/CMakeFiles/rebuild_cache.dir

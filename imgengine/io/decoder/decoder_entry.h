@@ -5,8 +5,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "core/context.h"
-#include "core/image.h"
+#include "core/context_internal.h"
+#include "api/v1/img_types.h"
+// #include "api/v1/img_buffer_utils.h"
 
 /**
  * Decode input bytes into img_buffer (ZERO-COPY into slab)

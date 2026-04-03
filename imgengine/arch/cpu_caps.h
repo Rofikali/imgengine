@@ -32,32 +32,3 @@ static inline int img_cpu_has_neon(cpu_caps_t caps)
 }
 
 #endif
-
-// #ifndef IMGENGINE_ARCH_CPU_CAPS_H
-// #define IMGENGINE_ARCH_CPU_CAPS_H
-
-// #include <stdint.h>
-
-// typedef enum
-// {
-//     ARCH_SCALAR = 0,
-//     ARCH_AVX2,
-//     ARCH_AVX512,
-//     ARCH_NEON
-// } cpu_arch_t;
-
-// typedef cpu_arch_t cpu_caps_t; // 🔥 ADD THIS
-// /**
-//  * @brief Detect CPU capabilities (implemented in dispatcher.c)
-//  */
-// cpu_arch_t img_detect_cpu(void);
-
-// #endif
-
-// // typedef enum
-// // {
-// //     ARCH_SCALAR = 0,
-// //     ARCH_AVX2,
-// //     ARCH_AVX512,
-// //     ARCH_NEON
-// // } cpu_arch_t;

@@ -3,8 +3,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 // #include "stb_image.h"
 
-#include "core/image.h"
-#include "core/context.h"
+#include "api/v1/img_types.h"
+#include "core/context_internal.h"
 #include "api/v1/img_error.h"
 #include <string.h>
 

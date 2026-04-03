@@ -1,38 +1,66 @@
 // src/hot/pipeline_exec.c
 
-#include "pipeline/jump_table.h"
-#include "pipeline/pipeline.h"
-#include "observability/profiler.h"
-#include "observability/metrics.h"
+// src/hot/pipeline_exec.c
 
-void img_pipeline_execute(
+#include "hot/pipeline_exec.h"
+#include "pipeline/jump_table.h"
+
+void img_pipeline_execute_hot(
     img_ctx_t *ctx,
-    img_pipeline_t *p,
+    img_pipeline_desc_t *pipe,
     img_buffer_t *buf)
 {
-    if (!ctx || !p || !buf)
-        return;
+    const uint32_t count = pipe->count;
+    img_op_desc_t *ops = pipe->ops;
 
-    uint64_t start = img_profiler_now();
+    // 🔥 Prefetch first op
+    if (count > 0)
+        __builtin_prefetch(&ops[0], 0, 3);
 
-    for (uint32_t i = 0; i < p->op_count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
-        uint32_t op = p->ops[i];
-        void *params = p->params[i];
+        img_op_fn fn = g_jump_table[ops[i].op_code];
 
-        img_op_fn fn = g_jump_table.ops[op];
-
-        if (!fn)
-            continue;
-
-        fn(ctx, buf, params);
+        if (fn)
+        {
+            fn(ctx, buf, ops[i].params);
+        }
     }
-
-    uint64_t end = img_profiler_now();
-
-    img_metrics_inc(&g_metrics.total_requests);
-    img_metrics_observe_latency(end - start);
 }
+
+// #include "pipeline/jump_table.h"
+// #include "pipeline/pipeline.h"
+// #include "observability/profiler.h"
+// #include "observability/metrics.h"
+
+// void img_pipeline_execute(
+//     img_ctx_t *ctx,
+//     img_pipeline_t *p,
+//     img_buffer_t *buf)
+// {
+//     if (!ctx || !p || !buf)
+//         return;
+
+//     uint64_t start = img_profiler_now();
+
+//     for (uint32_t i = 0; i < p->op_count; i++)
+//     {
+//         uint32_t op = p->ops[i];
+//         void *params = p->params[i];
+
+//         img_op_fn fn = g_jump_table.ops[op];
+
+//         if (!fn)
+//             continue;
+
+//         fn(ctx, buf, params);
+//     }
+
+//     uint64_t end = img_profiler_now();
+
+//     img_metrics_inc(&g_metrics.total_requests);
+//     img_metrics_observe_latency(end - start);
+// }
 
 // #include "hot/pipeline_exec.h"
 // #include "pipeline/jump_table.h"

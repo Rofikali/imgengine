@@ -1,1 +1,0 @@
-/usr/bin/cc  -O3 -march=native -fno-plt -fstrict-aliasing -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fsanitize=address,undefined -fno-omit-frame-pointer CMakeFiles/bench_lat.dir/cmd/bench/lat_bench.c.o -o bench_lat  -Wl,-rpath,/workspaces/imgengine/imgengine/build libimgengine.so 

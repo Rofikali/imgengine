@@ -6,7 +6,7 @@
 #define OP_RESIZE_V 0x11
 
 #include <stdint.h>
-#include "core/image.h"
+#include "api/v1/img_types.h"
 
 typedef struct
 {
@@ -25,16 +25,3 @@ typedef struct
 } resize_params_t;
 
 #endif
-
-// typedef struct
-// {
-//     uint32_t target_w;
-//     uint32_t target_h;
-
-//     // 🔥 Precomputed FIXED-POINT scaling
-//     uint32_t scale_x; // Q16.16
-//     uint32_t scale_y;
-
-//     img_buffer_t *src;
-
-// } resize_params_t;

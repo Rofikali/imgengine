@@ -1,4 +1,5 @@
 #include "arch/cpu_caps.h"
+#include <stddef.h>
 
 #if defined(__x86_64__)
 #include <cpuid.h>

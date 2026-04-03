@@ -35,6 +35,7 @@
 #include "core/context_internal.h"
 #include "api/v1/img_types.h"
 #include "arch/cpu_caps.h"
+#include "pipeline/batch.h"
 
 // ================= FUNCTION TYPES =================
 

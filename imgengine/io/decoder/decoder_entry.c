@@ -12,8 +12,8 @@ int img_decode_to_buffer(img_ctx_t *ctx,
     if (!ctx || !input || !out)
         return -1;
 
-    // tjhandle tj = tjInitDecompress();
-    tjhandle tj = ctx->tj_decoder;
+    tjhandle tj = tjInitDecompress();
+    // tjhandle tj = ctx->tj_decoder;
 
     if (!tj)
         return -1;
@@ -29,7 +29,7 @@ int img_decode_to_buffer(img_ctx_t *ctx,
                             &subsamp,
                             &colorspace) != 0)
     {
-        // tjDestroy(tj);
+        tjDestroy(tj);
         return -1;
     }
 
@@ -38,7 +38,7 @@ int img_decode_to_buffer(img_ctx_t *ctx,
     size_t stride = width * channels;
     size_t required_size = stride * height;
 
-    uint8_t *mem = img_slab_alloc(ctx->pool);
+    uint8_t *mem = img_slab_alloc(ctx->local_pool);
     if (!mem)
     {
         tjDestroy(tj);
@@ -60,7 +60,7 @@ int img_decode_to_buffer(img_ctx_t *ctx,
                       TJPF_RGB, // RGB format
                       TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
     {
-        img_slab_free(ctx->pool, mem);
+        img_slab_free(ctx->local_pool, mem);
         tjDestroy(tj);
         return -1;
     }

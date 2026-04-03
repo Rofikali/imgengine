@@ -5,9 +5,14 @@
 
 static uint32_t rr_counter = 0;
 
-img_worker_t *img_scheduler_pick_worker(img_engine_t engine)
+// img_worker_t *img_scheduler_pick_worker(img_engine_t *engine)
+// {
+//     uint32_t idx = __atomic_fetch_add(&rr_counter, 1, __ATOMIC_RELAXED);
+//     return &engine->workers[idx % engine->worker_count];
+// }
+
+img_worker_t *img_scheduler_pick_worker(img_engine_t *engine, uint32_t idx)
 {
-    uint32_t idx = __atomic_fetch_add(&rr_counter, 1, __ATOMIC_RELAXED);
     return &engine->workers[idx % engine->worker_count];
 }
 

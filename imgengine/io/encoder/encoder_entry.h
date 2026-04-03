@@ -5,8 +5,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "core/context.h"
-#include "core/image.h"
+#include "core/context_internal.h"
+#include "api/v1/img_types.h"
 
 /**
  * Encode img_buffer into output bytes

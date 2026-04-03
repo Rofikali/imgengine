@@ -3,6 +3,7 @@
 #include "pipeline/jump_table.h"
 #include "plugins/plugin_internal.h" // for OP_RESIZE etc
 #include <string.h>
+#include "core/opcodes.h"   // 🔥 ADD THIS
 
 // ================= GLOBAL TABLES =================
 

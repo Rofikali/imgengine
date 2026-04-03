@@ -25,7 +25,9 @@ img_result_t img_validate_header(
 /**
  * @brief Validates pipeline before execution (cold path)
  */
-bool img_validate_pipeline_safety(const img_pipeline_t *pipe);
+// bool img_validate_pipeline_safety(const img_pipeline_t *pipe);
+
+bool img_validate_pipeline_safety(const img_pipeline_desc_t *pipe);
 
 #endif
 

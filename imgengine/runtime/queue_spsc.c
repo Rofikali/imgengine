@@ -45,6 +45,10 @@ bool img_queue_push(img_queue_t *q, void *data)
 
 void *img_queue_pop(img_queue_t *q)
 {
+
+    // task = img_queue_pop(w->queue);
+    // if (!task)
+    //     continue;
     uint32_t h = q->head;
 
     if (h == __atomic_load_n(&q->tail, __ATOMIC_ACQUIRE))
