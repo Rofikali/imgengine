@@ -4,7 +4,7 @@
 #include "pipeline/jump_table.h"
 #include "observability/profiler.h"
 #include "observability/metrics.h"
-#include "pipeline/graph.h"
+// #include "pipeline/pipeline.h"
 
 void img_pipeline_execute_hot(
     img_ctx_t *ctx,
@@ -15,16 +15,7 @@ void img_pipeline_execute_hot(
 
     const uint32_t n = graph->node_count;
 
-    // for (uint32_t i = 0; i < n; i++)
-    // {
-    //     img_op_fn op = g_jump_table[graph->nodes[i].op_code];
-
-    //     if (__builtin_expect(op != NULL, 1))
-    //     {
-    //         op(ctx, buf, graph->nodes[i].params);
-    //     }
-    // }
-    for (uint32_t i = 0; i < graph->node_count; i++)
+    for (uint32_t i = 0; i < n; i++)
     {
         img_op_fn op = g_jump_table[graph->nodes[i].op_code];
 
@@ -33,6 +24,7 @@ void img_pipeline_execute_hot(
             op(ctx, buf, graph->nodes[i].params);
         }
     }
+
     uint64_t elapsed = img_profiler_now() - start;
 
     img_metrics_observe_latency(elapsed);

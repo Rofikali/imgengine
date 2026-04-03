@@ -1,3 +1,6 @@
+
+// src/cold/debug.c
+
 #include "cold/debug.h"
 #include <stdio.h>
 

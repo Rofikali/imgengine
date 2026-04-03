@@ -3,7 +3,6 @@
 #ifndef IMGENGINE_RUNTIME_TASK_H
 #define IMGENGINE_RUNTIME_TASK_H
 
-#include "pipeline/graph.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -20,7 +19,6 @@ typedef struct
     uint32_t *ops;
     void **params;
     uint32_t op_count;
-    img_pipeline_graph_t *graph;
 
 } img_task_t;
 

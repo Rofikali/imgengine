@@ -18,14 +18,14 @@ done
 
 # chmod +x show_module.sh
 # next 
-NEXT STEP (EXTREME PERFORMANCE)
+# NEXT STEP (EXTREME PERFORMANCE)
 
-Say:
+# Say:
 
-"next: make jump_table cache-line aligned + per-core optimized"
+# "next: make jump_table cache-line aligned + per-core optimized"
 
-That’s where you hit:
+# That’s where you hit:
 
-💀 ultra low latency
-💀 NUMA scaling
-💀 cloud-scale readiness
+# 💀 ultra low latency
+# 💀 NUMA scaling
+# 💀 cloud-scale readiness

@@ -192,6 +192,9 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //Enable ASAN/UBSAN
 ENABLE_SANITIZER:BOOL=ON
 
+//Path to a library.
+NUMA_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libnuma.so
+
 //Path to a file.
 TURBOJPEG_INCLUDE_DIR:PATH=/usr/include
 
@@ -205,7 +208,7 @@ imgengine_BINARY_DIR:STATIC=/workspaces/imgengine/imgengine/build
 imgengine_IS_TOP_LEVEL:STATIC=ON
 
 //Dependencies for the target
-imgengine_LIB_DEPENDS:STATIC=general;m;general;/usr/lib/x86_64-linux-gnu/libturbojpeg.so;general;-fsanitize=address,undefined;
+imgengine_LIB_DEPENDS:STATIC=general;m;general;/usr/lib/x86_64-linux-gnu/libturbojpeg.so;general;-fsanitize=address,undefined;general;/usr/lib/x86_64-linux-gnu/libnuma.so;
 
 //Value Computed by CMake
 imgengine_SOURCE_DIR:STATIC=/workspaces/imgengine/imgengine

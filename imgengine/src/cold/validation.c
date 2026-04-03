@@ -1,3 +1,6 @@
+
+// src/cold/validation.c
+
 #include "cold/validation.h"
 
 img_result_t img_validate_header(

@@ -6,5 +6,4 @@
 
 
     rm -rf *
-    cmake ..
-    make -j
+    cmake .. && make -j

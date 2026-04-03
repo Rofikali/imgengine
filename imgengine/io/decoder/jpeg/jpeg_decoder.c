@@ -1,3 +1,5 @@
+io/decoder/jpeg/
+
 #include <turbojpeg.h>
 #include "api/v1/img_error.h"
 #include "core/image.h"

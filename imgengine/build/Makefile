@@ -875,30 +875,6 @@ pipeline/engine.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/pipeline/engine.c.s
 .PHONY : pipeline/engine.c.s
 
-pipeline/graph.o: pipeline/graph.c.o
-.PHONY : pipeline/graph.o
-
-# target to build an object file
-pipeline/graph.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/pipeline/graph.c.o
-.PHONY : pipeline/graph.c.o
-
-pipeline/graph.i: pipeline/graph.c.i
-.PHONY : pipeline/graph.i
-
-# target to preprocess a source file
-pipeline/graph.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/pipeline/graph.c.i
-.PHONY : pipeline/graph.c.i
-
-pipeline/graph.s: pipeline/graph.c.s
-.PHONY : pipeline/graph.s
-
-# target to generate assembly for a file
-pipeline/graph.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/imgengine.dir/build.make CMakeFiles/imgengine.dir/pipeline/graph.c.s
-.PHONY : pipeline/graph.c.s
-
 pipeline/hardware_registry.o: pipeline/hardware_registry.c.o
 .PHONY : pipeline/hardware_registry.o
 
@@ -1648,9 +1624,6 @@ help:
 	@echo "... pipeline/engine.o"
 	@echo "... pipeline/engine.i"
 	@echo "... pipeline/engine.s"
-	@echo "... pipeline/graph.o"
-	@echo "... pipeline/graph.i"
-	@echo "... pipeline/graph.s"
 	@echo "... pipeline/hardware_registry.o"
 	@echo "... pipeline/hardware_registry.i"
 	@echo "... pipeline/hardware_registry.s"

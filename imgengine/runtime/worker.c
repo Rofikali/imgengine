@@ -49,7 +49,6 @@ void *img_worker_loop(void *arg)
         //                      task->params,
         //                      task->op_count);
 
-        img_pipeline_execute_hot(self->ctx, task->graph, &buf);
 
         // 🔥 3. ENCODE
         img_encode_from_buffer(self->ctx,

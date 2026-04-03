@@ -1,4 +1,4 @@
-
+// pipeline/hardware_registry.h 
 #ifndef IMGENGINE_PIPELINE_HW_REGISTRY_H
 #define IMGENGINE_PIPELINE_HW_REGISTRY_H
 

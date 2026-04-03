@@ -24,9 +24,8 @@ CMakeFiles/imgengine.dir/src/hot/pipeline_exec.c.o: \
  /workspaces/imgengine/imgengine/./arch/cpu_caps.h \
  /usr/include/turbojpeg.h \
  /workspaces/imgengine/imgengine/src/core/image.h \
- /workspaces/imgengine/imgengine/./pipeline/graph.h \
- /workspaces/imgengine/imgengine/./pipeline/jump_table.h \
  /workspaces/imgengine/imgengine/./pipeline/pipeline.h \
  /workspaces/imgengine/imgengine/src/hot/batch.h \
+ /workspaces/imgengine/imgengine/./pipeline/jump_table.h \
  /workspaces/imgengine/imgengine/./observability/profiler.h \
  /workspaces/imgengine/imgengine/./observability/metrics.h

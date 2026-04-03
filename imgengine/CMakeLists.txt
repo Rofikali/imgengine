@@ -192,6 +192,11 @@ if(ENABLE_SANITIZER)
     target_link_libraries(imgengine PRIVATE "-fsanitize=address,undefined")
 endif()
 
+
+find_library(NUMA_LIB numa)
+
+target_link_libraries(imgengine PRIVATE ${NUMA_LIB})
+
 # ============================================================
 # B. CLI TOOL (Production Interface)
 # ============================================================

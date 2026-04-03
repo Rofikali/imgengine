@@ -53,8 +53,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/imgengine.dir/observability/tracing.c.o.d"
   "CMakeFiles/imgengine.dir/pipeline/engine.c.o"
   "CMakeFiles/imgengine.dir/pipeline/engine.c.o.d"
-  "CMakeFiles/imgengine.dir/pipeline/graph.c.o"
-  "CMakeFiles/imgengine.dir/pipeline/graph.c.o.d"
   "CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o"
   "CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o.d"
   "CMakeFiles/imgengine.dir/pipeline/jump_table.c.o"

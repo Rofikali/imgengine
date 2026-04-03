@@ -1,3 +1,5 @@
+// src/hot/batch_engine.c 
+
 #include "hot/batch_engine.h"
 #include "pipeline/jump_table.h"
 

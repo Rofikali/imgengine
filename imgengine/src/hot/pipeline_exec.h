@@ -6,7 +6,7 @@
 #include "core/context.h"
 #include "core/image.h"
 #include <stdint.h>
-#include "pipeline/graph.h"
+#include "pipeline/pipeline.h"
 
 /**
  * Execute pipeline (ZERO-BRANCH DISPATCH)

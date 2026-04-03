@@ -1,3 +1,6 @@
+
+// src/cold/error.c
+
 #include "cold/error.h"
 
 const char *img_error_to_string(img_result_t r)

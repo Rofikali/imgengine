@@ -223,24 +223,10 @@ CMakeFiles/imgengine.dir/pipeline/engine.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/imgengine.dir/pipeline/engine.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspaces/imgengine/imgengine/pipeline/engine.c -o CMakeFiles/imgengine.dir/pipeline/engine.c.s
 
-CMakeFiles/imgengine.dir/pipeline/graph.c.o: CMakeFiles/imgengine.dir/flags.make
-CMakeFiles/imgengine.dir/pipeline/graph.c.o: /workspaces/imgengine/imgengine/pipeline/graph.c
-CMakeFiles/imgengine.dir/pipeline/graph.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/imgengine.dir/pipeline/graph.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/pipeline/graph.c.o -MF CMakeFiles/imgengine.dir/pipeline/graph.c.o.d -o CMakeFiles/imgengine.dir/pipeline/graph.c.o -c /workspaces/imgengine/imgengine/pipeline/graph.c
-
-CMakeFiles/imgengine.dir/pipeline/graph.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/imgengine.dir/pipeline/graph.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /workspaces/imgengine/imgengine/pipeline/graph.c > CMakeFiles/imgengine.dir/pipeline/graph.c.i
-
-CMakeFiles/imgengine.dir/pipeline/graph.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/imgengine.dir/pipeline/graph.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /workspaces/imgengine/imgengine/pipeline/graph.c -o CMakeFiles/imgengine.dir/pipeline/graph.c.s
-
 CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o: /workspaces/imgengine/imgengine/pipeline/hardware_registry.c
 CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o -MF CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o.d -o CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o -c /workspaces/imgengine/imgengine/pipeline/hardware_registry.c
 
 CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.i: cmake_force
@@ -254,7 +240,7 @@ CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.s: cmake_force
 CMakeFiles/imgengine.dir/pipeline/jump_table.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/pipeline/jump_table.c.o: /workspaces/imgengine/imgengine/pipeline/jump_table.c
 CMakeFiles/imgengine.dir/pipeline/jump_table.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/imgengine.dir/pipeline/jump_table.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/imgengine.dir/pipeline/jump_table.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/pipeline/jump_table.c.o -MF CMakeFiles/imgengine.dir/pipeline/jump_table.c.o.d -o CMakeFiles/imgengine.dir/pipeline/jump_table.c.o -c /workspaces/imgengine/imgengine/pipeline/jump_table.c
 
 CMakeFiles/imgengine.dir/pipeline/jump_table.c.i: cmake_force
@@ -268,7 +254,7 @@ CMakeFiles/imgengine.dir/pipeline/jump_table.c.s: cmake_force
 CMakeFiles/imgengine.dir/pipeline/scheduler.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/pipeline/scheduler.c.o: /workspaces/imgengine/imgengine/pipeline/scheduler.c
 CMakeFiles/imgengine.dir/pipeline/scheduler.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/imgengine.dir/pipeline/scheduler.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/imgengine.dir/pipeline/scheduler.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/pipeline/scheduler.c.o -MF CMakeFiles/imgengine.dir/pipeline/scheduler.c.o.d -o CMakeFiles/imgengine.dir/pipeline/scheduler.c.o -c /workspaces/imgengine/imgengine/pipeline/scheduler.c
 
 CMakeFiles/imgengine.dir/pipeline/scheduler.c.i: cmake_force
@@ -282,7 +268,7 @@ CMakeFiles/imgengine.dir/pipeline/scheduler.c.s: cmake_force
 CMakeFiles/imgengine.dir/runtime/affinity.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/runtime/affinity.c.o: /workspaces/imgengine/imgengine/runtime/affinity.c
 CMakeFiles/imgengine.dir/runtime/affinity.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/imgengine.dir/runtime/affinity.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/imgengine.dir/runtime/affinity.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/runtime/affinity.c.o -MF CMakeFiles/imgengine.dir/runtime/affinity.c.o.d -o CMakeFiles/imgengine.dir/runtime/affinity.c.o -c /workspaces/imgengine/imgengine/runtime/affinity.c
 
 CMakeFiles/imgengine.dir/runtime/affinity.c.i: cmake_force
@@ -296,7 +282,7 @@ CMakeFiles/imgengine.dir/runtime/affinity.c.s: cmake_force
 CMakeFiles/imgengine.dir/runtime/backpressure.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/runtime/backpressure.c.o: /workspaces/imgengine/imgengine/runtime/backpressure.c
 CMakeFiles/imgengine.dir/runtime/backpressure.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/imgengine.dir/runtime/backpressure.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/imgengine.dir/runtime/backpressure.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/runtime/backpressure.c.o -MF CMakeFiles/imgengine.dir/runtime/backpressure.c.o.d -o CMakeFiles/imgengine.dir/runtime/backpressure.c.o -c /workspaces/imgengine/imgengine/runtime/backpressure.c
 
 CMakeFiles/imgengine.dir/runtime/backpressure.c.i: cmake_force
@@ -310,7 +296,7 @@ CMakeFiles/imgengine.dir/runtime/backpressure.c.s: cmake_force
 CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o: /workspaces/imgengine/imgengine/runtime/queue_mpmc.c
 CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o -MF CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o.d -o CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.o -c /workspaces/imgengine/imgengine/runtime/queue_mpmc.c
 
 CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.i: cmake_force
@@ -324,7 +310,7 @@ CMakeFiles/imgengine.dir/runtime/queue_mpmc.c.s: cmake_force
 CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o: /workspaces/imgengine/imgengine/runtime/queue_spsc.c
 CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o -MF CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o.d -o CMakeFiles/imgengine.dir/runtime/queue_spsc.c.o -c /workspaces/imgengine/imgengine/runtime/queue_spsc.c
 
 CMakeFiles/imgengine.dir/runtime/queue_spsc.c.i: cmake_force
@@ -338,7 +324,7 @@ CMakeFiles/imgengine.dir/runtime/queue_spsc.c.s: cmake_force
 CMakeFiles/imgengine.dir/runtime/worker.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/runtime/worker.c.o: /workspaces/imgengine/imgengine/runtime/worker.c
 CMakeFiles/imgengine.dir/runtime/worker.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/imgengine.dir/runtime/worker.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/imgengine.dir/runtime/worker.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/runtime/worker.c.o -MF CMakeFiles/imgengine.dir/runtime/worker.c.o.d -o CMakeFiles/imgengine.dir/runtime/worker.c.o -c /workspaces/imgengine/imgengine/runtime/worker.c
 
 CMakeFiles/imgengine.dir/runtime/worker.c.i: cmake_force
@@ -352,7 +338,7 @@ CMakeFiles/imgengine.dir/runtime/worker.c.s: cmake_force
 CMakeFiles/imgengine.dir/memory/arena.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/memory/arena.c.o: /workspaces/imgengine/imgengine/memory/arena.c
 CMakeFiles/imgengine.dir/memory/arena.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object CMakeFiles/imgengine.dir/memory/arena.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/imgengine.dir/memory/arena.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/memory/arena.c.o -MF CMakeFiles/imgengine.dir/memory/arena.c.o.d -o CMakeFiles/imgengine.dir/memory/arena.c.o -c /workspaces/imgengine/imgengine/memory/arena.c
 
 CMakeFiles/imgengine.dir/memory/arena.c.i: cmake_force
@@ -366,7 +352,7 @@ CMakeFiles/imgengine.dir/memory/arena.c.s: cmake_force
 CMakeFiles/imgengine.dir/memory/hugepage.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/memory/hugepage.c.o: /workspaces/imgengine/imgengine/memory/hugepage.c
 CMakeFiles/imgengine.dir/memory/hugepage.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/imgengine.dir/memory/hugepage.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object CMakeFiles/imgengine.dir/memory/hugepage.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/memory/hugepage.c.o -MF CMakeFiles/imgengine.dir/memory/hugepage.c.o.d -o CMakeFiles/imgengine.dir/memory/hugepage.c.o -c /workspaces/imgengine/imgengine/memory/hugepage.c
 
 CMakeFiles/imgengine.dir/memory/hugepage.c.i: cmake_force
@@ -380,7 +366,7 @@ CMakeFiles/imgengine.dir/memory/hugepage.c.s: cmake_force
 CMakeFiles/imgengine.dir/memory/numa.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/memory/numa.c.o: /workspaces/imgengine/imgengine/memory/numa.c
 CMakeFiles/imgengine.dir/memory/numa.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object CMakeFiles/imgengine.dir/memory/numa.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/imgengine.dir/memory/numa.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/memory/numa.c.o -MF CMakeFiles/imgengine.dir/memory/numa.c.o.d -o CMakeFiles/imgengine.dir/memory/numa.c.o -c /workspaces/imgengine/imgengine/memory/numa.c
 
 CMakeFiles/imgengine.dir/memory/numa.c.i: cmake_force
@@ -394,7 +380,7 @@ CMakeFiles/imgengine.dir/memory/numa.c.s: cmake_force
 CMakeFiles/imgengine.dir/memory/pool.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/memory/pool.c.o: /workspaces/imgengine/imgengine/memory/pool.c
 CMakeFiles/imgengine.dir/memory/pool.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/imgengine.dir/memory/pool.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object CMakeFiles/imgengine.dir/memory/pool.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/memory/pool.c.o -MF CMakeFiles/imgengine.dir/memory/pool.c.o.d -o CMakeFiles/imgengine.dir/memory/pool.c.o -c /workspaces/imgengine/imgengine/memory/pool.c
 
 CMakeFiles/imgengine.dir/memory/pool.c.i: cmake_force
@@ -408,7 +394,7 @@ CMakeFiles/imgengine.dir/memory/pool.c.s: cmake_force
 CMakeFiles/imgengine.dir/memory/slab.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/memory/slab.c.o: /workspaces/imgengine/imgengine/memory/slab.c
 CMakeFiles/imgengine.dir/memory/slab.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object CMakeFiles/imgengine.dir/memory/slab.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/imgengine.dir/memory/slab.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/memory/slab.c.o -MF CMakeFiles/imgengine.dir/memory/slab.c.o.d -o CMakeFiles/imgengine.dir/memory/slab.c.o -c /workspaces/imgengine/imgengine/memory/slab.c
 
 CMakeFiles/imgengine.dir/memory/slab.c.i: cmake_force
@@ -422,7 +408,7 @@ CMakeFiles/imgengine.dir/memory/slab.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o: /workspaces/imgengine/imgengine/plugins/plugin_bleed.c
 CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_bleed.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.i: cmake_force
@@ -436,7 +422,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_bleed.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o: /workspaces/imgengine/imgengine/plugins/plugin_crop.c
 CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_crop.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_crop.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_crop.c.i: cmake_force
@@ -450,7 +436,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_crop.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o: /workspaces/imgengine/imgengine/plugins/plugin_grayscale.c
 CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_grayscale.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.i: cmake_force
@@ -464,7 +450,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_grayscale.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o: /workspaces/imgengine/imgengine/plugins/plugin_pdf.c
 CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_pdf.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.i: cmake_force
@@ -478,7 +464,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_pdf.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o: /workspaces/imgengine/imgengine/plugins/plugin_registry.c
 CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_registry.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_registry.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_registry.c.i: cmake_force
@@ -492,7 +478,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_registry.c.s: cmake_force
 CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o: /workspaces/imgengine/imgengine/plugins/plugin_resize.c
 CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o -MF CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o.d -o CMakeFiles/imgengine.dir/plugins/plugin_resize.c.o -c /workspaces/imgengine/imgengine/plugins/plugin_resize.c
 
 CMakeFiles/imgengine.dir/plugins/plugin_resize.c.i: cmake_force
@@ -506,7 +492,7 @@ CMakeFiles/imgengine.dir/plugins/plugin_resize.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o: /workspaces/imgengine/imgengine/io/decoder/decoder_entry.c
 CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o -MF CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o.d -o CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.o -c /workspaces/imgengine/imgengine/io/decoder/decoder_entry.c
 
 CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.i: cmake_force
@@ -520,7 +506,7 @@ CMakeFiles/imgengine.dir/io/decoder/decoder_entry.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o: /workspaces/imgengine/imgengine/io/decoder/jpeg/jpeg_decoder.c
 CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o -MF CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o.d -o CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.o -c /workspaces/imgengine/imgengine/io/decoder/jpeg/jpeg_decoder.c
 
 CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.i: cmake_force
@@ -534,7 +520,7 @@ CMakeFiles/imgengine.dir/io/decoder/jpeg/jpeg_decoder.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o: /workspaces/imgengine/imgengine/io/decoder/png_decoder.c
 CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o -MF CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o.d -o CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.o -c /workspaces/imgengine/imgengine/io/decoder/png_decoder.c
 
 CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.i: cmake_force
@@ -548,7 +534,7 @@ CMakeFiles/imgengine.dir/io/decoder/png_decoder.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o: /workspaces/imgengine/imgengine/io/decoder/stb_bridge.c
 CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o -MF CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o.d -o CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.o -c /workspaces/imgengine/imgengine/io/decoder/stb_bridge.c
 
 CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.i: cmake_force
@@ -562,7 +548,7 @@ CMakeFiles/imgengine.dir/io/decoder/stb_bridge.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o: /workspaces/imgengine/imgengine/io/encoder/encoder_entry.c
 CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o -MF CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o.d -o CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.o -c /workspaces/imgengine/imgengine/io/encoder/encoder_entry.c
 
 CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.i: cmake_force
@@ -576,7 +562,7 @@ CMakeFiles/imgengine.dir/io/encoder/encoder_entry.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o: /workspaces/imgengine/imgengine/io/encoder/jpeg_encoder.c
 CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o -MF CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o.d -o CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.o -c /workspaces/imgengine/imgengine/io/encoder/jpeg_encoder.c
 
 CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.i: cmake_force
@@ -590,7 +576,7 @@ CMakeFiles/imgengine.dir/io/encoder/jpeg_encoder.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o: /workspaces/imgengine/imgengine/io/encoder/output_writer.c
 CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o -MF CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o.d -o CMakeFiles/imgengine.dir/io/encoder/output_writer.c.o -c /workspaces/imgengine/imgengine/io/encoder/output_writer.c
 
 CMakeFiles/imgengine.dir/io/encoder/output_writer.c.i: cmake_force
@@ -604,7 +590,7 @@ CMakeFiles/imgengine.dir/io/encoder/output_writer.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o: /workspaces/imgengine/imgengine/io/vfs/memory_stream.c
 CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o -MF CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o.d -o CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.o -c /workspaces/imgengine/imgengine/io/vfs/memory_stream.c
 
 CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.i: cmake_force
@@ -618,7 +604,7 @@ CMakeFiles/imgengine.dir/io/vfs/memory_stream.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o: /workspaces/imgengine/imgengine/io/vfs/posix_io.c
 CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o -MF CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o.d -o CMakeFiles/imgengine.dir/io/vfs/posix_io.c.o -c /workspaces/imgengine/imgengine/io/vfs/posix_io.c
 
 CMakeFiles/imgengine.dir/io/vfs/posix_io.c.i: cmake_force
@@ -632,7 +618,7 @@ CMakeFiles/imgengine.dir/io/vfs/posix_io.c.s: cmake_force
 CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o: /workspaces/imgengine/imgengine/io/vfs/s3_adapter.c
 CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o -MF CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o.d -o CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.o -c /workspaces/imgengine/imgengine/io/vfs/s3_adapter.c
 
 CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.i: cmake_force
@@ -646,7 +632,7 @@ CMakeFiles/imgengine.dir/io/vfs/s3_adapter.c.s: cmake_force
 CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o: /workspaces/imgengine/imgengine/security/fuzz_hooks.c
 CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o -MF CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o.d -o CMakeFiles/imgengine.dir/security/fuzz_hooks.c.o -c /workspaces/imgengine/imgengine/security/fuzz_hooks.c
 
 CMakeFiles/imgengine.dir/security/fuzz_hooks.c.i: cmake_force
@@ -660,7 +646,7 @@ CMakeFiles/imgengine.dir/security/fuzz_hooks.c.s: cmake_force
 CMakeFiles/imgengine.dir/security/input_validator.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/security/input_validator.c.o: /workspaces/imgengine/imgengine/security/input_validator.c
 CMakeFiles/imgengine.dir/security/input_validator.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object CMakeFiles/imgengine.dir/security/input_validator.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object CMakeFiles/imgengine.dir/security/input_validator.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/security/input_validator.c.o -MF CMakeFiles/imgengine.dir/security/input_validator.c.o.d -o CMakeFiles/imgengine.dir/security/input_validator.c.o -c /workspaces/imgengine/imgengine/security/input_validator.c
 
 CMakeFiles/imgengine.dir/security/input_validator.c.i: cmake_force
@@ -674,7 +660,7 @@ CMakeFiles/imgengine.dir/security/input_validator.c.s: cmake_force
 CMakeFiles/imgengine.dir/security/sandbox.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/security/sandbox.c.o: /workspaces/imgengine/imgengine/security/sandbox.c
 CMakeFiles/imgengine.dir/security/sandbox.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object CMakeFiles/imgengine.dir/security/sandbox.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object CMakeFiles/imgengine.dir/security/sandbox.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/security/sandbox.c.o -MF CMakeFiles/imgengine.dir/security/sandbox.c.o.d -o CMakeFiles/imgengine.dir/security/sandbox.c.o -c /workspaces/imgengine/imgengine/security/sandbox.c
 
 CMakeFiles/imgengine.dir/security/sandbox.c.i: cmake_force
@@ -688,7 +674,7 @@ CMakeFiles/imgengine.dir/security/sandbox.c.s: cmake_force
 CMakeFiles/imgengine.dir/observability/logger.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/observability/logger.c.o: /workspaces/imgengine/imgengine/observability/logger.c
 CMakeFiles/imgengine.dir/observability/logger.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object CMakeFiles/imgengine.dir/observability/logger.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object CMakeFiles/imgengine.dir/observability/logger.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/observability/logger.c.o -MF CMakeFiles/imgengine.dir/observability/logger.c.o.d -o CMakeFiles/imgengine.dir/observability/logger.c.o -c /workspaces/imgengine/imgengine/observability/logger.c
 
 CMakeFiles/imgengine.dir/observability/logger.c.i: cmake_force
@@ -702,7 +688,7 @@ CMakeFiles/imgengine.dir/observability/logger.c.s: cmake_force
 CMakeFiles/imgengine.dir/observability/metrics.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/observability/metrics.c.o: /workspaces/imgengine/imgengine/observability/metrics.c
 CMakeFiles/imgengine.dir/observability/metrics.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object CMakeFiles/imgengine.dir/observability/metrics.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object CMakeFiles/imgengine.dir/observability/metrics.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/observability/metrics.c.o -MF CMakeFiles/imgengine.dir/observability/metrics.c.o.d -o CMakeFiles/imgengine.dir/observability/metrics.c.o -c /workspaces/imgengine/imgengine/observability/metrics.c
 
 CMakeFiles/imgengine.dir/observability/metrics.c.i: cmake_force
@@ -716,7 +702,7 @@ CMakeFiles/imgengine.dir/observability/metrics.c.s: cmake_force
 CMakeFiles/imgengine.dir/observability/profiler.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/observability/profiler.c.o: /workspaces/imgengine/imgengine/observability/profiler.c
 CMakeFiles/imgengine.dir/observability/profiler.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object CMakeFiles/imgengine.dir/observability/profiler.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object CMakeFiles/imgengine.dir/observability/profiler.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/observability/profiler.c.o -MF CMakeFiles/imgengine.dir/observability/profiler.c.o.d -o CMakeFiles/imgengine.dir/observability/profiler.c.o -c /workspaces/imgengine/imgengine/observability/profiler.c
 
 CMakeFiles/imgengine.dir/observability/profiler.c.i: cmake_force
@@ -730,7 +716,7 @@ CMakeFiles/imgengine.dir/observability/profiler.c.s: cmake_force
 CMakeFiles/imgengine.dir/observability/tracing.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/observability/tracing.c.o: /workspaces/imgengine/imgengine/observability/tracing.c
 CMakeFiles/imgengine.dir/observability/tracing.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object CMakeFiles/imgengine.dir/observability/tracing.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object CMakeFiles/imgengine.dir/observability/tracing.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/observability/tracing.c.o -MF CMakeFiles/imgengine.dir/observability/tracing.c.o.d -o CMakeFiles/imgengine.dir/observability/tracing.c.o -c /workspaces/imgengine/imgengine/observability/tracing.c
 
 CMakeFiles/imgengine.dir/observability/tracing.c.i: cmake_force
@@ -744,7 +730,7 @@ CMakeFiles/imgengine.dir/observability/tracing.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o: /workspaces/imgengine/imgengine/arch/x86_64/avx2/color_avx2.c
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/avx2/color_avx2.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.i: cmake_force
@@ -758,7 +744,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/avx2/color_avx2.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o: /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_avx2.c
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_avx2.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.i: cmake_force
@@ -772,7 +758,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_avx2.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o: /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_h_avx2.c
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_h_avx2.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.i: cmake_force
@@ -786,7 +772,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_h_avx2.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o: /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_v_avx2.c
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/avx2/resize_v_avx2.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.i: cmake_force
@@ -800,7 +786,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/avx2/resize_v_avx2.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o: /workspaces/imgengine/imgengine/arch/x86_64/avx512/avx512.c
 CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/avx512/avx512.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.i: cmake_force
@@ -814,7 +800,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/avx512/avx512.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o: /workspaces/imgengine/imgengine/arch/x86_64/scalar/color_scalar.c
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/scalar/color_scalar.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.i: cmake_force
@@ -828,7 +814,7 @@ CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.s: cmake_force
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o: CMakeFiles/imgengine.dir/flags.make
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o: /workspaces/imgengine/imgengine/arch/x86_64/scalar/resize_scalar.c
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o: CMakeFiles/imgengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o -MF CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o.d -o CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o -c /workspaces/imgengine/imgengine/arch/x86_64/scalar/resize_scalar.c
 
 CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.i: cmake_force
@@ -852,7 +838,6 @@ imgengine_OBJECTS = \
 "CMakeFiles/imgengine.dir/src/hot/batch_engine.c.o" \
 "CMakeFiles/imgengine.dir/src/hot/pipeline_exec.c.o" \
 "CMakeFiles/imgengine.dir/pipeline/engine.c.o" \
-"CMakeFiles/imgengine.dir/pipeline/graph.c.o" \
 "CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o" \
 "CMakeFiles/imgengine.dir/pipeline/jump_table.c.o" \
 "CMakeFiles/imgengine.dir/pipeline/scheduler.c.o" \
@@ -911,7 +896,6 @@ libimgengine.so: CMakeFiles/imgengine.dir/src/core/init.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/src/hot/batch_engine.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/src/hot/pipeline_exec.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/pipeline/engine.c.o
-libimgengine.so: CMakeFiles/imgengine.dir/pipeline/graph.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/pipeline/hardware_registry.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/pipeline/jump_table.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/pipeline/scheduler.c.o
@@ -957,8 +941,9 @@ libimgengine.so: CMakeFiles/imgengine.dir/arch/x86_64/scalar/color_scalar.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/arch/x86_64/scalar/resize_scalar.c.o
 libimgengine.so: CMakeFiles/imgengine.dir/build.make
 libimgengine.so: /usr/lib/x86_64-linux-gnu/libturbojpeg.so
+libimgengine.so: /usr/lib/x86_64-linux-gnu/libnuma.so
 libimgengine.so: CMakeFiles/imgengine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Linking C shared library libimgengine.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/workspaces/imgengine/imgengine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Linking C shared library libimgengine.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/imgengine.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
