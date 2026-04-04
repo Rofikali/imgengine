@@ -179,7 +179,7 @@ set(ENGINE_SOURCES
 # A. SHARED LIBRARY (Your SaaS Core Engine)
 # ============================================================
 
-add_library(plugin_resize SHARED plugins/plugin_resize.c)
+add_library(plugin_resize SHARED src/plugins/plugin_resize.c)
 
 target_include_directories(plugin_resize PRIVATE ${CMAKE_SOURCE_DIR})
 

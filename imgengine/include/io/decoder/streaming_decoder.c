@@ -2,7 +2,8 @@
 
 #include "io/streaming_decoder.h"
 #include "io/io_vfs.h"
-#include "api/v1/img_types.h"
+// #include "api/v1/img_types.h"
+#include "core/buffer.h"
 #include "api/v1/img_buffer_utils.h"
 #include "memory/slab.h"
 

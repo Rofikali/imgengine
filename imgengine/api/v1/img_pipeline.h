@@ -1,21 +1,26 @@
-/* api/v1/img_pipeline.h */
+// pi/v1/img_pipeline.h
+
 #ifndef IMGENGINE_API_PIPELINE_H
 #define IMGENGINE_API_PIPELINE_H
 
-#include "img_types.h"
+#include <stdint.h>
+
+// 🔥 Forward declaration (no heavy include)
+typedef struct img_pipeline img_pipeline_t;
+
+// Builder API
+img_pipeline_t *img_pipeline_create(void);
+void img_pipeline_destroy(img_pipeline_t *pipe);
+
+int img_pipeline_add_op(
+    img_pipeline_t *pipe,
+    uint32_t op_code,
+    void *params);
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-    // User-facing builder helpers
-
-    void img_pipeline_init(img_pipeline_desc_t *pipe);
-
-    int img_pipeline_add_op(img_pipeline_desc_t *pipe,
-                            uint32_t op_code,
-                            void *params);
 
 #ifdef __cplusplus
 }

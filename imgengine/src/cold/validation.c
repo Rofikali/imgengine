@@ -19,39 +19,23 @@ img_result_t img_validate_header(
 }
 
 // ================= PIPELINE VALIDATION =================
+
 bool img_validate_pipeline_safety(const img_pipeline_desc_t *pipe)
 {
     if (!pipe)
         return false;
 
-    if (pipe->count > IMG_MAX_PIPELINE_OPS)
+    if (pipe->count == 0 || pipe->count > IMG_MAX_PIPELINE_OPS)
         return false;
 
     for (uint32_t i = 0; i < pipe->count; i++)
     {
-        if (pipe->ops[i].op_code >= 256)
+        uint32_t op = pipe->ops[i].op_code;
+
+        // 🔥 STRICT RANGE
+        if (op == 0 || op >= 64)
             return false;
     }
 
     return true;
 }
-
-// bool img_validate_pipeline_safety(const img_pipeline_t *pipe)
-// {
-//     if (!pipe)
-//         return false;
-
-//     if (pipe->op_count == 0 || pipe->op_count > IMG_MAX_PIPELINE_OPS)
-//         return false;
-
-//     for (uint32_t i = 0; i < pipe->op_count; i++)
-//     {
-//         uint32_t op = pipe->ops[i];
-
-//         // basic opcode sanity
-//         if (op == 0 || op >= 256)
-//             return false;
-//     }
-
-//     return true;
-// }

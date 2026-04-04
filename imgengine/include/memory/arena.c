@@ -10,6 +10,13 @@ static inline size_t align64(size_t x)
 
 img_arena_t *img_arena_create(size_t size)
 {
+
+    // p->x_index = img_arena_alloc(ctx->scratch_arena,
+    //                              sizeof(uint32_t) * p->target_w);
+
+    // p->y_index = img_arena_alloc(ctx->scratch_arena,
+    //                              sizeof(uint32_t) * p->target_h);
+
     img_arena_t *arena = malloc(sizeof(img_arena_t));
     if (!arena)
         return NULL;

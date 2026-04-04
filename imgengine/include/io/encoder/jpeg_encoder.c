@@ -4,7 +4,8 @@
 #define IMGENGINE_JPEG_ENCODER_H
 
 #include <turbojpeg.h>
-#include "api/v1/img_types.h"
+// #include "api/v1/img_types.h"
+#include "core/buffer.h"
 #include "api/v1/img_error.h"
 #include <stddef.h>
 

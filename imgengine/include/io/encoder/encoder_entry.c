@@ -4,6 +4,7 @@
 #include <turbojpeg.h>
 #include <stdlib.h>
 // #include "api/v1/img_types.h"
+#include "core/buffer.h"
 
 int img_encode_from_buffer(img_ctx_t *ctx,
                            img_buffer_t *buf,

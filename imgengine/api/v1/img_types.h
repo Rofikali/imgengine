@@ -11,30 +11,9 @@ extern "C"
 {
 #endif
 
-    // 🔥 Core buffer (ONLY place with full definition)
-    typedef struct img_buffer
-    {
-        uint32_t width;
-        uint32_t height;
-        uint32_t channels;
-        uint32_t stride;
-        uint8_t *data;
-    } img_buffer_t;
-
-    // Operation descriptor
-    typedef struct
-    {
-        uint32_t op_code;
-        void *params;
-    } img_op_desc_t;
-
-#define IMG_MAX_PIPELINE_OPS 16
-
-    typedef struct
-    {
-        img_op_desc_t ops[IMG_MAX_PIPELINE_OPS];
-        uint32_t count;
-    } img_pipeline_desc_t;
+    // 🔥 OPAQUE TYPES ONLY (API SAFE)
+    typedef struct img_buffer img_buffer_t;
+    typedef struct img_pipeline_desc img_pipeline_desc_t;
 
 #ifdef __cplusplus
 }

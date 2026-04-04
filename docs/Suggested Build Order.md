@@ -10,4 +10,4 @@
 
 
 ### find out the keyboard
-    grep -r "struct img_ctx" .
+    grep -r "struct img_ctx" .  img_pipeline_desc_t;
