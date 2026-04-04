@@ -4,7 +4,10 @@
 #define IMGENGINE_PLUGIN_RESIZE_H
 
 #include <stdint.h>
-#include "api/v1/img_types.h"
+
+// 🔥 Forward declarations (NO heavy includes)
+typedef struct img_buffer img_buffer_t;
+typedef struct img_ctx img_ctx_t;
 
 typedef struct
 {
@@ -16,10 +19,11 @@ typedef struct
     uint32_t scale_x;
     uint32_t scale_y;
 
-    // 🔥 Precomputed index tables
     uint32_t *x_index;
     uint32_t *y_index;
 
 } resize_params_t;
+
+void plugin_resize_single(img_ctx_t *, img_buffer_t *, void *);
 
 #endif

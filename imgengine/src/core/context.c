@@ -5,6 +5,11 @@
 #include "memory/arena.h"
 #include <stdlib.h>
 
+// 🔥 Forward declarations ONLY
+// typedef struct img_ctx img_ctx_t;
+// typedef struct img_buffer img_buffer_t;
+// typedef struct img_batch img_batch_t;
+
 #define DEFAULT_SLAB_SIZE (64 * 1024 * 1024) // 64MB
 #define DEFAULT_BLOCK_SIZE (256 * 1024)      // 256KB
 

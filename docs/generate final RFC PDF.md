@@ -774,6 +774,38 @@
     Slab allocators (kernel memory model)
     Forward-declared boundaries (large-scale systems)
 
+### 🔥 🧠 DESIGN: Distributed Plugin Execution Layer
+
+        Client
+        ↓
+        API
+        ↓
+        Pipeline Engine
+        ↓
+        Execution Router  🔥 (NEW)
+        ↓            ↓
+        Local Worker    Remote Worker (RPC)
+        ↓            ↓
+        SIMD            SIMD (remote node)
+
+### 🔥 L8 DESIGN: MEMORY TIERS (MANDATORY)
+
+    You need 3-tier memory system
+
+                    ┌──────────────────────────────┐
+                    │        GLOBAL (COLD)         │
+                    │   HugePages + NUMA pools     │
+                    └──────────────┬───────────────┘
+                                │
+                    ┌──────────────▼───────────────┐
+                    │     THREAD-LOCAL (WARM)      │
+                    │   slab + arena (no locks)    │
+                    └──────────────┬───────────────┘
+                                │
+                    ┌──────────────▼───────────────┐
+                    │        HOT PATH              │
+                    │   img_buffer (ZERO COPY)     │
+
 ### 🚀 NEXT L8+ (REAL DISTRIBUTED SYSTEM)
 
     If you want to go even further:

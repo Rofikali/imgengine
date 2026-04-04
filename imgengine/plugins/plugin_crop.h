@@ -1,11 +1,14 @@
 /* plugins/plugin_crop.h */
+
 #ifndef IMGENGINE_PLUGIN_CROP_H
 #define IMGENGINE_PLUGIN_CROP_H
 
-#include "core/context_internal.h"
-#include "api/v1/img_types.h"
+#include <stdint.h>
 
-// Zero-copy crop
-void plugin_crop_single(img_ctx_t *ctx, img_buffer_t *buf, void *params);
+// 🔥 Forward declarations
+typedef struct img_buffer img_buffer_t;
+typedef struct img_ctx img_ctx_t;
+
+void plugin_crop_single(img_ctx_t *, img_buffer_t *, void *);
 
 #endif

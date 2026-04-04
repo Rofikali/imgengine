@@ -1,4 +1,5 @@
 /* api/v1/img_error.h */
+
 #ifndef IMGENGINE_API_ERROR_H
 #define IMGENGINE_API_ERROR_H
 
@@ -18,7 +19,7 @@ extern "C"
         IMG_ERR_FORMAT,
         IMG_ERR_SECURITY,
 
-        // Runtime / System
+        // Runtime
         IMG_ERR_IO,
         IMG_ERR_HW_UNSUP,
 

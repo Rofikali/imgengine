@@ -11,17 +11,17 @@ extern "C"
 {
 #endif
 
-    // Full definition of img_buffer_t
-    typedef struct
+    // 🔥 Core buffer (ONLY place with full definition)
+    typedef struct img_buffer
     {
         uint32_t width;
         uint32_t height;
-        uint32_t channels; // 3 = RGB, 4 = RGBA
+        uint32_t channels;
         uint32_t stride;
         uint8_t *data;
     } img_buffer_t;
 
-    // Pipeline operation descriptor
+    // Operation descriptor
     typedef struct
     {
         uint32_t op_code;

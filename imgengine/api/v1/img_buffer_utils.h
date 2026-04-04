@@ -5,6 +5,7 @@
 
 #include "api/v1/img_types.h"
 
+// 🔥 zero-cost helper
 static inline img_buffer_t img_buffer_create(
     uint8_t *data,
     uint32_t w,

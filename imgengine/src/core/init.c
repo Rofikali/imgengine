@@ -2,10 +2,16 @@
 #include "core/context_internal.h"
 #include "arch/cpu_caps.h"
 #include "pipeline/jump_table.h"
+#include "runtime/plugin_loader.h"
 
 // forward
 void img_plugins_init_all(void);
 void img_hw_register_kernels(cpu_caps_t caps);
+
+void img_engine_init_plugins()
+{
+    img_plugin_load_all("./plugins_build");
+}
 
 void img_engine_init(img_engine_t *engine)
 {
@@ -24,29 +30,3 @@ void img_engine_init(img_engine_t *engine)
     // ================= 4. OPTIONAL SIMD OVERRIDE =================
     img_hw_register_kernels(engine->caps);
 }
-
-// #include "arch/cpu_caps.h"
-// #include "pipeline/jump_table.h"
-
-// // forward
-// void img_plugins_init_all(void);
-// void img_hw_register_kernels(cpu_arch_t arch);
-
-// void img_engine_init(img_engine_t *engine)
-// {
-//     if (!engine)
-//         return;
-
-//     // 🔥 1. Detect CPU
-//     cpu_arch_t arch = img_detect_cpu();
-//     // engine->caps = arch;
-//     engine->caps = img_cpu_detect_caps();
-//     // 🔥 THIS IS THE MAGIC LINE
-//     img_jump_table_init(engine->caps);
-
-//     // 🔥 2. Register base plugins
-//     img_plugins_init_all();
-
-//     // 🔥 3. Override with best SIMD kernels
-//     img_hw_register_kernels(arch);
-// }

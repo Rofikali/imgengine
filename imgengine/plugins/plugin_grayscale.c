@@ -1,7 +1,7 @@
 // plugins/plugin_grayscale.c
 
 #include "plugins/plugin_internal.h"
-#include <stdint.h>
+#include "api/v1/img_types.h"
 
 void plugin_grayscale_single(img_ctx_t *ctx, img_buffer_t *buf, void *params)
 {
