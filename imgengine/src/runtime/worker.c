@@ -1,21 +1,32 @@
-/* src/runtime/worker.c */
+// /* src/runtime/worker.c */
 
 #include "runtime/worker.h"
 #include "runtime/task.h"
-#include <unistd.h>
 #include "runtime/scheduler.h"
 #include "hot/pipeline_exec.h"
+#include "runtime/affinity.h"
+
+#include <stdlib.h>
+#include <immintrin.h>
+
+#include "observability/binlog.h"
+
+extern void img_binlog_set_cpu(uint32_t cpu);
 
 static void *worker_loop(void *arg)
 {
     img_worker_t *w = (img_worker_t *)arg;
 
-    while (w->running)
+    /*
+     * 🔥 CRITICAL: bind CPU ID to TLS
+     */
+    img_binlog_set_cpu(w->id);
+
+    while (__builtin_expect(w->running, 1))
     {
         img_task_t *task =
             (img_task_t *)img_queue_pop(w->queue);
 
-        // 🔥 STEAL if empty
         if (!task)
         {
             task = img_scheduler_steal(
@@ -25,11 +36,10 @@ static void *worker_loop(void *arg)
 
         if (!task)
         {
-            __builtin_ia32_pause();
+            _mm_pause();
             continue;
         }
 
-        // 🔥 EXECUTE (HOT PATH)
         img_pipeline_execute_hot(
             w->ctx,
             task->pipeline,
@@ -43,23 +53,33 @@ static void *worker_loop(void *arg)
 
 int img_worker_init(img_worker_t *w, uint32_t id)
 {
+    if (!w)
+        return -1;
+
     w->id = id;
     w->running = 1;
 
-    w->queue = img_queue_create(10); // 1024
+    // 🔥 SPSC queue (FAST PATH)
+    w->queue = img_queue_create(1024);
+
+    if (!w->queue)
+        return -1;
 
     img_pin_thread_to_core(id);
 
     pthread_create(&w->thread, NULL, worker_loop, w);
+
     return 0;
 }
 
 void img_worker_stop(img_worker_t *w)
 {
-    w->running = 0;
+    if (w)
+        w->running = 0;
 }
 
 void img_worker_join(img_worker_t *w)
 {
-    pthread_join(w->thread, NULL);
+    if (w)
+        pthread_join(w->thread, NULL);
 }

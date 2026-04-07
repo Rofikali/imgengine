@@ -18,4 +18,10 @@ typedef struct img_batch
 
 } img_batch_t;
 
+// typedef struct
+// {
+//     uint32_t count;
+//     img_buffer_t **buffers; // ✅ NOT single pointer
+// } img_batch_t;
+
 #endif

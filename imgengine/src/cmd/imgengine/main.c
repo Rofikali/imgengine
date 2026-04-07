@@ -94,7 +94,8 @@ int main(int argc, char **argv)
     uint8_t *out = NULL;
     size_t out_size = 0;
 
-    img_api_process_fast(engine, buffer, size, &out, &out_size);
+    // img_api_process_fast(engine, buffer, size, &out, &out_size);
+    img_api_process_raw(engine, buffer, size, &out, &out_size);
 
     // ================= WRITE =================
     int out_fd = open(opts.output_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);

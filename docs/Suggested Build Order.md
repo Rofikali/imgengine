@@ -2,6 +2,9 @@
 
     sudo apt-get install -y libturbojpeg0-dev libnuma-dev
     sudo apt install liburing-dev
+    
+    `` from the official nothings/stb repository using curl
+         curl -o stb_image.h https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
 
 ### That’s the difference between
 

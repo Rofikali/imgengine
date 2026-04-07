@@ -20,7 +20,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # ------------------------------------------------------------
 
 # Core performance flags (Google/Amazon-grade)
-set(IMG_C_FLAGS "-O3 -march=native -flto  -fno-plt -fstrict-aliasing -luring -lpthread")
+# set(IMG_C_FLAGS "-O3 -march=native -flto  -fno-plt -fstrict-aliasing -luring -lpthread -Wl,--whole-archive")
+set(IMG_C_FLAGS "-O3 -march=native -flto  -fno-plt -fstrict-aliasing -luring -lpthread -Wl,--undefined=__start_img_plugins -Wl,--undefined=__stop_img_plugins")
+
+
+# -Wl,--undefined=__start_img_plugins
+# -Wl,--undefined=__stop_img_plugins
 
 # Hardening flags (optional but recommended for SaaS)
 set(IMG_HARDEN_FLAGS "-fstack-protector-strong -D_FORTIFY_SOURCE=2")
@@ -83,6 +88,9 @@ include_directories(
     io
     security
     observability
+
+    # third_party
+    third_party/
 )
 
 

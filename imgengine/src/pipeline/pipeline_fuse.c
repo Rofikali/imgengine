@@ -4,6 +4,8 @@
 #include "pipeline/pipeline_types.h"
 #include "core/opcodes.h"
 #include "core/buffer.h"
+#include "pipeline/fused_params.h"
+#include "pipeline/pipeline_signature.h"
 
 #if defined(__AVX2__)
 #include <immintrin.h>
@@ -26,6 +28,7 @@ static void fused_exec_avx2(img_ctx_t *ctx, img_buffer_t *buf);
 /*
  * 🔥 FUSION COMPILER (PIPELINE → IR)
  */
+
 int img_pipeline_fuse(
     const img_pipeline_desc_t *in,
     img_pipeline_fused_t *out)
@@ -33,10 +36,9 @@ int img_pipeline_fuse(
     if (!in || !out)
         return -1;
 
-    if (in->count == 0 || in->count > IMG_MAX_FUSED_OPS)
-        return -1;
+    static img_fused_params_t params;
 
-    g_fused.count = 0;
+    __builtin_memset(&params, 0, sizeof(params));
 
     for (uint32_t i = 0; i < in->count; i++)
     {
@@ -45,33 +47,33 @@ int img_pipeline_fuse(
         switch (op)
         {
         case OP_GRAYSCALE:
-            g_fused.ops[g_fused.count++] = FUSED_OP_GRAYSCALE;
+            params.has_grayscale = 1;
             break;
 
-        case OP_RESIZE:
-            /* not fusible yet */
+        case OP_BRIGHTNESS:
+            params.has_brightness = 1;
+            params.brightness_value =
+                *(uint16_t *)in->ops[i].params;
             break;
-
-        default:
-            return -1;
         }
     }
 
+    out->params = params;
+
 #if defined(__AVX2__)
-    g_fused.fn = fused_exec_avx2;
+    out->fn = fused_exec_avx2;
 #else
-    g_fused.fn = fused_exec_scalar;
+    out->fn = fused_exec_scalar;
 #endif
 
-    *out = g_fused;
     return 0;
 }
+
 #if defined(__AVX2__)
-static void fused_exec_avx2(
-    img_ctx_t *ctx,
-    img_buffer_t *buf)
+static void fused_exec_avx2(img_ctx_t *ctx, img_buffer_t *buf)
 {
-    (void)ctx;
+    img_fused_params_t *p =
+        (img_fused_params_t *)ctx->fused_params;
 
     uint32_t w = buf->width;
     uint32_t h = buf->height;
@@ -80,8 +82,9 @@ static void fused_exec_avx2(
     uint8_t *data = buf->data;
 
     const __m256i zero = _mm256_setzero_si256();
-    const __m256i coeff = _mm256_set1_epi16(77);
-    const __m256i bright = _mm256_set1_epi16(20);
+
+    __m256i bright = _mm256_set1_epi16(p->brightness_value);
+    const __m256i gray_coeff = _mm256_set1_epi16(77);
 
     for (uint32_t y = 0; y < h; y++)
     {
@@ -89,8 +92,8 @@ static void fused_exec_avx2(
 
         __builtin_prefetch(row + 64, 0, 1);
 
-        uint32_t x = 0;
         uint32_t len = w * ch;
+        uint32_t x = 0;
 
         for (; x + 32 <= len; x += 32)
         {
@@ -99,20 +102,23 @@ static void fused_exec_avx2(
             __m256i lo = _mm256_unpacklo_epi8(v, zero);
             __m256i hi = _mm256_unpackhi_epi8(v, zero);
 
-            for (uint32_t op = 0; op < g_fused.count; op++)
-            {
-                switch (g_fused.ops[op])
-                {
-                case FUSED_OP_GRAYSCALE:
-                    lo = _mm256_srli_epi16(_mm256_mullo_epi16(lo, coeff), 8);
-                    hi = _mm256_srli_epi16(_mm256_mullo_epi16(hi, coeff), 8);
-                    break;
+            /*
+             * 🔥 NO SWITCH — ONLY PREDICATED OPS
+             */
 
-                case FUSED_OP_BRIGHTNESS:
-                    lo = _mm256_adds_epu16(lo, bright);
-                    hi = _mm256_adds_epu16(hi, bright);
-                    break;
-                }
+            if (p->has_grayscale)
+            {
+                lo = _mm256_srli_epi16(
+                    _mm256_mullo_epi16(lo, gray_coeff), 8);
+
+                hi = _mm256_srli_epi16(
+                    _mm256_mullo_epi16(hi, gray_coeff), 8);
+            }
+
+            if (p->has_brightness)
+            {
+                lo = _mm256_adds_epu16(lo, bright);
+                hi = _mm256_adds_epu16(hi, bright);
             }
 
             __m256i out = _mm256_packus_epi16(lo, hi);
@@ -120,27 +126,24 @@ static void fused_exec_avx2(
             _mm256_storeu_si256((__m256i *)(row + x), out);
         }
 
+        /* scalar tail */
         for (; x < len; x++)
         {
             uint8_t px = row[x];
 
-            for (uint32_t op = 0; op < g_fused.count; op++)
-            {
-                if (g_fused.ops[op] == FUSED_OP_GRAYSCALE)
-                    px = (px * 77) >> 8;
+            if (p->has_grayscale)
+                px = (px * 77) >> 8;
 
-                else if (g_fused.ops[op] == FUSED_OP_BRIGHTNESS)
-                {
-                    uint16_t tmp = px + 20;
-                    px = (tmp > 255) ? 255 : tmp;
-                }
+            if (p->has_brightness)
+            {
+                uint16_t tmp = px + p->brightness_value;
+                px = (tmp > 255) ? 255 : tmp;
             }
 
             row[x] = px;
         }
     }
 }
-#endif
 
 static void fused_exec_scalar(
     img_ctx_t *ctx,
@@ -179,15 +182,55 @@ static void fused_exec_scalar(
     }
 }
 
-void img_pipeline_execute_fused(
-    img_ctx_t *ctx,
-    img_pipeline_fused_t *pipe,
-    img_buffer_t *buf)
-{
-    if (!pipe || !pipe->fn)
-        return;
+// void img_pipeline_execute_fused(
+//     img_ctx_t *ctx,
+//     img_pipeline_fused_t *pipe,
+//     img_buffer_t *buf)
+// {
+//     ctx->fused_params = &pipe->params;
 
-    pipe->fn(ctx, buf);
+//     pipe->fn(ctx, buf);
+// }
+
+int img_pipeline_fuse(
+    const img_pipeline_desc_t *in,
+    img_fused_params_t *params,
+    img_pipeline_sig_t *sig_out)
+{
+    if (!in || !params || !sig_out)
+        return -1;
+
+    img_pipeline_sig_t sig = 0;
+
+    for (uint32_t i = 0; i < in->count; i++)
+    {
+        switch (in->ops[i].op_code)
+        {
+        case OP_GRAYSCALE:
+            params->has_gray = 1;
+            sig |= SIG_OP_GRAYSCALE;
+            break;
+
+        case OP_BRIGHTNESS:
+            params->has_brightness = 1;
+            params->brightness =
+                *(uint16_t *)in->ops[i].params;
+            sig |= SIG_OP_BRIGHTNESS;
+            break;
+
+        case OP_RESIZE:
+            params->has_resize = 1;
+            params->new_w =
+                ((uint32_t *)in->ops[i].params)[0];
+            params->new_h =
+                ((uint32_t *)in->ops[i].params)[1];
+            sig |= SIG_OP_RESIZE;
+            break;
+        }
+    }
+
+    *sig_out = sig;
+    return 0;
 }
 
 void img_pipeline_execute_fused_batch(
@@ -203,3 +246,5 @@ void img_pipeline_execute_fused_batch(
         pipe->fn(ctx, &batch->buffers[i]);
     }
 }
+
+#endif

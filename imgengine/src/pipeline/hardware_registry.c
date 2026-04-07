@@ -27,8 +27,8 @@ void img_hw_register_kernels(cpu_caps_t caps)
     // ================= NEON =================
     else if (img_cpu_has_neon(caps))
     {
-        g_jump_table[OP_RESIZE_H] = img_arch_resize_h_neon;
-        g_jump_table[OP_RESIZE_V] = img_arch_resize_v_neon;
+        g_jump_table[OP_RESIZE_H] = img_arch_resize_h_avx2;
+        g_jump_table[OP_RESIZE_V] = img_arch_resize_v_avx2;
     }
 
     // ================= SCALAR =================

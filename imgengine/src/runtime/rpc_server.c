@@ -2,8 +2,7 @@
 
 #include "runtime/rpc_protocol.h"
 #include "pipeline/jump_table.h"
-#include "api/v1/img_types.h"
-
+#include "api/v1/img_buffer_utils.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>

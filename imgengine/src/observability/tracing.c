@@ -7,19 +7,19 @@
 #include "observability/binlog_fast.h"
 #include "core/time.h"
 
-static inline uint64_t now_ns()
-{
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+// static inline uint64_t now_ns()
+// {
+//     struct timespec ts;
+//     clock_gettime(CLOCK_MONOTONIC, &ts);
 
-    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
-}
+//     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+// }
 
 img_span_t img_trace_start(const char *name)
 {
     img_span_t s;
     s.name = name;
-    s->start = img_now_ns();
+    s.start = img_now_ns();
     s.end = 0;
     return s;
 }

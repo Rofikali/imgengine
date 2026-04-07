@@ -4,24 +4,23 @@
 #include "core/buffer.h"
 #include <stddef.h>
 
-static void resize_single(img_ctx_t *ctx, img_buffer_t *buf, void *params)
+static void resize_single(img_ctx_t *ctx, img_buffer_t *buf)
 {
     (void)ctx;
-    (void)params;
 
+    /*
+     * 🔥 DEFAULT FALLBACK (NO PARAM VERSION)
+     */
     buf->width /= 2;
     buf->height /= 2;
 }
 
 static img_plugin_descriptor_t plugin = {
+    .name = "resize",
     .abi_version = IMG_PLUGIN_ABI_VERSION,
     .op_code = 1,
-    .name = "resize",
-    .capabilities = IMG_CAP_SINGLE | IMG_CAP_ZERO_COPY,
+    .capabilities = IMG_CAP_SINGLE,
     .single_exec = resize_single,
     .batch_exec = NULL};
 
-const img_plugin_descriptor_t *img_plugin_get_descriptor(void)
-{
-    return &plugin;
-}
+IMG_REGISTER_PLUGIN(plugin);

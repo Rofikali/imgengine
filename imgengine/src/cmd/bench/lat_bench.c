@@ -26,7 +26,7 @@ int main()
 
         uint64_t start = __rdtsc();
 
-        img_api_process_fast(
+        img_api_process_raw(
             engine,
             input,
             size,

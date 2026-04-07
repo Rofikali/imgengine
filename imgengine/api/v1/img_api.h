@@ -15,7 +15,6 @@ extern "C"
     typedef struct img_engine img_engine_t;
     typedef struct img_buffer img_buffer_t;
     typedef struct img_pipeline img_pipeline_t;
-    
 
     // Lifecycle
     img_engine_t *img_api_init(uint32_t workers);
