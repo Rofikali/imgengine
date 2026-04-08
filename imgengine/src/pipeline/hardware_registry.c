@@ -11,6 +11,8 @@ void img_hw_register_kernels(cpu_caps_t caps)
     if (img_cpu_has_avx512(caps))
     {
         // 🔥 fallback to AVX2 for now
+        // g_jump_table[OP_RESIZE] = img_arch_resize_h_avx2;
+        // g_jump_table[OP_RESIZE] = img_arch_resize_v_avx2;
         g_jump_table[OP_RESIZE_H] = img_arch_resize_h_avx2;
         g_jump_table[OP_RESIZE_V] = img_arch_resize_v_avx2;
         g_jump_table[OP_GRAYSCALE] = img_arch_grayscale_avx2;
@@ -34,8 +36,8 @@ void img_hw_register_kernels(cpu_caps_t caps)
     // ================= SCALAR =================
     else
     {
-        g_jump_table[OP_RESIZE_H] = img_arch_resize_h_scalar;
-        g_jump_table[OP_RESIZE_V] = img_arch_resize_v_scalar;
+        g_jump_table[OP_RESIZE] = img_arch_resize_h_scalar;
+        g_jump_table[OP_RESIZE] = img_arch_resize_v_scalar;
         g_jump_table[OP_GRAYSCALE] = img_arch_grayscale_scalar;
     }
 }

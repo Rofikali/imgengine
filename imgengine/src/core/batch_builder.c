@@ -1,6 +1,6 @@
 // src/core/batch_builder.c
 
-#include "pipeline/batch_exec.h"
+#include "hot/batch_exec.h"
 #include "memory/arena.h"
 
 img_batch_t *img_batch_create(

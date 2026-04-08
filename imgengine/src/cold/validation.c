@@ -48,9 +48,44 @@ bool img_validate_pipeline_safety(
     {
         uint32_t op = pipe->ops[i].op_code;
 
-        if (op == 0 || op >= OP_CUSTOM_BASE)
+        /*
+         * 🔥 RULES:
+         * - 0 is invalid (NOP not allowed in pipeline)
+         * - builtin range: [1, OP_MAX_BUILTIN)
+         * - custom range: [OP_CUSTOM_BASE, OP_MAX_LIMIT)
+         */
+        if (op == 0)
             return false;
+
+        if (op < OP_MAX_BUILTIN)
+            continue;
+
+        if (op >= OP_CUSTOM_BASE && op < OP_MAX_LIMIT)
+            continue;
+
+        return false;
     }
 
     return true;
 }
+
+// bool img_validate_pipeline_safety(
+//     const img_pipeline_desc_t *pipe)
+// {
+//     if (!pipe)
+//         return false;
+
+//     if (pipe->count == 0 ||
+//         pipe->count > IMG_MAX_PIPELINE_OPS)
+//         return false;
+
+//     for (uint32_t i = 0; i < pipe->count; i++)
+//     {
+//         uint32_t op = pipe->ops[i].op_code;
+
+//         if (op == 0 || op >= OP_CUSTOM_BASE)
+//             return false;
+//     }
+
+//     return true;
+// }

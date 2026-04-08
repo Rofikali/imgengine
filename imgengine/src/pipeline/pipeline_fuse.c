@@ -214,7 +214,7 @@ int img_pipeline_fuse(
 
         case SIG_OP_BRIGHTNESS:
             params->has_brightness = 1;
-            params->brightness =
+            params->has_brightness =
                 *(uint16_t *)in->ops[i].params;
             sig |= SIG_OP_BRIGHTNESS;
             break;

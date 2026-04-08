@@ -3,27 +3,33 @@
 #ifndef IMGENGINE_OPCODES_H
 #define IMGENGINE_OPCODES_H
 
+#include <stdint.h>
+
 /*
- * 🔥 GLOBAL OPCODE CONTRACT
- * (ABI-STABLE — NEVER BREAK)
+ * 🔥 BUILTIN OPCODES (DENSE, FAST)
  */
+typedef enum
+{
+    OP_NOP = 0,
 
-/* Base operations */
-#define OP_RESIZE 0x01
-#define OP_CROP 0x02
-#define OP_GRAYSCALE 0x03
-#define OP_BRIGHTNESS 0x04
+    OP_RESIZE = 1,
+    OP_CROP,
+    OP_GRAYSCALE,
+    OP_BRIGHTNESS,
 
-/*
- * 🔥 INTERNAL (SEPARABLE / HOT PATH)
- * NOT exposed to API layer
- */
-#define OP_RESIZE_H 0x10
-#define OP_RESIZE_V 0x11
+    OP_MAX_BUILTIN // last builtin
+} img_opcode_t;
 
 /*
- * 🔥 FUTURE SAFE RANGE (L8 foresight)
+ * 🔥 CUSTOM OPCODE RANGE (EXTENSIBLE ABI)
+ *
+ * Anything >= this is plugin / user-defined
  */
 #define OP_CUSTOM_BASE 0x1000
+
+/*
+ * 🔥 HARD LIMIT (SAFETY)
+ */
+#define OP_MAX_LIMIT 0xFFFF
 
 #endif

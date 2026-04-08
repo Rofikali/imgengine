@@ -3,22 +3,30 @@
 #include "pipeline/pipeline_signature.h"
 #include "pipeline/fused_kernel.h"
 
-// #include "runtime/task.h"
+/* forward declarations */
+void kernel_none(img_ctx_t *, img_buffer_t *);
+void kernel_gray(img_ctx_t *, img_buffer_t *);
+void kernel_bright(img_ctx_t *, img_buffer_t *);
+void kernel_gray_bright(img_ctx_t *, img_buffer_t *);
+void kernel_gray_resize(img_ctx_t *, img_buffer_t *);
+void kernel_all(img_ctx_t *, img_buffer_t *);
 
-/*
- * 🔥 DIRECT LOOKUP TABLE
- */
 static img_fused_kernel_fn g_dispatch[8] = {
     [0] = kernel_none,
-    [SIG_OP_GRAYSCALE] = kernel_gray,
-    [SIG_OP_BRIGHTNESS] = kernel_bright,
-    [SIG_OP_GRAYSCALE | SIG_OP_BRIGHTNESS] = kernel_gray_bright,
-    [SIG_OP_GRAYSCALE | SIG_OP_RESIZE] = kernel_gray_resize,
-    [SIG_OP_GRAYSCALE | SIG_OP_BRIGHTNESS | SIG_OP_RESIZE] = kernel_all,
+    [1] = kernel_gray,
+    [2] = kernel_bright,
+    [3] = kernel_gray_bright,
+    [5] = kernel_gray_resize,
+    [7] = kernel_all,
 };
 
-img_fused_kernel_fn
-img_get_fused_kernel(img_pipeline_sig_t sig)
+img_fused_kernel_fn img_get_fused_kernel(uint32_t sig)
 {
     return g_dispatch[sig];
 }
+// extern void kernel_none(img_ctx_t*, img_buffer_t*, img_fused_params_t*);
+// extern void kernel_gray(img_ctx_t*, img_buffer_t*, img_fused_params_t*);
+// extern void kernel_bright(img_ctx_t*, img_buffer_t*, img_fused_params_t*);
+// extern void kernel_gray_bright(img_ctx_t*, img_buffer_t*, img_fused_params_t*);
+// extern void kernel_gray_resize(img_ctx_t*, img_buffer_t*, img_fused_params_t*);
+// extern void kernel_all(img_ctx_t*, img_buffer_t*, img_fused_params_t*);

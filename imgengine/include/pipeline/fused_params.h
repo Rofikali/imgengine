@@ -12,6 +12,7 @@ typedef struct
     uint8_t has_resize;
 
     uint16_t brightness_value;
+
     uint32_t new_w;
     uint32_t new_h;
 

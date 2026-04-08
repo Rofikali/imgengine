@@ -2,7 +2,7 @@
 
 #include <immintrin.h>
 #include "arch/arch_interface.h"
-#include "pipeline/batch.h"
+#include "hot/batch_exec.h"
 #include "core/buffer.h"
 #include "pipeline/pipeline_types.h"
 

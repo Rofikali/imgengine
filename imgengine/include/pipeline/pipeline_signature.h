@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include "core/opcodes.h"
+#include "pipeline/pipeline_types.h"
 
 /* Forward Declarations (Opaque Handles) */
 typedef struct img_pipeline_desc img_pipeline_desc_t;
@@ -21,28 +22,13 @@ typedef uint32_t img_pipeline_sig_t;
 #define SIG_OP_BRIGHTNESS (1u << 1)
 #define SIG_OP_RESIZE (1u << 2)
 
-/*
- * 🔥 BUILD SIGNATURE
- */
-static inline img_pipeline_sig_t
-img_pipeline_build_signature(const img_pipeline_desc_t *p)
+static inline uint64_t make_sig(uint32_t *ops, uint32_t count)
 {
-    img_pipeline_sig_t sig = 0;
+    uint64_t sig = 0;
 
-    for (uint32_t i = 0; i < p->count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
-        switch (p->ops[i].op_code)
-        {
-        case OP_GRAYSCALE:
-            sig |= SIG_OP_GRAYSCALE;
-            break;
-        case OP_BRIGHTNESS:
-            sig |= SIG_OP_BRIGHTNESS;
-            break;
-        case OP_RESIZE:
-            sig |= SIG_OP_RESIZE;
-            break;
-        }
+        sig |= ((uint64_t)ops[i] << (i * 8));
     }
 
     return sig;

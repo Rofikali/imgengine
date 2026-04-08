@@ -7,14 +7,6 @@
 #include "observability/binlog_fast.h"
 #include "core/time.h"
 
-// static inline uint64_t now_ns()
-// {
-//     struct timespec ts;
-//     clock_gettime(CLOCK_MONOTONIC, &ts);
-
-//     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
-// }
-
 img_span_t img_trace_start(const char *name)
 {
     img_span_t s;
@@ -33,14 +25,6 @@ void img_trace_end(img_span_t *s)
 
     // future: push to lock-free ring buffer exporter
 }
-
-// static inline uint64_t now_ns()
-// {
-//     struct timespec ts;
-//     clock_gettime(CLOCK_MONOTONIC, &ts);
-
-//     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
-// }
 
 void img_trace_emit(const char *name,
                     uint64_t a0,

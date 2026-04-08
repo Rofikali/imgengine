@@ -52,20 +52,4 @@ typedef struct __attribute__((aligned(64))) img_ctx
 
 } img_ctx_t;
 
-// typedef struct __attribute__((aligned(64))) img_ctx
-// {
-//     uint32_t thread_id;
-
-//     img_slab_pool_t *local_pool;
-//     img_arena_t *scratch_arena;
-
-//     cpu_caps_t caps;
-
-//     /*
-//      * 🔥 FUSED PARAM BLOCK (HOT, CACHE-RESIDENT)
-//      */
-//     void *fused_params;
-
-// } img_ctx_t;
-
 #endif
