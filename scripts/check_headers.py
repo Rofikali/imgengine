@@ -2,7 +2,7 @@
 import os
 import sys
 
-ROOT = "."
+ROOT = "../"
 EXTENSIONS = (".c", ".h")
 IGNORED_DIRS = {"build", ".git", ".github"}
 
