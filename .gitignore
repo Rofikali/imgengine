@@ -30,7 +30,7 @@ Thumbs.db
 # ==========================================
 # 5. IDE / Editor Configurations
 # ==========================================
-# .vscode/
+.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
