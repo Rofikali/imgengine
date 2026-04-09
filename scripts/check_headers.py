@@ -2,17 +2,33 @@
 import os
 import sys
 
-ROOT = "."   # ✅ FIXED
+# 🔥 STRICT ENGINE ROOT
+ENGINE_ROOT = "imgengine"
+
 EXTENSIONS = (".c", ".h")
-IGNORED_DIRS = {"build", ".git", ".github"}
+
+IGNORED_DIRS = {
+    "build",
+    ".git",
+    ".github",
+    "__pycache__"
+}
 
 errors = []
 
 
-def expected_header(path):
-    rel = os.path.relpath(path, ROOT)
-    return f"// ./{rel}"
+# ============================================================
+# EXPECTED HEADER
+# ============================================================
 
+def expected_header(path):
+    rel = os.path.relpath(path, ENGINE_ROOT)
+    return f"// ./imgengine/{rel}"
+
+
+# ============================================================
+# CHECK FILE
+# ============================================================
 
 def check_file(path):
     try:
@@ -27,8 +43,12 @@ def check_file(path):
         errors.append((path, exp))
 
 
+# ============================================================
+# WALK ONLY ENGINE
+# ============================================================
+
 def walk():
-    for root, dirs, files in os.walk(ROOT):
+    for root, dirs, files in os.walk(ENGINE_ROOT):
         dirs[:] = [d for d in dirs if d not in IGNORED_DIRS]
 
         for file in files:
@@ -36,17 +56,24 @@ def walk():
                 check_file(os.path.join(root, file))
 
 
+# ============================================================
+
 if __name__ == "__main__":
-    print("🔍 Running header check...\n")
+    print(f"🔍 Checking headers inside '{ENGINE_ROOT}/' only...\n")
+
+    if not os.path.exists(ENGINE_ROOT):
+        print(f"❌ Missing required folder: {ENGINE_ROOT}/")
+        sys.exit(1)
 
     walk()
 
     if errors:
-        print("❌ Missing/incorrect headers:\n")
+        print("❌ Header violations:\n")
+
         for path, exp in errors:
             print(f"{path}")
             print(f"  expected: {exp}\n")
 
         sys.exit(1)
-    else:
-        print("✅ All headers correct")
+
+    print("✅ All headers correct (ENGINE STRICT MODE)")

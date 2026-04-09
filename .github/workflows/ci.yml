@@ -11,25 +11,29 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4   # 🔥 FIXED (no Node 20 warning)
 
       - name: Install deps
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake python3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake python3
 
-      # 🔥 HEADER LINT (FAIL FAST)
-      - name: Check File Headers
+      # 🔥 STRICT HEADER CHECK (ONLY ENGINE)
+      - name: Check Headers (ENGINE ONLY)
         run: python3 scripts/check_headers.py
 
-      - name: Build
+      - name: Build Engine
         run: |
-          mkdir build && cd build
+          cd imgengine
+          mkdir -p build && cd build
           cmake ..
           make -j$(nproc)
 
       - name: Run Tests
         run: |
-          if [ -f ./tests/run_all.sh ]; then
+          if [ -f imgengine/tests/run_all.sh ]; then
+            cd imgengine
             ./tests/run_all.sh
           else
-            echo "No tests found, skipping"
+            echo "No tests found"
           fi
