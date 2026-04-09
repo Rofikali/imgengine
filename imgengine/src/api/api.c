@@ -1,99 +1,44 @@
 // src/api/api.c
 
 #include "api/v1/img_api.h"
-// #include "api/v1/img_plugin_api.h"
+#include "api/v1/img_error.h"
 
-#include "core/context_internal.h"
-#include "runtime/worker.h"
-#include "runtime/task.h"
-#include "runtime/queue_mpmc.h"
+#include "core/engine/engine.h"
+#include "core/context/ctx_internal.h"
+#include "core/pipeline/pipeline_types.h"
 
-#include "memory/slab.h"
-#include "memory/arena.h"
+#include "pipeline/exec/pipeline_exec.h"
+#include "pipeline/dispatch/jump_table.h"
 
-#include "arch/cpu_caps.h"
+#include "memory/slab/slab.h"
 
-#include "pipeline/jump_table.h"
-#include "pipeline/pipeline_compiled.h"
+#include "runtime/worker/worker.h"
+#include "runtime/scheduler/scheduler.h"
 
-#include "hot/pipeline_exec.h"
+#include "security/sandbox/sandbox.h"
+#include "security/validation/input_validator.h"
 
-#include "security/input_validator.h"
-#include "security/sandbox.h"
+#include "observability/metrics/metrics.h"
+#include "observability/binlog/binlog_fast.h"
 
-#include "cold/validation.h"
-
-#include <string.h>
 #include <stdlib.h>
-
-// 🔥 MISSING DECLARATION FIX
-void img_hw_register_kernels(cpu_caps_t caps);
+#include <string.h>
 
 // ============================================================
-// 🔥 GLOBAL ENGINE
+// 🔥 INTERNAL ENGINE STRUCT (OPAQUE)
 // ============================================================
 
-static img_mpmc_queue_t g_task_queue;
-static img_engine_t g_engine;
-static img_worker_t g_workers[64];
-
-// ============================================================
-// 🔥 FORWARD
-// ============================================================
-
-extern img_result_t decode_image_secure(
-    const uint8_t *input,
-    size_t size,
-    img_buffer_t *out_buf);
-
-// ============================================================
-// 🔥 FAST PATH
-// ============================================================
-
-img_result_t img_api_process_fast(
-    img_engine_t *engine,
-    const uint8_t *input,
-    size_t input_size,
-    img_pipeline_desc_t *pipe,
-    img_buffer_t *out_buf)
+struct img_engine
 {
-    if (!engine || !input || !pipe || !out_buf)
-        return IMG_ERR_SECURITY;
+    uint32_t worker_count;
 
-    img_result_t sec = img_security_validate_request(
-        4096, 4096,
-        input_size);
+    img_worker_t *workers;
+    img_scheduler_t scheduler;
 
-    if (sec != IMG_SUCCESS)
-        return sec;
+    img_slab_pool_t *global_pool;
 
-    img_result_t res = decode_image_secure(
-        input,
-        input_size,
-        out_buf);
-
-    if (res != IMG_SUCCESS)
-        return res;
-
-    if (!img_validate_pipeline_safety(pipe))
-        return IMG_ERR_SECURITY;
-
-    img_pipeline_compiled_t compiled;
-
-    if (img_pipeline_compile(pipe, &compiled) != 0)
-        return IMG_ERR_FORMAT;
-
-    img_ctx_t ctx = {0};
-    ctx.thread_id = 0;
-    ctx.caps = engine->caps;
-
-    img_pipeline_execute_hot(
-        &ctx,
-        (img_pipeline_runtime_t *)&compiled,
-        out_buf);
-
-    return IMG_SUCCESS;
-}
+    cpu_caps_t caps;
+};
 
 // ============================================================
 // 🔥 INIT
@@ -101,299 +46,141 @@ img_result_t img_api_process_fast(
 
 img_engine_t *img_api_init(uint32_t workers)
 {
-    if (!img_security_enter_sandbox())
-        return NULL;
-
     if (workers == 0 || workers > 64)
         return NULL;
 
-    memset(&g_engine, 0, sizeof(g_engine));
+    // 🔥 sandbox FIRST (critical)
+    if (!img_security_enter_sandbox())
+        return NULL;
 
-    g_engine.worker_count = workers;
-    g_engine.workers = g_workers;
+    img_engine_t *engine = calloc(1, sizeof(*engine));
+    if (!engine)
+        return NULL;
 
-    // 🔥 CPU DETECT
-    g_engine.caps = img_cpu_detect_caps();
+    // ================= CPU =================
+    engine->caps = img_cpu_detect_caps();
 
-    // 🔥 GLOBAL SLAB
-    g_engine.global_pool = img_slab_create(
+    // ================= MEMORY =================
+    engine->global_pool = img_slab_create(
         64 * 1024 * 1024,
         64 * 1024);
 
-    if (!g_engine.global_pool)
-        return NULL;
+    if (!engine->global_pool)
+        goto fail;
 
-    // 🔥 DISPATCH INIT
-    img_jump_table_init(g_engine.caps);
-    img_hw_register_kernels(g_engine.caps);
-    /* 🔥 ZERO-COST PLUGIN LOAD */
-    // img_plugins_init_all();
+    // ================= DISPATCH =================
+    img_jump_table_init(engine->caps);
 
-    // 🔥 WORKERS INIT (SPSC OWNED)
-    for (uint32_t i = 0; i < workers; i++)
-    {
-        img_worker_init(&g_workers[i], i);
-    }
+    // ================= SCHEDULER =================
+    if (img_scheduler_init(&engine->scheduler, workers) != 0)
+        goto fail;
 
-    // 🔥 OPTIONAL GLOBAL QUEUE (for external submissions only)
-    img_mpmc_init(&g_task_queue, 1024);
+    engine->worker_count = workers;
+    engine->workers = engine->scheduler.workers;
 
-    return &g_engine;
+    // ================= OBSERVABILITY =================
+    img_metrics_init();
+
+    return engine;
+
+fail:
+    if (engine->global_pool)
+        img_slab_destroy(engine->global_pool);
+
+    free(engine);
+    return NULL;
 }
-
-// ============================================================
-// 🔥 TASK SUBMIT
-// ============================================================
-
-int img_submit_task(img_task_t *task)
-{
-    if (!task)
-        return 0;
-
-    return img_mpmc_push(&g_task_queue, task);
-}
-
-// ============================================================
-// 🔥 SHUTDOWN
-// ============================================================
 
 void img_api_shutdown(img_engine_t *engine)
 {
     if (!engine)
         return;
 
-    for (uint32_t i = 0; i < engine->worker_count; i++)
-    {
-        img_worker_stop(&engine->workers[i]);
-        img_worker_join(&engine->workers[i]);
-    }
+    img_scheduler_destroy(&engine->scheduler);
 
     if (engine->global_pool)
         img_slab_destroy(engine->global_pool);
+
+    free(engine);
 }
 
-// ============================================================
-// 🔥 FREE
-// ============================================================
-
-void img_encoded_free(uint8_t *ptr)
+int img_api_process(
+    img_engine_t *engine,
+    img_buffer_t *input,
+    img_buffer_t **output)
 {
-    if (ptr)
-        free(ptr);
+    if (!engine || !input || !output)
+        return IMG_ERR_SECURITY;
+
+    img_ctx_t ctx = {0};
+    ctx.caps = engine->caps;
+    ctx.thread_id = 0;
+
+    // 🔥 direct execution (zero-copy)
+    img_pipeline_runtime_t runtime = {0}; // placeholder (compiled pipeline)
+
+    img_pipeline_execute_hot(
+        &ctx,
+        &runtime,
+        input);
+
+    *output = input;
+
+    return IMG_SUCCESS;
 }
 
-// #include "api/v1/img_api.h"
+extern img_result_t decode_image_secure(
+    const uint8_t *input,
+    size_t size,
+    img_buffer_t *out);
 
-// #include "core/context_internal.h"
-// #include "runtime/worker.h"
-// #include "runtime/task.h"
-// #include "runtime/queue_mpmc.h"
+int img_api_process_raw(
+    img_engine_t *engine,
+    uint8_t *input,
+    size_t input_size,
+    uint8_t **output,
+    size_t *output_size)
+{
+    if (!engine || !input || !output || !output_size)
+        return IMG_ERR_SECURITY;
 
-// #include "memory/slab.h"
-// #include "memory/arena.h"
+    // ================= SECURITY =================
+    img_result_t sec =
+        img_security_validate_request(4096, 4096, input_size);
 
-// #include "arch/cpu_caps.h"
+    if (sec != IMG_SUCCESS)
+        return sec;
 
-// #include "pipeline/jump_table.h"
-// #include "pipeline/pipeline_compiled.h"
+    // ================= DECODE =================
+    img_buffer_t buf = {0};
 
-// #include "hot/pipeline_exec.h"
+    img_result_t res =
+        decode_image_secure(input, input_size, &buf);
 
-// #include "security/input_validator.h"
-// #include "security/sandbox.h"
+    if (res != IMG_SUCCESS)
+        return res;
 
-// #include "cold/validation.h"
+    // ================= EXECUTION =================
+    img_ctx_t ctx = {0};
+    ctx.caps = engine->caps;
 
-// #include <string.h>
-// #include <stdlib.h>
+    img_pipeline_runtime_t runtime = {0};
 
-// // ============================================================
-// // 🔥 GLOBAL ENGINE (STATIC, NO HEAP FRAGMENTATION)
-// // ============================================================
+    uint64_t start = img_profiler_now();
 
-// static img_mpmc_queue_t g_task_queue;
-// static img_engine_t g_engine;
-// static img_worker_t g_workers[64];
+    img_pipeline_execute_hot(&ctx, &runtime, &buf);
 
-// // ============================================================
-// // 🔥 FORWARD (decoder must use bounds_check internally)
-// // ============================================================
+    uint64_t end = img_profiler_now();
 
-// extern img_result_t decode_image_secure(
-//     const uint8_t *input,
-//     size_t size,
-//     img_buffer_t *out_buf);
+    // ================= METRICS =================
+    img_metrics_inc(0);
+    img_metrics_latency(0, end - start);
 
-// // ============================================================
-// // 🔥 MAIN FAST PATH (SECURE + DETERMINISTIC)
-// // ============================================================
+    IMG_LOG_LATENCY(end - start, 1, 0);
 
-// img_result_t img_api_process_fast(
-//     img_engine_t *engine,
-//     const uint8_t *input,
-//     size_t input_size,
-//     img_pipeline_desc_t *pipe,
-//     img_buffer_t *out_buf)
-// {
-//     if (!engine || !input || !pipe || !out_buf)
-//         return IMG_ERR_SECURITY;
+    // ================= OUTPUT =================
+    *output = buf.data;
+    *output_size = buf.height * buf.stride;
 
-//     // ========================================================
-//     // 🔥 1. REQUEST VALIDATION (FAIL FAST)
-//     // ========================================================
-
-//     img_result_t sec = img_security_validate_request(
-//         4096, 4096, // 🔥 Replace with parsed header later
-//         input_size);
-
-//     if (sec != IMG_SUCCESS)
-//         return sec;
-
-//     // ========================================================
-//     // 🔥 2. DECODE (BOUNDS-CHECKED INSIDE DECODER)
-//     // ========================================================
-
-//     img_result_t res = decode_image_secure(
-//         input,
-//         input_size,
-//         out_buf);
-
-//     if (res != IMG_SUCCESS)
-//         return res;
-
-//     // ========================================================
-//     // 🔥 3. PIPELINE VALIDATION (COLD PATH)
-//     // ========================================================
-
-//     if (!img_validate_pipeline_safety(pipe))
-//         return IMG_ERR_SECURITY;
-
-//     // ========================================================
-//     // 🔥 4. PIPELINE COMPILE (COLD → HOT TRANSITION)
-//     // ========================================================
-
-//     img_pipeline_compiled_t compiled;
-
-//     if (img_pipeline_compile(pipe, &compiled) != 0)
-//         return IMG_ERR_FORMAT;
-
-//     // ========================================================
-//     // 🔥 5. EXECUTION (HOT PATH — ZERO CHECKS)
-//     // ========================================================
-
-//     img_ctx_t ctx = {0}; // 🔥 stack ctx (no alloc)
-//     ctx.thread_id = 0;
-//     ctx.caps = engine->caps;
-
-//     img_pipeline_execute_hot(
-//         &ctx,
-//         (img_pipeline_runtime_t *)&compiled,
-//         out_buf);
-
-//     return IMG_SUCCESS;
-// }
-
-// // ============================================================
-// // 🔥 ENGINE INIT (WITH SANDBOX)
-// // ============================================================
-
-// img_engine_t *img_api_init(uint32_t workers)
-// {
-//     // ========================================================
-//     // 🔥 0. ENTER SANDBOX FIRST (CRITICAL)
-//     // ========================================================
-
-//     if (!img_security_enter_sandbox())
-//         return NULL;
-
-//     // ========================================================
-//     // 🔥 QUEUE INIT
-//     // ========================================================
-
-//     img_mpmc_init(&g_task_queue, 1024);
-
-//     if (workers == 0 || workers > 64)
-//         return NULL;
-
-//     memset(&g_engine, 0, sizeof(g_engine));
-
-//     g_engine.worker_count = workers;
-//     g_engine.workers = g_workers;
-
-//     // ========================================================
-//     // 🔥 CPU DETECT
-//     // ========================================================
-
-//     g_engine.caps = img_cpu_detect_caps();
-
-//     // ========================================================
-//     // 🔥 GLOBAL SLAB (ONLY SAFE PLACE FOR ALLOCATION)
-//     // ========================================================
-
-//     g_engine.global_pool = img_slab_create(
-//         64 * 1024 * 1024,
-//         64 * 1024);
-
-//     if (!g_engine.global_pool)
-//         return NULL;
-
-//     // ========================================================
-//     // 🔥 DISPATCH INIT
-//     // ========================================================
-
-//     img_jump_table_init(g_engine.caps);
-//     img_hw_register_kernels(g_engine.caps);
-
-//     // ========================================================
-//     // 🔥 WORKERS INIT
-//     // ========================================================
-
-//     for (uint32_t i = 0; i < workers; i++)
-//     {
-//         img_worker_init(&g_workers[i], i);
-//         g_workers[i].queue = &g_task_queue;
-//     }
-
-//     return &g_engine;
-// }
-
-// // ============================================================
-// // 🔥 TASK SUBMISSION (MPMC SAFE)
-// // ============================================================
-
-// int img_submit_task(img_task_t *task)
-// {
-//     if (!task)
-//         return 0;
-
-//     return img_mpmc_push(&g_task_queue, task);
-// }
-
-// // ============================================================
-// // 🔥 CLEANUP
-// // ============================================================
-
-// void img_api_shutdown(img_engine_t *engine)
-// {
-//     if (!engine)
-//         return;
-
-//     for (uint32_t i = 0; i < engine->worker_count; i++)
-//     {
-//         img_worker_stop(&engine->workers[i]);
-//         img_worker_join(&engine->workers[i]);
-//     }
-
-//     if (engine->global_pool)
-//         img_slab_destroy(engine->global_pool);
-// }
-
-// // ============================================================
-// // 🔥 OUTPUT FREE (BOUNDARY SAFE)
-// // ============================================================
-
-// void img_encoded_free(uint8_t *ptr)
-// {
-//     if (ptr)
-//         free(ptr); // or tjFree if TurboJPEG
-// }
+    return IMG_SUCCESS;
+}

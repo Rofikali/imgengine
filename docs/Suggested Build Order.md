@@ -12,6 +12,7 @@
     performance engineer ✅
     systems architect 🚀
 
+make it a to z copy paste able as a real L10 KERNEL grade with file names linux kernel grade
 
    mkdir build && cd build
     rm -rf *

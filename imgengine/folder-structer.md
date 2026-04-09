@@ -8,187 +8,209 @@
 ## 📁 FOLDER STRUCTURE
 
     imgengine/
-    |   ├── include/                 # INTERNAL (The "How" - Detailed)
-    │   ├── core/
-    │   │   ├── context_internal.h
-    │   │   ├── dispatcher_internal.h
-    │   │   └── config_internal.h
-    │   ├── arch/
-    │   │   ├── cpu_caps.h       # SIMD feature bits
-    │   │   └── arch_interface.h # Kernel signatures
-    │   ├── memory/
-    │   │   ├── slab_internal.h
-    │   │   └── numa_node.h
-    │   └── runtime/
-    │       ├── worker_state.h
-    │       └── spsc_barrier.h   # Atomic fence definitions
-    ├── md/                        # EXECUTABLES (The "Main" entry points)
-    │   ├── imgengine/              # THE PRIMARY CLI TOOL
-    │   │   ├── main.c              # Argument parsing & worker bootstrap
-    │   │   ├── args.c/h            # getopt_long logic (Kernel-grade CLI flags)
-    │   │   └── shell.c/h c          # Interactive mode (for debugging)
-    │   └── bench/                  # PERFORMANCE SUITE
-    │       ├── lat_bench.c         # P99 Latency measuring tool
-    │       └── thr_bench.c         # 100K ops/sec stress tester
-    ├── api/                        # PUBLIC, STABLE ABI (Versioned)
+    │
+    ├── api/                              # 🔥 STABLE ABI (DO NOT BREAK)
     │   └── v1/
-    │       ├── img_core.h          # Opaque handles, init/shutdown
-    │       ├── img_types.h         # Image metadata & buffer descriptors
-    │       ├── img_pipeline.h      # User-facing pipeline builder
-    │       └── img_error.h         # IMG_SUCCESS, IMG_ERR_NOMEM, etc.
+    │       ├── img_api.h
+    │       ├── img_pipeline.h
+    │       ├── img_buffer_utils.h
+    │       ├── img_plugin_api.h
+    │       └── img_error.h
     │
-    ├── src/                        # CORE IMPLEMENTATION
-    │   ├── core/
-    │   │   ├── context.c/h         # Thread-local state & Slab management
-    │   │   ├── dispatcher.c/h      # Runtime CPUID (AVX-512/NEON) logic
-    │   │   ├── config.c/h          # SaaS tuning (Batch size, HugePages)
-    │   │   └── init.c/h            # Global bootstrap & Registry load
-                image.c/h
-
-
-    │   ├── hot/                    # PERFORMANCE-CRITICAL (No branching)
-    │   │   ├── pipeline_exec.c/h   # The Jump-Table execution loop
-    │   │   ├── pixel_ops.h         # Always-inline SIMD math helpers
-    │   │   └── batch_engine.c/h    # 8-way interleaved SIMD orchestrator
-    │   └── cold/                   # NON-CRITICAL (Error/Validation)
-    │       ├── validation.c/h      # Malicious header & bounds checking
-    │       ├── error.c/h           # String formatting & log-routing
-    │       └── debug.c/h           # Slab dump & CPU telemetry
+    ├── core/                             # 🔥 PURE COMPUTE (NO IO / THREADS)
+    │   ├── context/
+    │   │   ├── ctx.c
+    │   │   ├── ctx.h
+    │   │   └── ctx_internal.h
+    │   │
+    │   ├── buffer/
+    │   │   ├── buffer.h
+    │   │   ├── buffer_lifecycle.c
+    │   │   └── buffer_lifecycle.h
+    │   │
+    │   ├── pipeline/
+    │   │   ├── pipeline_desc.c
+    │   │   ├── pipeline_compile.c
+    │   │   ├── pipeline_types.h
+    │   │   └── opcodes.h
+    │   │
+    │   ├── engine/
+    │   │   ├── engine.c
+    │   │   └── engine.h
+    │   │
+    │   └── config/
+    │       ├── config.h
+    │       └── config.c
     │
-    ├── pipeline/                   # EXECUTION GRAPH ENGINE
-    │   ├── engine.c/h              # DAG orchestrator
-    │   ├── registry.c/h            # Internal plugin registration
-    │   ├── jump_table.c/h          # Global function pointer arrays
-    │   └── scheduler.c/h           # Batch-to-worker task mapping
+    ├── pipeline/                         # 🔥 HOT EXECUTION ONLY
+    │   ├── exec/
+    │   │   ├── pipeline_exec.c
+    │   │   └── pipeline_exec.h
+    │   │
+    │   ├── batch/
+    │   │   ├── batch_exec.c
+    │   │   ├── batch_builder.c
+    │   │   └── batch.h
+    │   │
+    │   ├── threaded/
+    │   │   ├── pipeline_threaded.c
+    │   │   └── pipeline_threaded.h
+    │   │
+    │   └── dispatch/
+    │       ├── jump_table.c
+    │       └── jump_table.h
     │
-    ├── memory/                     # KERNEL-GRADE ALLOCATORS
-    │   ├── slab.c/h                # O(1) Fixed-size image blocks
-    │   ├── arena.c/h               # Thread-local metadata allocator
-    │   ├── numa.c/h                # NUMA-node affinity (Socket pinning)
-    │   └── hugepage.c/h            # 2MB Page mapping (TLB optimization)
+    ├── runtime/                          # 🔥 EXECUTION + SCHEDULING
+    │   ├── worker/
+    │   │   ├── worker.c
+    │   │   └── worker.h
+    │   │
+    │   ├── scheduler/
+    │   │   ├── scheduler.c
+    │   │   └── scheduler.h
+    │   │
+    │   ├── queue/
+    │   │   ├── mpmc.c
+    │   │   ├── mpmc.h
+    │   │   ├── spsc.c
+    │   │   └── spsc.h
+    │   │
+    │   ├── dispatch/
+    │   │   ├── exec_router.c
+    │   │   └── exec_router.h
+    │   │
+    │   ├── affinity/
+    │   │   ├── affinity.c
+    │   │   └── affinity.h
+    │   │
+    │   └── cluster/                      # 🔥 (moved here)
+    │       ├── cluster_registry.c
+    │       └── cluster_registry.h
     │
-    ├── runtime/                    # THREADING & QUEUES
-    │   ├── worker.c/h              # Pinned worker loop
-    │   ├── queue_spsc.c/h          # Lock-free atomic ring buffer
-    │   ├── affinity.c/h            # pthread_setaffinity_np logic
-    │   └── backpressure.c/h        # Load-shedding & queue-limit logic
+    ├── memory/                           # 🔥 MEMORY SUBSYSTEM
+    │   ├── slab/
+    │   │   ├── slab.c
+    │   │   ├── slab.h
+    │   │   └── slab_internal.h
+    │   │
+    │   ├── arena/
+    │   │   ├── arena.c
+    │   │   └── arena.h
+    │   │
+    │   ├── numa/
+    │   │   ├── numa.c
+    │   │   └── numa.h
+    │   │
+    │   └── hugepage/
+    │       ├── hugepage.c
+    │       └── hugepage.h
     │
+    ├── io/                               # 🔥 ALL IO (ISOLATED)
+    │   ├── decoder/
+    │   │   ├── decoder_entry.c
+    │   │   └── streaming_decoder.c
+    │   │
+    │   ├── encoder/
+    │   │   └── encoder_entry.c
+    │   │
+    │   ├── vfs/
+    │   │   ├── memory_stream.c
+    │   │   └── http_stream.c
+    │   │
+    │   └── remote/
+    │       └── remote_fetch.c
     │
-    ├── plugins/                    # STATIC EXTENSIONS
-    │   ├── plugin_resize.c/h       # Resize wrapper
-    │   ├── plugin_crop.c/h         # Zero-copy crop logic
-    │   └── plugin_grayscale.c/h    # Color conversion plugin
+    ├── plugins/                          # 🔥 EXTENSIBILITY
+    │   ├── builtin/
+    │   │   ├── plugin_resize.c
+    │   │   ├── plugin_crop.c
+    │   │   ├── plugin_grayscale.c
+    │   │   └── plugin_registry.c
+    │   │
+    │   └── dynamic/
+    │       └── plugin_loader.c
     │
-    ├── observability/              # METRICS & TRACING
-    │   ├── metrics.c/h             # Prometheus/StatsD counters
-    │   └── profiler.c/h            # RDTSC-based latency tracking
-            logger.c/h
-            tracing.c/h
-
-        Security
-            bounds_check.c/h
-            fezz_hooks.c/h
-            input_validator.c/h
-            poision.c/h
-            sandbox.c/h
+    ├── observability/                    # 🔥 YOUR STRONGEST PART (NOW PERFECT)
+    │   ├── binlog/
+    │   │   ├── binlog.c
+    │   │   ├── binlog.h
+    │   │   └── binlog_fast.h
+    │   │
+    │   ├── tracing/
+    │   │   ├── tracing.c
+    │   │   ├── tracing.h
+    │   │   └── tracepoints.h
+    │   │
+    │   ├── metrics/
+    │   │   ├── metrics.c
+    │   │   └── metrics.h
+    │   │
+    │   ├── logger/
+    │   │   ├── logger.c
+    │   │   └── logger.h
+    │   │
+    │   ├── profiler/
+    │   │   ├── profiler.c
+    │   │   └── profiler.h
+    │   │
+    │   └── events/
+    │       └── events.h
     │
-    ├── build/                      # BUILD SYSTEM
-    │   ├── CMakeLists.txt          # -O3 -march=native -fno-plt flags
-    │   └── toolchain.cmake         # Cross-compilation settings
-    |
-    ├── io/                         # HARDENED I/O LAYER (Hostile Input Handling)
-    │   ├── decoder/                # RAW TO SLAB (Inbound)
-    │   │   ├── jpeg/
-    │   │   │   ├── jpeg_turbo.c/h  # libjpeg-turbo SIMD bridge
-    │   │   │   └── jpeg_marker.c/h # Fast-scan EOI/SOI marker validation
-    │   │   ├── png/
-    │   │   │   ├── png_spng.c/h    # libspng (security-hardened) bridge
-    │   │   │   └── png_chunk.c/h   # Critical chunk (IHDR/PLTE) validation
-    │   │   ├── webp/
-    │   │   │   └── webp_native.c/h # libwebp-demux integration
-    │   │   └── stb_bridge.c/h      # Legacy fallback (fuzz-tested)
-    │   ├── encoder/                # SLAB TO RAW (Outbound)
-    │   │   ├── jpeg_encoder.c/h    # Quality-tuned Huffman destination manager
-    │   │   └── png_encoder.c/h     # Z-lib strategy optimization
-    │   └── vfs/                    # VIRTUAL FILE SYSTEM (Zero-Copy abstraction)
-    │       ├── memory_stream.c/h   # RAM-to-Slab streaming logic
-    │       ├── posix_io.c/h        # mmap() and pread() wrappers
-    │       ├── s3_adapter.c/h      # Range-request logic for cloud objects
-    │       └── io_uring.c/h        # Linux 5.10+ async I/O syscall optimization
+    ├── security/                         # 🔥 HARDENING LAYER
+    │   ├── sandbox/
+    │   │   ├── sandbox.c
+    │   │   └── sandbox.h
+    │   │
+    │   ├── validation/
+    │   │   ├── input_validator.c
+    │   │   └── input_validator.h
+    │   │
+    │   ├── bounds/
+    │   │   └── bounds_check.h
+    │   │
+    │   ├── poison/
+    │   │   └── poison.h
+    │   │
+    │   └── fuzz/
+    │       └── fuzz_hooks.c
     │
-    ├── arch/                       # SILICON LAYER (Hardware-Specific Kernels)
-    │   ├── x86_64/                 # INTEL / AMD (High-Throughput)
+    ├── arch/                             # 🔥 HARDWARE BACKENDS
+    │   ├── x86/
     │   │   ├── avx2/
-    │   │   │   ├── resize_avx2.c   # 256-bit Bilinear/Bicubic kernels
-    │   │   │   ├── color_avx2.c    # YUV/RGB/Gray conversion
-    │   │   │   └── filters_avx2.c  # Convolution/Blur kernels
-    │   │   ├── avx512/             # GOOGLE-GRADE SERVER OPTIMIZATION
-    │   │   │   ├── resize_fma.c    # 512-bit Fused-Multiply-Add optimization
-    │   │   │   ├── mask_logic.c    # Edge-case masking for non-aligned widths
-    │   │   │   └── color_zmm.c     # Maximum IPC luminance kernels
-    │   │   └── scalar/
-    │   │       └── fallback.c      # Bit-exact reference implementation
-    │   └── aarch64/                # ARM / GRAVITON / APPLE (Efficiency)
-    │       ├── neon/
-    │       │   ├── resize_neon.c   # 128-bit AdvSIMD kernels
-    │       │   ├── interleave.c    # vld3/vst3 interleaved RGB optimization
-    │       │   └── color_neon.c    # Fixed-point color math
-    │       ├── sve/                # FUTURE-PROOF (Scalable Vector Extensions)
-    │       │   └── vector_agnostic.c # Auto-sizing vector logic
-    │       └── scalar/
-    │           └── reference.c     # ARM-specific scalar logic
+    │   │   └── avx512/
+    │   │
+    │   ├── arm/
+    │   │   └── neon/
+    │   │
+    │   └── cpu_caps.c
     │
-    └── include/arch/               # ARCHITECTURE INTERNAL HEADERS
-        ├── cpu_caps.h              # CPUID/Feature-bit bitmasks
-        └── arch_interface.h        # Unified kernel signatures for Jump Table
-
+    ├── cold/                             # 🔥 NON-HOT UTILITIES
+    │   ├── debug/
+    │   │   ├── debug.c
+    │   │   └── debug.h
+    │   │
+    │   ├── error/
+    │   │   ├── error.c
+    │   │   └── error.h
+    │   │
+    │   └── validation/
+    │       ├── validation.c
+    │       └── validation.h
     │
-    └── Makefile                    # Principal-level master build script
-
-### 🧠 FULL STACK (WHAT YOU BUILT)
-
-    [ CLI / Bench Layer ]
-            ↓
-    cmd/
-            ↓
-    [ Public API ]
-            ↓
-    api/v1/
-            ↓
-    [ Internal Contracts ]
-            ↓
-    include/
-            ↓
-    [ Execution Engine ]
-            ↓
-    src/
-        ├── core
-        ├── memory
-        ├── runtime
-        ├── pipeline
-        ├── plugins
-        ├── io
-        ├── hot
-        └── cold
-
-### 🧠 ARCHITECTURE YOU JUST BUILT
-
-    After wiring:
-
-    API Layer
-    ↓
-    Security Validation (L7)
-    ↓
-    Scheduler (Backpressure Defense)
-    ↓
-    Worker Thread
-    ↓
-    [ SECURE SANDBOX (seccomp) ]
-    ↓
-    Decode (Validated Input)
-    ↓
-    Pipeline (Bounds-Checked SIMD)
-    ↓
-    Encode
-    ↓
-    Output
+    ├── cmd/                              # 🔥 CLI + BENCH
+    │   ├── imgengine/
+    │   │   ├── main.c
+    │   │   ├── args.c
+    │   │   └── io_uring_engine.c
+    │   │
+    │   └── bench/
+    │       └── lat_bench.c
+    │
+    ├── tests/                            # 🔥 REQUIRED FOR L10
+    │   ├── unit/
+    │   ├── fuzz/
+    │   └── perf/
+    │
+    ├── build/
+    ├── CMakeLists.txt
+    └── README.md
