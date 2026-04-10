@@ -1,0 +1,2532 @@
+==> include/plugins/plugin_crop.h <==
+
+/* plugins/plugin_crop.h */
+
+#ifndef IMGENGINE_PLUGIN_CROP_H
+#define IMGENGINE_PLUGIN_CROP_H
+
+#include <stdint.h>
+
+// 🔥 Forward declarations
+typedef struct img_buffer img_buffer_t;
+typedef struct img_ctx img_ctx_t;
+
+void plugin_crop_single(img_ctx_t *, img_buffer_t *, void *);
+
+#endif
+
+==> include/plugins/plugin_resize.h <==
+
+/* plugins/plugin_resize.h */
+
+#ifndef IMGENGINE_PLUGIN_RESIZE_H
+#define IMGENGINE_PLUGIN_RESIZE_H
+
+#include <stdint.h>
+
+/*
+ * 🔥 Forward declarations (NO heavy deps)
+ */
+typedef struct img_buffer img_buffer_t;
+typedef struct img_ctx img_ctx_t;
+
+/*
+ * 🔥 SINGLE SOURCE OF TRUTH
+ */
+typedef struct
+{
+    img_buffer_t *src;
+
+    uint32_t target_w;
+    uint32_t target_h;
+
+    uint32_t scale_x;
+    uint32_t scale_y;
+
+    uint32_t *x_index;
+    uint32_t *y_index;
+
+} resize_params_t;
+
+#endif
+
+// #ifndef IMGENGINE_PLUGIN_RESIZE_H
+// #define IMGENGINE_PLUGIN_RESIZE_H
+
+// #include <stdint.h>
+
+// // 🔥 Forward declarations (NO heavy includes)
+// typedef struct img_buffer img_buffer_t;
+// typedef struct img_ctx img_ctx_t;
+
+// typedef struct
+// {
+//     img_buffer_t *src;
+
+//     uint32_t target_w;
+//     uint32_t target_h;
+
+//     uint32_t scale_x;
+//     uint32_t scale_y;
+
+//     uint32_t *x_index;
+//     uint32_t *y_index;
+
+// } resize_params_t;
+
+// void plugin_resize_single(img_ctx_t *, img_buffer_t *, void *);
+
+// #endif
+
+==> include/plugins/plugin_internal_removed.h <==
+
+// plugins/plugin_inhernal.h
+
+#ifndef IMGENGINE_PLUGINS_INTERNAL_H
+#define IMGENGINE_PLUGINS_INTERNAL_H
+
+#include <stdint.h>
+
+// 🔥 Forward declarations ONLY
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+typedef struct img_batch img_batch_t;
+
+// Function pointer types
+typedef void (*img_op_fn)(img_ctx_t *, img_buffer_t *, void *);
+typedef void (*img_batch_op_fn)(img_ctx_t *, img_batch_t *, void *);
+
+// Plugin descriptor
+typedef struct
+{
+    uint32_t op_code;
+    const char *name;
+    img_op_fn single_exec;
+    img_batch_op_fn batch_exec;
+} img_plugin_info_t;
+
+// Init
+void img_plugins_init_all(void);
+
+#endif
+
+==> include/cold/debug.h <==
+
+/* src/cold/debug.h */
+#ifndef IMGENGINE_COLD_DEBUG_H
+#define IMGENGINE_COLD_DEBUG_H
+
+#include <stdint.h>
+
+// forward decl
+typedef struct img_ctx img_ctx_t;
+
+// 🔥 debug levels
+typedef enum
+{
+    IMG_DEBUG_NONE = 0,
+    IMG_DEBUG_BASIC,
+    IMG_DEBUG_VERBOSE
+} img_debug_level_t;
+
+// 🔥 runtime control
+void img_debug_set_level(img_debug_level_t lvl);
+
+// 🔥 debug APIs
+void img_debug_dump_ctx(const img_ctx_t *ctx);
+void img_debug_dump_slab_usage(const img_ctx_t *ctx);
+void img_debug_print_cpu_info(void);
+
+#endif
+==> include/cold/validation.h <==
+
+/* src/cold/validation.h */
+
+#ifndef IMGENGINE_COLD_VALIDATION_H
+#define IMGENGINE_COLD_VALIDATION_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "api/v1/img_error.h"
+
+// forward
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+// 🔥 LIMITS (DOS SAFE)
+#define MAX_IMG_DIM 16384
+#define MAX_PIXELS (MAX_IMG_DIM * MAX_IMG_DIM)
+#define MAX_CHANNELS 4
+
+img_result_t img_validate_header(
+    uint32_t w,
+    uint32_t h,
+    uint32_t channels);
+
+// 🔥 STRICT VALIDATION
+bool img_validate_pipeline_safety(
+    const img_pipeline_desc_t *pipe);
+
+#endif
+==> include/cold/error.h <==
+
+/* src/cold/error.h */
+
+#ifndef IMGENGINE_COLD_ERROR_H
+#define IMGENGINE_COLD_ERROR_H
+
+#include "api/v1/img_error.h"
+
+// 🔥 branch hint
+#if defined(__GNUC__)
+#define IMG_LIKELY(x) __builtin_expect(!!(x), 1)
+#define IMG_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#define IMG_LIKELY(x) (x)
+#define IMG_UNLIKELY(x) (x)
+#endif
+
+const char *img_error_to_string(img_result_t res);
+
+// 🔥 structured logging
+void img_log_error(
+    img_result_t res,
+    const char *func,
+    const char *msg);
+
+#endif
+==> include/memory/hugepage.h <==
+
+/* memory/hugepage.h */
+#ifndef IMGENGINE_MEMORY_HUGEPAGE_H
+#define IMGENGINE_MEMORY_HUGEPAGE_H
+
+#include <stddef.h>
+
+/**
+ * @brief Allocate memory using HugePages (2MB pages)
+ */
+void *img_hugepage_alloc(size_t size);
+
+#endif
+==> include/memory/numa.h <==
+
+/* memory/numa.h */
+
+#ifndef IMGENGINE_MEMORY_NUMA_H
+#define IMGENGINE_MEMORY_NUMA_H
+
+#include <stddef.h>
+
+int img_numa_get_node(void);
+void *img_numa_alloc_onnode(size_t size, int node);
+void img_numa_free(void *ptr, size_t size);
+
+#endif
+==> include/memory/slab_internal.h <==
+
+/* memory/slab_internal.h */
+
+#ifndef IMGENGINE_SLAB_INTERNAL_H
+#define IMGENGINE_SLAB_INTERNAL_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+typedef struct slab_block
+{
+    struct slab_block *next;
+} slab_block_t;
+
+struct img_slab_pool
+{
+    slab_block_t *free_list;
+
+    uint8_t *memory;
+    size_t total_size;
+
+    size_t block_size;
+    size_t block_count;
+
+    int numa_node;
+};
+
+#endif
+==> include/memory/memory.h <==
+
+// /* memory/memory.h */
+
+// memory/memory.h (FIXED)
+#ifndef IMGENGINE_MEMORY_H
+#define IMGENGINE_MEMORY_H
+
+#include "memory/slab.h"
+#include "memory/arena.h"
+
+#endif
+
+==> include/memory/slab.h <==
+
+/* memory/slab.h */
+
+#ifndef IMGENGINE_MEMORY_SLAB_H
+#define IMGENGINE_MEMORY_SLAB_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+// 🔥 OPAQUE
+typedef struct img_slab_pool img_slab_pool_t;
+
+// ================= LIFECYCLE =================
+
+img_slab_pool_t *img_slab_create(size_t total_size, size_t block_size);
+void img_slab_destroy(img_slab_pool_t *pool);
+
+// ================= HOT PATH =================
+
+// 🔥 returns NULL if no block
+uint8_t  *img_slab_alloc(img_slab_pool_t *pool);
+
+// 🔥 MUST be returned to same pool
+void img_slab_free(img_slab_pool_t *pool, void *ptr);
+
+// 🔥 NEW: expose block size (critical safety)
+size_t img_slab_block_size(img_slab_pool_t *pool);
+
+#endif
+==> include/memory/arena.h <==
+
+// /* memory/arena.h */
+
+#ifndef IMGENGINE_MEMORY_ARENA_H
+#define IMGENGINE_MEMORY_ARENA_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+typedef struct img_arena
+{
+    uint8_t *base;
+    size_t size;
+    size_t offset;
+} img_arena_t;
+
+// ================= LIFECYCLE =================
+
+img_arena_t *img_arena_create(size_t size);
+void img_arena_destroy(img_arena_t *arena);
+
+// ================= ALLOC =================
+
+// 🔥 aligned allocation (cache-line safe)
+void *img_arena_alloc_aligned(
+    img_arena_t *arena,
+    size_t size,
+    size_t align);
+
+// 🔥 default (16-byte aligned)
+void *img_arena_alloc(img_arena_t *arena, size_t size);
+
+// 🔥 reset (O(1))
+void img_arena_reset(img_arena_t *arena);
+
+#endif
+==> include/pipeline/batch_exec.h <==
+
+// include/pipeline/batch_exec.h 
+
+#ifndef IMGENGINE_BATCH_EXEC_H
+#define IMGENGINE_BATCH_EXEC_H
+
+#include "core/context_internal.h"
+#include "pipeline/batch.h"
+// #include "api/v1/img_types.h"
+
+typedef void (*img_fused_kernel_fn)(
+    img_ctx_t *ctx,
+    img_batch_t *batch,
+    void *params);
+
+void img_batch_execute(
+    img_ctx_t *ctx,
+    img_batch_t *batch,
+    void *pipeline);
+
+#endif
+==> include/pipeline/kernel_adapter.h <==
+
+// include/pipeline/kernel_adapter.h
+
+#ifndef IMGENGINE_KERNEL_ADAPTER_H
+#define IMGENGINE_KERNEL_ADAPTER_H
+
+#include "api/v1/img_plugin_api.h"
+
+/*
+ * 🔥 INTERNAL KERNEL ABI (ONLY USED IN HOT PATH)
+ */
+typedef void (*img_kernel_fn)(
+    img_ctx_t *,
+    img_buffer_t *,
+    void *);
+
+/*
+ * 🔥 ADAPT PLUGIN → KERNEL (ZERO COST)
+ */
+static inline img_kernel_fn img_adapt_op(img_op_fn fn)
+{
+    return (img_kernel_fn)fn;
+}
+
+/*
+ * 🔥 ADAPT BATCH (OPTIONAL FUTURE)
+ */
+typedef void (*img_batch_kernel_fn)(
+    img_ctx_t *,
+    img_batch_t *,
+    void *);
+
+#endif
+
+// #ifndef IMGENGINE_KERNEL_ADAPTER_H
+// #define IMGENGINE_KERNEL_ADAPTER_H
+
+// #include "api/v1/img_plugin_api.h"
+
+// /*
+//  * 🔥 INTERNAL KERNEL ABI
+//  */
+// typedef void (*img_kernel_fn)(
+//     img_ctx_t *,
+//     img_buffer_t *,
+//     void *);
+
+// /*
+//  * 🔥 ADAPTER (ZERO OVERHEAD INLINE)
+//  */
+// static inline img_kernel_fn img_adapt_op(img_op_fn fn)
+// {
+//     return (img_kernel_fn)fn;
+// }
+
+// /*
+//  * 🔥 SAFE WRAPPER (if you want strict mode)
+//  */
+// static inline void img_kernel_wrapper(
+//     img_ctx_t *ctx,
+//     img_buffer_t *buf,
+//     void *params)
+// {
+//     (void)params;
+//     ((img_op_fn)params)(ctx, buf);
+// }
+
+// #endif
+==> include/pipeline/pipeline_types.h <==
+
+// src/pipeline/pipeline_types.h
+
+#ifndef IMGENGINE_PIPELINE_TYPES_H
+#define IMGENGINE_PIPELINE_TYPES_H
+
+#include <stdint.h>
+
+// typedef struct img_op_desc
+// {
+//     uint32_t op_code;
+//     void *params;
+
+// } img_op_desc_t;
+
+typedef struct img_op_desc
+{
+    uint32_t op_code;
+    void *params;
+} __attribute__((aligned(64))) img_op_desc_t;
+
+typedef struct img_pipeline_desc
+{
+    img_op_desc_t *ops;
+    uint32_t count;
+} img_pipeline_desc_t;
+
+// typedef struct __attribute__((aligned(64)))
+// {
+//     uint32_t op_code;
+//     void *params;
+// } img_op_desc_t;
+
+// typedef struct img_pipeline_desc
+// {
+//     img_op_desc_t *ops;
+//     uint32_t count;
+
+// } img_pipeline_desc_t;
+
+#endif
+==> include/pipeline/pipeline_compiled.h <==
+
+// include/hot/pipelined_compiled.h
+
+#ifndef IMGENGINE_PIPELINE_COMPILED_H
+#define IMGENGINE_PIPELINE_COMPILED_H
+
+#include <stdint.h>
+#include "pipeline/kernel_adapter.h"
+#include "core/arch_interface.h"
+
+// forward declaration (L8 rule)
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+#define IMG_MAX_PIPELINE_OPS 32
+
+#define IMG_MAX_PIPELINE_OPS 32
+
+typedef struct
+{
+    uint32_t count;
+
+    img_kernel_fn ops[IMG_MAX_PIPELINE_OPS];
+    void *params[IMG_MAX_PIPELINE_OPS];
+
+} img_pipeline_compiled_t;
+
+// compile step (cold path)
+int img_pipeline_compile(
+    const img_pipeline_desc_t *in,
+    img_pipeline_compiled_t *out);
+
+#endif
+
+==> include/pipeline/jump_table.h <==
+
+// /* pipeline/jump_table.h */
+
+#ifndef IMGENGINE_JUMP_TABLE_H
+#define IMGENGINE_JUMP_TABLE_H
+
+#include <stdint.h>
+#include "pipeline/kernel_adapter.h"
+#include "arch/cpu_caps.h"
+
+#define IMG_MAX_OPS 256
+
+/*
+ * 🔥 HOT PATH TABLES (KERNEL ABI ONLY)
+ */
+extern img_kernel_fn g_jump_table[IMG_MAX_OPS];
+extern img_batch_kernel_fn g_batch_jump_table[IMG_MAX_OPS];
+
+/*
+ * 🔥 REGISTER (AUTO ADAPT)
+ */
+void img_register_op(
+    uint32_t opcode,
+    img_op_fn single_fn,
+    img_batch_op_fn batch_fn);
+
+/*
+ * 🔥 INIT
+ */
+void img_jump_table_init(cpu_caps_t caps);
+
+#endif
+
+// #ifndef IMGENGINE_JUMP_TABLE_H
+// #define IMGENGINE_JUMP_TABLE_H
+
+// #include <stdint.h>
+// #include "core/context_internal.h"
+// #include "arch/cpu_caps.h"
+// #include "pipeline/kernel_adapter.h"
+
+// /*
+//  * 🔥 LIMITS
+//  */
+// #define IMG_MAX_OPS 256
+
+// /*
+//  * 🔥 INTERNAL KERNEL TABLE (HOT PATH)
+//  */
+// extern img_kernel_fn g_jump_table[IMG_MAX_OPS];
+
+// /*
+//  * 🔥 OPTIONAL BATCH TABLE
+//  */
+// extern img_batch_op_fn g_batch_jump_table[IMG_MAX_OPS];
+
+// /*
+//  * 🔥 REGISTER (PLUGIN → KERNEL ADAPT)
+//  */
+// void img_register_op(
+//     uint32_t opcode,
+//     img_op_fn single_fn,
+//     img_batch_op_fn batch_fn);
+
+// /*
+//  * 🔥 INIT (CPU DISPATCH)
+//  */
+// void img_jump_table_init(cpu_caps_t caps);
+
+// #endif
+
+==> include/pipeline/pipeline_fused.h <==
+// include/pipeline/pipeline_fused.h
+
+#ifndef IMGENGINE_PIPELINE_FUSED_H
+#define IMGENGINE_PIPELINE_FUSED_H
+
+#include <stdint.h>
+#include "pipeline/fused_kernel.h"
+#include "pipeline/fused_params.h"
+
+/*
+ * Forward declarations
+ */
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+typedef struct img_batch img_batch_t;
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+/*
+ * FUSED OP IR TAGS
+ * Used by scalar reference path only.
+ * Hot path uses pre-compiled fn pointers.
+ */
+typedef enum
+{
+    FUSED_OP_NONE = 0,
+    FUSED_OP_GRAYSCALE = 1,
+    FUSED_OP_BRIGHTNESS = 2,
+    FUSED_OP_RESIZE = 3,
+} img_fused_op_t;
+
+#define IMG_MAX_FUSED_OPS 16
+
+/*
+ * COMPILED FUSED PIPELINE
+ *
+ * Produced once by img_pipeline_fuse() (cold path).
+ * Used repeatedly by execute functions (hot path).
+ *
+ * fn:       single-image ABI — (ctx, buf)
+ *           set to fused_exec_avx2 or fused_exec_scalar
+ *
+ * fn_batch: batch ABI — (ctx, batch, params)
+ *           set from dispatch table, or NULL if no fused batch kernel
+ *           for this op combination
+ *
+ * 64-byte aligned: hot fields fit in first cache line.
+ */
+typedef struct __attribute__((aligned(64)))
+{
+    uint32_t count;
+
+    img_single_kernel_fn fn;      /* single-image exec (always set)  */
+    img_fused_kernel_fn fn_batch; /* batch exec (NULL = no fused)    */
+
+} img_pipeline_fused_t;
+
+/*
+ * Pipeline signature type (bitmask of active ops)
+ */
+typedef uint32_t img_pipeline_sig_t;
+
+/*
+ * API
+ */
+int img_pipeline_fuse(
+    const img_pipeline_desc_t *in,
+    img_pipeline_fused_t *out);
+
+void img_pipeline_execute_fused(
+    img_ctx_t *ctx,
+    img_pipeline_fused_t *pipe,
+    img_buffer_t *buf);
+
+void img_pipeline_execute_fused_batch(
+    img_ctx_t *ctx,
+    img_pipeline_fused_t *pipe,
+    img_batch_t *batch);
+
+/*
+ * Dispatch resolver
+ * Defined in: src/pipeline/fused_dispatch.c
+ */
+img_fused_kernel_fn img_get_fused_kernel(img_pipeline_sig_t sig);
+
+#endif /* IMGENGINE_PIPELINE_FUSED_H */
+
+// // pipeline/pipeline_fused.h
+
+// #ifndef IMGENGINE_PIPELINE_FUSED_H
+// #define IMGENGINE_PIPELINE_FUSED_H
+
+// #include <stdint.h>
+
+// /* Forward declarations */
+// typedef struct img_ctx img_ctx_t;
+// typedef struct img_buffer img_buffer_t;
+// typedef struct img_batch img_batch_t;
+// typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+// /*
+//  * 🔥 FUSED KERNEL TYPE (BATCH LEVEL)
+//  */
+// typedef void (*img_fused_kernel_fn)(
+//     img_ctx_t *,
+//     img_batch_t *,
+//     void *);
+
+// /*
+//  * 🔥 RUNTIME RESOLVER
+//  */
+// img_fused_kernel_fn img_get_fused_kernel(void);
+
+// /*
+//  * 🔥 FUSED OP TYPES (IR)
+//  */
+// typedef enum
+// {
+//     FUSED_OP_NONE = 0,
+//     FUSED_OP_GRAYSCALE,
+//     FUSED_OP_BRIGHTNESS,
+// } img_fused_op_t;
+
+// /*
+//  * 🔥 LIMITS
+//  */
+// #define IMG_MAX_FUSED_OPS 16
+
+// /*
+//  * 🔥 FUSED PIPELINE STRUCT
+//  */
+// typedef struct
+// {
+//     uint32_t count;
+
+//     img_fused_op_t ops[IMG_MAX_FUSED_OPS];
+//     void *params[IMG_MAX_FUSED_OPS];
+
+//     void (*fn)(img_ctx_t *, img_buffer_t *);
+
+// } img_pipeline_fused_t;
+
+// /*
+//  * 🔥 API
+//  */
+// int img_pipeline_fuse(
+//     const img_pipeline_desc_t *in,
+//     img_pipeline_fused_t *out);
+
+// void img_pipeline_execute_fused(
+//     img_ctx_t *ctx,
+//     img_pipeline_fused_t *pipe,
+//     img_buffer_t *buf);
+
+// void img_pipeline_execute_fused_batch(
+//     img_ctx_t *ctx,
+//     img_pipeline_fused_t *pipe,
+//     img_batch_t *batch);
+
+// #define IMG_MAX_FUSED_OPS 16
+
+// typedef struct
+// {
+//     uint32_t count;
+
+//     /*
+//      * 🔥 OP FLAGS (NO SWITCH IN LOOP)
+//      */
+//     uint8_t has_grayscale;
+//     uint8_t has_brightness;
+
+//     /*
+//      * 🔥 HOISTED PARAMS (SCALAR → SIMD READY)
+//      */
+//     uint16_t brightness_value;
+
+// } img_fused_params_t;
+
+// #endif
+==> include/pipeline/pipeline.h <==
+
+// include/pipeline/pipeline.h
+
+#ifndef IMGENGINE_PIPELINE_H
+#define IMGENGINE_PIPELINE_H
+
+#include <stdint.h>
+
+/* Forward Declarations (Opaque Handles) */
+typedef struct img_op_desc img_op_desc_t;
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+typedef struct img_pipeline_runtime
+{
+    img_op_desc_t *ops;
+    uint32_t count;
+} img_pipeline_runtime_t;
+
+// 🔥 STRICT PIPELINE CONTRACT
+// typedef struct
+// {
+//     img_op_desc_t *ops; // Pointer: Size is always 8 bytes (on x86_64)
+//     uint32_t count;
+// } img_pipeline_runtime_t;
+
+// // Build function
+// int img_pipeline_build(
+//     const img_pipeline_desc_t *desc,
+//     img_pipeline_runtime_t *runtime);
+
+#endif
+
+==> include/pipeline/fused_kernel.h <==
+// include/pipeline/fused_kernel.h
+
+#ifndef IMGENGINE_FUSED_KERNEL_H
+#define IMGENGINE_FUSED_KERNEL_H
+
+#include "core/context_internal.h"
+#include "pipeline/batch.h"
+
+/*
+ * BATCH KERNEL ABI
+ *
+ * One call → entire batch.
+ * params: pointer to img_fused_params_t
+ *
+ * Used by: fused_dispatch.c, batch_exec.c, pipeline_fuse.c
+ */
+typedef void (*img_fused_kernel_fn)(
+    img_ctx_t *ctx,
+    img_batch_t *batch,
+    void *params);
+
+/*
+ * SINGLE-IMAGE KERNEL ABI
+ *
+ * One call → one img_buffer_t.
+ * ctx->fused_params must be set before call.
+ *
+ * Used by: pipeline_exec.c (hot path single-image)
+ *          pipeline_fuse.c (AVX2/scalar fused exec)
+ */
+typedef void (*img_single_kernel_fn)(
+    img_ctx_t *ctx,
+    img_buffer_t *buf);
+
+/*
+ * FUSED KERNEL DECLARATIONS
+ *
+ * Defined in: src/pipeline/fused_kernels.c
+ * via DEFINE_KERNEL macro in fused_kernels.inc
+ *
+ * ALL kernels use BATCH ABI (img_fused_kernel_fn).
+ * Single-image path uses AVX2/scalar in pipeline_fuse.c directly.
+ *
+ * ABI-STABLE: do not rename without MAJOR version bump.
+ */
+void kernel_none(img_ctx_t *, img_batch_t *, void *);
+void kernel_gray(img_ctx_t *, img_batch_t *, void *);
+void kernel_bright(img_ctx_t *, img_batch_t *, void *);
+void kernel_gray_bright(img_ctx_t *, img_batch_t *, void *);
+void kernel_gray_resize(img_ctx_t *, img_batch_t *, void *);
+void kernel_all(img_ctx_t *, img_batch_t *, void *);
+
+#endif /* IMGENGINE_FUSED_KERNEL_H */
+
+// // include/pipeline/fused_kernel.h
+
+// #ifndef IMGENGINE_FUSED_KERNEL_H
+// #define IMGENGINE_FUSED_KERNEL_H
+
+// #include "core/context_internal.h"
+// #include "core/buffer.h"
+
+// /*
+//  * 🔥 FUSED PARAM BLOCK (CACHE-FRIENDLY)
+//  */
+// typedef struct
+// {
+//     void *blocks[8]; // per-op param blocks
+//     uint32_t count;
+// } img_fused_params_t;
+
+// /*
+//  * 🔥 FUSED KERNEL ABI (NO PARAM ARG)
+//  */
+// typedef void (*img_fused_kernel_fn)(
+//     img_ctx_t *,
+//     img_buffer_t *);
+
+// #endif
+==> include/pipeline/hardware_registry.h <==
+
+// pipeline/hardware_registry.h
+
+#ifndef IMGENGINE_PIPELINE_HW_REGISTRY_H
+#define IMGENGINE_PIPELINE_HW_REGISTRY_H
+
+#include "arch/cpu_caps.h"
+
+// 🔥 Use caps, not arch enum
+void img_hw_register_kernels(cpu_caps_t caps);
+
+#endif
+
+==> include/pipeline/pipeline_signature.h <==
+
+// include/pipeline/pipeline_signature.h
+
+#ifndef IMGENGINE_PIPELINE_SIGNATURE_H
+#define IMGENGINE_PIPELINE_SIGNATURE_H
+
+#include <stdint.h>
+#include "core/opcodes.h"
+#include "pipeline/pipeline_types.h" /* REQUIRED: inline fn accesses p->ops[i].op_code */
+
+/*
+ * BITMASK SIGNATURE
+ * Max 32 ops supported (uint32_t bitmask)
+ * ABI-STABLE — never reorder bits
+ */
+typedef uint32_t img_pipeline_sig_t;
+
+/* OP BITMASK FLAGS */
+#define SIG_OP_GRAYSCALE (1u << 0)
+#define SIG_OP_BRIGHTNESS (1u << 1)
+#define SIG_OP_RESIZE (1u << 2)
+
+/*
+ * img_pipeline_build_signature()
+ *
+ * Cold path: called once per pipeline compile.
+ * Maps op_code array → bitmask for O(1) dispatch lookup.
+ *
+ * Inline justified: trivial loop, called from cold path only,
+ * avoids function call overhead at compile boundary.
+ */
+static inline img_pipeline_sig_t
+img_pipeline_build_signature(const img_pipeline_desc_t *p)
+{
+    img_pipeline_sig_t sig = 0;
+
+    if (__builtin_expect(!p || p->count == 0, 0))
+        return 0;
+
+    for (uint32_t i = 0; i < p->count; i++)
+    {
+        switch (p->ops[i].op_code)
+        {
+        case OP_GRAYSCALE:
+            sig |= SIG_OP_GRAYSCALE;
+            break;
+        case OP_BRIGHTNESS:
+            sig |= SIG_OP_BRIGHTNESS;
+            break;
+        case OP_RESIZE:
+            sig |= SIG_OP_RESIZE;
+            break;
+        default:
+            /* unknown op: ignore, do not crash */
+            break;
+        }
+    }
+
+    return sig;
+}
+
+#endif /* IMGENGINE_PIPELINE_SIGNATURE_H */
+
+// // pipeline/pipeline_signature.h
+
+// #ifndef IMGENGINE_PIPELINE_SIGNATURE_H
+// #define IMGENGINE_PIPELINE_SIGNATURE_H
+
+// #include <stdint.h>
+// #include "core/opcodes.h"
+
+// /* Forward Declarations (Opaque Handles) */
+// typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+// /*
+//  * 🔥 BITMASK SIGNATURE (MAX 32 OPS)
+//  */
+// typedef uint32_t img_pipeline_sig_t;
+
+// /*
+//  * 🔥 OP BITS
+//  */
+// #define SIG_OP_GRAYSCALE (1u << 0)
+// #define SIG_OP_BRIGHTNESS (1u << 1)
+// #define SIG_OP_RESIZE (1u << 2)
+
+// /*
+//  * 🔥 BUILD SIGNATURE
+//  */
+// static inline img_pipeline_sig_t
+// img_pipeline_build_signature(const img_pipeline_desc_t *p)
+// {
+//     img_pipeline_sig_t sig = 0;
+
+//     for (uint32_t i = 0; i < p->count; i++)
+//     {
+//         switch (p->ops[i].op_code)
+//         {
+//         case OP_GRAYSCALE:
+//             sig |= SIG_OP_GRAYSCALE;
+//             break;
+//         case OP_BRIGHTNESS:
+//             sig |= SIG_OP_BRIGHTNESS;
+//             break;
+//         case OP_RESIZE:
+//             sig |= SIG_OP_RESIZE;
+//             break;
+//         }
+//     }
+
+//     return sig;
+// }
+
+// #endif
+==> include/pipeline/engine.h <==
+
+/* pipeline/engine.h */
+
+#ifndef IMGENGINE_PIPELINE_ENGINE_H
+#define IMGENGINE_PIPELINE_ENGINE_H
+
+// Forward declarations (opaque)
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+void img_pipeline_execute(
+    img_ctx_t *ctx,
+    img_pipeline_desc_t *pipe,
+    img_buffer_t *buf);
+
+#endif
+
+==> include/pipeline/fused_params.h <==
+
+// include/pipeline/fused_params.h
+
+#ifndef IMGENGINE_FUSED_PARAMS_H
+#define IMGENGINE_FUSED_PARAMS_H
+
+#include <stdint.h>
+
+/*
+ * FUSED PARAM BLOCK
+ *
+ * Holds all op parameters for a fused kernel invocation.
+ * Single allocation, passed by pointer — zero copies in hot path.
+ *
+ * 64-byte aligned: fits exactly in one cache line.
+ * Padding added to prevent false sharing on adjacent allocations.
+ *
+ * RULES:
+ *   - All fields populated during pipeline_fuse() (cold path)
+ *   - Read-only during kernel execution (hot path)
+ *   - Never embed pointers — must be memcpy-safe
+ */
+typedef struct __attribute__((aligned(64))) img_fused_params
+{
+    /* op presence flags */
+    uint8_t has_grayscale;
+    uint8_t has_brightness;
+    uint8_t has_resize;
+    uint8_t _pad0;
+
+    /* brightness */
+    uint16_t brightness_value;
+    uint16_t _pad1;
+
+    /* resize target dimensions */
+    uint32_t new_w;
+    uint32_t new_h;
+
+    /* explicit padding to 64 bytes */
+    uint8_t _pad2[44];
+
+} img_fused_params_t;
+
+/* compile-time layout assertion */
+_Static_assert(sizeof(img_fused_params_t) == 64,
+               "img_fused_params_t must be exactly 64 bytes (one cache line)");
+
+#endif /* IMGENGINE_FUSED_PARAMS_H */
+
+// // include/pipeline/fused_params.h
+
+// #ifndef IMGENGINE_FUSED_PARAMS_H
+// #define IMGENGINE_FUSED_PARAMS_H
+
+// #include <stdint.h>
+
+// typedef struct
+// {
+//     uint8_t has_grayscale;
+//     uint8_t has_brightness;
+//     uint8_t has_resize;
+
+//     uint16_t brightness_value;
+//     uint32_t new_w;
+//     uint32_t new_h;
+
+// } img_fused_params_t;
+
+// #endif
+==> include/pipeline/batch.h <==
+
+// include/pipeline/batch.h
+
+#ifndef IMGENGINE_PIPELINE_BATCH_H
+#define IMGENGINE_PIPELINE_BATCH_H
+
+#include <stdint.h>
+
+// Forward declaration for external users
+typedef struct img_buffer img_buffer_t;
+
+// 🔥 REAL STRUCT (NOT OPAQUE — HOT PATH NEEDS IT)
+#define IMG_BATCH_MAX 64
+
+typedef struct img_batch
+{
+    img_buffer_t *buffers[IMG_BATCH_MAX];
+    uint32_t count;
+
+} img_batch_t;
+
+// typedef struct
+// {
+//     uint32_t count;
+//     img_buffer_t **buffers; // ✅ NOT single pointer
+// } img_batch_t;
+
+#endif
+==> include/arch/arch_interface.h <==
+
+// /* arch/arch_interface.h */
+
+#ifndef IMGENGINE_ARCH_INTERFACE_H
+#define IMGENGINE_ARCH_INTERFACE_H
+
+#include "core/context_internal.h"
+#include "core/buffer.h"
+
+// 🔥 UNIFIED KERNEL SIGNATURE (STRICT ABI)
+typedef void (*img_kernel_fn)(img_ctx_t *ctx, img_buffer_t *buf, void *params);
+
+// ================= GRAYSCALE =================
+void img_arch_grayscale_avx2(img_ctx_t *, img_buffer_t *, void *);
+void img_arch_grayscale_scalar(img_ctx_t *, img_buffer_t *, void *);
+
+// ================= RESIZE (SEPARABLE) =================
+
+// AVX2
+void img_arch_resize_h_avx2(img_ctx_t *, img_buffer_t *, void *);
+void img_arch_resize_v_avx2(img_ctx_t *, img_buffer_t *, void *);
+
+// SCALAR
+void img_arch_resize_h_scalar(img_ctx_t *, img_buffer_t *, void *);
+void img_arch_resize_v_scalar(img_ctx_t *, img_buffer_t *, void *);
+
+#endif
+==> include/arch/cpu_caps.h <==
+
+/* include/arch/cpu_caps.h */
+
+#ifndef IMGENGINE_CPU_CAPS_H
+#define IMGENGINE_CPU_CAPS_H
+
+#include <stdint.h>
+
+typedef uint32_t cpu_caps_t;
+
+// ================= BIT FLAGS =================
+#define CPU_CAP_AVX2 (1 << 0)
+#define CPU_CAP_AVX512 (1 << 1)
+#define CPU_CAP_NEON (1 << 2)
+
+
+// ================= DETECTION =================
+cpu_caps_t img_cpu_detect_caps(void);
+
+// ================= FAST CHECKS =================
+static inline int img_cpu_has_avx2(cpu_caps_t caps)
+{
+    return (caps & CPU_CAP_AVX2) != 0;
+}
+
+static inline int img_cpu_has_avx512(cpu_caps_t caps)
+{
+    return (caps & CPU_CAP_AVX512) != 0;
+}
+
+static inline int img_cpu_has_neon(cpu_caps_t caps)
+{
+    return (caps & CPU_CAP_NEON) != 0;
+}
+
+#endif
+
+==> include/hot/batch_exec.h <==
+
+// include/hot/batch_exec.h
+
+#ifndef IMGENGINE_HOT_BATCH_EXEC_H
+#define IMGENGINE_HOT_BATCH_EXEC_H
+
+#include <stdint.h>
+
+// forward declarations
+typedef struct img_ctx img_ctx_t;
+typedef struct img_batch img_batch_t;
+typedef struct img_pipeline_runtime img_pipeline_runtime_t;
+
+// 🔥 HOT BATCH EXEC
+void img_batch_execute(
+    img_ctx_t *__restrict ctx,
+    img_batch_t *__restrict batch,
+    const img_pipeline_runtime_t *__restrict pipe);
+
+#endif
+==> include/hot/pipeline_exec.h <==
+// include/hot/pipeline_exec.h
+
+#ifndef IMGENGINE_HOT_PIPELINE_EXEC_H
+#define IMGENGINE_HOT_PIPELINE_EXEC_H
+
+#include "pipeline/fused_kernel.h"
+#include "pipeline/fused_params.h"
+
+/*
+ * Forward declarations
+ */
+typedef struct img_pipeline_runtime img_pipeline_runtime_t;
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+
+/*
+ * img_pipeline_execute_hot()
+ *
+ * Sequential single-image hot path.
+ * Uses jump table dispatch per op.
+ */
+void img_pipeline_execute_hot(
+    img_ctx_t *__restrict ctx,
+    const img_pipeline_runtime_t *__restrict pipe,
+    img_buffer_t *__restrict buf);
+
+/*
+ * img_pipeline_execute_fused()
+ *
+ * Fused single-image hot path.
+ * fn: img_single_kernel_fn — takes (ctx, buf), NOT batch ABI.
+ * params: pre-compiled fused param block (cold path).
+ *
+ * NEVER pass img_fused_kernel_fn here — batch ABI is incompatible.
+ */
+void img_pipeline_execute_fused(
+    img_ctx_t *ctx,
+    img_single_kernel_fn fn,
+    img_fused_params_t *params,
+    img_buffer_t *buf);
+
+#endif /* IMGENGINE_HOT_PIPELINE_EXEC_H */
+
+// /* src/hot/pipeline_exec.h */
+// #ifndef IMGENGINE_HOT_PIPELINE_EXEC_H
+// #define IMGENGINE_HOT_PIPELINE_EXEC_H
+
+// // #include "core/context_internal.h"
+// // #include <stdint.h>
+
+// // 🔥 STRICT RUNTIME PIPE (NO ABI CONFUSION)
+// typedef struct img_pipeline_runtime img_pipeline_runtime_t;
+
+// // forward declarations
+// typedef struct img_ctx img_ctx_t;
+// typedef struct img_buffer img_buffer_t;
+
+// // 🔥 HOT EXEC (L8 CRITICAL)
+// void img_pipeline_execute_hot(
+//     img_ctx_t *__restrict ctx,
+//     const img_pipeline_runtime_t *__restrict pipe,
+//     img_buffer_t *__restrict buf);
+
+// #endif
+
+==> include/hot/pipeline_exec_inline.h <==
+
+// include/hot/pipeline_exec_inline.h
+
+#ifndef IMGENGINE_PIPELINE_EXEC_INLINE_H
+#define IMGENGINE_PIPELINE_EXEC_INLINE_H
+
+#include "pipeline/jump_table.h"
+#include <stddef.h>
+
+/*
+ * 🔥 TRUE HOT PATH (NO BRANCH, NO INDIRECT COST)
+ */
+static inline void img_exec_op_inline(
+    img_ctx_t *ctx,
+    img_buffer_t *buf,
+    uint32_t op_code,
+    void *params)
+{
+    img_kernel_fn fn = g_jump_table[op_code];
+
+    if (__builtin_expect(fn != NULL, 1))
+    {
+        fn(ctx, buf, params);
+    }
+}
+
+#endif
+
+// #ifndef IMGENGINE_PIPELINE_EXEC_INLINE_H
+// #define IMGENGINE_PIPELINE_EXEC_INLINE_H
+
+// #include "pipeline/jump_table.h"
+// #include <stddef.h>
+
+// // 🔥 INLINE FAST PATH (NO LOOP)
+// static inline void img_exec_op_inline(
+//     img_ctx_t *ctx,
+//     img_buffer_t *buf,
+//     uint32_t op_code,
+//     void *params)
+// {
+//     img_op_fn fn = g_jump_table[op_code];
+
+//     if (__builtin_expect(fn != NULL, 1))
+//     {
+//         fn(ctx, buf, params);
+//     }
+// }
+
+// #endif
+==> include/hot/pixel_ops.h <==
+
+// src/hot/pixel_ops.h
+
+#ifndef IMGENGINE_PIXEL_OPS_H
+#define IMGENGINE_PIXEL_OPS_H
+
+#include <stdint.h>
+
+// inline = zero function call overhead
+
+static inline uint8_t pixel_lerp(uint8_t a, uint8_t b, uint8_t w)
+{
+    return (uint8_t)(a + ((int16_t)w * (b - a) >> 8));
+}
+
+#endif
+==> include/observability/tracing.h <==
+
+/* observability/tracing.h */
+
+#ifndef IMGENGINE_TRACING_H
+#define IMGENGINE_TRACING_H
+
+#include <stdint.h>
+
+typedef struct
+{
+    const char *name;
+    uint64_t start;
+    uint64_t end;
+
+} img_span_t;
+
+img_span_t img_trace_start(const char *name);
+void img_trace_end(img_span_t *span);
+
+#endif
+==> include/observability/binlog_fast.h <==
+
+// include/observability/binlog_fast.h
+
+#ifndef IMGENGINE_BINLOG_FAST_H
+#define IMGENGINE_BINLOG_FAST_H
+
+#include "observability/binlog.h"
+#include "observability/events.h"
+
+// global instance
+extern img_binlog_t g_binlog;
+
+/*
+ * 🔥 GENERIC LOG (BASE PRIMITIVE)
+ */
+#define IMG_LOG(event, a0, a1, a2)        \
+    do                                    \
+    {                                     \
+        img_binlog_write(&g_binlog,       \
+                         (event),         \
+                         (uint64_t)(a0),  \
+                         (uint64_t)(a1),  \
+                         (uint64_t)(a2)); \
+    } while (0)
+
+/*
+ * 🔥 SPECIALIZED MACROS
+ * (define ONLY ONCE — no duplication)
+ */
+#define IMG_LOG_LATENCY(cycles, count, extra) \
+    IMG_LOG(IMG_EVENT_LATENCY, cycles, count, extra)
+
+#define IMG_LOG_ERROR(code) \
+    IMG_LOG(IMG_EVENT_ERROR, code, 0, 0)
+
+#endif
+
+==> include/observability/tracepoints.h <==
+
+// observability/tracepoints.h
+
+#ifndef IMGENGINE_TRACEPOINTS_H
+#define IMGENGINE_TRACEPOINTS_H
+
+#include <stdint.h>
+
+/*
+ * 🔥 STATIC TRACEPOINT (ZERO OVERHEAD WHEN DISABLED)
+ */
+#ifdef IMG_TRACE_ENABLED
+
+#define IMG_TRACE(name, a0, a1, a2) \
+    img_trace_emit(name, a0, a1, a2)
+
+#else
+
+#define IMG_TRACE(name, a0, a1, a2) \
+    do                              \
+    {                               \
+    } while (0)
+
+#endif
+
+void img_trace_emit(const char *name,
+                    uint64_t a0,
+                    uint64_t a1,
+                    uint64_t a2);
+
+#endif
+==> include/observability/profiler.h <==
+
+// observability/metrics.h
+
+#ifndef IMGENGINE_PROFILER_H
+#define IMGENGINE_PROFILER_H
+
+#include <stdint.h>
+
+static inline uint64_t img_profiler_now(void)
+{
+#if defined(__x86_64__)
+    return __builtin_ia32_rdtsc();
+#else
+    return 0;
+#endif
+}
+
+#endif
+==> include/observability/logger.h <==
+
+// observability/logger.h
+
+#ifndef IMGENGINE_LOGGER_H
+#define IMGENGINE_LOGGER_H
+
+#include <stdint.h>
+
+typedef enum
+{
+    LOG_DEBUG = 0,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR
+} img_log_level_t;
+
+void img_logger_init(void);
+void img_logger_shutdown(void);
+
+void img_log_write(img_log_level_t level, const char *fmt, ...);
+
+#endif
+==> include/observability/metrics.h <==
+
+// observability/metrics.h
+
+#ifndef IMGENGINE_METRICS_H
+#define IMGENGINE_METRICS_H
+
+#include <stdint.h>
+#include <stddef.h>
+
+#define IMG_MAX_CORES 64
+
+typedef struct __attribute__((aligned(64)))
+{
+    uint64_t total_requests;
+    uint64_t total_cycles;
+    uint64_t max_latency;
+    uint64_t min_latency;
+
+} img_metrics_core_t;
+
+typedef struct
+{
+    img_metrics_core_t cores[IMG_MAX_CORES];
+
+    uint64_t backpressure_drops;
+
+} img_metrics_t;
+
+extern img_metrics_t g_metrics;
+
+void img_metrics_init(void);
+
+void img_metrics_inc(uint32_t core_id);
+void img_metrics_latency(uint32_t core_id, uint64_t cycles);
+
+void img_metrics_export_prometheus(char *buf, size_t size);
+
+#endif
+==> include/observability/binlog.h <==
+
+// include/observability/binlog.h
+
+#ifndef IMGENGINE_BINLOG_H
+#define IMGENGINE_BINLOG_H
+
+#include <stdint.h>
+#include <stdatomic.h>
+
+#define IMG_MAX_CPUS 128
+
+typedef struct
+{
+    uint64_t timestamp;
+    uint32_t event_id;
+    uint32_t cpu;
+
+    uint64_t arg0;
+    uint64_t arg1;
+    uint64_t arg2;
+
+} img_log_entry_t;
+
+/*
+ * 🔥 PER-CPU RING BUFFER
+ */
+typedef struct
+{
+    img_log_entry_t *entries;
+
+    uint32_t size;
+    uint32_t mask;
+
+    uint32_t head; // consumer only
+    uint32_t tail; // producer only
+
+} img_binlog_cpu_t;
+
+/*
+ * 🔥 GLOBAL BINLOG (SHARDED)
+ */
+typedef struct
+{
+    uint32_t cpu_count;
+    img_binlog_cpu_t cpu_logs[IMG_MAX_CPUS];
+
+} img_binlog_t;
+
+/*
+ * 🔥 API
+ */
+int img_binlog_init(img_binlog_t *log, uint32_t cpu_count, uint32_t power);
+void img_binlog_destroy(img_binlog_t *log);
+
+void img_binlog_write(
+    img_binlog_t *log,
+    uint32_t event,
+    uint64_t arg0,
+    uint64_t arg1,
+    uint64_t arg2);
+
+#endif
+
+==> include/observability/events.h <==
+
+// observability/events.h 
+
+#ifndef IMGENGINE_EVENTS_H
+#define IMGENGINE_EVENTS_H
+
+#include <stdint.h>
+
+/*
+ * 🔥 STABLE EVENT IDS (ABI CONTRACT)
+ */
+typedef enum
+{
+    IMG_EVENT_LATENCY = 1,
+    IMG_EVENT_ERROR = 2,
+    IMG_EVENT_BATCH = 3,
+
+} img_event_id_t;
+
+#endif
+==> include/security/input_validator.h <==
+
+/* security/input_validator.h */
+#ifndef IMGENGINE_SECURITY_VALIDATOR_H
+#define IMGENGINE_SECURITY_VALIDATOR_H
+
+#include "api/v1/img_error.h"
+#include <stdint.h>
+#include <stddef.h>
+
+img_result_t img_security_validate_request(uint32_t w, uint32_t h, size_t file_size);
+
+#endif
+
+==> include/security/poision.h <==
+
+/* security/poison.h */
+
+#ifndef IMGENGINE_POISON_H
+#define IMGENGINE_POISON_H
+
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define IMG_POISON_MEMORY(addr, size) ASAN_POISON_MEMORY_REGION(addr, size)
+#define IMG_UNPOISON_MEMORY(addr, size) ASAN_UNPOISON_MEMORY_REGION(addr, size)
+#endif
+#endif
+
+#ifndef IMG_POISON_MEMORY
+#define IMG_POISON_MEMORY(addr, size) ((void)0)
+#define IMG_UNPOISON_MEMORY(addr, size) ((void)0)
+#endif
+
+#endif
+==> include/security/bounds_check.h <==
+
+// secrity/bounds_check.h
+
+#ifndef IMGENGINE_BOUNDS_CHECK_H
+#define IMGENGINE_BOUNDS_CHECK_H
+
+#define IMG_LIKELY(x) __builtin_expect(!!(x), 1)
+#define IMG_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h> // <--- ADD THIS for size_t
+
+// 🔥 SAFE (NO OVERFLOW)
+static inline bool img_bounds_check(
+    const void *ptr,
+    size_t size,
+    const void *base,
+    size_t limit)
+{
+    uintptr_t p = (uintptr_t)ptr;
+    uintptr_t b = (uintptr_t)base;
+
+    if (p < b)
+        return false;
+
+    uintptr_t offset = p - b;
+
+    // 🔥 prevent overflow: offset + size <= limit
+    if (offset > limit)
+        return false;
+
+    return size <= (limit - offset);
+}
+
+#endif
+==> include/security/sandbox.h <==
+
+/* security/sandbox.h */
+
+#ifndef IMGENGINE_SECURITY_SANDBOX_H
+#define IMGENGINE_SECURITY_SANDBOX_H
+
+#include <stdbool.h>
+
+// 🔥 RETURNS true on success
+bool img_security_enter_sandbox(void);
+
+#endif
+==> include/io/io_vfs.h <==
+
+// io/io_vsf.h
+
+#ifndef IMGENGINE_IO_VFS_H
+#define IMGENGINE_IO_VFS_H
+
+#include <stdint.h>
+#include <stddef.h>
+#include "api/v1/img_error.h"
+
+/*
+ * 🔥 REAL STRUCT NAME (MATCH FORWARD DECL)
+ */
+typedef struct img_stream
+{
+    const uint8_t *data;
+    size_t size;
+    size_t pos;
+} img_stream_t;
+
+/*
+ * 🔥 API
+ */
+img_result_t img_vfs_open_mem(
+    img_stream_t *stream,
+    const uint8_t *data,
+    size_t size);
+
+img_result_t img_vfs_read(
+    img_stream_t *stream,
+    uint8_t *dst,
+    size_t n,
+    size_t *read_bytes);
+
+#endif
+==> include/io/streaming_decoder.h <==
+
+// include/io/streaming_decoder.h
+
+#ifndef IMGENGINE_STREAMING_DECODER_H
+#define IMGENGINE_STREAMING_DECODER_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+// Forward declarations
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+typedef struct img_stream img_stream_t;
+
+// 🔥 Decode from stream (NOT full buffer)
+int img_decode_stream(
+    img_ctx_t *ctx,
+    img_stream_t *stream,
+    img_buffer_t *out);
+
+#endif
+==> include/io/remote_fetch.h <==
+
+// include/io/remote_fetch.h
+
+#ifndef IMGENGINE_REMOTE_FETCH_H
+#define IMGENGINE_REMOTE_FETCH_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+// 🔥 fetch partial (range request)
+int img_http_fetch_range(
+    const char *url,
+    size_t start,
+    size_t end,
+    uint8_t *buffer,
+    size_t *received);
+
+// 🔥 full fetch (fallback)
+int img_http_fetch_full(
+    const char *url,
+    uint8_t **data,
+    size_t *size);
+
+#endif
+==> include/io/encoder/encoder_entry.h <==
+
+// io/encoder/encoder_entry.h
+
+#ifndef IMGENGINE_IO_ENCODER_ENTRY_H
+#define IMGENGINE_IO_ENCODER_ENTRY_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+typedef struct img_buffer img_buffer_t;
+
+/**
+ * Encode img_buffer into output bytes
+ */
+int img_encode_from_buffer(img_ctx_t *ctx,
+                           img_buffer_t *buf,
+                           uint8_t **out_data,
+                           size_t *out_size);
+
+#endif
+==> include/io/zero_copy_contract.h <==
+
+// include/io/zero_copy_contract.h
+
+#ifndef IMGENGINE_ZERO_COPY_CONTRACT_H
+#define IMGENGINE_ZERO_COPY_CONTRACT_H
+
+/*
+================= L8 MEMORY CONTRACT =================
+
+✔ Decoder → writes directly into slab
+✔ Pipeline → operates in-place
+✔ Batch → references slab buffers only
+✔ Encoder → reads directly
+
+================= HARD RULES =================
+
+❌ malloc/free in hot path
+❌ memcpy in pipeline
+❌ unbounded allocations
+❌ hidden ownership
+
+================= REQUIRED =================
+
+✔ slab block size >= max image size
+✔ explicit ownership transfer
+✔ bounds check before every decode
+
+*/
+
+#endif
+==> include/io/decoder/decoder_entry.h <==
+
+// io/decoder/decoder_entry.h
+
+#ifndef IMGENGINE_IO_DECODER_ENTRY_H
+#define IMGENGINE_IO_DECODER_ENTRY_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+
+int img_decode_to_buffer(
+    img_ctx_t *ctx,
+    const uint8_t *input, // ✅ FIXED
+    size_t size,
+    img_buffer_t *out);
+
+#endif
+==> include/core/time.h <==
+
+// core/time.h 
+
+#ifndef IMGENGINE_TIME_H
+#define IMGENGINE_TIME_H
+
+#include <stdint.h>
+#include <time.h>
+
+/*
+ * 🔥 MONOTONIC CLOCK (ns)
+ * kernel-style: single source of truth
+ */
+static inline uint64_t img_now_ns(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+}
+
+#endif
+==> include/core/opcodes.h <==
+
+/* include/core/opcodes.h */
+
+#ifndef IMGENGINE_OPCODES_H
+#define IMGENGINE_OPCODES_H
+
+/*
+ * 🔥 GLOBAL OPCODE CONTRACT
+ * (ABI-STABLE — NEVER BREAK)
+ */
+
+/* Base operations */
+#define OP_RESIZE 0x01
+#define OP_CROP 0x02
+#define OP_GRAYSCALE 0x03
+#define OP_BRIGHTNESS 0x04
+
+/*
+ * 🔥 INTERNAL (SEPARABLE / HOT PATH)
+ * NOT exposed to API layer
+ */
+#define OP_RESIZE_H 0x10
+#define OP_RESIZE_V 0x11
+
+/*
+ * 🔥 FUTURE SAFE RANGE (L8 foresight)
+ */
+#define OP_CUSTOM_BASE 0x1000
+
+#endif
+==> include/core/arch_interface.h <==
+
+/* include/core/arch_interface.h */
+
+#ifndef IMGENGINE_ARCH_INTERFACE_H
+#define IMGENGINE_ARCH_INTERFACE_H
+
+#include <stdint.h>
+
+/*
+ * 🔥 Forward declarations (L8 rule)
+ * Avoid pulling full headers into interface layer
+ */
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+
+/*
+ * 🔥 Kernel function signature
+ * All SIMD/scalar kernels must follow this
+ */
+typedef void (*img_kernel_fn)(
+    img_ctx_t *ctx,
+    img_buffer_t *buf,
+    void *params);
+
+/*
+ * 🔥 Hardware-specific implementations
+ * (resolved at runtime via dispatcher)
+ */
+
+// x86_64
+void img_kernel_resize_avx512(img_ctx_t *, img_buffer_t *, void *);
+void img_kernel_resize_avx2(img_ctx_t *, img_buffer_t *, void *);
+
+// ARM
+void img_kernel_resize_neon(img_ctx_t *, img_buffer_t *, void *);
+
+#endif
+==> include/core/buffer.h <==
+
+// include/core/buffer.h
+
+#ifndef IMGENGINE_BUFFER_H
+#define IMGENGINE_BUFFER_H
+
+#include <stdint.h>
+#include <stdatomic.h>
+
+/*
+ * 🔥 Metadata (placed BEFORE data pointer)
+ */
+typedef struct
+{
+    _Atomic uint32_t ref;
+    uint32_t flags;
+} img_buf_header_t;
+
+/*
+ * 🔥 Buffer (ZERO-COPY CONTRACT SAFE)
+ */
+typedef struct img_buffer
+{
+    uint8_t *data;
+
+    uint32_t width;
+    uint32_t height;
+    uint32_t channels;
+    uint32_t stride;
+
+} img_buffer_t;
+
+/*
+ * 🔥 Helper: get header safely
+ */
+static inline img_buf_header_t *img_buf_hdr(img_buffer_t *buf)
+{
+    return (img_buf_header_t *)(buf->data - sizeof(img_buf_header_t));
+}
+
+#endif
+
+// #ifndef IMGENGINE_BUFFER_H
+// #define IMGENGINE_BUFFER_H
+
+// #include <stdint.h>
+
+// typedef struct img_buffer
+// {
+//     uint8_t *data;
+
+//     uint32_t width;
+//     uint32_t height;
+//     uint32_t channels;
+//     uint32_t stride;
+
+// } img_buffer_t;
+
+// #endif
+==> include/core/context_internal.h <==
+
+/* include/core/context_internal.h */
+
+#ifndef IMGENGINE_CONTEXT_INTERNAL_H
+#define IMGENGINE_CONTEXT_INTERNAL_H
+
+#include <stdint.h>
+#include "arch/cpu_caps.h"
+// #include "runtime/worker.h"
+typedef struct img_worker img_worker_t;
+
+/*
+ * Forward declarations
+ */
+typedef struct img_slab_pool img_slab_pool_t;
+typedef struct img_arena img_arena_t;
+// typedef struct cpu_caps cpu_caps_t;
+
+/*
+ * ================= ENGINE =================
+ */
+struct img_engine // ✅ FIXED NAME
+{
+    uint32_t worker_count;
+    // struct img_worker_s *workers;
+
+    img_worker_t *workers;
+
+    cpu_caps_t caps;
+
+    img_slab_pool_t *global_pool;
+
+    void *user_data;
+};
+
+typedef struct img_engine img_engine_t;
+
+/*
+ * ================= CONTEXT =================
+ */
+
+typedef struct __attribute__((aligned(64))) img_ctx
+{
+    uint32_t thread_id;
+
+    img_slab_pool_t *local_pool;
+    img_arena_t *scratch_arena;
+
+    cpu_caps_t caps;
+
+    void *op_params;    // 🔥 REQUIRED
+    void *fused_params; // 🔥 for fused execution
+
+} img_ctx_t;
+
+// typedef struct __attribute__((aligned(64))) img_ctx
+// {
+//     uint32_t thread_id;
+
+//     img_slab_pool_t *local_pool;
+//     img_arena_t *scratch_arena;
+
+//     cpu_caps_t caps;
+
+//     /*
+//      * 🔥 FUSED PARAM BLOCK (HOT, CACHE-RESIDENT)
+//      */
+//     void *fused_params;
+
+// } img_ctx_t;
+
+#endif
+
+==> include/cmd/imgengine/io_uring_engine.h <==
+
+// include/cmd/imgengine/io_uring_engine.h
+
+#ifndef IMGENGINE_IO_URING_ENGINE_H
+#define IMGENGINE_IO_URING_ENGINE_H
+
+#include <liburing.h>
+#include <stdint.h>
+
+#define IMG_IO_URING_DEPTH 256
+#define IMG_MAX_BATCH 64
+
+typedef struct
+{
+    struct io_uring ring;
+
+} img_io_uring_t;
+
+int img_io_uring_init(img_io_uring_t *u, uint32_t depth);
+void img_io_uring_destroy(img_io_uring_t *u);
+
+#endif
+==> include/cmd/imgengine/args.h <==
+
+/* include/cmd/imgengine/args.h */
+
+#ifndef IMGENGINE_CLI_ARGS_H
+#define IMGENGINE_CLI_ARGS_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct
+{
+    const char *input_path;
+    const char *output_path;
+
+    uint32_t width;
+    uint32_t height;
+
+    uint32_t threads;
+
+    bool verbose;
+    bool bench_mode;
+
+} img_cli_options_t;
+
+int img_parse_args(int argc, char **argv, img_cli_options_t *opts);
+void img_print_usage(const char *bin);
+
+#endif
+==> include/runtime/buffer_lifecycle.h <==
+
+// include/runtime/buffer_lifecycle.h
+
+#ifndef IMGENGINE_BUFFER_LIFECYCLE_H
+#define IMGENGINE_BUFFER_LIFECYCLE_H
+
+#include <stdint.h>
+
+typedef struct img_buffer img_buffer_t;
+
+// 🔥 Ownership model
+typedef enum
+{
+    IMG_BUF_OWNED = 0,
+    IMG_BUF_SHARED = 1,
+    IMG_BUF_EXTERNAL = 2
+} img_buf_owner_t;
+
+typedef struct
+{
+    img_buf_owner_t owner;
+    uint32_t ref_count;
+} img_buf_meta_t;
+
+// Attach metadata
+void img_buffer_acquire(img_buffer_t *buf);
+void img_buffer_release(img_buffer_t *buf);
+
+#endif
+==> include/runtime/backpressure.h <==
+
+/* runtime/backpressure.h */
+
+#ifndef IMGENGINE_RUNTIME_BACKPRESSURE_H
+#define IMGENGINE_RUNTIME_BACKPRESSURE_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "runtime/queue_spsc.h"
+#include "runtime/queue_mpmc.h"
+
+/*
+ * 🔥 SPSC BACKPRESSURE (worker-local queues)
+ */
+static inline bool img_backpressure_check_spsc(img_queue_t *q)
+{
+    if (!q)
+        return true;
+
+    uint32_t h = __atomic_load_n(&q->head, __ATOMIC_ACQUIRE);
+    uint32_t t = __atomic_load_n(&q->tail, __ATOMIC_ACQUIRE);
+
+    uint32_t usage = (t - h) & q->mask;
+
+    return usage > (uint32_t)(q->capacity * 0.9);
+}
+
+/*
+ * 🔥 MPMC BACKPRESSURE (global queue)
+ */
+static inline bool img_backpressure_check_mpmc(img_mpmc_queue_t *q)
+{
+    if (!q)
+        return true;
+
+    size_t head = atomic_load_explicit(&q->head, memory_order_acquire);
+    size_t tail = atomic_load_explicit(&q->tail, memory_order_acquire);
+
+    return (tail - head) > (q->size * 3 / 4);
+}
+
+#endif
+
+==> include/runtime/plugin_loader.h <==
+
+// runtime/plugin_loader.h
+
+#ifndef IMGENGINE_PLUGIN_LOADER_H
+#define IMGENGINE_PLUGIN_LOADER_H
+
+#include <stdint.h>
+
+int img_plugin_load_all(const char *directory);
+
+#endif
+==> include/runtime/scheduler.h <==
+
+// /* pipeline/scheduler.h */
+
+#ifndef IMGENGINE_RUNTIME_SCHEDULER_H
+#define IMGENGINE_RUNTIME_SCHEDULER_H
+
+#include <stdint.h>
+
+#include "runtime/task.h"
+#include "runtime/queue_spsc.h"
+#include "runtime/queue_mpmc.h"
+
+typedef struct img_worker img_worker_t;
+
+/*
+ * 🔥 REAL STRUCT (NOT ANONYMOUS!)
+ */
+typedef struct img_scheduler
+{
+    uint32_t worker_count;
+
+    img_worker_t *workers;
+
+    // 🔥 GLOBAL FALLBACK (MPMC)
+    img_mpmc_queue_t global_queue;
+
+} img_scheduler_t;
+
+/*
+ * Lifecycle
+ */
+int img_scheduler_init(img_scheduler_t *sched, uint32_t workers);
+void img_scheduler_destroy(img_scheduler_t *sched);
+
+/*
+ * Submit
+ */
+int img_scheduler_submit(img_scheduler_t *sched, img_task_t *task);
+
+/*
+ * Steal
+ */
+img_task_t *img_scheduler_steal(img_scheduler_t *sched, uint32_t self_id);
+
+#endif
+
+==> include/runtime/task.h <==
+
+// /* include/runtime/task.h */
+
+#ifndef IMGENGINE_RUNTIME_TASK_H
+#define IMGENGINE_RUNTIME_TASK_H
+
+#include <stdint.h>
+
+/*
+ * Forward declarations
+ */
+typedef struct img_buffer img_buffer_t;
+typedef struct img_pipeline_desc img_pipeline_desc_t;
+
+/*
+ * 🔥 Task state
+ */
+typedef enum
+{
+    IMG_TASK_READY = 0,
+    IMG_TASK_RUNNING,
+    IMG_TASK_DONE
+} img_task_state_t;
+
+/*
+ * 🔥 Task (cache aligned)
+ */
+typedef struct __attribute__((aligned(64)))
+{
+    img_buffer_t *buffer;
+    img_pipeline_desc_t *pipeline;
+
+    uint32_t op_index;
+
+    img_task_state_t state;
+
+    int status;
+
+} img_task_t;
+
+#endif
+
+==> include/runtime/worker.h <==
+
+// /* include/runtime/worker.h */
+
+#ifndef IMGENGINE_RUNTIME_WORKER_H
+#define IMGENGINE_RUNTIME_WORKER_H
+
+#include <stdint.h>
+#include <pthread.h>
+
+#include "runtime/queue_spsc.h"
+
+struct img_scheduler;
+struct img_ctx;
+
+/*
+ * 🔥 FINAL WORKER STRUCT (L9 GRADE)
+ */
+typedef struct img_worker
+{
+    uint32_t id;
+
+    pthread_t thread;
+
+    // 🔥 FAST PATH (SPSC)
+    img_queue_t *queue;
+
+    struct img_scheduler *scheduler;
+
+    struct img_ctx *ctx;
+
+    volatile int running;
+
+} img_worker_t;
+
+/*
+ * Lifecycle
+ */
+int img_worker_init(img_worker_t *w, uint32_t id);
+void img_worker_stop(img_worker_t *w);
+void img_worker_join(img_worker_t *w);
+
+#endif
+
+==> include/runtime/queue_mpmc.h <==
+
+// include/runtime/queue_mpmc.h
+
+#ifndef IMGENGINE_RUNTIME_QUEUE_MPMC_H
+#define IMGENGINE_RUNTIME_QUEUE_MPMC_H
+
+#include <stdalign.h> // <--- ADD THIS LINE
+#include <stdatomic.h>
+#include <stddef.h>
+#include <stdint.h>
+
+/*
+ * 🔥 Cell structure (cache-line aware)
+ */
+typedef struct cell_t
+{
+    _Atomic size_t seq;
+    void *data;
+} cell_t;
+
+/*
+ * 🔥 MPMC Queue (Vyukov bounded queue)
+ */
+typedef struct __attribute__((aligned(64)))
+{
+    size_t size;
+    size_t mask;
+
+    cell_t *cells;
+
+    alignas(64) _Atomic size_t head;
+    alignas(64) _Atomic size_t tail;
+
+} img_mpmc_queue_t;
+
+/*
+ * Lifecycle
+ */
+int img_mpmc_init(img_mpmc_queue_t *q, size_t size);
+void img_mpmc_destroy(img_mpmc_queue_t *q);
+
+/*
+ * Lock-free operations
+ */
+int img_mpmc_push(img_mpmc_queue_t *q, void *data);
+void *img_mpmc_pop(img_mpmc_queue_t *q);
+
+#endif
+
+==> include/runtime/affinity.h <==
+
+/* runtime/affinity.h */
+
+#ifndef IMGENGINE_RUNTIME_AFFINITY_H
+#define IMGENGINE_RUNTIME_AFFINITY_H
+
+#include <stdint.h>
+#include <pthread.h>
+
+void img_pin_thread_to_core(uint32_t cpu_id);
+void img_set_thread_affinity(pthread_t thread, int cpu_id);
+
+#endif
+==> include/runtime/exec_router.h <==
+
+// include/runtime/exec_router.h
+
+#ifndef IMGENGINE_EXEC_ROUTER_H
+#define IMGENGINE_EXEC_ROUTER_H
+
+#include <stdint.h>
+
+// Forward declarations
+typedef struct img_ctx img_ctx_t;
+typedef struct img_buffer img_buffer_t;
+
+// Execution modes
+typedef enum
+{
+    IMG_EXEC_LOCAL = 0,
+    IMG_EXEC_REMOTE = 1
+} img_exec_mode_t;
+
+// Route decision
+img_exec_mode_t img_exec_route(uint32_t op_code);
+
+// Execute (local or remote)
+int img_exec_dispatch(
+    img_ctx_t *ctx,
+    uint32_t op_code,
+    img_buffer_t *buf,
+    void *params);
+
+#endif
+==> include/runtime/queue_spsc.h <==
+
+/* runtime/queue_spsc.h */
+#ifndef IMGENGINE_RUNTIME_QUEUE_SPSC_H
+#define IMGENGINE_RUNTIME_QUEUE_SPSC_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct img_queue img_queue_t;
+
+/**
+ * Capacity = 2^power
+ */
+img_queue_t *img_queue_create(uint32_t power);
+
+/**
+ * Non-blocking push
+ */
+bool img_queue_push(img_queue_t *q, void *data);
+
+/**
+ * Non-blocking pop
+ */
+void *img_queue_pop(img_queue_t *q);
+
+#endif
+==> include/runtime/rpc_protocol.h <==
+
+// include/runtime/rpc_protocol.h
+
+#ifndef IMGENGINE_RPC_PROTOCOL_H
+#define IMGENGINE_RPC_PROTOCOL_H
+
+#include <stdint.h>
+
+// 🔥 network-safe buffer descriptor
+typedef struct
+{
+    uint32_t width;
+    uint32_t height;
+    uint32_t channels;
+    uint32_t stride;
+    uint32_t data_size;
+} img_rpc_buffer_t;
+
+// 🔥 request packet
+typedef struct
+{
+    uint32_t op_code;
+    img_rpc_buffer_t buffer;
+    // params follow
+} img_rpc_request_t;
+
+// 🔥 response packet
+typedef struct
+{
+    uint32_t status;
+    img_rpc_buffer_t buffer;
+} img_rpc_response_t;
+
+#endif
+==> include/runtime/queue_internal.h <==
+// ./include/runtime/queue_internal.h
+
+
+
+==> include/runtime/cluster_registry.h <==
+
+// runtime/cluster_registry.h
+
+#ifndef IMGENGINE_CLUSTER_REGISTRY_H
+#define IMGENGINE_CLUSTER_REGISTRY_H
+
+#include <stdint.h>
+
+typedef struct
+{
+    uint32_t node_id;
+    const char *ip;
+    uint16_t port;
+    uint32_t load;
+} img_node_t;
+
+void img_cluster_register(img_node_t *node);
+img_node_t *img_cluster_pick(void);
+
+#endif
+==> include/runtime/rpc_client.h <==
+
+// include/runtime/rpc_client.h
+
+#ifndef IMGENGINE_RPC_CLIENT_H
+#define IMGENGINE_RPC_CLIENT_H
+
+#include <stdint.h>
+
+// Forward declarations
+typedef struct img_buffer img_buffer_t;
+
+int img_rpc_send(
+    uint32_t op_code,
+    img_buffer_t *buf,
+    void *params);
+
+#endif

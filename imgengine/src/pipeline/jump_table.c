@@ -9,8 +9,8 @@
 /*
  * 🔥 GLOBAL TABLES (SINGLE SOURCE OF TRUTH)
  */
-img_kernel_fn g_jump_table[IMG_MAX_OPS];
-img_batch_op_fn g_batch_jump_table[IMG_MAX_OPS];
+// img_kernel_fn g_jump_table[IMG_MAX_OPS];
+// img_batch_op_fn g_batch_jump_table[IMG_MAX_OPS];
 
 /*
  * 🔥 INTERNAL ADAPTER (ZERO COST)

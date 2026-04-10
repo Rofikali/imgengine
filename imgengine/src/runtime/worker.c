@@ -1,11 +1,10 @@
-
 // ./src/runtime/worker.c
-
 
 #include "runtime/worker.h"
 #include "runtime/task.h"
 #include "runtime/scheduler.h"
 #include "hot/pipeline_exec.h"
+#include "hot/batch_exec.h"
 #include "runtime/affinity.h"
 
 #include <stdlib.h>
