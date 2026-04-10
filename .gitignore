@@ -7,8 +7,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-build/
 dist/
+.vscode 
+
+
 
 # === C / Systems Engineering ===
 *.o
@@ -17,7 +19,6 @@ dist/
 *.a
 imgengine_cli
 # Ignore all built binaries in the build folder
-build/
 
 # === Docker & Infrastructure ===
 .docker/

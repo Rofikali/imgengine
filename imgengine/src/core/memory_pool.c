@@ -1,4 +1,4 @@
-// src/core/memory_pool.c
+// ./src/core/memory_pool.c
 
 #include "imgengine/memory_pool.h"
 #include <stdlib.h>

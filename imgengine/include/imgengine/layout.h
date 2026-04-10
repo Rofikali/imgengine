@@ -1,4 +1,4 @@
-// imgengine/layout.h
+// ./include/imgengine/layout.h
 
 #ifndef IMG_LAYOUT_H
 #define IMG_LAYOUT_H

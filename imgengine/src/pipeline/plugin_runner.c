@@ -1,4 +1,4 @@
-// src/pipeline/plugin_runner.c
+// ./src/pipeline/plugin_runner.c
 
 #include "imgengine/plugins/plugin_runner.h"
 #include "imgengine/plugins/plugin_registry.h"

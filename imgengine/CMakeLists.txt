@@ -70,8 +70,24 @@ if(NOT MSVC)
 endif()
 
 # Build the CLI
-add_executable(imgengine_cli cli/main.c)
+# add_executable(imgengine_cli cli/main.c)
+# target_link_libraries(imgengine_cli PRIVATE imgengine)
+
+add_executable(imgengine_cli src/cmd/imgengine/main.c)
 target_link_libraries(imgengine_cli PRIVATE imgengine)
+
+# ============================================================
+# B. CLI TOOL (Production Interface)
+# ============================================================
+
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmd/imgengine/main.c")
+#     add_executable(imgengine_cli
+#         cmd/imgengine/main.c
+#         cmd/imgengine/args.c
+#     )
+
+#     target_link_libraries(imgengine_cli PRIVATE imgengine)
+# endif()
 
 
 # # Add to your root CMakeLists.txt

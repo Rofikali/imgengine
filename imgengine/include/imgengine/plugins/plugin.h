@@ -1,4 +1,4 @@
-// plugins/plugin.h
+// ./include/imgengine/plugins/plugin.h
 
 #ifndef IMG_PLUGIN_H
 #define IMG_PLUGIN_H

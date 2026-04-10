@@ -1,4 +1,4 @@
-// src/ops/border
+// ./src/ops/border.c
 
 #include "imgengine/image.h"
 #include <string.h>

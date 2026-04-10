@@ -132,16 +132,7 @@ make
 
 ### Your case (A4 passport grid)
 
-    ./imgengine_cli \
-    --input ../input.jpg \
-    --output final_output.png \
-    --cols 6 \
-    --rows 2 \
-    --gap 15 \
-    --width 3.5 \
-    --height 3.0 \
-    --padding 20
-
+    ./imgengine_cli --input ../input.jpg --output final_output.png --cols 6 --rows 2 --gap 15 --width 3.5 --height 3.0 --padding 20 --bleed 10 --crop-mark 25 --crop-offset 8
 ### ✔ PRO PRINT MODE (recommended) WITH ( PDF )
 
     ./imgengine_cli \

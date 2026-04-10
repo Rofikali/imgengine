@@ -1,4 +1,5 @@
-// imgengine/common.h 
+// ./include/imgengine/common.h
+
 
 #ifndef IMG_COMMON_H
 #define IMG_COMMON_H

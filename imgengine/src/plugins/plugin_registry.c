@@ -1,4 +1,4 @@
-// src/plugins/plugin_registry.c
+// ./src/plugins/plugin_registry.c
 
 
 #include "imgengine/plugins/plugin_registry.h"

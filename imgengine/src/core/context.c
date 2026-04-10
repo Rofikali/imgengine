@@ -1,4 +1,4 @@
-// // src/core/context.c
+// ./src/core/context.c
 
 #include "imgengine/context.h"
 #include "imgengine/layout.h"

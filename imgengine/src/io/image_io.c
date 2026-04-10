@@ -1,4 +1,4 @@
-// src/io/image_io.c
+// ./src/io/image_io.c
 
 #include "imgengine/io.h"
 #include "stb/stb_image.h"

@@ -1,3 +1,4 @@
+// ./tests/integration/test_plugin_runner.c
 #include "plugins/plugin.h"
 
 /**

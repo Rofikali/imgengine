@@ -1,4 +1,4 @@
-// src/plugins/bleed_plugin.c
+// ./src/plugins/bleed_plugin.c
 
 #include "imgengine/layout.h"
 #include "imgengine/plugins/plugin.h"

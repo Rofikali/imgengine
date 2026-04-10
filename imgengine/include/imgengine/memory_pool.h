@@ -1,4 +1,4 @@
-// imgengine/memory_pool.h
+// ./include/imgengine/memory_pool.h
 
 #ifndef IMG_MEMORY_POOL_H
 #define IMG_MEMORY_POOL_H

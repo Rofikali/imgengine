@@ -1,4 +1,4 @@
-// imgengine/io.h
+// ./include/imgengine/io.h
 
 #ifndef IMG_IO_H
 #define IMG_IO_H

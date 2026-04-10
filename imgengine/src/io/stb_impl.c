@@ -1,4 +1,4 @@
-// src/io/stb_impl.c
+// ./src/io/stb_impl.c
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION

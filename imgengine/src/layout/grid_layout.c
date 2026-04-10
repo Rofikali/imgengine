@@ -1,4 +1,4 @@
-// src/layout/grid_layout.c
+// ./src/layout/grid_layout.c
 
 #include "imgengine/layout.h"
 #include "imgengine/context.h"

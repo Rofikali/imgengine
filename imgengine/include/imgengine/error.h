@@ -1,4 +1,5 @@
-// imgengine/error.h
+// ./include/imgengine/error.h
+
 
 #ifndef IMG_ERROR_H
 #define IMG_ERROR_H

@@ -1,4 +1,4 @@
-// include/imgengine/api.h
+// ./include/imgengine/api.h
 
 #ifndef IMG_API_H
 #define IMG_API_H

@@ -1,4 +1,4 @@
-// src/ops/resize.c
+// ./src/ops/resize.c
 
 #include "imgengine/image.h"
 #include <immintrin.h>

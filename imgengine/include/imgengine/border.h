@@ -1,4 +1,4 @@
-// imgengine/border.h 
+// ./include/imgengine/border.h
 
 #ifndef IMG_BORDER_H
 #define IMG_BORDER_H

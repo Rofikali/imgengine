@@ -1,4 +1,4 @@
-// src/plugins/crop_plugin.c
+// ./src/plugins/crop_plugin.c
 
 #include "imgengine/layout.h"
 #include "imgengine/plugins/plugin.h"

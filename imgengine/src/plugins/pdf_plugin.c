@@ -1,4 +1,4 @@
-// src/plugins/pdf_plugin.c
+// ./src/plugins/pdf_plugin.c
 
 #include "imgengine/image.h"
 #include <stdio.h>

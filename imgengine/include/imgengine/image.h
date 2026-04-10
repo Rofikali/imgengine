@@ -1,4 +1,4 @@
-// imgengine/image.h
+// ./include/imgengine/image.h
 
 #ifndef IMG_IMAGE_H
 #define IMG_IMAGE_H

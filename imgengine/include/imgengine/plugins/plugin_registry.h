@@ -1,4 +1,4 @@
-// imgengine/plugins/plugin_register.h
+// ./include/imgengine/plugins/plugin_registry.h
 
 #ifndef IMG_PLUGIN_REGISTRY_H
 #define IMG_PLUGIN_REGISTRY_H

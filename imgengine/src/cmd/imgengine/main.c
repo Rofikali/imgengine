@@ -1,4 +1,4 @@
-// // src/cli/main.c
+// ./cli/main.c
 
 #include "imgengine/api.h"
 #include "imgengine/context.h"
@@ -50,7 +50,9 @@ static void print_usage() {
     printf("\n");
 
     printf("\nEXAMPLES:\n");
-    printf("  imgengine_cli --input in.jpg --cols 6 --rows 2 --bleed 15 --crop-mark 30\n\n");
+    printf(
+        "  ./imgengine_cli --input ../input.jpg --output final_output.png --cols 6 --rows 2 --gap \
+        15 --width 3.5 --height 3.0 --padding 20 --bleed 10 --crop-mark 25 --crop-offset 8 \n\n");
 }
 
 int main(int argc, char **argv) {

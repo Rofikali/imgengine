@@ -1,4 +1,4 @@
-// src/core/lbit_avx2.c
+// ./src/core/lbit_avx2.c
 
 #include "imgengine/image.h"
 #include <immintrin.h>
