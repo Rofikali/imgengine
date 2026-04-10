@@ -78,3 +78,33 @@ void img_print_usage(const char *bin)
     printf("  -b --bench\n");
     printf("  -v --verbose\n");
 }
+
+// I want this.
+// static void print_usage() {
+//     printf("\nIMGENGINE CLI\n");
+//     printf("Professional Photo Layout & Print Pipeline\n");
+//     printf("------------------------------------------------------------\n\n");
+//     printf("USAGE:\n  imgengine_cli --input <file> [--output <file>] [OPTIONS]\n\n");
+//     printf("REQUIRED:\n  --input <file>         Input image (jpg/png)\n\n");
+//     printf("LAYOUT OPTIONS:\n");
+//     printf("  --cols <int>           Number of columns (default: %d)\n", DEFAULT_COLS);
+//     printf("  --rows <int>           Number of rows (default: %d)\n", DEFAULT_ROWS);
+//     printf("  --gap <px>             Gap between photos (default: %d)\n", DEFAULT_GAP);
+//     printf("  --padding <px>         Page margin (default: %d)\n", DEFAULT_PADDING);
+//     printf("\nPRINT FEATURES:\n");
+//     printf("  --bleed <px>           Edge bleed (default: %d)\n", DEFAULT_BLEED);
+//     printf("  --crop-mark <px>       Mark length (default: %d)\n", DEFAULT_CROP_MARK);
+//     printf("  --crop-offset <px>     Distance from edge (default: %d)\n", DEFAULT_CROP_OFFSET);
+
+//     printf("PHOTO SETTINGS:\n");
+//     printf("  --width <cm>           Photo width in cm (default: %.1f)\n", DEFAULT_W_CM);
+//     printf("  --height <cm>          Photo height in cm (default: %.1f)\n", DEFAULT_H_CM);
+//     printf("  --dpi <int>            Print DPI (default: %d)\n", DEFAULT_DPI);
+//     printf("  --border <px>          Border thickness (default: %d)\n", DEFAULT_BORDER);
+//     printf("\n");
+
+//     printf("\nEXAMPLES:\n");
+//     printf(
+//         "  ./imgengine_cli --input ../input.jpg --output final_output.png --cols 6 --rows 2 --gap \
+//         15 --width 3.5 --height 3.0 --padding 20 --bleed 10 --crop-mark 25 --crop-offset 8 \n\n");
+// }

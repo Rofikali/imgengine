@@ -1,22 +1,5 @@
-// ./src/pipeline/batch_exec.c
-
-
-
-
-
-
 
 // ./src/pipeline/batch_exec.c
-
-// ./src/pipeline/batch_exec.c
-
-// ./src/pipeline/batch_exec.c
-
-// ./src/pipeline/batch_exec.c
-
-// ./src/pipeline/batch_exec.c
-
-// src/pipeline/batch_exec.c
 
 #include "pipeline/batch_exec.h"
 #include "pipeline/pipeline_fused.h"
@@ -75,51 +58,3 @@ void img_batch_execute(
      */
     IMG_TRACE("batch_exec", cycles, batch->count, 0);
 }
-
-// void img_batch_execute(
-//     img_ctx_t *ctx,
-//     img_batch_t *batch,
-//     void *pipeline)
-// {
-//     (void)pipeline;
-
-//     if (__builtin_expect(!batch || batch->count == 0, 0))
-//         return;
-
-//     /*
-//      * 🔥 Resolve once (NO branch in hot loop)
-//      */
-//     img_fused_kernel_fn fn = img_get_fused_kernel();
-
-//     if (__builtin_expect(fn == NULL, 0))
-//         return;
-
-//     /*
-//      * 🔥 BATCH-LEVEL PROFILING (NOT PER IMAGE)
-//      */
-//     uint64_t start = img_profiler_now();
-
-//     /*
-//      * 🔥 HOT LOOP (tight, predictable)
-//      */
-//     uint32_t count = batch->count;
-//     img_buffer_t *buffers = batch->buffers;
-
-//     for (uint32_t i = 0; i < count; i++)
-//     {
-//         fn(ctx, &buffers[i]);
-//     }
-
-//     /*
-//      * 🔥 ZERO-OVERHEAD LOG (OUTSIDE HOT LOOP)
-//      */
-
-//     uint64_t end = img_profiler_now();
-
-//     uint64_t cycles = end - start;
-
-//     IMG_LOG_LATENCY(cycles, count, 0);
-
-//     // 🔥 perf-style tracepoint
-//     IMG_TRACE("batch_exec", cycles, count, 0);
-// }

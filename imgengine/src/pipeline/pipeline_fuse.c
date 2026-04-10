@@ -1,22 +1,6 @@
-// ./src/pipeline/pipeline_fuse.c
-
-
-
-
-
-
 
 // ./src/pipeline/pipeline_fuse.c
 
-// ./src/pipeline/pipeline_fuse.c
-
-// ./src/pipeline/pipeline_fuse.c
-
-// ./src/pipeline/pipeline_fuse.c
-
-// ./src/pipeline/pipeline_fuse.c
-
-// pipeline/pipeline_fused.c
 
 #include "pipeline/pipeline_fused.h"
 #include "pipeline/pipeline_types.h"

@@ -1,20 +1,3 @@
-// ./include/arch/cpu_caps.h
-
-
-
-
-
-
-
-// ./include/arch/cpu_caps.h
-
-// ./include/arch/cpu_caps.h
-
-// ./include/arch/cpu_caps.h
-
-// ./include/arch/cpu_caps.h
-
-// ./include/arch/cpu_caps.h
 
 /* include/arch/cpu_caps.h */
 

@@ -1,22 +1,7 @@
-// ./src/tools/binlog_decode.c
-
-
-
-
-
-
 
 // ./src/tools/binlog_decode.c
 
-// ./src/tools/binlog_decode.c
 
-// ./src/tools/binlog_decode.c
-
-// ./src/tools/binlog_decode.c
-
-// ./src/tools/binlog_decode.c
-
-// tools/binlog_decode.c
 
 #include <stdio.h>
 #include "observability/binlog.h"

@@ -1,20 +1,3 @@
-// ./include/pipeline/pipeline_types.h
-
-
-
-
-
-
-
-// ./include/pipeline/pipeline_types.h
-
-// ./include/pipeline/pipeline_types.h
-
-// ./include/pipeline/pipeline_types.h
-
-// ./include/pipeline/pipeline_types.h
-
-// ./include/pipeline/pipeline_types.h
 
 // src/pipeline/pipeline_types.h
 

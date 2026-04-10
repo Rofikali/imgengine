@@ -1,22 +1,7 @@
-// ./src/security/fuzz_hooks.c
-
-
-
-
-
-
 
 // ./src/security/fuzz_hooks.c
 
-// ./src/security/fuzz_hooks.c
 
-// ./src/security/fuzz_hooks.c
-
-// ./src/security/fuzz_hooks.c
-
-// ./src/security/fuzz_hooks.c
-
-// secrity/fuzz_hooks.c
 
 #include "security/input_validator.h"
 #include <stdint.h>

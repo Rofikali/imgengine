@@ -1,20 +1,3 @@
-// ./include/security/input_validator.h
-
-
-
-
-
-
-
-// ./include/security/input_validator.h
-
-// ./include/security/input_validator.h
-
-// ./include/security/input_validator.h
-
-// ./include/security/input_validator.h
-
-// ./include/security/input_validator.h
 
 /* security/input_validator.h */
 #ifndef IMGENGINE_SECURITY_VALIDATOR_H

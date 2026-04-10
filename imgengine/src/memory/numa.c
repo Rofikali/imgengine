@@ -1,22 +1,6 @@
-// ./src/memory/numa.c
-
-
-
-
-
-
 
 // ./src/memory/numa.c
 
-// ./src/memory/numa.c
-
-// ./src/memory/numa.c
-
-// ./src/memory/numa.c
-
-// ./src/memory/numa.c
-
-// /* memory/numa.c */
 
 #define _GNU_SOURCE
 

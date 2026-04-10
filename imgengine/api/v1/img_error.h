@@ -1,20 +1,3 @@
-// ./api/v1/img_error.h
-
-
-
-
-
-
-
-// ./api/v1/img_error.h
-
-// ./api/v1/img_error.h
-
-// ./api/v1/img_error.h
-
-// ./api/v1/img_error.h
-
-// ./api/v1/img_error.h
 
 /* api/v1/img_error.h */
 

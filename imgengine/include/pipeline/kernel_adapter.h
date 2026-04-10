@@ -1,20 +1,3 @@
-// ./include/pipeline/kernel_adapter.h
-
-
-
-
-
-
-
-// ./include/pipeline/kernel_adapter.h
-
-// ./include/pipeline/kernel_adapter.h
-
-// ./include/pipeline/kernel_adapter.h
-
-// ./include/pipeline/kernel_adapter.h
-
-// ./include/pipeline/kernel_adapter.h
 
 // include/pipeline/kernel_adapter.h
 

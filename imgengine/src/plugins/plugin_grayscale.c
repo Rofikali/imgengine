@@ -1,22 +1,5 @@
-// ./src/plugins/plugin_grayscale.c
-
-
-
-
-
-
 
 // ./src/plugins/plugin_grayscale.c
-
-// ./src/plugins/plugin_grayscale.c
-
-// ./src/plugins/plugin_grayscale.c
-
-// ./src/plugins/plugin_grayscale.c
-
-// ./src/plugins/plugin_grayscale.c
-
-// plugins/plugin_grayscale.c
 
 #include "api/v1/img_plugin_api.h"
 #include "core/opcodes.h"

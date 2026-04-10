@@ -1,22 +1,6 @@
-// ./src/pipeline/hardware_registry.c
-
-
-
-
-
-
 
 // ./src/pipeline/hardware_registry.c
 
-// ./src/pipeline/hardware_registry.c
-
-// ./src/pipeline/hardware_registry.c
-
-// ./src/pipeline/hardware_registry.c
-
-// ./src/pipeline/hardware_registry.c
-
-// pipeline/hardware_registry.c
 
 #include "pipeline/hardware_registry.h"
 #include "pipeline/jump_table.h"

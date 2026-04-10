@@ -1,20 +1,3 @@
-// ./include/memory/numa.h
-
-
-
-
-
-
-
-// ./include/memory/numa.h
-
-// ./include/memory/numa.h
-
-// ./include/memory/numa.h
-
-// ./include/memory/numa.h
-
-// ./include/memory/numa.h
 
 /* memory/numa.h */
 

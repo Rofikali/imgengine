@@ -1,20 +1,3 @@
-// ./include/plugins/plugin_crop.h
-
-
-
-
-
-
-
-// ./include/plugins/plugin_crop.h
-
-// ./include/plugins/plugin_crop.h
-
-// ./include/plugins/plugin_crop.h
-
-// ./include/plugins/plugin_crop.h
-
-// ./include/plugins/plugin_crop.h
 
 /* plugins/plugin_crop.h */
 

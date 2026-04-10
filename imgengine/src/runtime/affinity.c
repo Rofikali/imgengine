@@ -1,22 +1,6 @@
-// ./src/runtime/affinity.c
-
-
-
-
-
-
 
 // ./src/runtime/affinity.c
 
-// ./src/runtime/affinity.c
-
-// ./src/runtime/affinity.c
-
-// ./src/runtime/affinity.c
-
-// ./src/runtime/affinity.c
-
-// src/runtime/affinity.c
 
 #define _GNU_SOURCE
 #include "runtime/affinity.h"

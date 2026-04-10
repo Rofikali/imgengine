@@ -1,22 +1,5 @@
-// ./src/pipeline/fused_kernels.c
-
-
-
-
-
-
 
 // ./src/pipeline/fused_kernels.c
-
-// ./src/pipeline/fused_kernels.c
-
-// ./src/pipeline/fused_kernels.c
-
-// ./src/pipeline/fused_kernels.c
-
-// ./src/pipeline/fused_kernels.c
-
-// src/pipeline/fused_kernels.c
 
 #include "pipeline/fused_params.h"
 #include "pipeline/fused_kernel.h"

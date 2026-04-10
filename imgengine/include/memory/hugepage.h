@@ -1,20 +1,3 @@
-// ./include/memory/hugepage.h
-
-
-
-
-
-
-
-// ./include/memory/hugepage.h
-
-// ./include/memory/hugepage.h
-
-// ./include/memory/hugepage.h
-
-// ./include/memory/hugepage.h
-
-// ./include/memory/hugepage.h
 
 /* memory/hugepage.h */
 #ifndef IMGENGINE_MEMORY_HUGEPAGE_H

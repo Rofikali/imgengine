@@ -1,22 +1,5 @@
-// ./src/observability/tracing.c
-
-
-
-
-
-
 
 // ./src/observability/tracing.c
-
-// ./src/observability/tracing.c
-
-// ./src/observability/tracing.c
-
-// ./src/observability/tracing.c
-
-// ./src/observability/tracing.c
-
-/* observability/tracing.c */
 
 #define _GNU_SOURCE
 

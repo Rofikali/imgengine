@@ -1,22 +1,6 @@
-// ./src/runtime/cluster_registry.c
-
-
-
-
-
-
 
 // ./src/runtime/cluster_registry.c
 
-// ./src/runtime/cluster_registry.c
-
-// ./src/runtime/cluster_registry.c
-
-// ./src/runtime/cluster_registry.c
-
-// ./src/runtime/cluster_registry.c
-
-// runtime/cluster_register.c
 
 #include "runtime/cluster_registry.h"
 #include <stddef.h>

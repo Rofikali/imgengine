@@ -1,22 +1,5 @@
-// ./src/plugins/plugin_resize.c
-
-
-
-
-
-
 
 // ./src/plugins/plugin_resize.c
-
-// ./src/plugins/plugin_resize.c
-
-// ./src/plugins/plugin_resize.c
-
-// ./src/plugins/plugin_resize.c
-
-// ./src/plugins/plugin_resize.c
-
-// plugins/plugin_resize.c
 
 #include "api/v1/img_plugin_api.h"
 #include "core/buffer.h"

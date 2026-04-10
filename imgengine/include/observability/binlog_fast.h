@@ -1,20 +1,3 @@
-// ./include/observability/binlog_fast.h
-
-
-
-
-
-
-
-// ./include/observability/binlog_fast.h
-
-// ./include/observability/binlog_fast.h
-
-// ./include/observability/binlog_fast.h
-
-// ./include/observability/binlog_fast.h
-
-// ./include/observability/binlog_fast.h
 
 // include/observability/binlog_fast.h
 
@@ -51,39 +34,3 @@ extern img_binlog_t g_binlog;
     IMG_LOG(IMG_EVENT_ERROR, code, 0, 0)
 
 #endif
-
-// #ifndef IMGENGINE_BINLOG_FAST_H
-// #define IMGENGINE_BINLOG_FAST_H
-
-// #define IMG_LOG_LATENCY(cycles, count, reserved) \
-//     IMG_LOG(IMG_LOG_LATENCY, cycles, count, reserved)
-
-// #include "observability/binlog.h"
-// #include "observability/events.h"
-
-// // global instance
-// extern img_binlog_t g_binlog;
-
-// /*
-//  * 🔥 GENERIC LOG
-//  */
-// #define IMG_LOG(event, a0, a1, a2)        \
-//     do                                    \
-//     {                                     \
-//         img_binlog_write(&g_binlog,       \
-//                          (event),         \
-//                          (uint64_t)(a0),  \
-//                          (uint64_t)(a1),  \
-//                          (uint64_t)(a2)); \
-//     } while (0)
-
-// /*
-//  * 🔥 SPECIALIZED (ZERO COST MACROS)
-//  */
-// #define IMG_LOG_LATENCY(cycles, count, extra) \
-//     IMG_LOG(IMG_EVENT_LATENCY, cycles, count, extra)
-
-// #define IMG_LOG_ERROR(code) \
-//     IMG_LOG(IMG_EVENT_ERROR, code, 0, 0)
-
-// #endif

@@ -1,22 +1,6 @@
-// ./src/memory/hugepage.c
-
-
-
-
-
-
 
 // ./src/memory/hugepage.c
 
-// ./src/memory/hugepage.c
-
-// ./src/memory/hugepage.c
-
-// ./src/memory/hugepage.c
-
-// ./src/memory/hugepage.c
-
-/* memory/hugepage.c */
 #include "memory/hugepage.h"
 #include <sys/mman.h>
 #include <stdio.h>

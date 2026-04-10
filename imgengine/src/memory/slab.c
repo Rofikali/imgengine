@@ -1,22 +1,5 @@
-// ./src/memory/slab.c
-
-
-
-
-
-
 
 // ./src/memory/slab.c
-
-// ./src/memory/slab.c
-
-// ./src/memory/slab.c
-
-// ./src/memory/slab.c
-
-// ./src/memory/slab.c
-
-/* memory/slab.c */
 
 #include "memory/slab.h"
 #include "memory/slab_internal.h"

@@ -1,20 +1,3 @@
-// ./include/runtime/rpc_protocol.h
-
-
-
-
-
-
-
-// ./include/runtime/rpc_protocol.h
-
-// ./include/runtime/rpc_protocol.h
-
-// ./include/runtime/rpc_protocol.h
-
-// ./include/runtime/rpc_protocol.h
-
-// ./include/runtime/rpc_protocol.h
 
 // include/runtime/rpc_protocol.h
 

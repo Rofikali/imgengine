@@ -1,22 +1,5 @@
-// ./src/plugins/plugin_crop.c
-
-
-
-
-
-
 
 // ./src/plugins/plugin_crop.c
-
-// ./src/plugins/plugin_crop.c
-
-// ./src/plugins/plugin_crop.c
-
-// ./src/plugins/plugin_crop.c
-
-// ./src/plugins/plugin_crop.c
-
-// plugins/plugin_crop.c
 
 #include "plugins/plugin_crop.h"
 #include "core/buffer.h"

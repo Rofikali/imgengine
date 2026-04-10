@@ -1,20 +1,3 @@
-// ./include/pipeline/jump_table.h
-
-
-
-
-
-
-
-// ./include/pipeline/jump_table.h
-
-// ./include/pipeline/jump_table.h
-
-// ./include/pipeline/jump_table.h
-
-// ./include/pipeline/jump_table.h
-
-// ./include/pipeline/jump_table.h
 
 // /* pipeline/jump_table.h */
 

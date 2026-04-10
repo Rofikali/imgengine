@@ -1,20 +1,3 @@
-// ./include/security/bounds_check.h
-
-
-
-
-
-
-
-// ./include/security/bounds_check.h
-
-// ./include/security/bounds_check.h
-
-// ./include/security/bounds_check.h
-
-// ./include/security/bounds_check.h
-
-// ./include/security/bounds_check.h
 
 // secrity/bounds_check.h
 

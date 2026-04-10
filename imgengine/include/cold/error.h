@@ -1,20 +1,3 @@
-// ./include/cold/error.h
-
-
-
-
-
-
-
-// ./include/cold/error.h
-
-// ./include/cold/error.h
-
-// ./include/cold/error.h
-
-// ./include/cold/error.h
-
-// ./include/cold/error.h
 
 /* src/cold/error.h */
 

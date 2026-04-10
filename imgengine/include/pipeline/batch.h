@@ -1,20 +1,3 @@
-// ./include/pipeline/batch.h
-
-
-
-
-
-
-
-// ./include/pipeline/batch.h
-
-// ./include/pipeline/batch.h
-
-// ./include/pipeline/batch.h
-
-// ./include/pipeline/batch.h
-
-// ./include/pipeline/batch.h
 
 // include/pipeline/batch.h
 

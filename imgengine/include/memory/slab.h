@@ -1,20 +1,3 @@
-// ./include/memory/slab.h
-
-
-
-
-
-
-
-// ./include/memory/slab.h
-
-// ./include/memory/slab.h
-
-// ./include/memory/slab.h
-
-// ./include/memory/slab.h
-
-// ./include/memory/slab.h
 
 /* memory/slab.h */
 

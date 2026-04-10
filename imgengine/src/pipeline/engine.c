@@ -1,22 +1,5 @@
-// ./src/pipeline/engine.c
-
-
-
-
-
-
 
 // ./src/pipeline/engine.c
-
-// ./src/pipeline/engine.c
-
-// ./src/pipeline/engine.c
-
-// ./src/pipeline/engine.c
-
-// ./src/pipeline/engine.c
-
-/* pipeline/engine.c */
 
 #include "pipeline/engine.h"
 #include "pipeline/jump_table.h"

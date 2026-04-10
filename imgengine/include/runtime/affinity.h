@@ -1,20 +1,3 @@
-// ./include/runtime/affinity.h
-
-
-
-
-
-
-
-// ./include/runtime/affinity.h
-
-// ./include/runtime/affinity.h
-
-// ./include/runtime/affinity.h
-
-// ./include/runtime/affinity.h
-
-// ./include/runtime/affinity.h
 
 /* runtime/affinity.h */
 

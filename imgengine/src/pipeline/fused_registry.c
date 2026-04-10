@@ -1,22 +1,5 @@
-// ./src/pipeline/fused_registry.c
-
-
-
-
-
-
 
 // ./src/pipeline/fused_registry.c
-
-// ./src/pipeline/fused_registry.c
-
-// ./src/pipeline/fused_registry.c
-
-// ./src/pipeline/fused_registry.c
-
-// ./src/pipeline/fused_registry.c
-
-// src/pipeline/fused_registry.c
 
 #include "pipeline/batch_exec.h"
 #include "arch/cpu_caps.h"

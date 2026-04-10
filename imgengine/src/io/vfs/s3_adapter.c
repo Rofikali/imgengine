@@ -1,22 +1,6 @@
-// ./src/io/vfs/s3_adapter.c
-
-
-
-
-
-
 
 // ./src/io/vfs/s3_adapter.c
 
-// ./src/io/vfs/s3_adapter.c
-
-// ./src/io/vfs/s3_adapter.c
-
-// ./src/io/vfs/s3_adapter.c
-
-// ./src/io/vfs/s3_adapter.c
-
-// io/vfs/io_vsf.h
 
 #include "io/io_vfs.h"
 

@@ -1,32 +1,7 @@
-// ./src/cold/pipeline_compiled.c
-
-
-
-
-
-
 
 // ./src/cold/pipeline_compiled.c
 
-// ./src/cold/pipeline_compiled.c
 
-// ./src/cold/pipeline_compiled.c
-
-// ./src/cold/pipeline_compiled.c
-
-// ./src/cold/pipeline_compiled.c
-
-// src/cold/pipeline_compiled.c
-
-// #include "pipeline/pipeline_compiled.h"
-// #include "pipeline/jump_table.h"
-// #include "pipeline/pipeline_types.h"
-// #include "hot/pipeline_exec_inline.h"
-// #include "core/buffer.h"
-// #include "arch/arch_interface.h"
-
-// #include "pipeline/pipeline_compiled.h"
-// #include "pipeline/jump_table.h"
 #include "pipeline/pipeline_types.h"
 
 #include "pipeline/pipeline_compiled.h"

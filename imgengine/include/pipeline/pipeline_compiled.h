@@ -1,20 +1,3 @@
-// ./include/pipeline/pipeline_compiled.h
-
-
-
-
-
-
-
-// ./include/pipeline/pipeline_compiled.h
-
-// ./include/pipeline/pipeline_compiled.h
-
-// ./include/pipeline/pipeline_compiled.h
-
-// ./include/pipeline/pipeline_compiled.h
-
-// ./include/pipeline/pipeline_compiled.h
 
 // include/hot/pipelined_compiled.h
 

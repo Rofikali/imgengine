@@ -1,20 +1,3 @@
-// ./include/core/time.h
-
-
-
-
-
-
-
-// ./include/core/time.h
-
-// ./include/core/time.h
-
-// ./include/core/time.h
-
-// ./include/core/time.h
-
-// ./include/core/time.h
 
 // core/time.h 
 

@@ -1,22 +1,7 @@
-// ./src/io/vfs/memory_stream.c
-
-
-
-
-
-
 
 // ./src/io/vfs/memory_stream.c
 
-// ./src/io/vfs/memory_stream.c
 
-// ./src/io/vfs/memory_stream.c
-
-// ./src/io/vfs/memory_stream.c
-
-// ./src/io/vfs/memory_stream.c
-
-// io/vfs/memory_stream.c
 
 #include "io/io_vfs.h"
 #include <string.h>

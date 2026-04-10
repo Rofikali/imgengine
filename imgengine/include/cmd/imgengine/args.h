@@ -1,20 +1,3 @@
-// ./include/cmd/imgengine/args.h
-
-
-
-
-
-
-
-// ./include/cmd/imgengine/args.h
-
-// ./include/cmd/imgengine/args.h
-
-// ./include/cmd/imgengine/args.h
-
-// ./include/cmd/imgengine/args.h
-
-// ./include/cmd/imgengine/args.h
 
 /* include/cmd/imgengine/args.h */
 
