@@ -1,3 +1,4 @@
+// ./include/cold/debug.h
 
 /* src/cold/debug.h */
 #ifndef IMGENGINE_COLD_DEBUG_H

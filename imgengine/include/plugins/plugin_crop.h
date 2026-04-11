@@ -1,3 +1,4 @@
+// ./include/plugins/plugin_crop.h
 
 /* plugins/plugin_crop.h */
 

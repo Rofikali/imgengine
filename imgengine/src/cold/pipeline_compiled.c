@@ -1,6 +1,4 @@
-
 // ./src/cold/pipeline_compiled.c
-
 
 #include "pipeline/pipeline_types.h"
 

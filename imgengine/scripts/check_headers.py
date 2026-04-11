@@ -3,7 +3,7 @@ import os
 import sys
 
 # 🔥 STRICT ENGINE ROOT
-ENGINE_ROOT = "../imgengine"
+ENGINE_ROOT = "."
 
 EXTENSIONS = (".c", ".h")
 

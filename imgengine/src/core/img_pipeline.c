@@ -1,3 +1,4 @@
+// ./src/core/img_pipeline.c
 
 /* src/core/img_pipeline.c */
 

@@ -59,3 +59,15 @@ void img_arch_avx2_resize(img_ctx_t *ctx, img_buffer_t *dst, void *params)
         }
     }
 }
+
+/*
+ * resize_avx2()
+ *
+ * Canonical name registered in jump_table.c.
+ * Thin wrapper around img_arch_avx2_resize().
+ * With LTO enabled, this compiles to a direct call — zero overhead.
+ */
+void resize_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
+{
+    img_arch_avx2_resize(ctx, buf, params);
+}

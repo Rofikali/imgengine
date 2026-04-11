@@ -1,7 +1,7 @@
 ### ?? RFC: imgengine v1.0 (FINAL)
 
     Title: High-Performance, Kernel-Grade Image Processing Engine
-    Author: Principal Engineer (L7)
+    Author: Principal Engineer (L10)
     Status: Final Draft
     Date: 2026-03-30
 
@@ -620,7 +620,7 @@
     ?? This is how production systems are maintained at
     Google / Amazon scale.
 
-### 🧩 23. Header Design & Forward Declaration Policy (L7/L8 Critical)
+### 🧩 23. Header Design & Forward Declaration Policy (L10/L10 Critical)
 
 ## 23.1 🎯 Objective
 
@@ -734,7 +734,7 @@
     Public structs MUST NOT change layout without version bump
     Use opaque pointers in API
     Internal structs free to evolve
-    23.10 🧠 L7/L8 Insight
+    23.10 🧠 L10/L10 Insight
 
     Forward declaration is not about saving includes —
     it is about controlling system boundaries and evolution.
@@ -761,7 +761,7 @@
     🔒 ABI stability (plugin-safe)
     🧠 Clear ownership boundaries
     🚀 Easier future refactoring
-    🏁 Final L7 Verdict
+    🏁 Final L10 Verdict
 
     What you’re building is called:
 
@@ -827,7 +827,7 @@
      system design
      microservices
      performance (VPP-style thinking)
-     That’s exactly the path toward L7
+     That’s exactly the path toward L10
 
  To reach this level, you need to master:
 

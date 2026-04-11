@@ -1,3 +1,4 @@
+// ./include/pipeline/hardware_registry.h
 
 // pipeline/hardware_registry.h
 

@@ -1,5 +1,4 @@
-
-/* include/arch/cpu_caps.h */
+// ./include/arch/cpu_caps.h
 
 #ifndef IMGENGINE_CPU_CAPS_H
 #define IMGENGINE_CPU_CAPS_H
@@ -12,7 +11,6 @@ typedef uint32_t cpu_caps_t;
 #define CPU_CAP_AVX2 (1 << 0)
 #define CPU_CAP_AVX512 (1 << 1)
 #define CPU_CAP_NEON (1 << 2)
-
 
 // ================= DETECTION =================
 cpu_caps_t img_cpu_detect_caps(void);

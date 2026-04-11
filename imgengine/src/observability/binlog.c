@@ -1,12 +1,12 @@
-
 // ./src/observability/binlog.c
-
 
 #include "observability/binlog.h"
 #include "core/time.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+img_binlog_t g_binlog;
 
 /*
  * 🔥 TLS CPU ID (NO SYSCALL)

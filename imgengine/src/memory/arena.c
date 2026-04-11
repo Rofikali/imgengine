@@ -1,7 +1,6 @@
-
 // ./src/memory/arena.c
 
-
+// ./src/memory/arena.c
 
 #include "security/poision.h"
 #include "memory/arena.h"
@@ -12,7 +11,7 @@ static inline size_t align64(size_t x)
     return (x + 63) & ~63;
 }
 
-void free_block(void *ptr, size_t size)
+static void free_block(void *ptr, size_t size)
 {
     IMG_POISON_MEMORY(ptr, size);
 }

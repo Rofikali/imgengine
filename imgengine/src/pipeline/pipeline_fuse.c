@@ -1,3 +1,4 @@
+// ./src/pipeline/pipeline_fuse.c
 
 // src/pipeline/pipeline_fuse.c
 
@@ -123,17 +124,17 @@ int img_pipeline_fuse(
  * Hot path: single-image execution.
  * Passes params via ctx->fused_params (no alloc).
  * ================================================================ */
-void img_pipeline_execute_fused(
-    img_ctx_t *ctx,
-    img_pipeline_fused_t *pipe,
-    img_buffer_t *buf)
-{
-    if (__builtin_expect(!pipe || !buf, 0))
-        return;
+// void img_pipeline_execute_fused(
+//     img_ctx_t *ctx,
+//     img_pipeline_fused_t *pipe,
+//     img_buffer_t *buf)
+// {
+//     if (__builtin_expect(!pipe || !buf, 0))
+//         return;
 
-    ctx->fused_params = &g_fused_params;
-    pipe->fn(ctx, buf);
-}
+//     ctx->fused_params = &g_fused_params;
+//     pipe->fn(ctx, buf);
+// }
 
 /* ================================================================
  * img_pipeline_execute_fused_batch()

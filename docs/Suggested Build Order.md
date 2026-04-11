@@ -20,6 +20,14 @@
     rm -rf *
     cmake .. && make -j
 
+### How to Run ./imgengine_cli --help
+
+   ./imgengine_cli -i ../test.jpg -o output.jpg
+
+### How to test 4k_Image
+
+   build/bench_lat ../tests/samples/4k_test.jpg
+
 ### find out the keyboard
 
     grep -r "struct img_ctx" .  img_pipeline_desc_t;

@@ -1,5 +1,5 @@
 // pipeline/fused_kernels.inc
-//
+
 // BATCH KERNEL TEMPLATE
 //
 // Generates all fused kernel variants via DEFINE_KERNEL macro.

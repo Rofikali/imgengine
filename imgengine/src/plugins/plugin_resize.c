@@ -1,3 +1,4 @@
+// ./src/plugins/plugin_resize.c
 
 // ./src/plugins/plugin_resize.c
 

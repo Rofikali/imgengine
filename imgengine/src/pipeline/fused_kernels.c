@@ -1,5 +1,5 @@
-// src/pipeline/fused_kernels.c
-//
+// ./src/pipeline/fused_kernels.c
+
 // FUSED KERNEL INSTANTIATION
 //
 // This file instantiates all fused kernel variants via DEFINE_KERNEL macro.
@@ -19,17 +19,17 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "core/buffer.h"          /* full img_buffer_t definition — REQUIRED */
-#include "pipeline/batch.h"       /* img_batch_t definition */
-#include "pipeline/fused_params.h"/* img_fused_params_t — brightness_value, new_w, new_h */
-#include "core/context_internal.h"/* img_ctx_t — required by kernel ABI */
+#include "core/buffer.h"           /* full img_buffer_t definition — REQUIRED */
+#include "pipeline/batch.h"        /* img_batch_t definition */
+#include "pipeline/fused_params.h" /* img_fused_params_t — brightness_value, new_w, new_h */
+#include "core/context_internal.h" /* img_ctx_t — required by kernel ABI */
 
 /*
  * DEFINE_KERNEL macro instantiation.
  * Include the template BEFORE using the macro.
  * The .inc file defines DEFINE_KERNEL — it does NOT instantiate anything.
  */
-#include "pipeline/fused_kernels.inc"
+#include "src/pipeline/fused_kernels.inc"
 
 /*
  * KERNEL INSTANTIATION TABLE
@@ -42,12 +42,12 @@
  *   - fused_kernel.h (extern declarations)
  *   - fused_dispatch.c (dispatch table)
  */
-DEFINE_KERNEL(kernel_none,        0, 0, 0)
-DEFINE_KERNEL(kernel_gray,        1, 0, 0)
-DEFINE_KERNEL(kernel_bright,      0, 1, 0)
+DEFINE_KERNEL(kernel_none, 0, 0, 0)
+DEFINE_KERNEL(kernel_gray, 1, 0, 0)
+DEFINE_KERNEL(kernel_bright, 0, 1, 0)
 DEFINE_KERNEL(kernel_gray_bright, 1, 1, 0)
 DEFINE_KERNEL(kernel_gray_resize, 1, 0, 1)
-DEFINE_KERNEL(kernel_all,         1, 1, 1)
+DEFINE_KERNEL(kernel_all, 1, 1, 1)
 
 /*
  * Include declarations AFTER definitions.

@@ -1,5 +1,4 @@
-
-/* include/cmd/imgengine/args.h */
+// ./include/cmd/imgengine/args.h
 
 #ifndef IMGENGINE_CLI_ARGS_H
 #define IMGENGINE_CLI_ARGS_H

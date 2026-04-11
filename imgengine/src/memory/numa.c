@@ -1,19 +1,23 @@
-
 // ./src/memory/numa.c
-
+// src/memory/numa.c
 
 #define _GNU_SOURCE
 
 #include "memory/numa.h"
 
-#include <numa.h>   // numa_available, numa_alloc_onnode, numa_free
-#include <numaif.h> // sometimes needed for numa functions
-#include <sched.h>  // sched_getcpu
+#include <numa.h>
+#include <numaif.h>
+#include <sched.h>
 #include <stdlib.h>
 
 #include "security/poision.h"
 
-void free_block(void *ptr, size_t size)
+/*
+ * File-local only. Not exported. Not in any header.
+ * static = no symbol conflict with arena.c and slab.c
+ * which have their own identical copy.
+ */
+static void free_block(void *ptr, size_t size)
 {
     IMG_POISON_MEMORY(ptr, size);
 }
@@ -40,11 +44,9 @@ void *img_numa_alloc_onnode(size_t size, int node)
     size = align64(size);
 
     if (numa_available() < 0)
-    {
         return aligned_alloc(64, size);
-    }
 
-    return numa_alloc_onnode(size, node); // ✅ FIXED
+    return numa_alloc_onnode(size, node);
 }
 
 void img_numa_free(void *ptr, size_t size)
@@ -60,5 +62,68 @@ void img_numa_free(void *ptr, size_t size)
         return;
     }
 
-    numa_free(ptr, size); // ✅ FIXED
+    numa_free(ptr, size);
 }
+
+// // ./src/memory/numa.c
+
+// #define _GNU_SOURCE
+
+// #include "memory/numa.h"
+
+// #include <numa.h>   // numa_available, numa_alloc_onnode, numa_free
+// #include <numaif.h> // sometimes needed for numa functions
+// #include <sched.h>  // sched_getcpu
+// #include <stdlib.h>
+
+// #include "security/poision.h"
+
+// static free_block(void *ptr, size_t size)
+// {
+//     IMG_POISON_MEMORY(ptr, size);
+// }
+
+// static inline size_t align64(size_t x)
+// {
+//     return (x + 63) & ~63;
+// }
+
+// int img_numa_get_node(void)
+// {
+//     if (numa_available() < 0)
+//         return 0;
+
+//     int cpu = sched_getcpu();
+//     if (cpu < 0)
+//         return 0;
+
+//     return numa_node_of_cpu(cpu);
+// }
+
+// void *img_numa_alloc_onnode(size_t size, int node)
+// {
+//     size = align64(size);
+
+//     if (numa_available() < 0)
+//     {
+//         return aligned_alloc(64, size);
+//     }
+
+//     return numa_alloc_onnode(size, node); // ✅ FIXED
+// }
+
+// static void img_numa_free(void *ptr, size_t size)
+// {
+//     if (!ptr)
+//         return;
+
+//     size = align64(size);
+
+//     if (numa_available() < 0)
+//     {
+//         free(ptr);
+//         return;
+//     }
+
+//     numa_free(ptr, size); // ✅ FIXED
+// }

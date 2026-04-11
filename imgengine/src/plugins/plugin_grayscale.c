@@ -1,3 +1,4 @@
+// ./src/plugins/plugin_grayscale.c
 
 // ./src/plugins/plugin_grayscale.c
 

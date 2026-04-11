@@ -22,3 +22,13 @@ void img_arch_resize_avx512(img_ctx_t *ctx, img_buffer_t *buf, void *params)
     buf->width = p->target_w;
     buf->height = p->target_h;
 }
+
+/* FILE: src/arch/x86_64/avx512/avx512.c — add at bottom */
+
+/*
+ * resize_avx512: canonical name used by jump_table.c
+ */
+void resize_avx512(img_ctx_t *ctx, img_buffer_t *buf, void *params)
+{
+    img_arch_resize_avx512(ctx, buf, params);
+}

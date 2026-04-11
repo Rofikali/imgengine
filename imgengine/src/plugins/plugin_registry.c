@@ -1,3 +1,4 @@
+// ./src/plugins/plugin_registry.c
 
 // ./src/plugins/plugin_registry.c
 

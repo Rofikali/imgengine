@@ -1,5 +1,4 @@
-
-// /* pipeline/jump_table.h */
+// ./include/pipeline/jump_table.h
 
 #ifndef IMGENGINE_JUMP_TABLE_H
 #define IMGENGINE_JUMP_TABLE_H

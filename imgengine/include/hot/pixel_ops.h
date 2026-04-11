@@ -1,3 +1,4 @@
+// ./include/hot/pixel_ops.h
 
 // src/hot/pixel_ops.h
 

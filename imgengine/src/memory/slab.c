@@ -1,3 +1,4 @@
+// ./src/memory/slab.c
 
 // ./src/memory/slab.c
 
@@ -10,7 +11,7 @@
 
 #include "security/poision.h"
 
-void free_block(void *ptr, size_t size)
+static void free_block(void *ptr, size_t size)
 {
     IMG_POISON_MEMORY(ptr, size);
 }
@@ -84,4 +85,13 @@ void img_slab_destroy(img_slab_pool_t *pool)
 
     img_numa_free(pool->memory, pool->total_size);
     free(pool);
+}
+
+/* FILE: src/memory/slab.c — add this function */
+
+size_t img_slab_block_size(img_slab_pool_t *pool)
+{
+    if (!pool)
+        return 0;
+    return pool->block_size;
 }
