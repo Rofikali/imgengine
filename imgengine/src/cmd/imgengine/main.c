@@ -162,7 +162,9 @@ int main(int argc, char **argv)
         printf("imgengine | %dx%d grid | %.1fx%.1f cm | %u dpi\n",
                job.cols, job.rows,
                job.photo_w_cm, job.photo_h_cm,
-               job.dpi);
+               job.dpi, job.crop_mark_px,
+               job.crop_thickness, job.padding,
+               job.bleed_px, job.abi_version);
         printf("input:  %s\n", input);
         printf("output: %s\n", output);
     }

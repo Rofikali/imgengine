@@ -187,8 +187,7 @@ img_api_run_job()                          [src/api/api.c]
 // USAGE EXAMPLES (all working after this integration)
 // ================================================================
 
-/* 
-
+/*
 
 # Passport — fits perfectly
 
@@ -202,9 +201,9 @@ img_api_run_job()                          [src/api/api.c]
 
 # Print-ready with bleed (use fewer cols to leave room)
 
-./imgengine_cli --input ../photo.jpg --output printready.jpg \
-    --cols 4 --rows 3 --gap 15 --padding 40 \
-    --bleed 10 --crop-mark 25 --crop-offset 8
+ ./imgengine_cli --input ../photo.jpg --output printready.jpg   \
+   --cols 6 --rows 6 --gap 15 --padding 20    \
+   --bleed 1 --crop-mark 5 --crop-offset 5 --crop-thickness 10 --border 50
 
 ## REMOTE (RPC / distributed execution)
 
