@@ -1,7 +1,5 @@
 // ./include/runtime/rpc_protocol.h
 
-// include/runtime/rpc_protocol.h
-
 #ifndef IMGENGINE_RPC_PROTOCOL_H
 #define IMGENGINE_RPC_PROTOCOL_H
 
@@ -15,6 +13,7 @@ typedef struct
     uint32_t channels;
     uint32_t stride;
     uint32_t data_size;
+    uint32_t params;
 } img_rpc_buffer_t;
 
 // 🔥 request packet

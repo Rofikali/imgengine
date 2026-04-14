@@ -151,11 +151,11 @@ set(SOURCES_MEMORY
 set(SOURCES_RUNTIME
     src/runtime/affinity.c
     src/runtime/cluster_registry.c
-    # src/runtime/exec_router.c
+    src/runtime/exec_router.c
     src/runtime/plugin_loader.c
     src/runtime/queue_mpmc.c
     src/runtime/queue_spsc.c
-    # src/runtime/rpc_client.c
+    src/runtime/rpc_client.c
     # src/runtime/rpc_server.c
     src/runtime/scheduler.c
     src/runtime/worker.c

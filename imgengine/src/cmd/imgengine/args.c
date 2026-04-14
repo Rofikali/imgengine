@@ -155,15 +155,3 @@ void img_print_usage(const char *bin)
     printf("  PDF export:\n");
     printf("    %s --input photo.jpg --output sheet.pdf --dpi 300\n\n", bin);
 }
-
-// void img_print_usage(const char *bin)
-// {
-//     printf("Usage:\n");
-//     printf("  %s -i input.jpg -o output.jpg [options]\n\n", bin);
-//     printf("Options:\n");
-//     printf("  -w --width <n>\n");
-//     printf("  -h --height <n>\n");
-//     printf("  -t --threads <n>\n");
-//     printf("  -b --bench\n");
-//     printf("  -v --verbose\n");
-// }

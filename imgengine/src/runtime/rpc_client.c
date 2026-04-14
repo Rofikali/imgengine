@@ -1,7 +1,5 @@
 // ./src/runtime/rpc_client.c
 
-// ./src/runtime/rpc_client.c
-
 #include "runtime/rpc_client.h"
 #include "runtime/rpc_protocol.h"
 #include "core/buffer.h"
@@ -16,6 +14,7 @@
 
 int img_rpc_send(uint32_t op_code, img_buffer_t *buf, void *params)
 {
+    (void)params; // ✅ suppress unused warning
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
         return -1;

@@ -1,7 +1,5 @@
 // ./api/v1/img_job.h
 
-
-
 #ifndef IMGENGINE_API_JOB_H
 #define IMGENGINE_API_JOB_H
 

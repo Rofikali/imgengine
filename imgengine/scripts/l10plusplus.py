@@ -318,6 +318,9 @@ class L10PlusPlus:
                     f.write(f'"{src}" -> "{tgt}";\n')
             f.write("}\n")
 
+
+
+
     # ============================================================
     # RUN
     # ============================================================
@@ -350,6 +353,72 @@ class L10PlusPlus:
         else:
             print(f"{self.GREEN}✅ ARCHITECTURE CLEAN (L10++){self.NC}")
 
+    def export_png(self):
+        # import subprocess
+
+        print("Running Graphviz...")
+        
+        r1 = subprocess.run(
+            ["dot", "-Tpng", "dependency_graph.dot", "-o", "dependency_graph.png"],
+            capture_output=True, text=True
+        )
+        print("dependency_graph:", r1.stderr)
+
+        r2 = subprocess.run(
+            ["dot", "-Tpng", "layer_graph.dot", "-o", "layer_graph.png"],
+            capture_output=True, text=True
+        )
+        print("layer_graph:", r2.stderr)
 
 if __name__ == "__main__":
-    L10PlusPlus().run()
+    import subprocess
+
+    analyzer = L10PlusPlus()
+
+    print("🔍 L10++ ANALYZER STARTING...\n")
+
+    # Scan
+    VALID_ROOTS = ("./src", "./include", "./api")
+
+    for root, dirs, files in os.walk("."):
+        if not root.startswith(VALID_ROOTS):
+            continue
+
+        dirs[:] = [d for d in dirs if d not in ("build", ".git")]
+
+        for file in files:
+            if file.endswith((".c", ".h")):
+                analyzer.scan_file(os.path.join(root, file))
+
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if d not in ("build", ".git")]
+
+        for file in files:
+            if file.endswith((".c", ".h")):
+                analyzer.scan_file(os.path.join(root, file))
+
+    # Phases
+    print("\n🔍 Checking cycles...")
+    analyzer.detect_file_cycles()
+    analyzer.detect_layer_cycles()
+
+    print("\n🔍 Checking duplicate symbols...")
+    analyzer.detect_duplicate_symbols()
+
+    print("\n🔍 Enforcing build order...")
+    analyzer.enforce_build_order()
+
+    print("\n🔍 Exporting graphs...")
+    analyzer.export_graph()
+    analyzer.export_layer_graph()
+
+    print("\n🔍 Generating PNG graphs...")
+    analyzer.export_png()   # ✅ FIXED
+
+    print("\n" + "=" * 50)
+
+    if analyzer.failed:
+        print(f"{analyzer.RED}🚨 BUILD BLOCKED (L10++ VIOLATIONS){analyzer.NC}")
+        sys.exit(1)
+    else:
+        print(f"{analyzer.GREEN}✅ ARCHITECTURE CLEAN (L10++){analyzer.NC}")

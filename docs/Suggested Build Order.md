@@ -4,6 +4,7 @@
     sudo apt install -y libturbojpeg0-dev libnuma-dev 
     sudo apt install -y liburing-dev 
     sudo apt install -y build-essential
+    sudo apt install graphviz -y
 
     sudo apt install -y graphviz     ( for graph generation )
     
@@ -24,6 +25,22 @@
 ### How to Run ./imgengine_cli --help
 
    ./imgengine_cli -i ../test.jpg -o output.jpg
+
+# Passport — fits perfectly
+
+./imgengine_cli --input ../photo.jpg --output passport.jpg \
+    --cols 2 --rows 3 --gap 20 --padding 40
+
+# Studio — auto-scales 6 photos to fit with gaps
+
+./imgengine_cli --input ../photo.jpg --output studio.jpg \
+    --cols 6 --rows 2 --gap 15 --padding 40
+
+# Print-ready with bleed (use fewer cols to leave room)
+
+ ./imgengine_cli --input ../photo.jpg --output printready.jpg   \
+   --cols 6 --rows 6 --gap 15 --padding 20    \
+   --bleed 1 --crop-mark 5 --crop-offset 5 --crop-thickness 10 --border 2
 
 ### How to test 4k_Image
 
