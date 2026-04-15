@@ -1,5 +1,4 @@
 // ./include/pipeline/canvas.h
-// include/pipeline/canvas.h
 
 // Canvas = the A4 output buffer. Allocated from slab.
 
@@ -9,7 +8,8 @@
 #include <stdint.h>
 #include "core/buffer.h"
 #include "memory/slab.h"
-#include "api/v1/img_job.h"
+#include "pipeline/job.h"
+#include "core/result.h"
 
 /*
  * img_canvas_t

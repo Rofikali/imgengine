@@ -6,7 +6,7 @@
 
 #include "core/buffer.h"
 #include "pipeline/layout.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <string.h>
 
 img_result_t img_apply_bleed(

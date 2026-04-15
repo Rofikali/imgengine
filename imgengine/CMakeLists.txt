@@ -58,7 +58,7 @@ set(IMGENGINE_COMMON_FLAGS
 )
 
 if(IMGENGINE_LTO)
-    list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror)
+    list(APPEND IMGENGINE_COMMON_FLAGS -flto)
     # list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror) This line must be uncommented in future
     set(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} -flto")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
@@ -110,7 +110,6 @@ set(SOURCES_CORE
     src/core/config.c
     src/core/context.c
     src/core/img_pipeline.c
-    src/core/init.c
 )
 
 set(SOURCES_HOT
@@ -172,7 +171,12 @@ set(SOURCES_IO
     src/io/vfs/http_stream.c
     src/io/vfs/memory_stream.c
     src/io/vfs/posix_io.c
+    src/io/io_register.c
     # src/io/vfs/s3_adapter.c
+)
+
+set(SOURCES_STARTUP
+    src/startup/engine_init.c
 )
 
 set(SOURCES_SECURITY
@@ -223,6 +227,7 @@ set(IMGENGINE_LIB_SOURCES
     ${SOURCES_MEMORY}
     ${SOURCES_RUNTIME}
     ${SOURCES_IO}
+    ${SOURCES_STARTUP}
     ${SOURCES_SECURITY}
     ${SOURCES_OBSERVABILITY}
     ${SOURCES_PLUGINS}

@@ -33,7 +33,7 @@
 
 #include "core/buffer.h"
 #include "pipeline/layout.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 
 static inline void set_px(img_buffer_t *c, int32_t x, int32_t y,
                           uint8_t r, uint8_t g, uint8_t b)

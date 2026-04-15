@@ -1,5 +1,4 @@
 // ./include/io/encoder/pdf_encoder.h
-// include/io/encoder/pdf_encoder.h
 
 // ================================================================
 // FILE 11: include/io/encoder/pdf_encoder.h  (NEW FILE)

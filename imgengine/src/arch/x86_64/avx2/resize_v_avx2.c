@@ -6,7 +6,6 @@
 #include "core/buffer.h"
 #include "pipeline/pipeline_types.h"
 
-
 void img_arch_resize_v_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params)
 {
     (void)ctx;

@@ -1,5 +1,4 @@
 // ./include/pipeline/border.h
-// include/pipeline/border.h
 
 // ================================================================
 // FILE 3: include/pipeline/border.h  (NEW FILE)

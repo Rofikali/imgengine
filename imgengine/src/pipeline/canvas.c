@@ -1,11 +1,12 @@
 // ./src/pipeline/canvas.c
-// src/pipeline/canvas.c
 
 #define _GNU_SOURCE
 
 #include "pipeline/canvas.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <string.h>
+// #include "pipeline/job.h"
+#include "core/result.h"
 
 img_result_t img_canvas_init(
     img_canvas_t *canvas,

@@ -4,7 +4,7 @@
 #define _GNU_SOURCE
 
 #include "memory/numa.h"
-#include "security/poision.h"
+#include "memory/poison.h"
 
 #include <numa.h>
 #include <numaif.h>

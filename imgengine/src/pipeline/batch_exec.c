@@ -1,5 +1,4 @@
 // ./src/pipeline/batch_exec.c
-// src/pipeline/batch_exec.c
 
 // ================================================================
 // FILE: src/pipeline/batch_exec.c

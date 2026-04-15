@@ -1,5 +1,4 @@
 // ./include/pipeline/layout.h
-// include/pipeline/layout.h
 
 // Grid layout engine — places resized photos on canvas.
 
@@ -9,8 +8,10 @@
 #include <stdint.h>
 #include "core/buffer.h"
 #include "pipeline/canvas.h"
-#include "api/v1/img_error.h"
-#include "api/v1/img_job.h"
+// #include "api/v1/img_error.h"
+// #include "api/v1/img_job.h"
+// #include "pipeline/job.h"
+// #include "core/result.h"
 #include "memory/arena.h"
 
 /*

@@ -83,20 +83,38 @@ def is_system_fn(name):
 # ============================================================
 # LAYER DAG
 # ============================================================
+# ================================================================
+# CORRECTED LAYER DAG
+# Update scripts/l10plusplus.py LAYERS list to this order:
+#  ================================================================
 
 LAYERS = [
-    "core",
-    "memory",
-    "security",
-    "arch",
-    "pipeline",
-    "runtime",
-    "plugins",
-    "observability",
-    "api",
-    "io",
-    "cmd",
+    "types",  # 0: img_result_t, img_buffer_t, opcodes — no deps
+    "memory",  # 1: slab, arena, numa — depends on types only
+    "arch",  # 2: SIMD kernels, cpu_caps — depends on types only
+    "security",  # 3: validation, sandbox — depends on types only
+    "pipeline",  # 4: jump table, fused kernels — depends on arch, memory
+    "runtime",  # 5: workers, queues — depends on pipeline
+    "plugins",  # 6: plugin ABI — depends on pipeline
+    "observability",  # 7: metrics, logging — depends on types
+    "io",  # 8: decode, encode — depends on memory, security
+    "api",  # 9: public surface — depends on everything below
+    "cmd",  # 10: CLI — depends on api only
+    "startup",  # 11: engine init — depends on all layers
 ]
+# LAYERS = [
+#     "core",
+#     "memory",
+#     "security",
+#     "arch",
+#     "pipeline",
+#     "runtime",
+#     "plugins",
+#     "observability",
+#     "api",
+#     "io",
+#     "cmd",
+# ]
 
 ABI_CONTRACTS = {
     "img_kernel_fn": "(img_ctx_t *, img_buffer_t *, void *)",

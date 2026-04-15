@@ -4,7 +4,7 @@
 #include "memory/slab.h"
 #include "memory/slab_internal.h"
 #include "memory/numa.h"
-#include "security/poision.h"
+#include "memory/poison.h"
 
 #include <stdlib.h>
 #include <stdint.h>

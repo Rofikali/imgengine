@@ -12,7 +12,7 @@
 
 #include "core/buffer.h"
 #include "pipeline/layout.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 
 static inline void fill_rect(
     img_buffer_t *canvas,

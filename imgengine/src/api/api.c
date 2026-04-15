@@ -2,7 +2,7 @@
 
 #include "api/v1/img_api.h"
 #include "api/v1/img_buffer_utils.h"
-
+#include "api/io_vtable.h"
 #include "core/context_internal.h"
 #include "runtime/worker.h"
 #include "runtime/task.h"
@@ -23,15 +23,8 @@
 
 #include "cold/validation.h"
 
-#include "io/decoder/decoder_entry.h"
-#include "io/encoder/encoder_entry.h"
-
-#include "io/decoder/decoder_entry.h"
-#include "io/encoder/encoder_entry.h"
-
 #include "pipeline/canvas.h"
 #include "pipeline/layout.h"
-#include "io/encoder/pdf_encoder.h"
 
 #include <string.h> /* strrchr */
 #include <sys/mman.h>
@@ -191,7 +184,10 @@ img_result_t img_api_run_job(
 
     /* ── 4. Decode ── */
     img_buffer_t photo = {0};
-    r = (img_result_t)img_decode_to_buffer(&ctx, file_data, file_size, &photo);
+
+    // r = (img_result_t)img_decode_to_buffer(&ctx, file_data, file_size, &photo);
+
+    r = (img_result_t)g_io_vtable.decode(&ctx, file_data, file_size, &photo);
     munmap(file_data, file_size);
 
     if (r != IMG_SUCCESS)
@@ -262,7 +258,7 @@ img_result_t img_api_run_job(
     /* ── 11. Encode output ── */
     if (is_pdf_output(output_path))
     {
-        r = img_encode_pdf(&canvas.buf, output_path, job->dpi);
+        r = g_io_vtable.encode_pdf(&canvas.buf, output_path, job->dpi);
     }
     else
     {
@@ -270,7 +266,7 @@ img_result_t img_api_run_job(
         uint8_t *out = NULL;
         size_t out_size = 0;
 
-        r = (img_result_t)img_encode_from_buffer(
+        r = (img_result_t)g_io_vtable.encode(
             &ctx, &canvas.buf, &out, &out_size);
 
         if (r == IMG_SUCCESS && out)
@@ -315,7 +311,7 @@ img_result_t decode_image_secure(
     ctx.caps = g_engine.caps;
     ctx.local_pool = g_engine.global_pool;
 
-    int rc = img_decode_to_buffer(&ctx, input, size, out_buf);
+    int rc = g_io_vtable.decode(&ctx, input, size, out_buf);
 
     /*
      * img_decode_to_buffer returns img_result_t cast to int.
@@ -356,7 +352,7 @@ img_result_t img_api_process_raw(
     ctx.caps = engine->caps;
     ctx.local_pool = engine->global_pool;
 
-    img_result_t dec = (img_result_t)img_decode_to_buffer(
+    img_result_t dec = (img_result_t)g_io_vtable.decode(
         &ctx, input, input_size, &buf);
 
     if (dec != IMG_SUCCESS)
@@ -367,7 +363,7 @@ img_result_t img_api_process_raw(
     }
 
     /* Encode */
-    img_result_t enc = (img_result_t)img_encode_from_buffer(
+    img_result_t enc = (img_result_t)g_io_vtable.encode(
         &ctx, &buf, output, output_size);
 
     img_slab_free(engine->global_pool, buf.data);
