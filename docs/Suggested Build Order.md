@@ -3,7 +3,7 @@
     sudo apt update -y && sudo apt upgrade -y
     sudo apt install -y libturbojpeg0-dev libnuma-dev 
     sudo apt install -y liburing-dev 
-    sudo apt update -y; sudo apt upgrade -y; sudo apt install -y libturbojpeg0-dev libnuma-dev liburing-dev
+    sudo apt update -y; sudo apt upgrade -y; sudo apt install -y libturbojpeg0-dev libnuma-dev liburing-dev; 
 
     
     sudo apt install -y build-essential

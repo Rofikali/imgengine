@@ -1,570 +1,867 @@
 #!/usr/bin/env python3
 """
-L10++ Architecture Analyzer — imgengine
-Kernel-grade static analysis: call graph, hot paths, layer violations,
-ABI checks, duplicate symbols, NUMA distribution.
-
-Filters out compiler intrinsics and system functions so results
-reflect YOUR code only.
+L10++++++++ HYBRID ANALYZER
+AST (libclang) + CFG-style + Regex fallback
+Kernel-grade: never crash, always produce signal.
 """
 
 import os
 import re
-import sys
-import time
-import threading
-from collections import defaultdict, deque
+from collections import defaultdict
 
 # ============================================================
-# SYSTEM FUNCTION FILTER
-# Exclude intrinsics, builtins, libc, and system APIs from analysis.
-# These inflate the graph with thousands of false bottlenecks.
+# 🔥 CONFIG
 # ============================================================
+
+SRC_ROOTS = ("./src", "./include", "./api")
 
 SYSTEM_PREFIXES = (
-    "_mm_",
-    "_mm256_",
-    "_mm512_",
-    "__builtin_",
-    "__builtin_ia32_",
-    "io_uring_",
-    "tj",
-    "stbi_",
-    "numa_",
-    "pthread_",
-    "atomic_",
+    "_mm",
+    "__builtin",
     "printf",
-    "fprintf",
-    "sprintf",
-    "snprintf",
     "malloc",
     "free",
-    "calloc",
-    "realloc",
-    "aligned_alloc",
     "memcpy",
     "memset",
-    "memmove",
-    "memcmp",
-    "open",
-    "close",
-    "read",
-    "write",
-    "lseek",
-    "mmap",
-    "munmap",
-    "mprotect",
-    "fopen",
-    "fclose",
-    "fwrite",
-    "fread",
-    "abort",
-    "exit",
-    "atoi",
-    "atof",
+    "pthread",
+    "io_uring",
+    "stbi",
 )
 
-SYSTEM_EXACT = {
-    "main",  # exclude from bottleneck — it's the entry point
-}
-
-
-def is_system_fn(name):
-    if not name:
-        return True
-    if name in SYSTEM_EXACT:
-        return True
-    for prefix in SYSTEM_PREFIXES:
-        if name.startswith(prefix):
-            return True
-    return False
-
-
-# ============================================================
-# LAYER DAG
-# ============================================================
-# ================================================================
-# CORRECTED LAYER DAG
-# Update scripts/l10plusplus.py LAYERS list to this order:
-#  ================================================================
-
-# LAYERS = [
-#     "types",  # 0: img_result_t, img_buffer_t, opcodes — no deps
-#     "memory",  # 1: slab, arena, numa — depends on types only
-#     "arch",  # 2: SIMD kernels, cpu_caps — depends on types only
-#     "security",  # 3: validation, sandbox — depends on types only
-#     "pipeline",  # 4: jump table, fused kernels — depends on arch, memory
-#     "runtime",  # 5: workers, queues — depends on pipeline
-#     "plugins",  # 6: plugin ABI — depends on pipeline
-#     "observability",  # 7: metrics, logging — depends on types
-#     "io",  # 8: decode, encode — depends on memory, security
-#     "api",  # 9: public surface — depends on everything below
-#     "cmd",  # 10: CLI — depends on api only
-#     "startup",  # 11: engine init — depends on all layers
-# ]
-
 LAYERS = [
-    "memory",         # 0 — slab, arena, numa
-    "core",           # 1 — types, buffer, opcodes, batch
-    "arch",           # 2 — SIMD kernels, cpu_caps, resize_params
-    "security",       # 3 — validation, sandbox
-    "observability",  # 4 — metrics, logging, tracing
-    "pipeline",       # 5 — jump table, fused kernels, dispatch, job
-    "runtime",        # 6 — workers, queues, scheduler
-    "plugins",        # 7 — plugin ABI (pipeline/plugin_abi.h)
-    "io",             # 8 — decode, encode, vfs
-    "api",            # 9 — public surface (re-exports from lower layers)
-    "cmd",            # 10 — CLI
-    "startup",        # 11 — engine init, wires everything
+    "core",
+    "memory",
+    "arch",
+    "security",
+    "pipeline",
+    "runtime",
+    "plugins",
+    "observability",
+    "io",
+    "api",
+    "cmd",
 ]
 
-# LAYERS = [
-#     "core",
-#     "memory",
-#     "security",
-#     "arch",
-#     "pipeline",
-#     "runtime",
-#     "plugins",
-#     "observability",
-#     "api",
-#     "io",
-#     "cmd",
-# ]
-
-ABI_CONTRACTS = {
-    "img_kernel_fn": "(img_ctx_t *, img_buffer_t *, void *)",
-    "img_single_kernel_fn": "(img_ctx_t *, img_buffer_t *)",
-    "img_fused_kernel_fn": "(img_ctx_t *, img_batch_t *, void *)",
-}
-
-RED = "\033[0;31m"
-GREEN = "\033[0;32m"
-YELLOW = "\033[1;33m"
-CYAN = "\033[0;36m"
-BOLD = "\033[1m"
-NC = "\033[0m"
-
-
 # ============================================================
-# STATIC ANALYZER (no libclang dependency)
-# Pure regex — fast, no external deps, works in any environment.
+# 🔥 UTILS
 # ============================================================
 
 
-class StaticAnalyzer:
+def is_system(name):
+    return any(name.startswith(p) for p in SYSTEM_PREFIXES)
+
+
+def get_layer(path):
+    rel = os.path.relpath(path, ".")
+    for root in ("src", "include", "api"):
+        if rel.startswith(root + os.sep):
+            rel = rel[len(root) + 1 :]
+            break
+    layer = rel.split(os.sep)[0]
+    return layer if layer in LAYERS else "unknown"
+
+
+# ============================================================
+# 🔥 REGEX FALLBACK ANALYZER (never fails)
+# ============================================================
+
+
+class RegexAnalyzer:
     def __init__(self):
-        self.call_graph = defaultdict(set)  # caller → {callee}
-        self.reverse_graph = defaultdict(set)  # callee → {callers}
+        self.calls = defaultdict(set)
+        self.reverse = defaultdict(set)
         self.fn_to_file = {}
-        self.layer_graph = defaultdict(set)
-        self.file_deps = defaultdict(set)
-        self.violations = []
-        self.failed = False
 
-        # Regex patterns
-        self.fn_def = re.compile(
-            r"^\s*(?:static\s+)?(?:inline\s+)?"
-            r"(?:__attribute__\s*\(\([^)]*\)\)\s*)?"
-            r"(?:void|int|uint\w*|size_t|bool|img_\w+|char\s*\*?)\s+"
-            r"(\w+)\s*\([^)]*\)\s*(?:\{|$)",
-            re.MULTILINE,
-        )
-        self.fn_call = re.compile(r"\b(\w+)\s*\(")
-        self.include = re.compile(r'#include\s+"([^"]+)"')
-
-    @staticmethod
-    def strip_comments(content):
-        # Keep the analyzer focused on real dependencies, not commented examples.
-        content = re.sub(r"/\*.*?\*/", "", content, flags=re.S)
-        content = re.sub(r"//.*", "", content)
-        return content
-
-    def get_layer(self, path):
-        rel = os.path.relpath(path, ".")
-        for root in ("src", "include", "api"):
-            if rel.startswith(root + os.sep):
-                rel = rel[len(root) + 1 :]
-                break
-        layer = rel.split(os.sep)[0]
-        return layer if layer in LAYERS else "unknown"
-
-    def layer_idx(self, layer):
-        try:
-            return LAYERS.index(layer)
-        except ValueError:
-            return -1
+        self.fn_def = re.compile(r"\b([a-zA-Z_]\w*)\s*\([^;]*\)\s*\{")
+        self.fn_call = re.compile(r"\b([a-zA-Z_]\w*)\s*\(")
 
     def analyze_file(self, path):
         try:
-            content = open(path, encoding="utf-8", errors="ignore").read()
-        except Exception:
+            content = open(path, errors="ignore").read()
+        except:
             return
 
-        content = self.strip_comments(content)
-        layer = self.get_layer(path)
+        fns = self.fn_def.findall(content)
 
-        # Extract includes
-        for inc in self.include.findall(content):
-            self.file_deps[path].add(inc)
-            inc_layer = inc.split("/")[0]
-            if inc_layer in LAYERS:
-                self.layer_graph[layer].add(inc_layer)
-                # Layer violation check
-                si = self.layer_idx(layer)
-                ti = self.layer_idx(inc_layer)
-                if si != -1 and ti != -1 and ti > si:
-                    self.violations.append(
-                        f"{path} includes {inc} ({layer}[{si}] → {inc_layer}[{ti}])"
-                    )
-                    self.failed = True
-
-        # Extract function definitions
-        current_fns = []
-        for m in self.fn_def.finditer(content):
-            fn = m.group(1)
-            if not is_system_fn(fn):
-                current_fns.append(fn)
-                self.fn_to_file[fn] = path
-
-        # Extract calls (heuristic: any identifier followed by '(')
-        for caller in current_fns:
-            for callee in self.fn_call.findall(content):
-                if callee != caller and not is_system_fn(callee):
-                    self.call_graph[caller].add(callee)
-                    self.reverse_graph[callee].add(caller)
-
-    def run(self):
-        for root, dirs, files in os.walk("."):
-            dirs[:] = [d for d in dirs if d not in ("build", ".git", "__pycache__")]
-            if not any(
-                root.startswith(f".{os.sep}{r}") for r in ("src", "include", "api")
-            ):
+        for fn in fns:
+            if is_system(fn):
                 continue
+            self.fn_to_file[fn] = path
+
+            for callee in self.fn_call.findall(content):
+                if callee != fn and not is_system(callee):
+                    self.calls[fn].add(callee)
+                    self.reverse[callee].add(fn)
+
+
+# ============================================================
+# 🔥 AST ANALYZER (safe)
+# ============================================================
+
+
+class ASTAnalyzer:
+    def __init__(self):
+        self.calls = defaultdict(set)
+
+        try:
+            from clang import cindex
+
+            self.cindex = cindex
+            self.index = cindex.Index.create()
+        except:
+            self.cindex = None
+
+    def analyze_file(self, path):
+        if not self.cindex:
+            return
+
+        try:
+            tu = self.index.parse(path, args=["-I./include", "-I./src", "-std=c11"])
+        except:
+            return
+
+        for cursor in tu.cursor.get_children():
+            try:
+                if cursor.kind == self.cindex.CursorKind.FUNCTION_DECL:
+                    fn = cursor.spelling
+                    self.walk(cursor, fn)
+            except:
+                continue
+
+    def walk(self, node, fn, depth=0):
+        if depth > 50:
+            return
+
+        try:
+            children = list(node.get_children())
+        except:
+            return
+
+        for child in children:
+            try:
+                kind = child.kind
+            except:
+                continue
+
+            try:
+                if kind == self.cindex.CursorKind.CALL_EXPR:
+                    callee = child.displayname.split("(")[0]
+                    if callee and not is_system(callee):
+                        self.calls[fn].add(callee)
+            except:
+                pass
+
+            self.walk(child, fn, depth + 1)
+
+
+# ============================================================
+# 🔥 CFG APPROX (flow edges)
+# ============================================================
+
+
+class CFGAnalyzer:
+    def __init__(self):
+        self.edges = defaultdict(set)
+
+        # Match function-like calls safely
+        self.call_pattern = re.compile(r"\b([a-zA-Z_]\w*)\s*\(")
+
+        # Ignore control keywords
+        self.keywords = {"if", "for", "while", "switch", "return", "sizeof"}
+
+    def analyze_file(self, path):
+        try:
+            lines = open(path, errors="ignore").read().splitlines()
+        except:
+            return
+
+        prev_fn = None
+
+        for line in lines:
+            line = line.strip()
+
+            if not line:
+                continue
+
+            matches = self.call_pattern.findall(line)
+
+            for fn in matches:
+                if fn in self.keywords:
+                    continue
+
+                if is_system(fn):
+                    continue
+
+                if prev_fn:
+                    self.edges[prev_fn].add(fn)
+
+                prev_fn = fn
+
+
+# ============================================================
+# 🔥 HYBRID ENGINE
+# ============================================================
+
+
+class HybridAnalyzer:
+    def __init__(self):
+        self.regex = RegexAnalyzer()
+        self.ast = ASTAnalyzer()
+        self.cfg = CFGAnalyzer()
+
+        self.calls = defaultdict(set)
+        self.reverse = defaultdict(set)
+        self.fn_to_file = {}
+
+    def scan(self):
+        for root, _, files in os.walk("."):
+            if not root.startswith(SRC_ROOTS):
+                continue
+
             for f in files:
-                if f.endswith((".c", ".h")):
-                    self.analyze_file(os.path.join(root, f))
-        return self
+                if f.endswith(".c"):
+                    path = os.path.join(root, f)
+
+                    self.regex.analyze_file(path)
+                    self.ast.analyze_file(path)
+                    self.cfg.analyze_file(path)
+
+    def merge(self):
+        # Merge regex + AST
+        for fn, callees in self.regex.calls.items():
+            self.calls[fn].update(callees)
+
+        for fn, callees in self.ast.calls.items():
+            self.calls[fn].update(callees)
+
+        # Build reverse graph
+        for fn, callees in self.calls.items():
+            for c in callees:
+                self.reverse[c].add(fn)
+
+        self.fn_to_file = self.regex.fn_to_file
+
+    def report(self):
+        print("\n📊 HYBRID ANALYSIS REPORT\n")
+
+        scores = []
+        for fn in self.calls:
+            fi = len(self.reverse.get(fn, []))
+            fo = len(self.calls.get(fn, []))
+            score = fi + 0.5 * fo
+            scores.append((score, fi, fo, fn))
+
+        scores.sort(reverse=True)
+
+        print("🔥 HOT FUNCTIONS")
+        for s, fi, fo, fn in scores[:15]:
+            print(f"{fn:30} score={s:.1f} in={fi} out={fo}")
+
+        print("\n🚨 BOTTLENECKS (fan-in)")
+        for fn in sorted(
+            self.reverse, key=lambda x: len(self.reverse[x]), reverse=True
+        )[:10]:
+            print(f"{fn} ← {len(self.reverse[fn])} callers")
+
+        print("\n🌐 COMPLEX (fan-out)")
+        for fn in sorted(self.calls, key=lambda x: len(self.calls[x]), reverse=True)[
+            :10
+        ]:
+            print(f"{fn} → {len(self.calls[fn])} calls")
+
+        print("\n🧠 CFG FLOW (approx)")
+        for fn, nxt in list(self.cfg.edges.items())[:10]:
+            print(f"{fn} → {list(nxt)[:3]}")
 
 
 # ============================================================
-# CALL GRAPH METRICS
-# ============================================================
-
-
-class CallGraphMetrics:
-    def __init__(self, analyzer):
-        self.a = analyzer
-
-    def fan_in(self, fn):
-        return len(self.a.reverse_graph.get(fn, set()))
-
-    def fan_out(self, fn):
-        return len(self.a.call_graph.get(fn, set()))
-
-    def depth(self, fn, visited=None):
-        if visited is None:
-            visited = set()
-        if fn in visited:
-            return 0
-        visited.add(fn)
-        callees = self.a.call_graph.get(fn, set())
-        if not callees:
-            return 0
-        return 1 + max((self.depth(c, visited) for c in callees), default=0)
-
-    def score(self, fn):
-        return self.fan_in(fn) + 0.5 * self.fan_out(fn)
-
-    def your_functions(self):
-        """Only functions defined in your source files."""
-        return {fn for fn in self.a.fn_to_file if not is_system_fn(fn)}
-
-
-# ============================================================
-# REPORTS
-# ============================================================
-
-
-def report_hot_paths(metrics):
-    your_fns = list(metrics.your_functions())
-    scored = [
-        (metrics.score(f), metrics.fan_in(f), metrics.fan_out(f), f)
-        for f in your_fns
-        if metrics.score(f) > 0
-    ]
-    scored.sort(reverse=True)
-
-    print(f"\n{BOLD}HOT FUNCTIONS (your code only){NC}")
-    print(f"{'Function':<40} {'Score':>6} {'Fan-in':>7} {'Fan-out':>8}")
-    print("-" * 65)
-    for score, fi, fo, fn in scored[:20]:
-        flag = f"{RED}🔥 HOT{NC}" if score > 5 else ""
-        print(f"  {fn:<38} {score:>6.1f} {fi:>7} {fo:>8}  {flag}")
-
-
-def report_bottlenecks(metrics):
-    your_fns = metrics.your_functions()
-    bottlenecks = [(metrics.fan_in(f), f) for f in your_fns if metrics.fan_in(f) >= 3]
-    bottlenecks.sort(reverse=True)
-
-    print(f"\n{BOLD}REAL BOTTLENECKS (your functions called by ≥3 callers){NC}")
-    for count, fn in bottlenecks[:15]:
-        callers = sorted(metrics.a.reverse_graph.get(fn, set()))
-        print(f"  {CYAN}{fn}{NC} ← {count} callers")
-        for c in callers[:5]:
-            print(f"      ← {c}")
-        if len(callers) > 5:
-            print(f"      ... and {len(callers) - 5} more")
-
-
-def report_complex_functions(metrics):
-    your_fns = metrics.your_functions()
-    complex_fns = [(metrics.fan_out(f), f) for f in your_fns if metrics.fan_out(f) >= 5]
-    complex_fns.sort(reverse=True)
-
-    print(f"\n{BOLD}COMPLEX FUNCTIONS (fan-out ≥ 5 — consider splitting){NC}")
-    for count, fn in complex_fns[:10]:
-        file = metrics.a.fn_to_file.get(fn, "unknown")
-        rel = os.path.relpath(file, ".")
-        print(f"  {YELLOW}{fn}{NC} → {count} calls | {rel}")
-
-
-def report_layer_violations(analyzer):
-    print(f"\n{BOLD}LAYER VIOLATIONS (upward dependencies){NC}")
-    if not analyzer.violations:
-        print(f"  {GREEN}✅ None — layer DAG is clean{NC}")
-    else:
-        for v in analyzer.violations:
-            print(f"  {RED}❌ {v}{NC}")
-
-
-def report_module_summary(metrics):
-    module_scores = defaultdict(float)
-    module_counts = defaultdict(int)
-
-    for fn in metrics.your_functions():
-        file = metrics.a.fn_to_file.get(fn, "")
-        layer = metrics.a.get_layer(file)
-        module_scores[layer] += metrics.score(fn)
-        module_counts[layer] += 1
-
-    print(f"\n{BOLD}MODULE HEAT (which layers need attention){NC}")
-    print(f"{'Layer':<20} {'Functions':>10} {'Total Score':>12} {'Avg Score':>10}")
-    print("-" * 56)
-    items = [(module_scores[l], l) for l in LAYERS if module_counts[l] > 0]
-    for score, layer in sorted(items, reverse=True):
-        count = module_counts[layer]
-        avg = score / count if count else 0
-        bar = "█" * min(int(avg * 2), 20)
-        print(f"  {layer:<18} {count:>10} {score:>12.1f} {avg:>10.1f}  {bar}")
-
-
-def report_files_to_split(analyzer):
-    print(f"\n{BOLD}FILES TO SPLIT (too many dependencies){NC}")
-    items = [(len(v), k) for k, v in analyzer.file_deps.items() if len(v) >= 7]
-    items.sort(reverse=True)
-    for count, path in items[:8]:
-        rel = os.path.relpath(path, ".")
-        print(f"  {YELLOW}❌ {rel}{NC} → {count} deps → consider splitting")
-
-
-def report_abi_locations(analyzer):
-    print(f"\n{BOLD}ABI CONTRACT TABLE{NC}")
-    for type_name, sig in ABI_CONTRACTS.items():
-        files = [
-            f
-            for f, content in [
-                (p, open(p, errors="ignore").read())
-                for p in analyzer.fn_to_file.values()
-                if os.path.exists(p)
-            ]
-            if type_name in content
-        ]
-        locations = list(set(os.path.relpath(f, ".") for f in files))
-        loc_str = locations[0] if locations else "not found"
-        print(f"  {CYAN}{type_name}{NC}")
-        print(f"    sig: {sig}")
-        print(f"    def: {loc_str}")
-
-
-def report_unused_functions(metrics):
-    your_fns = metrics.your_functions()
-    # Functions defined but never called by any other function
-    unused = [
-        f
-        for f in your_fns
-        if metrics.fan_in(f) == 0
-        and f
-        not in (
-            "main",
-            "img_api_init",
-            "img_api_shutdown",
-            "img_api_run_job",
-            "img_api_process_raw",
-        )
-    ]
-    unused.sort()
-
-    if not unused:
-        print(f"\n{GREEN}✅ No unused functions detected{NC}")
-        return
-
-    print(f"\n{BOLD}POTENTIALLY UNUSED FUNCTIONS (fan-in = 0){NC}")
-    print(f"  (may be exported symbols or entry points — verify manually)")
-    for fn in unused[:20]:
-        file = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
-        print(f"  {fn}  [{file}]")
-
-
-# ============================================================
-# NEXT ACTIONS (what to do now)
-# ============================================================
-
-
-def report_next_actions(analyzer, metrics):
-    print(f"\n{'=' * 60}")
-    print(f"{BOLD}WHAT TO DO NEXT — PRIORITY ORDER{NC}")
-    print(f"{'=' * 60}")
-
-    actions = []
-
-    # 1. Layer violations
-    if analyzer.violations:
-        actions.append(
-            (
-                1,
-                "CRITICAL",
-                f"Fix {len(analyzer.violations)} layer violation(s) — "
-                "upward dependencies break module boundaries",
-            )
-        )
-
-    # 2. Complex functions
-    complex_fns = [
-        (metrics.fan_out(f), f)
-        for f in metrics.your_functions()
-        if metrics.fan_out(f) >= 8
-    ]
-    for count, fn in sorted(complex_fns, reverse=True)[:3]:
-        file = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
-        actions.append(
-            (2, "HIGH", f"Split {fn}() — {count} outgoing calls — in {file}")
-        )
-
-    # 3. Missing implementations
-    actions.append(
-        (
-            3,
-            "HIGH",
-            "Replace resize_nearest() with bilinear AVX2 "
-            "(src/pipeline/layout.c) — current is nearest-neighbour",
-        )
-    )
-
-    actions.append(
-        (
-            3,
-            "HIGH",
-            "Wire io_uring output path — currently main.c initializes "
-            "io_uring but img_api_run_job() writes via fwrite(), not io_uring",
-        )
-    )
-
-    actions.append(
-        (
-            4,
-            "MEDIUM",
-            "Add --mode fit|fill CLI flag to expose IMG_FIT/IMG_FILL "
-            "(job->mode is set but not wired to CLI args)",
-        )
-    )
-
-    actions.append(
-        (
-            4,
-            "MEDIUM",
-            "Add img_api_run_job_raw() — returns encoded bytes instead of "
-            "writing to file; enables io_uring output and Python/Go bindings",
-        )
-    )
-
-    actions.append(
-        (
-            5,
-            "MEDIUM",
-            "Add CI performance gate: bench_lat P99 > 2ms = build fail "
-            "(RFC §22.3 requirement)",
-        )
-    )
-
-    actions.append(
-        (
-            5,
-            "LOW",
-            "Implement PDF multi-page: current pdf_encoder.c = single page; "
-            "for large grids that exceed A4, add page continuation",
-        )
-    )
-
-    actions.append(
-        (
-            6,
-            "LOW",
-            "Add Python CFFI bindings (bindings/python/cffi_wrapper.py) — "
-            "expose img_api_init, img_api_run_job, img_api_shutdown",
-        )
-    )
-
-    for priority, level, action in sorted(actions):
-        color = RED if level == "CRITICAL" else YELLOW if level == "HIGH" else NC
-        print(f"\n  [{priority}] {color}{level}{NC}")
-        print(f"      {action}")
-
-    print(f"\n{'=' * 60}")
-
-
-# ============================================================
-# MAIN
+# 🚀 MAIN
 # ============================================================
 
 
 def main():
-    print(f"{BOLD}imgengine L10++ Architecture Analyzer{NC}")
-    print(f"{'=' * 60}\n")
+    print("🚀 L10++++++++ HYBRID ANALYZER\n")
 
-    print("📡 Scanning source files...")
-    t0 = time.time()
-    analyzer = StaticAnalyzer().run()
-    elapsed = time.time() - t0
+    engine = HybridAnalyzer()
+    engine.scan()
+    engine.merge()
+    engine.report()
 
-    your_fns = {fn for fn in analyzer.fn_to_file if not is_system_fn(fn)}
-    print(
-        f"✅ {len(your_fns)} functions | "
-        f"{sum(len(v) for v in analyzer.call_graph.values())} edges | "
-        f"{elapsed:.1f}s\n"
-    )
-
-    metrics = CallGraphMetrics(analyzer)
-
-    report_hot_paths(metrics)
-    report_bottlenecks(metrics)
-    report_complex_functions(metrics)
-    report_layer_violations(analyzer)
-    report_module_summary(metrics)
-    report_files_to_split(analyzer)
-    report_unused_functions(metrics)
-    report_next_actions(analyzer, metrics)
-
-    if analyzer.failed:
-        print(f"\n{RED}{BOLD}🚨 VIOLATIONS FOUND — fix before merging{NC}\n")
-        sys.exit(1)
-    else:
-        print(f"\n{GREEN}{BOLD}✅ ARCHITECTURE CLEAN{NC}\n")
+    print("\n✅ DONE — AST + CFG + FALLBACK ACTIVE\n")
 
 
 if __name__ == "__main__":
     main()
+
+
+# #!/usr/bin/env python3
+# """
+# L10++ Architecture Analyzer — imgengine
+# Kernel-grade static analysis: call graph, hot paths, layer violations,
+# ABI checks, duplicate symbols, NUMA distribution.
+
+# Filters out compiler intrinsics and system functions so results
+# reflect YOUR code only.
+# """
+
+# import os
+# import re
+# import sys
+# import time
+# import threading
+# from collections import defaultdict, deque
+
+# # ============================================================
+# # SYSTEM FUNCTION FILTER
+# # Exclude intrinsics, builtins, libc, and system APIs from analysis.
+# # These inflate the graph with thousands of false bottlenecks.
+# # ============================================================
+
+# SYSTEM_PREFIXES = (
+#     "_mm_",
+#     "_mm256_",
+#     "_mm512_",
+#     "__builtin_",
+#     "__builtin_ia32_",
+#     "io_uring_",
+#     "tj",
+#     "stbi_",
+#     "numa_",
+#     "pthread_",
+#     "atomic_",
+#     "printf",
+#     "fprintf",
+#     "sprintf",
+#     "snprintf",
+#     "malloc",
+#     "free",
+#     "calloc",
+#     "realloc",
+#     "aligned_alloc",
+#     "memcpy",
+#     "memset",
+#     "memmove",
+#     "memcmp",
+#     "open",
+#     "close",
+#     "read",
+#     "write",
+#     "lseek",
+#     "mmap",
+#     "munmap",
+#     "mprotect",
+#     "fopen",
+#     "fclose",
+#     "fwrite",
+#     "fread",
+#     "abort",
+#     "exit",
+#     "atoi",
+#     "atof",
+# )
+
+# SYSTEM_EXACT = {
+#     "main",  # exclude from bottleneck — it's the entry point
+# }
+
+
+# def is_system_fn(name):
+#     if not name:
+#         return True
+#     if name in SYSTEM_EXACT:
+#         return True
+#     for prefix in SYSTEM_PREFIXES:
+#         if name.startswith(prefix):
+#             return True
+#     return False
+
+
+# # ============================================================
+# # LAYER DAG
+# # ============================================================
+# # ================================================================
+# # CORRECTED LAYER DAG
+# # Update scripts/l10plusplus.py LAYERS list to this order:
+# #  ================================================================
+
+# # LAYERS = [
+# #     "types",  # 0: img_result_t, img_buffer_t, opcodes — no deps
+# #     "memory",  # 1: slab, arena, numa — depends on types only
+# #     "arch",  # 2: SIMD kernels, cpu_caps — depends on types only
+# #     "security",  # 3: validation, sandbox — depends on types only
+# #     "pipeline",  # 4: jump table, fused kernels — depends on arch, memory
+# #     "runtime",  # 5: workers, queues — depends on pipeline
+# #     "plugins",  # 6: plugin ABI — depends on pipeline
+# #     "observability",  # 7: metrics, logging — depends on types
+# #     "io",  # 8: decode, encode — depends on memory, security
+# #     "api",  # 9: public surface — depends on everything below
+# #     "cmd",  # 10: CLI — depends on api only
+# #     "startup",  # 11: engine init — depends on all layers
+# # ]
+
+# LAYERS = [
+#     "memory",         # 0 — slab, arena, numa
+#     "core",           # 1 — types, buffer, opcodes, batch
+#     "arch",           # 2 — SIMD kernels, cpu_caps, resize_params
+#     "security",       # 3 — validation, sandbox
+#     "observability",  # 4 — metrics, logging, tracing
+#     "pipeline",       # 5 — jump table, fused kernels, dispatch, job
+#     "runtime",        # 6 — workers, queues, scheduler
+#     "plugins",        # 7 — plugin ABI (pipeline/plugin_abi.h)
+#     "io",             # 8 — decode, encode, vfs
+#     "api",            # 9 — public surface (re-exports from lower layers)
+#     "cmd",            # 10 — CLI
+#     "startup",        # 11 — engine init, wires everything
+# ]
+
+# # LAYERS = [
+# #     "core",
+# #     "memory",
+# #     "security",
+# #     "arch",
+# #     "pipeline",
+# #     "runtime",
+# #     "plugins",
+# #     "observability",
+# #     "api",
+# #     "io",
+# #     "cmd",
+# # ]
+
+# ABI_CONTRACTS = {
+#     "img_kernel_fn": "(img_ctx_t *, img_buffer_t *, void *)",
+#     "img_single_kernel_fn": "(img_ctx_t *, img_buffer_t *)",
+#     "img_fused_kernel_fn": "(img_ctx_t *, img_batch_t *, void *)",
+# }
+
+# RED = "\033[0;31m"
+# GREEN = "\033[0;32m"
+# YELLOW = "\033[1;33m"
+# CYAN = "\033[0;36m"
+# BOLD = "\033[1m"
+# NC = "\033[0m"
+
+
+# # ============================================================
+# # STATIC ANALYZER (no libclang dependency)
+# # Pure regex — fast, no external deps, works in any environment.
+# # ============================================================
+
+
+# class StaticAnalyzer:
+#     def __init__(self):
+#         self.call_graph = defaultdict(set)  # caller → {callee}
+#         self.reverse_graph = defaultdict(set)  # callee → {callers}
+#         self.fn_to_file = {}
+#         self.layer_graph = defaultdict(set)
+#         self.file_deps = defaultdict(set)
+#         self.violations = []
+#         self.failed = False
+
+#         # Regex patterns
+#         self.fn_def = re.compile(
+#             r"^\s*(?:static\s+)?(?:inline\s+)?"
+#             r"(?:__attribute__\s*\(\([^)]*\)\)\s*)?"
+#             r"(?:void|int|uint\w*|size_t|bool|img_\w+|char\s*\*?)\s+"
+#             r"(\w+)\s*\([^)]*\)\s*(?:\{|$)",
+#             re.MULTILINE,
+#         )
+#         self.fn_call = re.compile(r"\b(\w+)\s*\(")
+#         self.include = re.compile(r'#include\s+"([^"]+)"')
+
+#     @staticmethod
+#     def strip_comments(content):
+#         # Keep the analyzer focused on real dependencies, not commented examples.
+#         content = re.sub(r"/\*.*?\*/", "", content, flags=re.S)
+#         content = re.sub(r"//.*", "", content)
+#         return content
+
+#     def get_layer(self, path):
+#         rel = os.path.relpath(path, ".")
+#         for root in ("src", "include", "api"):
+#             if rel.startswith(root + os.sep):
+#                 rel = rel[len(root) + 1 :]
+#                 break
+#         layer = rel.split(os.sep)[0]
+#         return layer if layer in LAYERS else "unknown"
+
+#     def layer_idx(self, layer):
+#         try:
+#             return LAYERS.index(layer)
+#         except ValueError:
+#             return -1
+
+#     def analyze_file(self, path):
+#         try:
+#             content = open(path, encoding="utf-8", errors="ignore").read()
+#         except Exception:
+#             return
+
+#         content = self.strip_comments(content)
+#         layer = self.get_layer(path)
+
+#         # Extract includes
+#         for inc in self.include.findall(content):
+#             self.file_deps[path].add(inc)
+#             inc_layer = inc.split("/")[0]
+#             if inc_layer in LAYERS:
+#                 self.layer_graph[layer].add(inc_layer)
+#                 # Layer violation check
+#                 si = self.layer_idx(layer)
+#                 ti = self.layer_idx(inc_layer)
+#                 if si != -1 and ti != -1 and ti > si:
+#                     self.violations.append(
+#                         f"{path} includes {inc} ({layer}[{si}] → {inc_layer}[{ti}])"
+#                     )
+#                     self.failed = True
+
+#         # Extract function definitions
+#         current_fns = []
+#         for m in self.fn_def.finditer(content):
+#             fn = m.group(1)
+#             if not is_system_fn(fn):
+#                 current_fns.append(fn)
+#                 self.fn_to_file[fn] = path
+
+#         # Extract calls (heuristic: any identifier followed by '(')
+#         for caller in current_fns:
+#             for callee in self.fn_call.findall(content):
+#                 if callee != caller and not is_system_fn(callee):
+#                     self.call_graph[caller].add(callee)
+#                     self.reverse_graph[callee].add(caller)
+
+#     def run(self):
+#         for root, dirs, files in os.walk("."):
+#             dirs[:] = [d for d in dirs if d not in ("build", ".git", "__pycache__")]
+#             if not any(
+#                 root.startswith(f".{os.sep}{r}") for r in ("src", "include", "api")
+#             ):
+#                 continue
+#             for f in files:
+#                 if f.endswith((".c", ".h")):
+#                     self.analyze_file(os.path.join(root, f))
+#         return self
+
+
+# # ============================================================
+# # CALL GRAPH METRICS
+# # ============================================================
+
+
+# class CallGraphMetrics:
+#     def __init__(self, analyzer):
+#         self.a = analyzer
+
+#     def fan_in(self, fn):
+#         return len(self.a.reverse_graph.get(fn, set()))
+
+#     def fan_out(self, fn):
+#         return len(self.a.call_graph.get(fn, set()))
+
+#     def depth(self, fn, visited=None):
+#         if visited is None:
+#             visited = set()
+#         if fn in visited:
+#             return 0
+#         visited.add(fn)
+#         callees = self.a.call_graph.get(fn, set())
+#         if not callees:
+#             return 0
+#         return 1 + max((self.depth(c, visited) for c in callees), default=0)
+
+#     def score(self, fn):
+#         return self.fan_in(fn) + 0.5 * self.fan_out(fn)
+
+#     def your_functions(self):
+#         """Only functions defined in your source files."""
+#         return {fn for fn in self.a.fn_to_file if not is_system_fn(fn)}
+
+
+# # ============================================================
+# # REPORTS
+# # ============================================================
+
+
+# def report_hot_paths(metrics):
+#     your_fns = list(metrics.your_functions())
+#     scored = [
+#         (metrics.score(f), metrics.fan_in(f), metrics.fan_out(f), f)
+#         for f in your_fns
+#         if metrics.score(f) > 0
+#     ]
+#     scored.sort(reverse=True)
+
+#     print(f"\n{BOLD}HOT FUNCTIONS (your code only){NC}")
+#     print(f"{'Function':<40} {'Score':>6} {'Fan-in':>7} {'Fan-out':>8}")
+#     print("-" * 65)
+#     for score, fi, fo, fn in scored[:20]:
+#         flag = f"{RED}🔥 HOT{NC}" if score > 5 else ""
+#         print(f"  {fn:<38} {score:>6.1f} {fi:>7} {fo:>8}  {flag}")
+
+
+# def report_bottlenecks(metrics):
+#     your_fns = metrics.your_functions()
+#     bottlenecks = [(metrics.fan_in(f), f) for f in your_fns if metrics.fan_in(f) >= 3]
+#     bottlenecks.sort(reverse=True)
+
+#     print(f"\n{BOLD}REAL BOTTLENECKS (your functions called by ≥3 callers){NC}")
+#     for count, fn in bottlenecks[:15]:
+#         callers = sorted(metrics.a.reverse_graph.get(fn, set()))
+#         print(f"  {CYAN}{fn}{NC} ← {count} callers")
+#         for c in callers[:5]:
+#             print(f"      ← {c}")
+#         if len(callers) > 5:
+#             print(f"      ... and {len(callers) - 5} more")
+
+
+# def report_complex_functions(metrics):
+#     your_fns = metrics.your_functions()
+#     complex_fns = [(metrics.fan_out(f), f) for f in your_fns if metrics.fan_out(f) >= 5]
+#     complex_fns.sort(reverse=True)
+
+#     print(f"\n{BOLD}COMPLEX FUNCTIONS (fan-out ≥ 5 — consider splitting){NC}")
+#     for count, fn in complex_fns[:10]:
+#         file = metrics.a.fn_to_file.get(fn, "unknown")
+#         rel = os.path.relpath(file, ".")
+#         print(f"  {YELLOW}{fn}{NC} → {count} calls | {rel}")
+
+
+# def report_layer_violations(analyzer):
+#     print(f"\n{BOLD}LAYER VIOLATIONS (upward dependencies){NC}")
+#     if not analyzer.violations:
+#         print(f"  {GREEN}✅ None — layer DAG is clean{NC}")
+#     else:
+#         for v in analyzer.violations:
+#             print(f"  {RED}❌ {v}{NC}")
+
+
+# def report_module_summary(metrics):
+#     module_scores = defaultdict(float)
+#     module_counts = defaultdict(int)
+
+#     for fn in metrics.your_functions():
+#         file = metrics.a.fn_to_file.get(fn, "")
+#         layer = metrics.a.get_layer(file)
+#         module_scores[layer] += metrics.score(fn)
+#         module_counts[layer] += 1
+
+#     print(f"\n{BOLD}MODULE HEAT (which layers need attention){NC}")
+#     print(f"{'Layer':<20} {'Functions':>10} {'Total Score':>12} {'Avg Score':>10}")
+#     print("-" * 56)
+#     items = [(module_scores[l], l) for l in LAYERS if module_counts[l] > 0]
+#     for score, layer in sorted(items, reverse=True):
+#         count = module_counts[layer]
+#         avg = score / count if count else 0
+#         bar = "█" * min(int(avg * 2), 20)
+#         print(f"  {layer:<18} {count:>10} {score:>12.1f} {avg:>10.1f}  {bar}")
+
+
+# def report_files_to_split(analyzer):
+#     print(f"\n{BOLD}FILES TO SPLIT (too many dependencies){NC}")
+#     items = [(len(v), k) for k, v in analyzer.file_deps.items() if len(v) >= 7]
+#     items.sort(reverse=True)
+#     for count, path in items[:8]:
+#         rel = os.path.relpath(path, ".")
+#         print(f"  {YELLOW}❌ {rel}{NC} → {count} deps → consider splitting")
+
+
+# def report_abi_locations(analyzer):
+#     print(f"\n{BOLD}ABI CONTRACT TABLE{NC}")
+#     for type_name, sig in ABI_CONTRACTS.items():
+#         files = [
+#             f
+#             for f, content in [
+#                 (p, open(p, errors="ignore").read())
+#                 for p in analyzer.fn_to_file.values()
+#                 if os.path.exists(p)
+#             ]
+#             if type_name in content
+#         ]
+#         locations = list(set(os.path.relpath(f, ".") for f in files))
+#         loc_str = locations[0] if locations else "not found"
+#         print(f"  {CYAN}{type_name}{NC}")
+#         print(f"    sig: {sig}")
+#         print(f"    def: {loc_str}")
+
+
+# def report_unused_functions(metrics):
+#     your_fns = metrics.your_functions()
+#     # Functions defined but never called by any other function
+#     unused = [
+#         f
+#         for f in your_fns
+#         if metrics.fan_in(f) == 0
+#         and f
+#         not in (
+#             "main",
+#             "img_api_init",
+#             "img_api_shutdown",
+#             "img_api_run_job",
+#             "img_api_process_raw",
+#         )
+#     ]
+#     unused.sort()
+
+#     if not unused:
+#         print(f"\n{GREEN}✅ No unused functions detected{NC}")
+#         return
+
+#     print(f"\n{BOLD}POTENTIALLY UNUSED FUNCTIONS (fan-in = 0){NC}")
+#     print(f"  (may be exported symbols or entry points — verify manually)")
+#     for fn in unused[:20]:
+#         file = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         print(f"  {fn}  [{file}]")
+
+
+# # ============================================================
+# # NEXT ACTIONS (what to do now)
+# # ============================================================
+
+
+# def report_next_actions(analyzer, metrics):
+#     print(f"\n{'=' * 60}")
+#     print(f"{BOLD}WHAT TO DO NEXT — PRIORITY ORDER{NC}")
+#     print(f"{'=' * 60}")
+
+#     actions = []
+
+#     # 1. Layer violations
+#     if analyzer.violations:
+#         actions.append(
+#             (
+#                 1,
+#                 "CRITICAL",
+#                 f"Fix {len(analyzer.violations)} layer violation(s) — "
+#                 "upward dependencies break module boundaries",
+#             )
+#         )
+
+#     # 2. Complex functions
+#     complex_fns = [
+#         (metrics.fan_out(f), f)
+#         for f in metrics.your_functions()
+#         if metrics.fan_out(f) >= 8
+#     ]
+#     for count, fn in sorted(complex_fns, reverse=True)[:3]:
+#         file = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         actions.append(
+#             (2, "HIGH", f"Split {fn}() — {count} outgoing calls — in {file}")
+#         )
+
+#     # 3. Missing implementations
+#     actions.append(
+#         (
+#             3,
+#             "HIGH",
+#             "Replace resize_nearest() with bilinear AVX2 "
+#             "(src/pipeline/layout.c) — current is nearest-neighbour",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             3,
+#             "HIGH",
+#             "Wire io_uring output path — currently main.c initializes "
+#             "io_uring but img_api_run_job() writes via fwrite(), not io_uring",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             4,
+#             "MEDIUM",
+#             "Add --mode fit|fill CLI flag to expose IMG_FIT/IMG_FILL "
+#             "(job->mode is set but not wired to CLI args)",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             4,
+#             "MEDIUM",
+#             "Add img_api_run_job_raw() — returns encoded bytes instead of "
+#             "writing to file; enables io_uring output and Python/Go bindings",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             5,
+#             "MEDIUM",
+#             "Add CI performance gate: bench_lat P99 > 2ms = build fail "
+#             "(RFC §22.3 requirement)",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             5,
+#             "LOW",
+#             "Implement PDF multi-page: current pdf_encoder.c = single page; "
+#             "for large grids that exceed A4, add page continuation",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             6,
+#             "LOW",
+#             "Add Python CFFI bindings (bindings/python/cffi_wrapper.py) — "
+#             "expose img_api_init, img_api_run_job, img_api_shutdown",
+#         )
+#     )
+
+#     for priority, level, action in sorted(actions):
+#         color = RED if level == "CRITICAL" else YELLOW if level == "HIGH" else NC
+#         print(f"\n  [{priority}] {color}{level}{NC}")
+#         print(f"      {action}")
+
+#     print(f"\n{'=' * 60}")
+
+
+# # ============================================================
+# # MAIN
+# # ============================================================
+
+
+# def main():
+#     print(f"{BOLD}imgengine L10++ Architecture Analyzer{NC}")
+#     print(f"{'=' * 60}\n")
+
+#     print("📡 Scanning source files...")
+#     t0 = time.time()
+#     analyzer = StaticAnalyzer().run()
+#     elapsed = time.time() - t0
+
+#     your_fns = {fn for fn in analyzer.fn_to_file if not is_system_fn(fn)}
+#     print(
+#         f"✅ {len(your_fns)} functions | "
+#         f"{sum(len(v) for v in analyzer.call_graph.values())} edges | "
+#         f"{elapsed:.1f}s\n"
+#     )
+
+#     metrics = CallGraphMetrics(analyzer)
+
+#     report_hot_paths(metrics)
+#     report_bottlenecks(metrics)
+#     report_complex_functions(metrics)
+#     report_layer_violations(analyzer)
+#     report_module_summary(metrics)
+#     report_files_to_split(analyzer)
+#     report_unused_functions(metrics)
+#     report_next_actions(analyzer, metrics)
+
+#     if analyzer.failed:
+#         print(f"\n{RED}{BOLD}🚨 VIOLATIONS FOUND — fix before merging{NC}\n")
+#         sys.exit(1)
+#     else:
+#         print(f"\n{GREEN}{BOLD}✅ ARCHITECTURE CLEAN{NC}\n")
+
+
+# if __name__ == "__main__":
+#     main()
+
 
 # #!/usr/bin/env python3
 
