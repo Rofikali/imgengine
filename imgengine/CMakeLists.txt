@@ -199,7 +199,7 @@ set(SOURCES_CORE
     src/core/context.c
     src/core/context_create.c
     src/core/context_destroy.c
-    src/core/img_pipeline.c
+    # src/core/img_pipeline.c -- MOVED to src/pipeline/pipeline_executor.c
 )
 
 set(SOURCES_HOT
@@ -258,6 +258,7 @@ set(SOURCES_PIPELINE
     src/pipeline/dispatch.c
     src/pipeline/pipeline_fuse_exec.c
     src/pipeline/pipeline_fuse_select.c
+    src/pipeline/pipeline_executor.c
 )
 
 set(SOURCES_MEMORY

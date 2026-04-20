@@ -1,298 +1,1767 @@
-#!/usr/bin/env python3
-"""
-L10++++++++ HYBRID ANALYZER
-AST (libclang) + CFG-style + Regex fallback
-Kernel-grade: never crash, always produce signal.
-"""
+# #!/usr/bin/env python3
+# import os
+# import re
 
+# # =========================================================
+# # 1. THE KERNEL TRUTH: ALLOWED / FORBIDDEN MATRIX
+# # =========================================================
+# # Row = Source | Col = Destination
+# LAYER_NAMES = [
+#     "core",
+#     "memory",
+#     "arch",
+#     "pipeline",
+#     "runtime",
+#     "api",
+#     "cmd",
+#     "io",
+#     "plugins",
+#     "observability",
+#     "security",
+# ]
+
+# MATRIX_DISPLAY = """
+# FROM \ TO     core  mem   arch  pipe  run   api   cmd   io    plug  obs   sec
+# -----------------------------------------------------------------------------
+# core           —     ❌    ❌    ❌    ❌    ❌    ❌    ❌    ❌    ❌    ❌
+# memory         ✓     —     ❌    ❌    ❌    ❌    ❌    ❌    ❌    ⚠️    ❌
+# arch           ✓     ✓     —     ❌    ❌    ❌    ❌    ❌    ❌    ❌    ❌
+# pipeline       ✓     ✓     ✓     —     ❌    ❌    ❌    ❌    ❌    ✓     ❌
+# runtime        ✓     ✓     ❌    ✓     —     ❌    ❌    ⚠️    ✓     ✓     ✓
+# api            ✓     ❌    ❌    ❌    ✓     —     ❌    ✓     ✓     ✓     ✓
+# cmd            ✓     ❌    ❌    ❌    ❌    ✓     —     ❌    ❌    ❌    ❌
+# io             ✓     ✓     ❌    ❌    ❌    ❌    ❌    —     ❌    ❌    ⚠️
+# plugins        ✓     ❌    ❌    ✓     ✓     ❌    ❌    ❌    —     ❌    ❌
+# observability  ✓     ⚠️    ❌    ❌    ❌    ❌    ❌    ❌    ❌    —     ❌
+# security       ✓     ✓     ❌    ❌    ❌    ❌    ❌    ⚠️    ❌    ❌    —
+# """
+
+# MATRIX_LOGIC = {
+#     "core": {"core": "OK"},
+#     "memory": {"core": "OK", "memory": "OK", "observability": "WARN"},
+#     "arch": {"core": "OK", "memory": "OK", "arch": "OK"},
+#     "pipeline": {
+#         "core": "OK",
+#         "memory": "OK",
+#         "arch": "OK",
+#         "pipeline": "OK",
+#         "observability": "OK",
+#     },
+#     "runtime": {
+#         "core": "OK",
+#         "memory": "OK",
+#         "pipeline": "OK",
+#         "runtime": "OK",
+#         "io": "WARN",
+#         "plugins": "OK",
+#         "observability": "OK",
+#         "security": "OK",
+#     },
+#     "api": {
+#         "core": "OK",
+#         "runtime": "OK",
+#         "api": "OK",
+#         "io": "OK",
+#         "plugins": "OK",
+#         "observability": "OK",
+#         "security": "OK",
+#     },
+#     "cmd": {"core": "OK", "api": "OK", "cmd": "OK"},
+#     "io": {"core": "OK", "memory": "OK", "io": "OK", "security": "WARN"},
+#     "plugins": {"core": "OK", "pipeline": "OK", "runtime": "OK", "plugins": "OK"},
+#     "observability": {"core": "OK", "memory": "WARN", "observability": "OK"},
+#     "security": {"core": "OK", "memory": "OK", "io": "WARN", "security": "OK"},
+# }
+
+# # =========================================================
+# # 2. SCANNER UTILS
+# # =========================================================
+
+
+# def detect_layer(path):
+#     parts = path.replace("\\", "/").split("/")
+#     for i, p in enumerate(parts):
+#         if p in ["src", "include", "api"]:
+#             if i + 1 < len(parts):
+#                 layer = parts[i + 1]
+#                 # Map 'mem' shorthand to 'memory' if necessary
+#                 if layer == "mem":
+#                     layer = "memory"
+#                 return layer if layer in LAYER_NAMES else None
+#     return None
+
+
+# def is_hot(path):
+#     return any(k in path for k in ["/hot/", "/arch/", "pipeline_exec", "avx", "fused"])
+
+
+# # =========================================================
+# # 3. THE ANALYZER
+# # =========================================================
+
+
+# class KernelAnalyzer:
+#     def __init__(self):
+#         self.files = []
+#         self.errors = []  # Forbidden (❌)
+#         self.warns = []  # Dangerous (⚠️)
+#         self.ok_count = 0
+
+#     def run(self):
+#         print(f"\n{'=' * 80}\nFINAL ALLOWED / FORBIDDEN MATRIX\n{'=' * 80}")
+#         print(MATRIX_DISPLAY)
+
+#         for base, _, fs in os.walk("."):
+#             for f in fs:
+#                 if f.endswith((".c", ".h")):
+#                     path = os.path.join(base, f).replace("\\", "/")
+#                     self.process_file(path)
+
+#     def process_file(self, path):
+#         src = detect_layer(path)
+#         if not src:
+#             return
+
+#         try:
+#             with open(path, "r", errors="ignore") as f:
+#                 for line in f:
+#                     m = re.search(r'#include\s+["<]([^">]+)[">]', line)
+#                     if m:
+#                         inc = m.group(1)
+#                         dst = None
+#                         for l in LAYER_NAMES:
+#                             if f"{l}/" in inc or inc.startswith(f"img_{l}"):
+#                                 dst = l
+#                                 break
+
+#                         if dst:
+#                             status = MATRIX_LOGIC.get(src, {}).get(dst, "ERR")
+#                             res = {
+#                                 "file": path,
+#                                 "src": src,
+#                                 "dst": dst,
+#                                 "inc": inc,
+#                                 "hot": is_hot(path),
+#                             }
+
+#                             if status == "ERR":
+#                                 self.errors.append(res)
+#                             elif status == "WARN":
+#                                 self.warns.append(res)
+#                             else:
+#                                 self.ok_count += 1
+#         except:
+#             pass
+
+#     def report(self):
+#         print(f"\n{'=' * 80}\nKERNEL SCAN RESULTS\n{'=' * 80}")
+#         print(f"ACCEPTED EDGES: {self.ok_count}")
+#         print(f"REJECTED (ERRORS): {len(self.errors)}")
+#         print(f"WARNINGS: {len(self.warns)}")
+
+#         if self.errors:
+#             print("\n❌ FORBIDDEN DEPENDENCIES (REJECTED):")
+#             for e in self.errors:
+#                 prio = " [CRITICAL-HOT]" if e["hot"] else ""
+#                 print(
+#                     f" - {e['file']}{prio}\n   REJECTED: [{e['src']}] cannot include [{e['dst']}] (via {e['inc']})"
+#                 )
+
+#         if self.warns:
+#             print("\n⚠️ WARNINGS (NON-OPTIMAL):")
+#             for w in self.warns:
+#                 print(
+#                     f" - {w['file']}\n   CAUTION: [{w['src']}] -> [{w['dst']}] (Verify for side-effects)"
+#                 )
+
+#         final_status = (
+#             "🎯 STATUS: CLEAN (KERNEL-GRADE)"
+#             if not self.errors
+#             else "🚨 STATUS: VIOLATIONS PRESENT"
+#         )
+#         print(f"\n{'=' * 80}\n{final_status}\n{'=' * 80}\n")
+
+
+# if __name__ == "__main__":
+#     analyzer = KernelAnalyzer()
+#     analyzer.run()
+#     analyzer.report()
+
+
+#!/usr/bin/env python3
 import os
 import re
-from collections import defaultdict
 
-# ============================================================
-# 🔥 CONFIG
-# ============================================================
+# =========================================================
+# 🔥 KERNEL FLOW (STRICT — DO NOT BREAK)
+# =========================================================
 
-SRC_ROOTS = ("./src", "./include", "./api")
+FLOW = """
+KERNEL FLOW:
+cmd → api → runtime → pipeline → arch → memory → core
 
-SYSTEM_PREFIXES = (
-    "_mm",
-    "__builtin",
-    "printf",
-    "malloc",
-    "free",
-    "memcpy",
-    "memset",
-    "pthread",
-    "io_uring",
-    "stbi",
-)
+RULES:
+- Only downward dependencies
+- pipeline = PURE (NO malloc / IO / plugins / syscalls)
+- runtime = controls execution ONLY
+- api = contract boundary
+"""
+
+SIDE_SYSTEMS = """
+SIDE SYSTEM RULES (KERNEL-GRADE):
+
+security      → BEFORE api/runtime ONLY
+io            → ONLY api layer (no runtime direct usage)
+plugins       → runtime-controlled ONLY (never pipeline)
+observability → passive recorder (never influences flow)
+startup       → ignored (allowed to touch everything)
+"""
+
+FLOW_DISPLAY = r"""
+          USER
+           │
+           ▼
+         cmd
+           │
+           ▼
+         api
+           │
+           ▼
+       runtime
+           │
+           ▼
+       pipeline
+           │
+           ▼
+         arch
+           │
+           ▼
+        memory
+           │
+           ▼
+          core
+"""
+
+# =========================================================
+# LAYERS
+# =========================================================
 
 LAYERS = [
     "core",
     "memory",
     "arch",
-    "security",
     "pipeline",
     "runtime",
-    "plugins",
-    "observability",
-    "io",
     "api",
     "cmd",
+    "io",
+    "plugins",
+    "observability",
+    "security",
 ]
 
-# ============================================================
-# 🔥 UTILS
-# ============================================================
+
+def detect_layer(path):
+    if "startup" in path:
+        return "startup"
+    parts = path.replace("\\", "/").split("/")
+    for p in parts:
+        if p in LAYERS:
+            return p
+    return None
 
 
-def is_system(name):
-    return any(name.startswith(p) for p in SYSTEM_PREFIXES)
+# =========================================================
+# MATRIX (STRICT)
+# =========================================================
 
 
-def get_layer(path):
-    rel = os.path.relpath(path, ".")
-    for root in ("src", "include", "api"):
-        if rel.startswith(root + os.sep):
-            rel = rel[len(root) + 1 :]
-            break
-    layer = rel.split(os.sep)[0]
-    return layer if layer in LAYERS else "unknown"
+def build_matrix():
+    m = {l: {x: "ERR" for x in LAYERS} for l in LAYERS}
+
+    for l in LAYERS:
+        m[l][l] = "OK"
+
+    # core
+    # nothing
+
+    # memory
+    m["memory"]["core"] = "OK"
+
+    # arch
+    m["arch"]["core"] = "OK"
+    m["arch"]["memory"] = "OK"
+
+    # pipeline
+    m["pipeline"]["core"] = "OK"
+    m["pipeline"]["memory"] = "OK"
+    m["pipeline"]["arch"] = "OK"
+    m["pipeline"]["observability"] = "OK"
+
+    # runtime
+    m["runtime"]["core"] = "OK"
+    m["runtime"]["memory"] = "OK"
+    m["runtime"]["pipeline"] = "OK"
+    m["runtime"]["plugins"] = "OK"
+    m["runtime"]["observability"] = "OK"
+    m["runtime"]["security"] = "OK"
+    m["runtime"]["io"] = "WARN"  # will be further restricted below
+
+    # api
+    m["api"]["core"] = "OK"
+    m["api"]["runtime"] = "OK"
+    m["api"]["io"] = "OK"
+    m["api"]["plugins"] = "OK"
+    m["api"]["observability"] = "OK"
+    m["api"]["security"] = "OK"
+
+    # cmd
+    m["cmd"]["core"] = "OK"
+    m["cmd"]["api"] = "OK"
+
+    # io
+    m["io"]["core"] = "OK"
+    m["io"]["memory"] = "OK"
+
+    # plugins
+    m["plugins"]["core"] = "OK"
+    m["plugins"]["pipeline"] = "OK"
+    m["plugins"]["runtime"] = "OK"
+
+    # observability
+    m["observability"]["core"] = "OK"
+    m["observability"]["memory"] = "WARN"
+
+    # security
+    m["security"]["core"] = "OK"
+    m["security"]["memory"] = "OK"
+
+    return m
 
 
-# ============================================================
-# 🔥 REGEX FALLBACK ANALYZER (never fails)
-# ============================================================
+MATRIX = build_matrix()
+
+# =========================================================
+# INCLUDE PARSER
+# =========================================================
+
+INCLUDE_RE = re.compile(r'#include\s+"([^"]+)"')
+
+# =========================================================
+# HOT PATH DETECTION
+# =========================================================
 
 
-class RegexAnalyzer:
-    def __init__(self):
-        self.calls = defaultdict(set)
-        self.reverse = defaultdict(set)
-        self.fn_to_file = {}
+def is_hot(path):
+    path = path.replace("\\", "/")
 
-        self.fn_def = re.compile(r"\b([a-zA-Z_]\w*)\s*\([^;]*\)\s*\{")
-        self.fn_call = re.compile(r"\b([a-zA-Z_]\w*)\s*\(")
+    # TRUE HOT PATH ONLY
+    if "src/pipeline/" in path:
+        return True
 
-    def analyze_file(self, path):
+    if "src/arch/" in path:
+        return True
+
+    if "worker_loop.c" in path:
+        return True
+
+    if "pipeline_exec" in path or "batch_exec" in path:
+        return True
+
+    return False
+
+
+# def is_hot(path):
+# return any(k in path for k in ["pipeline", "exec", "batch", "fused", "avx"])
+# return any(k in path for k in ["pipeline", "io", "cmd", "cold", "core",'hot','plugins','startup','runtime','api','arch'])
+
+
+def detect_hot(content):
+    issues = []
+    if "malloc" in content:
+        issues.append("malloc")
+    if "free(" in content:
+        issues.append("free")
+    if "printf" in content:
+        issues.append("printf")
+    if "fopen" in content:
+        issues.append("file_io")
+    if "read(" in content or "write(" in content:
+        issues.append("syscall")
+    return issues
+
+
+# =========================================================
+# SIDE SYSTEM ENFORCEMENT
+# =========================================================
+
+
+def check_side_systems(src, dst):
+    key = f"{src}->{dst}"
+
+    # ❌ pipeline must NEVER touch plugins
+    if key == "pipeline->plugins":
+        return "ERR", "Pipeline must remain deterministic (no plugins)."
+
+    # ❌ runtime should not directly use io
+    if key == "runtime->io":
+        return "ERR", "Runtime must not perform IO. Route via API."
+
+    # ❌ anything except api using io
+    if dst == "io" and src != "api":
+        return "ERR", "IO is only allowed in API layer."
+
+    # ❌ plugins should not call api/io
+    if src == "plugins" and dst in ["api", "io"]:
+        return "ERR", "Plugins must be sandboxed. No direct IO/API."
+
+    # ❌ observability must not influence system
+    if src == "observability" and dst != "core":
+        return "ERR", "Observability must be passive."
+
+    # ❌ security must not act like runtime
+    if src == "security" and dst in ["runtime", "pipeline"]:
+        return "ERR", "Security is pre-check only."
+
+    return None, None
+
+
+# =========================================================
+# FIX ENGINE
+# =========================================================
+
+
+def fix_dag(src, dst):
+    fixes = {
+        "pipeline->io": "Move IO to API. Pass buffers.",
+        "pipeline->plugins": "Move plugin execution to runtime.",
+        "runtime->io": "Move IO to API layer.",
+        "api->pipeline": "Route via runtime.",
+    }
+    return fixes.get(f"{src}->{dst}", "Follow strict downward DAG.")
+
+
+def fix_hot(issue):
+    fixes = {
+        "malloc": "Use slab/arena allocator.",
+        "free": "Avoid free in hot path.",
+        "printf": "Move to observability.",
+        "file_io": "Move IO to API.",
+        "syscall": "Remove syscalls from hot path.",
+    }
+    return fixes.get(issue, "Remove side-effects.")
+
+
+# =========================================================
+# SCAN
+# =========================================================
+
+
+def scan(root):
+    files = []
+    for base, _, fs in os.walk(root):
+        for f in fs:
+            if f.endswith((".c", ".h")):
+                files.append(os.path.join(base, f))
+    return files
+
+
+# =========================================================
+# MAIN
+# =========================================================
+
+
+def analyze(root="src"):
+    files = scan(root)
+
+    layers = {f: detect_layer(f) for f in files}
+
+    dag_errors = []
+    hot_errors = []
+
+    for f in files:
+        sl = layers[f]
+        if sl == "startup":
+            continue  # 🔥 IGNORE STARTUP COMPLETELY
+
+        if not sl:
+            continue
+
         try:
-            content = open(path, errors="ignore").read()
+            content = open(f, "r", errors="ignore").read()
         except:
-            return
+            content = ""
 
-        fns = self.fn_def.findall(content)
+        includes = INCLUDE_RE.findall(content)
 
-        for fn in fns:
-            if is_system(fn):
-                continue
-            self.fn_to_file[fn] = path
-
-            for callee in self.fn_call.findall(content):
-                if callee != fn and not is_system(callee):
-                    self.calls[fn].add(callee)
-                    self.reverse[callee].add(fn)
-
-
-# ============================================================
-# 🔥 AST ANALYZER (safe)
-# ============================================================
-
-
-class ASTAnalyzer:
-    def __init__(self):
-        self.calls = defaultdict(set)
-
-        try:
-            from clang import cindex
-
-            self.cindex = cindex
-            self.index = cindex.Index.create()
-        except:
-            self.cindex = None
-
-    def analyze_file(self, path):
-        if not self.cindex:
-            return
-
-        try:
-            tu = self.index.parse(path, args=["-I./include", "-I./src", "-std=c11"])
-        except:
-            return
-
-        for cursor in tu.cursor.get_children():
-            try:
-                if cursor.kind == self.cindex.CursorKind.FUNCTION_DECL:
-                    fn = cursor.spelling
-                    self.walk(cursor, fn)
-            except:
+        for inc in includes:
+            target = next((x for x in files if x.endswith(inc)), None)
+            if not target:
                 continue
 
-    def walk(self, node, fn, depth=0):
-        if depth > 50:
-            return
-
-        try:
-            children = list(node.get_children())
-        except:
-            return
-
-        for child in children:
-            try:
-                kind = child.kind
-            except:
+            dl = layers.get(target)
+            if not dl or dl == "startup":
                 continue
 
-            try:
-                if kind == self.cindex.CursorKind.CALL_EXPR:
-                    callee = child.displayname.split("(")[0]
-                    if callee and not is_system(callee):
-                        self.calls[fn].add(callee)
-            except:
-                pass
+            # MATRIX CHECK
+            if MATRIX[sl][dl] == "ERR":
+                dag_errors.append((f, sl, target, dl, "MATRIX"))
 
-            self.walk(child, fn, depth + 1)
+            # SIDE SYSTEM CHECK
+            rule, msg = check_side_systems(sl, dl)
+            if rule == "ERR":
+                dag_errors.append((f, sl, target, dl, msg))
 
+        # HOT PATH CHECK
+        if is_hot(f):
+            for i in detect_hot(content):
+                hot_errors.append((f, sl, i))
 
-# ============================================================
-# 🔥 CFG APPROX (flow edges)
-# ============================================================
+    # =========================================================
+    # REPORT
+    # =========================================================
 
+    print(FLOW)
+    print(SIDE_SYSTEMS)
+    print(FLOW_DISPLAY)
 
-class CFGAnalyzer:
-    def __init__(self):
-        self.edges = defaultdict(set)
+    print("\nL11 KERNEL ARCH ANALYZER")
+    print("=" * 60)
 
-        # Match function-like calls safely
-        self.call_pattern = re.compile(r"\b([a-zA-Z_]\w*)\s*\(")
+    print(f"\n❌ DAG Violations: {len(dag_errors)}")
+    print(f"🔥 Hot Violations: {len(hot_errors)}")
 
-        # Ignore control keywords
-        self.keywords = {"if", "for", "while", "switch", "return", "sizeof"}
+    for f, sl, t, dl, reason in dag_errors:
+        print(f"\n[DAG] {f}")
+        print(f"  ❌ {sl} → {dl}")
+        print(f"  ⚠️ {reason}")
+        print(f"  🛠 FIX: {fix_dag(sl, dl)}")
 
-    def analyze_file(self, path):
-        try:
-            lines = open(path, errors="ignore").read().splitlines()
-        except:
-            return
+    for f, sl, issue in hot_errors:
+        print(f"\n[HOT:{issue}] {f}")
+        print(f"  🔥 Layer: {sl}")
+        print(f"  🛠 FIX: {fix_hot(issue)}")
 
-        prev_fn = None
-
-        for line in lines:
-            line = line.strip()
-
-            if not line:
-                continue
-
-            matches = self.call_pattern.findall(line)
-
-            for fn in matches:
-                if fn in self.keywords:
-                    continue
-
-                if is_system(fn):
-                    continue
-
-                if prev_fn:
-                    self.edges[prev_fn].add(fn)
-
-                prev_fn = fn
+    if not dag_errors and not hot_errors:
+        print("\n🎯 CLEAN: TRUE KERNEL-GRADE (L11)")
+    else:
+        print("\n🚨 NOT KERNEL-GRADE — FIX REQUIRED")
 
 
-# ============================================================
-# 🔥 HYBRID ENGINE
-# ============================================================
-
-
-class HybridAnalyzer:
-    def __init__(self):
-        self.regex = RegexAnalyzer()
-        self.ast = ASTAnalyzer()
-        self.cfg = CFGAnalyzer()
-
-        self.calls = defaultdict(set)
-        self.reverse = defaultdict(set)
-        self.fn_to_file = {}
-
-    def scan(self):
-        for root, _, files in os.walk("."):
-            if not root.startswith(SRC_ROOTS):
-                continue
-
-            for f in files:
-                if f.endswith(".c"):
-                    path = os.path.join(root, f)
-
-                    self.regex.analyze_file(path)
-                    self.ast.analyze_file(path)
-                    self.cfg.analyze_file(path)
-
-    def merge(self):
-        # Merge regex + AST
-        for fn, callees in self.regex.calls.items():
-            self.calls[fn].update(callees)
-
-        for fn, callees in self.ast.calls.items():
-            self.calls[fn].update(callees)
-
-        # Build reverse graph
-        for fn, callees in self.calls.items():
-            for c in callees:
-                self.reverse[c].add(fn)
-
-        self.fn_to_file = self.regex.fn_to_file
-
-    def report(self):
-        print("\n📊 HYBRID ANALYSIS REPORT\n")
-
-        scores = []
-        for fn in self.calls:
-            fi = len(self.reverse.get(fn, []))
-            fo = len(self.calls.get(fn, []))
-            score = fi + 0.5 * fo
-            scores.append((score, fi, fo, fn))
-
-        scores.sort(reverse=True)
-
-        print("🔥 HOT FUNCTIONS")
-        for s, fi, fo, fn in scores[:15]:
-            print(f"{fn:30} score={s:.1f} in={fi} out={fo}")
-
-        print("\n🚨 BOTTLENECKS (fan-in)")
-        for fn in sorted(
-            self.reverse, key=lambda x: len(self.reverse[x]), reverse=True
-        )[:10]:
-            print(f"{fn} ← {len(self.reverse[fn])} callers")
-
-        print("\n🌐 COMPLEX (fan-out)")
-        for fn in sorted(self.calls, key=lambda x: len(self.calls[x]), reverse=True)[
-            :10
-        ]:
-            print(f"{fn} → {len(self.calls[fn])} calls")
-
-        print("\n🧠 CFG FLOW (approx)")
-        for fn, nxt in list(self.cfg.edges.items())[:10]:
-            print(f"{fn} → {list(nxt)[:3]}")
-
-
-# ============================================================
-# 🚀 MAIN
-# ============================================================
-
-
-def main():
-    print("🚀 L10++++++++ HYBRID ANALYZER\n")
-
-    engine = HybridAnalyzer()
-    engine.scan()
-    engine.merge()
-    engine.report()
-
-    print("\n✅ DONE — AST + CFG + FALLBACK ACTIVE\n")
-
+# =========================================================
+# ENTRY
+# =========================================================
 
 if __name__ == "__main__":
-    main()
+    analyze("src")
 
+
+# #!/usr/bin/env python3
+# """
+# l10plusplus.py — imgengine Architecture Analyzer
+# =================================================
+# Kernel-grade static analysis tool for C codebases.
+
+# What this script does (in order):
+#   1. Walks all .c and .h files under src/, include/, api/
+#   2. Extracts function definitions with accurate body boundaries
+#      using brace-depth tracking (this is the key algorithm)
+#   3. Attributes every function call to the correct caller
+#      (not "all calls in the file" — the actual owning function body)
+#   4. Builds a call graph: caller -> set of callees
+#   5. Builds a reverse graph: callee -> set of callers
+#   6. Scans #include directives and checks them against the layer DAG
+#   7. Reports: hot functions, bottlenecks, complex functions,
+#      layer violations, module heat, unused functions, next actions
+
+# Usage:
+#   cd /workspaces/imgengine/imgengine
+#   python3 scripts/l10plusplus.py
+
+# Exit code:
+#   0 = clean (no violations)
+#   1 = violations found (CI will fail the build)
+# """
+
+# import os
+# import re
+# import sys
+# import time
+# from collections import defaultdict
+
+
+# # ============================================================
+# # SECTION 1: CONFIGURATION
+# # ============================================================
+
+# # Where to look for source files.
+# # We only scan these directories — not build/, .git/, third_party/.
+# SRC_ROOTS = ("./src", "./include", "./api")
+
+# # Layer DAG — ordered from lowest (most fundamental) to highest.
+# #
+# # A layer may only include headers from layers with a LOWER index.
+# # Including a header from a HIGHER index = layer violation.
+# #
+# # Example:
+# #   memory[1] including security[3] = VIOLATION (1 -> 3, upward)
+# #   security[3] including memory[1] = OK        (3 -> 1, downward)
+# #
+# # This order was derived from imgengine's actual dependency graph.
+# # Key decisions:
+# #   observability[4] is BELOW pipeline[5] so pipeline can record metrics
+# #   startup[11] is EXCLUDED from checking — it wires everything together
+# LAYERS = [
+#     "core",  # 0: img_result_t, img_buffer_t, opcodes, img_batch_t
+#     "memory",  # 1: slab, arena, numa, poison
+#     "arch",  # 2: SIMD kernels, cpu_caps, resize_params
+#     "security",  # 3: input_validator, sandbox
+#     "observability",  # 4: metrics, logging, binlog, tracing
+#     "pipeline",  # 5: jump table, fused kernels, dispatch, job, layout
+#     "runtime",  # 6: workers, queues, scheduler, exec_router
+#     "plugins",  # 7: plugin ABI, plugin registry
+#     "io",  # 8: decode, encode, vfs, pdf
+#     "api",  # 9: public surface (re-exports from lower layers)
+#     "cmd",  # 10: CLI (main.c, args.c, job_builder.c)
+#     "startup",  # 11: engine_init.c — wires all layers, excluded from checks
+# ]
+
+# # These layers are excluded from violation checking.
+# # startup/ must include everything — that is its job.
+# # unknown/ means a file outside our standard structure — skip it.
+# LAYERS_EXCLUDE = {"startup", "unknown"}
+
+# # Functions to always exclude from the call graph.
+# # These are compiler intrinsics, libc, and POSIX API functions.
+# # Without this filter, _mm_setzero_si128 appears as a bottleneck
+# # with 290 callers — completely drowning out your actual code.
+# SYSTEM_PREFIXES = (
+#     "_mm",  # Intel SSE/AVX/AVX-512 intrinsics
+#     "__builtin",  # GCC builtins (__builtin_expect, __builtin_memset etc.)
+#     "io_uring_",  # liburing API
+#     "__io_uring",  # liburing internals
+#     "tj",  # libjpeg-turbo (tjCompress2 etc.)
+#     "stbi_",  # stb_image
+#     "numa_",  # libnuma
+#     "pthread_",  # pthreads
+#     "atomic_",  # C11 atomics
+#     "copy_bitmask",  # libnuma bitmask ops
+# )
+
+# # Exact function names to exclude (no prefix match needed).
+# # These are libc functions without a recognizable prefix.
+# SYSTEM_EXACT = {
+#     "printf",
+#     "fprintf",
+#     "sprintf",
+#     "snprintf",
+#     "vsnprintf",
+#     "malloc",
+#     "calloc",
+#     "realloc",
+#     "free",
+#     "aligned_alloc",
+#     "memcpy",
+#     "memset",
+#     "memmove",
+#     "memcmp",
+#     "memchr",
+#     "strlen",
+#     "strcmp",
+#     "strncmp",
+#     "strcpy",
+#     "strncpy",
+#     "strstr",
+#     "open",
+#     "close",
+#     "read",
+#     "write",
+#     "lseek",
+#     "stat",
+#     "fstat",
+#     "mmap",
+#     "munmap",
+#     "mprotect",
+#     "madvise",
+#     "fopen",
+#     "fclose",
+#     "fwrite",
+#     "fread",
+#     "fseek",
+#     "ftell",
+#     "abort",
+#     "exit",
+#     "assert",
+#     "atoi",
+#     "atof",
+#     "atol",
+#     "strtol",
+#     "strtof",
+#     "dlopen",
+#     "dlsym",
+#     "dlclose",
+#     "sched_getcpu",
+#     "sched_setaffinity",
+#     "clock_gettime",
+# }
+
+# # C keywords that look like function calls but are not.
+# # "if(", "for(", "while(" all match identifier+( but are control flow.
+# C_KEYWORDS = {
+#     "if",
+#     "else",
+#     "for",
+#     "while",
+#     "do",
+#     "switch",
+#     "case",
+#     "default",
+#     "return",
+#     "break",
+#     "continue",
+#     "goto",
+#     "sizeof",
+#     "typeof",
+#     "alignof",
+#     "offsetof",
+#     "typedef",
+#     "struct",
+#     "union",
+#     "enum",
+#     "extern",
+#     "static",
+#     "inline",
+#     "const",
+#     "volatile",
+#     "restrict",
+#     "void",
+#     "int",
+#     "char",
+#     "float",
+#     "double",
+#     "unsigned",
+#     "signed",
+#     "long",
+#     "short",
+# }
+
+# # Terminal color codes — work on Linux terminal and VS Code
+# RED = "\033[0;31m"
+# GREEN = "\033[0;32m"
+# YELLOW = "\033[1;33m"
+# CYAN = "\033[0;36m"
+# BOLD = "\033[1m"
+# DIM = "\033[2m"
+# NC = "\033[0m"  # reset all formatting
+
+
+# # ============================================================
+# # SECTION 2: HELPER FUNCTIONS
+# # ============================================================
+
+
+# def is_system_fn(name):
+#     """
+#     Returns True if 'name' is a system/compiler function.
+
+#     Call this before adding any function to the call graph.
+#     Prevents intrinsics like _mm_setzero_si128 (290 fake callers)
+#     from polluting the analysis results.
+#     """
+#     if not name:
+#         return True
+#     if name in SYSTEM_EXACT:
+#         return True
+#     for prefix in SYSTEM_PREFIXES:
+#         if name.startswith(prefix):
+#             return True
+#     return False
+
+
+# def get_layer(path):
+#     """
+#     Given a file path, returns which layer it belongs to.
+
+#     Algorithm:
+#       1. Strip the leading root directory (src/, include/, api/)
+#       2. Take the first directory component of what remains
+#       3. Check if that component is in the LAYERS list
+
+#     Examples:
+#       src/pipeline/canvas.c     -> "pipeline"
+#       include/memory/slab.h     -> "memory"
+#       api/v1/img_error.h        -> "api"
+#       src/startup/engine_init.c -> "startup"
+#       src/third_party/stb/...   -> "unknown"
+#     """
+#     rel = os.path.relpath(path, ".")
+
+#     for root in ("src", "include", "api"):
+#         prefix = root + os.sep
+#         if rel.startswith(prefix):
+#             rel = rel[len(prefix) :]
+#             break
+
+#     layer = rel.split(os.sep)[0]
+#     return layer if layer in LAYERS else "unknown"
+
+
+# def layer_index(layer):
+#     """
+#     Returns the numeric position of a layer in the LAYERS list.
+#     Lower number = more fundamental = fewer allowed dependencies.
+#     Returns -1 if the layer is not in our DAG.
+#     """
+#     try:
+#         return LAYERS.index(layer)
+#     except ValueError:
+#         return -1
+
+
+# # ============================================================
+# # SECTION 3: THE KEY ALGORITHM — BRACE-DEPTH FUNCTION EXTRACTION
+# # ============================================================
+
+
+# def extract_function_bodies(content):
+#     """
+#     THE CORE ALGORITHM. This is what separates a kernel-grade analyzer
+#     from a naive regex script.
+
+#     PROBLEM WITH NAIVE REGEX:
+#       A simple approach scans all `identifier(` patterns in a file
+#       and assigns every call to every function defined in that file.
+#       Result: every function in api.c gets fan-out=57 (all 57 call
+#       sites in the entire file). This is completely wrong.
+
+#     THE CORRECT APPROACH — BRACE DEPTH TRACKING:
+#       A function body starts at the `{` following the function signature
+#       and ends at the `}` that brings brace depth back to 0.
+#       Any call found BETWEEN those two braces belongs to THAT function only.
+
+#       This is the same approach used by:
+#         - sparse (Linux kernel's static analysis tool)
+#         - cflow (GNU call graph generator)
+#         - clang's AST (which tracks source ranges per function)
+
+#     ALGORITHM STEPS:
+#       1. Find function signatures using regex
+#          (line with return type + name + params, no semicolon)
+#       2. From the signature, scan forward char by char to find `{`
+#       3. If we find `;` before `{` — it was a declaration, skip it
+#       4. Once inside the body (depth=1), track depth:
+#            `{` increases depth
+#            `}` decreases depth
+#            depth returns to 0 = body complete
+#       5. Skip braces inside string literals and comments
+#          (they are not real braces and would corrupt depth tracking)
+#       6. Extract the body text and return (fn_name, body_text) pairs
+
+#     COMPLEXITY: O(n) where n = file size. Single pass.
+
+#     Returns: list of (fn_name, body_text) tuples
+#     """
+
+#     # Regex to recognize a function definition line.
+#     #
+#     # Matches (examples):
+#     #   img_result_t img_canvas_init(img_canvas_t *c, img_slab_pool_t *p)
+#     #   static void fused_exec_scalar(img_ctx_t *ctx, img_buffer_t *buf)
+#     #   int img_api_run_job(img_engine_t *engine, const char *in, ...)
+#     #   void img_slab_free(img_slab_pool_t *pool, void *ptr)
+#     #
+#     # Does NOT match (correctly skipped):
+#     #   extern img_result_t img_api_run_job(...);   <- has semicolon
+#     #   img_result_t (*fn_ptr)(...)                 <- function pointer
+#     #   typedef void (*img_op_fn)(...)              <- typedef
+#     fn_sig_re = re.compile(
+#         r"^[ \t]*"  # optional leading whitespace
+#         r"(?:static\s+)?"  # optional 'static'
+#         r"(?:inline\s+)?"  # optional 'inline'
+#         r"(?:__attribute__\s*\(\([^)]*\)\)\s*)?"  # optional __attribute__
+#         r"(?:"  # return type — one of:
+#         r"void|int|unsigned|uint8_t|uint16_t|uint32_t|uint64_t"
+#         r"|int8_t|int16_t|int32_t|int64_t"
+#         r"|size_t|ssize_t|ptrdiff_t|bool|char|float|double"
+#         r"|img_\w+"  # any img_* type from imgengine
+#         r")\s*\*?\s*"  # optional pointer (*)
+#         r"([a-zA-Z_]\w*)"  # CAPTURE group 1: function name
+#         r"\s*\([^;]*$",  # params followed by end of line (no semicolon)
+#         re.MULTILINE,
+#     )
+
+#     results = []
+
+#     for m in fn_sig_re.finditer(content):
+#         fn_name = m.group(1)
+
+#         # Skip system functions and keywords
+#         if not fn_name or is_system_fn(fn_name) or fn_name in C_KEYWORDS:
+#             continue
+
+#         # ── PHASE 1: Find the opening brace of the function body ──
+#         #
+#         # Scan forward from end of the signature match.
+#         # The opening `{` may be on the same line as the params,
+#         # or on the very next line (K&R and Allman styles both work).
+#         pos = m.end()
+#         body_start = -1
+#         depth = 0
+#         scan_limit = min(pos + 300, len(content))  # 300 chars is enough
+
+#         while pos < scan_limit:
+#             ch = content[pos]
+
+#             if ch == ";":
+#                 # Semicolon before brace = this was a declaration, not a definition
+#                 # Example: img_result_t img_canvas_init(...);\n
+#                 break
+
+#             if ch == "{":
+#                 body_start = pos
+#                 depth = 1
+#                 pos += 1
+#                 break
+
+#             pos += 1
+
+#         if body_start == -1:
+#             # No opening brace found — skip this match
+#             continue
+
+#         # ── PHASE 2: Scan the body tracking brace depth ──
+#         #
+#         # We must correctly skip braces that appear inside:
+#         #   - String literals: "...{...}" should not change depth
+#         #   - Character literals: '{' should not change depth
+#         #   - Single-line comments: // { should not change depth
+#         #   - Multi-line comments: /* { */ should not change depth
+#         #
+#         # Without this, a string like:
+#         #   fprintf(stderr, "open { failed\n");
+#         # would increment depth by 1, causing us to miss the real closing brace.
+#         body_end = -1
+
+#         while pos < len(content):
+#             ch = content[pos]
+
+#             # Skip single-line comment: // ...
+#             if ch == "/" and pos + 1 < len(content) and content[pos + 1] == "/":
+#                 while pos < len(content) and content[pos] != "\n":
+#                     pos += 1
+#                 continue
+
+#             # Skip multi-line comment: /* ... */
+#             if ch == "/" and pos + 1 < len(content) and content[pos + 1] == "*":
+#                 pos += 2
+#                 while pos + 1 < len(content):
+#                     if content[pos] == "*" and content[pos + 1] == "/":
+#                         pos += 2
+#                         break
+#                     pos += 1
+#                 continue
+
+#             # Skip string literal: "..."
+#             if ch == '"':
+#                 pos += 1
+#                 while pos < len(content):
+#                     if content[pos] == "\\":
+#                         pos += 2  # skip escaped char (e.g., \", \\)
+#                         continue
+#                     if content[pos] == '"':
+#                         pos += 1
+#                         break
+#                     pos += 1
+#                 continue
+
+#             # Skip character literal: '.'
+#             if ch == "'":
+#                 pos += 1
+#                 while pos < len(content):
+#                     if content[pos] == "\\":
+#                         pos += 2
+#                         continue
+#                     if content[pos] == "'":
+#                         pos += 1
+#                         break
+#                     pos += 1
+#                 continue
+
+#             # Track real brace depth
+#             if ch == "{":
+#                 depth += 1
+#             elif ch == "}":
+#                 depth -= 1
+#                 if depth == 0:
+#                     # Found the matching closing brace
+#                     body_end = pos
+#                     break
+
+#             pos += 1
+
+#         if body_end == -1:
+#             # Unmatched braces — likely a macro or complex preprocessor use
+#             # Skip this function rather than producing wrong results
+#             continue
+
+#         # Extract the complete function body text
+#         body_text = content[body_start : body_end + 1]
+#         results.append((fn_name, body_text))
+
+#     return results
+
+
+# def extract_calls_from_body(body_text):
+#     """
+#     Given the TEXT OF ONE FUNCTION BODY (from extract_function_bodies),
+#     returns the set of all function names called within it.
+
+#     This is called AFTER brace-depth extraction, so the body_text
+#     contains ONLY the code that belongs to this specific function.
+#     No cross-contamination from other functions in the same file.
+
+#     Algorithm:
+#       Find all `identifier(` patterns.
+#       Filter out C keywords, system functions, and empty strings.
+#     """
+#     call_re = re.compile(r"\b([a-zA-Z_]\w*)\s*\(")
+
+#     callees = set()
+#     for m in call_re.finditer(body_text):
+#         name = m.group(1)
+#         if name and name not in C_KEYWORDS and not is_system_fn(name):
+#             callees.add(name)
+
+#     return callees
+
+
+# # ============================================================
+# # SECTION 4: INCLUDE SCANNER AND VIOLATION DETECTOR
+# # ============================================================
+
+
+# def scan_includes(path):
+#     """
+#     Scans a file for #include "..." directives (LOCAL includes only).
+
+#     We only care about quoted includes like #include "memory/slab.h"
+#     because angle-bracket includes (#include <stdio.h>) are system
+#     headers and not part of our layer DAG.
+
+#     Returns: list of included path strings (the part inside quotes).
+#     """
+#     include_re = re.compile(r'#\s*include\s+"([^"]+)"')
+#     try:
+#         content = open(path, encoding="utf-8", errors="ignore").read()
+#         return include_re.findall(content)
+#     except Exception:
+#         return []
+
+
+# def check_layer_violation(src_path, included_path):
+#     """
+#     Checks whether including 'included_path' from 'src_path' violates
+#     the layer DAG.
+
+#     RULE: file in layer[X] may include a header from layer[Y] only if Y <= X.
+#     Including a header from a layer with a HIGHER index = VIOLATION.
+
+#     Returns:
+#       (is_violation, src_layer, dest_layer, src_idx, dest_idx)
+
+#     Examples:
+#       src/memory/slab.c includes security/poision.h
+#         memory[1] -> security[3] : 3 > 1 = VIOLATION
+
+#       src/pipeline/canvas.c includes core/result.h
+#         pipeline[5] -> core[0] : 0 < 5 = OK
+
+#       src/startup/engine_init.c includes runtime/worker.h
+#         startup[11] -> runtime[6] : excluded from checking = OK
+#     """
+#     src_layer = get_layer(src_path)
+#     dest_layer = included_path.split("/")[0]
+
+#     # Exclude layers from violation checking
+#     if src_layer in LAYERS_EXCLUDE:
+#         return False, src_layer, dest_layer, -1, -1
+
+#     # If the destination layer is not in our DAG, it's third-party — skip
+#     if dest_layer not in LAYERS:
+#         return False, src_layer, dest_layer, -1, -1
+
+#     src_idx = layer_index(src_layer)
+#     dest_idx = layer_index(dest_layer)
+
+#     if src_idx == -1 or dest_idx == -1:
+#         return False, src_layer, dest_layer, -1, -1
+
+#     # Violation: source layer index < destination layer index
+#     # (source is more fundamental but depends on something higher up)
+#     is_violation = dest_idx > src_idx
+
+#     return is_violation, src_layer, dest_layer, src_idx, dest_idx
+
+
+# # ============================================================
+# # SECTION 5: MAIN ANALYZER
+# # ============================================================
+
+
+# class Analyzer:
+#     """
+#     Main analysis engine. Orchestrates file scanning and graph building.
+
+#     After calling .run(), these data structures are populated:
+
+#       call_graph[fn]    = set of functions that fn calls
+#                           (only your functions, system functions excluded)
+
+#       reverse_graph[fn] = set of functions that call fn
+#                           (used for fan-in calculation)
+
+#       fn_to_file[fn]    = path of the file that defines fn
+#                           (for reporting which file a function lives in)
+
+#       file_deps[path]   = set of local headers that path includes
+#                           (used for "files to split" report)
+
+#       violations        = list of (src_path, included, sl, dl, si, di) tuples
+#                           (all layer violations found)
+#     """
+
+#     def __init__(self):
+#         self.call_graph = defaultdict(set)
+#         self.reverse_graph = defaultdict(set)
+#         self.fn_to_file = {}
+#         self.file_deps = defaultdict(set)
+#         self.violations = []
+
+#     def _process_content(self, path, content):
+#         """
+#         Core processing logic shared by .c and .h file handlers.
+
+#         Steps:
+#           1. Extract function bodies using brace-depth algorithm
+#           2. For each body, extract calls and add to call graph
+#           3. Scan #include directives and check for violations
+#         """
+
+#         # Step 1: Extract all function bodies with accurate boundaries
+#         fn_bodies = extract_function_bodies(content)
+
+#         for fn_name, body_text in fn_bodies:
+#             # Record where this function is defined
+#             # First definition wins (handles duplicate symbols gracefully)
+#             if fn_name not in self.fn_to_file:
+#                 self.fn_to_file[fn_name] = path
+
+#             # Step 2: Extract calls from this body only
+#             callees = extract_calls_from_body(body_text)
+
+#             # Remove self-calls (recursion doesn't inflate fan-out)
+#             callees.discard(fn_name)
+
+#             # Add to call graph
+#             for callee in callees:
+#                 self.call_graph[fn_name].add(callee)
+#                 self.reverse_graph[callee].add(fn_name)
+
+#         # Step 3: Check includes for layer violations
+#         includes = scan_includes(path)
+#         self.file_deps[path].update(includes)
+
+#         for inc in includes:
+#             is_viol, sl, dl, si, di = check_layer_violation(path, inc)
+#             if is_viol:
+#                 self.violations.append((path, inc, sl, dl, si, di))
+
+#     def analyze_c_file(self, path):
+#         """Process a .c source file."""
+#         try:
+#             content = open(path, encoding="utf-8", errors="ignore").read()
+#         except Exception:
+#             return
+#         self._process_content(path, content)
+
+#     def analyze_header_file(self, path):
+#         """
+#         Process a .h header file.
+
+#         Headers may contain:
+#           - static inline function definitions (have bodies — process them)
+#           - extern declarations (no body — the regex skips these correctly
+#             because they have a semicolon before any opening brace)
+#           - #include directives (checked for violations)
+
+#         The brace-depth algorithm handles this correctly:
+#           extern img_result_t img_canvas_init(...);  <- has ';', skipped
+#           static inline void foo(...) { ... }        <- has '{', processed
+#         """
+#         try:
+#             content = open(path, encoding="utf-8", errors="ignore").read()
+#         except Exception:
+#             return
+#         self._process_content(path, content)
+
+#     def run(self):
+#         """
+#         Walk all source directories and analyze every .c and .h file.
+
+#         Traversal:
+#           - Only enters directories listed in SRC_ROOTS
+#           - Skips build/, .git/, __pycache__/ automatically
+#             (they are not under SRC_ROOTS)
+#           - .c files -> analyze_c_file()
+#           - .h files -> analyze_header_file()
+#         """
+#         SKIP_DIRS = {"build", ".git", "__pycache__", "third_party", ".cache"}
+
+#         for root_dir in SRC_ROOTS:
+#             for dirpath, dirnames, filenames in os.walk(root_dir):
+#                 # Prune directories we never want to enter
+#                 dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+
+#                 for fname in filenames:
+#                     fpath = os.path.join(dirpath, fname)
+#                     if fname.endswith(".c"):
+#                         self.analyze_c_file(fpath)
+#                     elif fname.endswith(".h"):
+#                         self.analyze_header_file(fpath)
+
+#         return self
+
+
+# # ============================================================
+# # SECTION 6: METRICS
+# # ============================================================
+
+
+# class Metrics:
+#     """
+#     Computes call graph metrics for each function.
+
+#     fan_in(fn)  = number of YOUR functions that call fn
+#                   High fan_in = widely used = potential bottleneck
+#                   If this function is slow or buggy, many callers suffer
+
+#     fan_out(fn) = number of distinct functions that fn calls
+#                   High fan_out = complex = candidate for splitting
+#                   A function calling 10+ others is doing too much
+
+#     score(fn)   = fan_in + 0.5 * fan_out
+#                   Composite heat score.
+#                   The 0.5 weight on fan_out reflects that being called
+#                   (fan_in) is more architecturally significant than
+#                   calling others (fan_out).
+#                   Same formula used in Linux perf call graph analysis.
+#     """
+
+#     def __init__(self, analyzer):
+#         self.a = analyzer
+
+#     def fan_in(self, fn):
+#         return len(self.a.reverse_graph.get(fn, set()))
+
+#     def fan_out(self, fn):
+#         return len(self.a.call_graph.get(fn, set()))
+
+#     def score(self, fn):
+#         return self.fan_in(fn) + 0.5 * self.fan_out(fn)
+
+#     def your_functions(self):
+#         """
+#         Returns only functions that are defined in your source files.
+#         Excludes system functions that were called but not defined.
+#         """
+#         return {fn for fn in self.a.fn_to_file if not is_system_fn(fn)}
+
+
+# # ============================================================
+# # SECTION 7: REPORT GENERATORS
+# # ============================================================
+
+
+# def report_hot_functions(metrics):
+#     """
+#     Prints the 20 hottest functions by composite score.
+
+#     HOT (score > 5) means the function is both widely used AND complex.
+#     These are the functions that:
+#       - Must be correct (bugs affect many callers)
+#       - Must be fast (slowness affects the entire pipeline)
+#       - Must be well documented
+
+#     With brace-depth tracking, fan_out is now accurate per function.
+#     A function in api.c will show its ACTUAL calls, not all 57 calls
+#     that happen to appear anywhere in the file.
+#     """
+#     your_fns = list(metrics.your_functions())
+
+#     scored = [
+#         (metrics.score(f), metrics.fan_in(f), metrics.fan_out(f), f)
+#         for f in your_fns
+#         if metrics.score(f) > 0
+#     ]
+#     scored.sort(reverse=True)
+
+#     print(f"{BOLD}HOT FUNCTIONS (your code only){NC}")
+#     print(f"  {'Function':<42} {'Score':>6}  {'Fan-in':>7}  {'Fan-out':>8}")
+#     print(f"  {'-' * 70}")
+
+#     for score, fi, fo, fn in scored[:20]:
+#         hot = f"  {RED}HOT{NC}" if score > 5 else ""
+#         print(f"  {fn:<42} {score:>6.1f}  {fi:>7}  {fo:>8}{hot}")
+#     print()
+
+
+# def report_bottlenecks(metrics):
+#     """
+#     Prints functions called by 3 or more of YOUR functions.
+
+#     A bottleneck function is critical infrastructure:
+#       - If img_slab_alloc is slow, every allocation is slow
+#       - If img_slab_free has a bug, every free is buggy
+#       - These deserve the most testing, documentation, and profiling
+
+#     We list the actual callers so you can verify the data is correct.
+#     If align64 appears as a caller of img_slab_free, that means
+#     align64's body contains a call to img_slab_free() — verify in code.
+#     """
+#     your_fns = metrics.your_functions()
+
+#     bottlenecks = sorted(
+#         [(metrics.fan_in(f), f) for f in your_fns if metrics.fan_in(f) >= 3],
+#         reverse=True,
+#     )
+
+#     print(f"{BOLD}REAL BOTTLENECKS (called by 3+ of your functions){NC}")
+
+#     for count, fn in bottlenecks[:15]:
+#         callers = sorted(
+#             c for c in metrics.a.reverse_graph.get(fn, set()) if not is_system_fn(c)
+#         )
+#         file_rel = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         print(f"\n  {CYAN}{fn}{NC} <- {count} callers  [{DIM}{file_rel}{NC}]")
+#         for c in callers[:5]:
+#             print(f"      <- {c}")
+#         if len(callers) > 5:
+#             print(f"      {DIM}... and {len(callers) - 5} more{NC}")
+#     print()
+
+
+# def report_complex_functions(metrics):
+#     """
+#     Prints functions with fan_out >= 5.
+
+#     A function calling 5+ distinct functions is a complexity signal.
+#     It may be violating single-responsibility principle.
+
+#     Exceptions (expected to have high fan_out):
+#       - img_api_init: orchestrates engine startup — many calls expected
+#       - img_engine_init: same reason
+#       - bench_lat main: calls many things to set up benchmarks
+#     """
+#     your_fns = metrics.your_functions()
+
+#     complex_fns = sorted(
+#         [(metrics.fan_out(f), f) for f in your_fns if metrics.fan_out(f) >= 5],
+#         reverse=True,
+#     )
+
+#     print(f"{BOLD}COMPLEX FUNCTIONS (fan-out >= 5 — consider splitting){NC}")
+#     for count, fn in complex_fns[:10]:
+#         file_rel = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         print(f"  {YELLOW}{fn}{NC} -> {count} calls | {DIM}{file_rel}{NC}")
+#     print()
+
+
+# def report_layer_violations(analyzer):
+#     """
+#     Prints all layer violations (upward dependencies in the DAG).
+
+#     WHY VIOLATIONS MATTER:
+#       A layer violation means lower-level code knows about higher-level
+#       concepts. For example:
+#         memory/slab.c including api/v1/img_error.h
+#         This means the memory allocator depends on the public API.
+#         If the API changes, the allocator must recompile.
+#         If you want to test the allocator in isolation, you must
+#         also compile the entire API layer.
+
+#     This is exactly the problem that Linux kernel developers reject
+#     in code review. The fix is always the same:
+#       Move the type/function to the LOWER layer.
+
+#     HOW TO READ THE OUTPUT:
+#       memory[1] -> api[9] means memory (index 1) includes something
+#       from api (index 9). Since 9 > 1, this is an upward dependency.
+#       Fix: move the needed type from api/ to core/ (index 0).
+#     """
+#     print(f"{BOLD}LAYER VIOLATIONS (upward dependencies){NC}")
+
+#     if not analyzer.violations:
+#         print(f"  {GREEN}CLEAN — zero layer violations{NC}")
+#         print()
+#         return
+
+#     # Deduplicate: same file+include pair may appear in both
+#     # the .c scan and the .h scan of the same header
+#     seen = set()
+#     unique = []
+#     for v in analyzer.violations:
+#         key = (v[0], v[1])
+#         if key not in seen:
+#             seen.add(key)
+#             unique.append(v)
+
+#     for path, inc, sl, dl, si, di in unique:
+#         rel = os.path.relpath(path, ".")
+#         print(f"  {RED}X{NC} {rel}")
+#         print(f"     includes {YELLOW}{inc}{NC}")
+#         print(f"     {sl}[{si}] -> {dl}[{di}]  {DIM}({di} > {si} = violation){NC}")
+#     print()
+
+
+# def report_module_heat(metrics, analyzer):
+#     """
+#     Prints per-layer heat scores.
+
+#     For each layer: function count, total score, average score.
+#     The average score tells you which layer needs the most attention.
+
+#     HIGH average score = functions in this layer are critical:
+#       - Widely called by other layers (high fan_in in those functions)
+#       - Bugs here have wide blast radius
+
+#     The bar chart is proportional to average score (max 20 chars).
+#     """
+#     module_total = defaultdict(float)
+#     module_count = defaultdict(int)
+
+#     for fn in metrics.your_functions():
+#         layer = get_layer(metrics.a.fn_to_file.get(fn, ""))
+#         module_total[layer] += metrics.score(fn)
+#         module_count[layer] += 1
+
+#     items = [(module_total[l], l) for l in LAYERS if module_count[l] > 0]
+
+#     print(f"{BOLD}MODULE HEAT (which layers need most attention){NC}")
+#     print(f"  {'Layer':<20} {'Fns':>5}  {'Total':>8}  {'Avg':>6}  Chart")
+#     print(f"  {'-' * 58}")
+
+#     for total, layer in sorted(items, reverse=True):
+#         count = module_count[layer]
+#         avg = total / count if count else 0
+#         bar = "█" * min(int(avg * 2), 20)
+#         print(f"  {layer:<20} {count:>5}  {total:>8.1f}  {avg:>6.1f}  {bar}")
+#     print()
+
+
+# def report_files_to_split(analyzer):
+#     """
+#     Prints files with 7+ local #include directives.
+
+#     A file with many includes is pulling in many dependencies.
+#     This is a signal that the file has too many responsibilities.
+
+#     Linux kernel guideline: files should focus on one thing.
+#     Multiple responsibilities = multiple reasons to change = fragile.
+#     """
+#     items = sorted(
+#         [(len(v), k) for k, v in analyzer.file_deps.items() if len(v) >= 7],
+#         reverse=True,
+#     )
+
+#     print(f"{BOLD}FILES TO SPLIT (7+ local dependencies){NC}")
+
+#     if not items:
+#         print(f"  {GREEN}All files have manageable dependency counts{NC}")
+#     else:
+#         for count, path in items[:8]:
+#             rel = os.path.relpath(path, ".")
+#             print(f"  {YELLOW}!{NC} {rel} -> {count} deps")
+#     print()
+
+
+# def report_unused_functions(metrics):
+#     """
+#     Prints functions with fan_in = 0 (never called by scanned code).
+
+#     POSSIBLE REASONS a function has fan_in = 0:
+
+#     1. Dead code — was written but never wired up
+#        ACTION: delete it or wire it in
+
+#     2. Entry point — called from outside (CLI, tests, external lib)
+#        ACTION: add to KNOWN_ENTRY_POINTS below, or add a test that calls it
+
+#     3. Function pointer target — called via fn_ptr, not direct call
+#        ACTION: document this in a comment: "called via g_jump_table"
+
+#     4. Static analyzer limitation — called from a macro that expands
+#        to a function call (we can't see inside macros)
+#        ACTION: add a comment or explicit call to make it visible
+
+#     Notable unused functions in imgengine:
+#       img_engine_init          <- should be called from img_api_init()
+#       img_fused_init           <- should be called after img_jump_table_init()
+#       img_batch_execute_fused  <- should be called from worker_loop()
+#       img_arch_resize_h/v_avx2 <- should be registered in hardware_registry.c
+#     """
+#     KNOWN_ENTRY_POINTS = {
+#         "main",
+#         "img_api_init",
+#         "img_api_shutdown",
+#         "img_api_run_job",
+#         "img_api_process_raw",
+#         "img_api_process_fast",
+#         "img_engine_init",
+#         "LLVMFuzzerTestOneInput",
+#     }
+
+#     your_fns = metrics.your_functions()
+
+#     unused = sorted(
+#         [
+#             fn
+#             for fn in your_fns
+#             if metrics.fan_in(fn) == 0 and fn not in KNOWN_ENTRY_POINTS
+#         ]
+#     )
+
+#     if not unused:
+#         print(f"  {GREEN}No unused functions{NC}")
+#         return
+
+#     print(f"{BOLD}POTENTIALLY UNUSED FUNCTIONS (fan-in = 0){NC}")
+#     print(f"  {DIM}May be entry points, function-pointer targets, or dead code.{NC}\n")
+
+#     for fn in unused[:25]:
+#         file_rel = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         print(f"  {fn:<48} {DIM}[{file_rel}]{NC}")
+
+#     if len(unused) > 25:
+#         print(f"  {DIM}... and {len(unused) - 25} more{NC}")
+#     print()
+
+
+# def report_next_actions(analyzer, metrics):
+#     """
+#     Prints a prioritized action list based on all analysis results.
+
+#     Priority 1 = CRITICAL: fix before any merge, blocks CI
+#     Priority 2 = HIGH: fix this sprint
+#     Priority 3 = HIGH: important for correctness and performance
+#     Priority 4 = MEDIUM: important for completeness
+#     Priority 5 = MEDIUM: required by RFC but not blocking
+#     Priority 6 = LOW: nice to have
+
+#     This is the most actionable section of the analyzer output.
+#     """
+#     # Count unique violations
+#     seen = set()
+#     unique_viol = sum(
+#         1
+#         for v in analyzer.violations
+#         if (v[0], v[1]) not in seen and not seen.add((v[0], v[1]))
+#     )
+
+#     actions = []
+
+#     if unique_viol > 0:
+#         actions.append(
+#             (
+#                 1,
+#                 "CRITICAL",
+#                 RED,
+#                 f"Fix {unique_viol} layer violation(s). "
+#                 "Upward dependencies break module boundaries and "
+#                 "prevent independent testing of each layer.",
+#             )
+#         )
+
+#     complex_fns = sorted(
+#         [
+#             (metrics.fan_out(f), f)
+#             for f in metrics.your_functions()
+#             if metrics.fan_out(f) >= 8
+#         ],
+#         reverse=True,
+#     )
+#     for count, fn in complex_fns[:2]:
+#         file = os.path.relpath(metrics.a.fn_to_file.get(fn, ""), ".")
+#         actions.append(
+#             (
+#                 2,
+#                 "HIGH",
+#                 YELLOW,
+#                 f"Split {fn}() in {file}: "
+#                 f"{count} outgoing calls — too many responsibilities.",
+#             )
+#         )
+
+#     actions.append(
+#         (
+#             3,
+#             "HIGH",
+#             YELLOW,
+#             "Replace resize_nearest() in src/pipeline/layout.c with "
+#             "bilinear interpolation AVX2. Current nearest-neighbour "
+#             "produces aliasing at print DPI (300dpi visible artifacts).",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             3,
+#             "HIGH",
+#             YELLOW,
+#             "Wire io_uring output path. img_api_run_job() currently "
+#             "uses fwrite() internally. Add img_api_run_job_raw() that "
+#             "returns encoded bytes, then call io_uring_write_file().",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             4,
+#             "MEDIUM",
+#             NC,
+#             "Add --mode fit|fill to CLI (src/cmd/imgengine/args.c). "
+#             "job->mode is set in img_job_defaults() to IMG_FILL "
+#             "but img_parse_args() never reads a --mode argument.",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             4,
+#             "MEDIUM",
+#             NC,
+#             "Wire dead functions: img_engine_init(), img_fused_init(), "
+#             "img_batch_execute_fused(), img_arch_resize_h_avx2(), "
+#             "img_arch_resize_v_avx2() all have fan_in=0. "
+#             "They are built but nothing calls them.",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             5,
+#             "MEDIUM",
+#             NC,
+#             "CI performance gate: add to CMakeLists.txt a post-build "
+#             "step that runs bench_lat and fails if P99 > 2ms. "
+#             "RFC section 22.3 requires this — currently not enforced.",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             6,
+#             "LOW",
+#             DIM,
+#             "PDF multi-page support: pdf_encoder.c is single-page only. "
+#             "Large grids (6x10 at 4.5x3.5cm) exceed A4 height. "
+#             "Add page continuation logic.",
+#         )
+#     )
+
+#     actions.append(
+#         (
+#             6,
+#             "LOW",
+#             DIM,
+#             "Python CFFI bindings: create bindings/python/cffi_wrapper.py "
+#             "exposing img_api_init, img_api_run_job, img_api_shutdown. "
+#             "Required for scripting and batch processing workflows.",
+#         )
+#     )
+
+#     print(f"{'=' * 60}")
+#     print(f"{BOLD}WHAT TO DO NEXT — PRIORITY ORDER{NC}")
+#     print(f"{'=' * 60}")
+
+#     for priority, level, color, action in sorted(actions):
+#         print(f"\n  [{priority}] {color}{BOLD}{level}{NC}")
+#         # Word-wrap at 68 characters for readable terminal output
+#         words = action.split()
+#         line = "      "
+#         for word in words:
+#             if len(line) + len(word) + 1 > 72:
+#                 print(line.rstrip())
+#                 line = "      " + word + " "
+#             else:
+#                 line += word + " "
+#         if line.strip():
+#             print(line.rstrip())
+
+#     print(f"\n{'=' * 60}\n")
+
+
+# # ============================================================
+# # SECTION 8: ENTRY POINT
+# # ============================================================
+
+
+# def main():
+#     """
+#     Entry point. Run the full analysis pipeline and print all reports.
+
+#     Exit codes (for CI integration):
+#       0 = architecture clean, no violations
+#       1 = violations found, do not merge
+
+#     To integrate with GitHub Actions:
+#       - jobs:
+#           analyze:
+#             steps:
+#               - run: python3 scripts/l10plusplus.py
+#     """
+#     print(f"\n{BOLD}imgengine L10++ Architecture Analyzer{NC}")
+#     print(f"{'=' * 60}\n")
+#     print("Scanning source files...")
+
+#     t0 = time.time()
+#     analyzer = Analyzer().run()
+#     elapsed = time.time() - t0
+
+#     metrics = Metrics(analyzer)
+#     your_fn_count = len(metrics.your_functions())
+#     edge_count = sum(len(v) for v in analyzer.call_graph.values())
+
+#     print(f"{your_fn_count} functions | {edge_count} edges | {elapsed:.1f}s\n")
+
+#     report_hot_functions(metrics)
+#     report_bottlenecks(metrics)
+#     report_complex_functions(metrics)
+#     report_layer_violations(analyzer)
+#     report_module_heat(metrics, analyzer)
+#     report_files_to_split(analyzer)
+#     report_unused_functions(metrics)
+#     report_next_actions(analyzer, metrics)
+
+#     # Final verdict and exit code
+#     seen = set()
+#     unique_viol = sum(
+#         1
+#         for v in analyzer.violations
+#         if (v[0], v[1]) not in seen and not seen.add((v[0], v[1]))
+#     )
+
+#     if unique_viol > 0:
+#         print(f"{RED}{BOLD}VIOLATIONS FOUND: {unique_viol} — fix before merging{NC}\n")
+#         sys.exit(1)
+#     else:
+#         print(f"{GREEN}{BOLD}ARCHITECTURE CLEAN — zero layer violations{NC}\n")
+#         sys.exit(0)
+
+
+# if __name__ == "__main__":
+#     main()
+# ******************************************************************************************************************************
+# ******************************************************************************************************************************
 
 # #!/usr/bin/env python3
 # """
