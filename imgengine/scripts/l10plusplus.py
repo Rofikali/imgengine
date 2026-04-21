@@ -189,6 +189,7 @@
 
 
 #!/usr/bin/env python3
+import collections
 import os
 import re
 
@@ -264,6 +265,10 @@ LAYERS = [
 def detect_layer(path):
     if "startup" in path:
         return "startup"
+    if "/hot/" in path.replace("\\", "/"):
+        return "pipeline"
+    if "/cold/" in path.replace("\\", "/"):
+        return "pipeline"
     parts = path.replace("\\", "/").split("/")
     for p in parts:
         if p in LAYERS:
@@ -346,6 +351,40 @@ MATRIX = build_matrix()
 # =========================================================
 
 INCLUDE_RE = re.compile(r'#include\s+"([^"]+)"')
+CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+FUNC_DEF_RE = re.compile(
+    r"(?m)^[ \t]*(?P<prefix>(?:static\s+)?(?:inline\s+)?(?:extern\s+)?"
+    r"(?:const\s+)?(?:[A-Za-z_][\w\s\*\(\),]*?\s+))"
+    r"(?P<name>[A-Za-z_]\w*)\s*\((?P<args>[^;{}]*)\)\s*\{"
+)
+COMMENT_STRING_RE = re.compile(
+    r'//.*?$|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+    re.MULTILINE | re.DOTALL,
+)
+
+KEYWORDS = {
+    "if",
+    "for",
+    "while",
+    "switch",
+    "return",
+    "sizeof",
+    "defined",
+    "do",
+    "else",
+    "case",
+}
+
+EXPECTED_KERNEL_FLOW = ["cmd", "api", "runtime", "pipeline", "arch", "memory", "core"]
+ENTRYPOINTS = [
+    ("imgengine_cli", "src/cmd/imgengine/main.c", "main"),
+    ("bench_lat", "src/cmd/bench/lat_bench.c", "main"),
+]
+KNOWN_INDIRECT_CALLS = {
+    "g_io_vtable.decode": "img_decode_to_buffer",
+    "g_io_vtable.encode": "img_encode_from_buffer",
+    "g_io_vtable.encode_pdf": "img_encode_pdf",
+}
 
 # =========================================================
 # HOT PATH DETECTION
@@ -466,6 +505,234 @@ def scan(root):
     return files
 
 
+def strip_comments_and_strings(text):
+    def repl(match):
+        s = match.group(0)
+        return "".join("\n" if ch == "\n" else " " for ch in s)
+
+    return COMMENT_STRING_RE.sub(repl, text)
+
+
+def find_matching_brace(text, open_pos):
+    depth = 0
+    for idx in range(open_pos, len(text)):
+        ch = text[idx]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return idx
+    return -1
+
+
+def build_callgraph(files, layers):
+    defs = {}
+    defs_by_file = collections.defaultdict(dict)
+    global_defs = collections.defaultdict(list)
+
+    for path in files:
+        if not path.endswith(".c"):
+            continue
+
+        try:
+            original = open(path, "r", errors="ignore").read()
+        except Exception:
+            continue
+
+        cleaned = strip_comments_and_strings(original)
+
+        for match in FUNC_DEF_RE.finditer(cleaned):
+            name = match.group("name")
+            prefix = match.group("prefix") or ""
+            if name in KEYWORDS:
+                continue
+
+            brace_pos = cleaned.find("{", match.start())
+            end_brace = find_matching_brace(cleaned, brace_pos)
+            if end_brace < 0:
+                continue
+
+            key = (path, name, match.start())
+            info = {
+                "key": key,
+                "name": name,
+                "file": path,
+                "layer": layers.get(path),
+                "static": "static" in prefix.split(),
+                "body": cleaned[brace_pos + 1 : end_brace],
+                "calls": set(),
+                "indirect": set(),
+                "resolved": set(),
+                "unresolved": set(),
+            }
+            defs[key] = info
+            defs_by_file[path].setdefault(name, []).append(key)
+            if not info["static"]:
+                global_defs[name].append(key)
+
+    for key, info in defs.items():
+        body = info["body"]
+        for expr, target in KNOWN_INDIRECT_CALLS.items():
+            if expr + "(" in body:
+                info["indirect"].add(expr)
+                info["calls"].add(target)
+
+        for call_name in CALL_RE.findall(body):
+            if call_name in KEYWORDS:
+                continue
+            info["calls"].add(call_name)
+
+        local_candidates = defs_by_file[info["file"]]
+        for call_name in sorted(info["calls"]):
+            candidates = []
+
+            if call_name in local_candidates:
+                candidates = local_candidates[call_name]
+            elif len(global_defs.get(call_name, [])) == 1:
+                candidates = global_defs[call_name]
+
+            if len(candidates) == 1:
+                info["resolved"].add(candidates[0])
+            else:
+                info["unresolved"].add(call_name)
+
+    return defs
+
+
+def trace_entrypoints(defs, layers):
+    defs_by_suffix = collections.defaultdict(list)
+    for key, info in defs.items():
+        defs_by_suffix[(info["file"].replace("\\", "/"), info["name"])].append(key)
+
+    traces = []
+    for label, suffix, func_name in ENTRYPOINTS:
+        suffix = suffix.replace("\\", "/")
+        roots = []
+        for (path, name), keys in defs_by_suffix.items():
+            if path.endswith(suffix) and name == func_name:
+                roots.extend(keys)
+
+        if not roots:
+            traces.append(
+                {
+                    "label": label,
+                    "roots": [],
+                    "reachable": set(),
+                    "cross_edges": collections.Counter(),
+                    "unresolved": collections.Counter(),
+                    "layers": [],
+                }
+            )
+            continue
+
+        seen = set()
+        queue = collections.deque(roots)
+        cross_edges = collections.Counter()
+        unresolved = collections.Counter()
+
+        while queue:
+            node = queue.popleft()
+            if node in seen:
+                continue
+            seen.add(node)
+
+            info = defs[node]
+            for unresolved_name in info["unresolved"]:
+                unresolved[unresolved_name] += 1
+
+            for callee in info["resolved"]:
+                src_layer = info["layer"]
+                dst_layer = defs[callee]["layer"]
+                if src_layer and dst_layer and src_layer != dst_layer:
+                    cross_edges[(src_layer, dst_layer)] += 1
+                if callee not in seen:
+                    queue.append(callee)
+
+        layer_set = {defs[node]["layer"] for node in seen if defs[node]["layer"]}
+        layer_order = [layer for layer in EXPECTED_KERNEL_FLOW if layer in layer_set]
+        for layer in LAYERS:
+            if layer in layer_set and layer not in layer_order:
+                layer_order.append(layer)
+
+        traces.append(
+            {
+                "label": label,
+                "roots": roots,
+                "reachable": seen,
+                "cross_edges": cross_edges,
+                "unresolved": unresolved,
+                "layers": layer_order,
+            }
+        )
+
+    return traces
+
+
+def report_flow_traces(defs, traces):
+    print("\nREAL FLOW TRACE")
+    print("=" * 60)
+
+    all_reachable = set()
+    flow_violations = []
+    flow_index = {layer: idx for idx, layer in enumerate(EXPECTED_KERNEL_FLOW)}
+
+    for trace in traces:
+        print(f"\n[{trace['label']}]")
+        if not trace["roots"]:
+            print("  missing entrypoint definition")
+            continue
+
+        all_reachable |= trace["reachable"]
+        reached_count = len(trace["reachable"])
+        print(f"  reachable functions: {reached_count}")
+
+        layers_hit = trace["layers"]
+        if layers_hit:
+            print(f"  reached layers: {' -> '.join(layers_hit)}")
+        else:
+            print("  reached layers: none")
+
+        missing = [layer for layer in EXPECTED_KERNEL_FLOW if layer not in layers_hit]
+        if missing:
+            print(f"  missing expected layers: {', '.join(missing)}")
+        else:
+            print("  missing expected layers: none")
+
+        if trace["cross_edges"]:
+            print("  exercised cross-layer edges:")
+            for (src, dst), count in sorted(trace["cross_edges"].items()):
+                print(f"    {src} -> {dst} [{count}]")
+                if src in flow_index and dst in flow_index:
+                    if src in {"cmd", "api"} and dst not in {"memory", "core"} and \
+                       flow_index[dst] - flow_index[src] > 1:
+                        flow_violations.append((trace["label"], src, dst, count))
+        else:
+            print("  exercised cross-layer edges: none")
+
+        if trace["unresolved"]:
+            top = trace["unresolved"].most_common(8)
+            formatted = ", ".join(f"{name}({count})" for name, count in top)
+            print(f"  unresolved/external calls: {formatted}")
+        else:
+            print("  unresolved/external calls: none")
+
+    dead = [info for key, info in defs.items() if key not in all_reachable]
+    print("\nUNUSED / NOT REACHED FROM ENTRYPOINTS")
+    print("=" * 60)
+    print(f"unreached function definitions: {len(dead)}")
+    for info in sorted(dead, key=lambda x: (x["file"], x["name"]))[:20]:
+        print(f"  {info['file']} :: {info['name']}")
+
+    print("\nENTRYPOINT FLOW VIOLATIONS")
+    print("=" * 60)
+    if not flow_violations:
+        print("none")
+    else:
+        for label, src, dst, count in flow_violations:
+            print(f"  {label}: {src} -> {dst} [{count}] skips kernel stages")
+
+
 # =========================================================
 # MAIN
 # =========================================================
@@ -475,6 +742,8 @@ def analyze(root="src"):
     files = scan(root)
 
     layers = {f: detect_layer(f) for f in files}
+    defs = build_callgraph(files, layers)
+    traces = trace_entrypoints(defs, layers)
 
     dag_errors = []
     hot_errors = []
@@ -546,6 +815,8 @@ def analyze(root="src"):
         print("\n🎯 CLEAN: TRUE KERNEL-GRADE (L11)")
     else:
         print("\n🚨 NOT KERNEL-GRADE — FIX REQUIRED")
+
+    report_flow_traces(defs, traces)
 
 
 # =========================================================

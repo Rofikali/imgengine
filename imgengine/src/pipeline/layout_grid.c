@@ -33,18 +33,18 @@ img_result_t img_layout_grid(
     r = img_layout_grid_alloc_cells(job, arena, &cells);
     if (r != IMG_SUCCESS)
     {
-        img_slab_free(pool, scaled.data);
+        img_slab_recycle(pool, scaled.data);
         return r;
     }
 
     if (job->gap > UINT32_MAX - pw || job->gap > UINT32_MAX - ph)
     {
-        img_slab_free(pool, scaled.data);
+        img_slab_recycle(pool, scaled.data);
         return IMG_ERR_SECURITY;
     }
 
     layout->cells = cells;
     layout->count = img_layout_grid_place_cells(canvas, &scaled, job, cells);
-    img_slab_free(pool, scaled.data);
+    img_slab_recycle(pool, scaled.data);
     return IMG_SUCCESS;
 }

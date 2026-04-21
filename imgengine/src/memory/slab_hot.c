@@ -27,3 +27,8 @@ void img_slab_free(img_slab_pool_t *pool, void *ptr)
     block->next = pool->free_list;
     pool->free_list = block;
 }
+
+void img_slab_recycle(img_slab_pool_t *pool, void *ptr)
+{
+    img_slab_free(pool, ptr);
+}

@@ -1,5 +1,4 @@
 // ./src/cmd/imgengine/main.c
-// src/cmd/imgengine/main.c
 
 #define _GNU_SOURCE
 

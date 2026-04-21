@@ -1,5 +1,4 @@
 // ./src/api/api_decode_secure.c
-// src/api/api_decode_secure.c
 
 #include "api/api_internal.h"
 #include "io/io_vtable.h"
@@ -12,6 +11,8 @@ img_result_t decode_image_secure(
 {
     if (!engine || !input || !out_buf)
         return IMG_ERR_SECURITY;
+    if (!g_io_vtable.decode)
+        return IMG_ERR_INTERNAL;
 
     img_ctx_t ctx = {0};
     img_api_make_ctx(engine, &ctx);

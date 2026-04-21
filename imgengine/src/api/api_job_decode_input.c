@@ -10,6 +10,8 @@ img_result_t img_api_decode_input(
 {
     if (!ctx || !file_data || !*file_data || !photo)
         return IMG_ERR_SECURITY;
+    if (!g_io_vtable.decode)
+        return IMG_ERR_INTERNAL;
 
     img_result_t r = (img_result_t)g_io_vtable.decode(ctx, *file_data, file_size, photo);
     img_api_release_input(*file_data, file_size);

@@ -3,8 +3,9 @@
 #define _GNU_SOURCE
 
 #include "core/pipeline_types.h"
+#include "memory/numa.h"
 #include <stddef.h>
-#include <stdlib.h>
+#include <string.h>
 
 /*
  * img_pipeline_t is a public API type but its implementation
@@ -25,16 +26,17 @@ typedef struct img_pipeline img_pipeline_t;
 
 img_pipeline_t *img_pipeline_create(void)
 {
-    img_pipeline_desc_t *pipe = malloc(sizeof(img_pipeline_desc_t));
+    img_pipeline_desc_t *pipe =
+        img_numa_alloc_onnode(sizeof(img_pipeline_desc_t), img_numa_get_node());
     if (!pipe)
         return NULL;
-    pipe->count = 0;
+    memset(pipe, 0, sizeof(*pipe));
     return (img_pipeline_t *)pipe;
 }
 
 void img_pipeline_destroy(img_pipeline_t *pipe)
 {
-    free(pipe);
+    img_numa_release(pipe, sizeof(img_pipeline_desc_t));
 }
 
 int img_pipeline_add_op(

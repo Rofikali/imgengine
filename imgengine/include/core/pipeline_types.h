@@ -14,7 +14,7 @@ typedef struct img_op_desc
 
 typedef struct img_pipeline_desc
 {
-    img_op_desc_t *ops;
+    img_op_desc_t ops[IMG_MAX_PIPELINE_OPS];
     uint32_t count;
 } img_pipeline_desc_t;
 

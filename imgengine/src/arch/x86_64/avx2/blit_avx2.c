@@ -2,7 +2,7 @@
 // src/arch/x86_64/avx2/blit_avx2.c
 
 // AVX2 blit: copy img_buffer_t onto canvas at (x, y).
-// Hot path — no malloc, no branches on common case.
+// Hot path with no heap traffic on the common case.
 
 #include <immintrin.h>
 #include <string.h>

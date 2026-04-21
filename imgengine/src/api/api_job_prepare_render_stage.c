@@ -1,5 +1,6 @@
 // ./src/api/api_job_prepare_render_stage.c
 #include "api/api_job_internal.h"
+#include "runtime/job_exec.h"
 
 img_result_t img_api_prepare_render_stage(
     img_engine_t *engine,
@@ -9,24 +10,6 @@ img_result_t img_api_prepare_render_stage(
     const img_buffer_t *photo,
     img_arena_t **arena)
 {
-    if (!engine || !canvas || !layout || !job || !photo || !arena)
-        return IMG_ERR_SECURITY;
-
-    *arena = img_arena_create(1 * 1024 * 1024);
-    if (!*arena)
-        return IMG_ERR_NOMEM;
-
-    img_result_t r = img_canvas_init(canvas, engine->global_pool, job);
-    if (r != IMG_SUCCESS)
-    {
-        if (photo->data)
-            img_slab_free(engine->global_pool, (void *)photo->data);
-        return r;
-    }
-
-    r = img_layout_grid(canvas, photo, job, layout, *arena, engine->global_pool);
-    if (photo->data)
-        img_slab_free(engine->global_pool, (void *)photo->data);
-
-    return r;
+    return img_runtime_prepare_render_stage(
+        engine, canvas, layout, job, photo, arena);
 }

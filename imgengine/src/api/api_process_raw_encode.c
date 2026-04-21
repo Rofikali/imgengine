@@ -8,5 +8,8 @@ img_result_t img_api_process_raw_encode(
     uint8_t **output,
     size_t *output_size)
 {
+    if (!g_io_vtable.encode)
+        return IMG_ERR_INTERNAL;
+
     return (img_result_t)g_io_vtable.encode(ctx, buf, output, output_size);
 }

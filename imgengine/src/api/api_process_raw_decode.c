@@ -8,5 +8,8 @@ img_result_t img_api_process_raw_decode(
     size_t input_size,
     img_buffer_t *buf)
 {
+    if (!g_io_vtable.decode)
+        return IMG_ERR_INTERNAL;
+
     return (img_result_t)g_io_vtable.decode(ctx, input, input_size, buf);
 }

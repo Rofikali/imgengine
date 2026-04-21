@@ -5,8 +5,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class ImgEngineBenchmark:
-    def __init__(self, binary_path, input_file, output_dir,
-                 runs=1000, workers=1, extra_args=None):
+    def __init__(
+        self, binary_path, input_file, output_dir, runs=1000, workers=1, extra_args=None
+    ):
         self.binary = binary_path
         self.input = input_file
         self.output_dir = output_dir
@@ -21,8 +22,10 @@ class ImgEngineBenchmark:
 
         cmd = [
             self.binary,
-            "--input", self.input,
-            "--output", output_file,
+            "--input",
+            self.input,
+            "--output",
+            output_file,
         ] + self.extra_args
 
         return cmd
@@ -33,11 +36,7 @@ class ImgEngineBenchmark:
         start = time.time()
 
         try:
-            result = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             end = time.time()
             duration = end - start
@@ -46,16 +45,11 @@ class ImgEngineBenchmark:
                 "index": index,
                 "success": result.returncode == 0,
                 "time": duration,
-                "stderr": result.stderr.decode()
+                "stderr": result.stderr.decode(),
             }
 
         except Exception as e:
-            return {
-                "index": index,
-                "success": False,
-                "time": 0,
-                "stderr": str(e)
-            }
+            return {"index": index, "success": False, "time": 0, "stderr": str(e)}
 
     def run(self):
         print(f"🔥 Running {self.runs} jobs with {self.workers} workers...\n")
@@ -64,8 +58,9 @@ class ImgEngineBenchmark:
         results = []
 
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
-            futures = [executor.submit(self._run_once, i)
-                       for i in range(1, self.runs + 1)]
+            futures = [
+                executor.submit(self._run_once, i) for i in range(1, self.runs + 1)
+            ]
 
             for f in as_completed(futures):
                 res = f.result()
@@ -104,23 +99,44 @@ class ImgEngineBenchmark:
 
 
 # 🚀 ENTRY POINT
+
+# 🚀 ENTRY POINT
 if __name__ == "__main__":
+    from pathlib import Path
+    import os
+
+    # This gets /workspaces/imgengine/imgengine
+    base_dir = Path(__file__).resolve().parent.parent
+    print("base dir ", base_dir)
+
     bench = ImgEngineBenchmark(
-        binary_path="../build/imgengine_cli",
-        input_file="../photo.jpg",
-        output_dir="./outputs",
+        # ✅ Absolute path to binary
+        binary_path=os.path.join(base_dir, "build/imgengine_cli"),
+        # ✅ Absolute path to input (photo.jpg is in base_dir)
+        input_file=os.path.join(base_dir, "photo.jpg"),
+        # ✅ Absolute path to output
+        output_dir=os.path.join(base_dir, "outputs"),
         runs=1000,
-        workers=4,  # 🔥 increase to stress test
+        workers=4,
         extra_args=[
-            "--cols", "6",
-            "--rows", "3",
-            "--gap", "15",
-            "--padding", "20",
-            "--bleed", "10",
-            "--crop-mark", "25",
-            "--crop-offset", "8",
-            "--crop-thickness", "2"
-        ]
+            "--cols",
+            "6",
+            "--rows",
+            "3",
+            "--gap",
+            "15",
+            "--padding",
+            "20",
+            "--bleed",
+            "10",
+            "--crop-mark",
+            "25",
+            "--crop-offset",
+            "8",
+            "--crop-thickness",
+            "2",
+        ],
     )
 
     bench.run()
+

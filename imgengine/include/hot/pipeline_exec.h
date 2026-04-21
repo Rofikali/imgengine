@@ -4,6 +4,7 @@
 #ifndef IMGENGINE_HOT_PIPELINE_EXEC_H
 #define IMGENGINE_HOT_PIPELINE_EXEC_H
 
+#include "pipeline/pipeline_compiled.h"
 #include "pipeline/fused_kernel.h"
 #include "pipeline/fused_params.h"
 
@@ -23,6 +24,11 @@ typedef struct img_buffer img_buffer_t;
 void img_pipeline_execute_hot(
     img_ctx_t *__restrict ctx,
     const img_pipeline_runtime_t *__restrict pipe,
+    img_buffer_t *__restrict buf);
+
+void img_pipeline_execute_compiled_hot(
+    img_ctx_t *__restrict ctx,
+    const img_pipeline_compiled_t *__restrict pipe,
     img_buffer_t *__restrict buf);
 
 /*

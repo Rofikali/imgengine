@@ -10,6 +10,9 @@ img_result_t img_api_finish_job_output_pdf(
     const img_job_t *job,
     const char *output_path)
 {
+    if (!g_io_vtable.encode_pdf)
+        return IMG_ERR_INTERNAL;
+
     img_result_t r = img_apply_job_postfx(canvas, layout, job);
     if (r != IMG_SUCCESS)
     {

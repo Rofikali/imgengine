@@ -13,6 +13,8 @@ img_result_t img_api_render_job_output(
 {
     if (!ctx || !canvas || !layout || !job || !out || !out_size)
         return IMG_ERR_SECURITY;
+    if (!g_io_vtable.encode)
+        return IMG_ERR_INTERNAL;
 
     *out = NULL;
     *out_size = 0;

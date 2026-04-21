@@ -1,11 +1,9 @@
 // ./src/io/encoder/encoder_entry.c
 
-// ./src/io/encoder/encoder_entry.c
-
 #include "io/encoder/encoder_entry.h"
 #include <turbojpeg.h>
 #include <stdlib.h>
-// #include "api/v1/img_types.h"
+
 #include "core/buffer.h"
 
 int img_encode_from_buffer(

@@ -38,6 +38,6 @@ img_result_t img_layout_prepare_fit(
 
     r = img_layout_prepare_fit_commit(&tmp, dst, pool, cell_w, cell_h,
                                       bg_r, bg_g, bg_b);
-    img_slab_free(pool, tmp.data);
+    img_slab_recycle(pool, tmp.data);
     return r;
 }

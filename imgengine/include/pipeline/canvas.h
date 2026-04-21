@@ -47,11 +47,11 @@ img_result_t img_canvas_init(
     const img_job_t *job);
 
 /*
- * img_canvas_free()
+ * img_canvas_release()
  *
  * Return canvas buffer to pool.
  */
-void img_canvas_free(img_canvas_t *canvas, img_slab_pool_t *pool);
+void img_canvas_release(img_canvas_t *canvas, img_slab_pool_t *pool);
 
 /*
  * CM to pixels conversion

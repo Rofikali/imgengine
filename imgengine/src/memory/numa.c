@@ -51,3 +51,8 @@ void img_numa_free(void *ptr, size_t size)
 
     numa_free(ptr, size);
 }
+
+void img_numa_release(void *ptr, size_t size)
+{
+    img_numa_free(ptr, size);
+}

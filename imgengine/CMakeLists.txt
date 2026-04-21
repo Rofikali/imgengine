@@ -189,6 +189,7 @@ set(SOURCES_API
     src/api/api_shutdown_workers.c
     src/api/api_state.c
     src/api/api_process.c
+    src/api/api_benchmark_hot.c
     src/api/api_job.c
 )
 
@@ -311,6 +312,12 @@ set(SOURCES_RUNTIME
     src/runtime/rpc_server_io.c
     src/runtime/rpc_server_open.c
     src/runtime/scheduler.c
+    src/runtime/benchmark_hot.c
+    src/runtime/job_finish_stage.c
+    src/runtime/job_postfx.c
+    src/runtime/job_prepare_render_stage.c
+    src/runtime/job_run_compiled_pipeline.c
+    src/runtime/raw_buffer_release.c
     src/runtime/worker.c
     src/runtime/worker_control.c
     src/runtime/worker_init.c

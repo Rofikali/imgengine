@@ -1,8 +1,5 @@
 // ./src/io/encoder/jpeg_encoder.c
 
-// ./src/io/encoder/jpeg_encoder.c
-
-
 #ifndef IMGENGINE_JPEG_ENCODER_H
 #define IMGENGINE_JPEG_ENCODER_H
 

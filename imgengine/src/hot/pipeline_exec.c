@@ -56,6 +56,25 @@ void img_pipeline_execute_hot(
     }
 }
 
+void img_pipeline_execute_compiled_hot(
+    img_ctx_t *__restrict ctx,
+    const img_pipeline_compiled_t *__restrict pipe,
+    img_buffer_t *__restrict buf)
+{
+    const uint32_t count = pipe->count;
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        if (i + PREFETCH_DISTANCE < count)
+            __builtin_prefetch(&pipe->ops[i + PREFETCH_DISTANCE], 0, 1);
+
+        img_kernel_fn fn = pipe->ops[i];
+
+        if (__builtin_expect(fn != NULL, 1))
+            fn(ctx, buf, pipe->params[i]);
+    }
+}
+
 /*
  * img_pipeline_execute_fused()
  *

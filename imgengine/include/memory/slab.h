@@ -23,6 +23,7 @@ uint8_t  *img_slab_alloc(img_slab_pool_t *pool);
 
 // 🔥 MUST be returned to same pool
 void img_slab_free(img_slab_pool_t *pool, void *ptr);
+void img_slab_recycle(img_slab_pool_t *pool, void *ptr);
 
 // 🔥 NEW: expose block size (critical safety)
 size_t img_slab_block_size(img_slab_pool_t *pool);
