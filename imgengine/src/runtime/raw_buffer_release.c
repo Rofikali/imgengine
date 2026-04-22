@@ -1,6 +1,5 @@
 #include "runtime/job_exec.h"
-
-#include "api/api_internal.h"
+#include "core/context_internal.h"
 #include "memory/slab.h"
 
 void img_runtime_release_raw_buffer(

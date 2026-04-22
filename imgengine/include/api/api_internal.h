@@ -15,7 +15,7 @@ extern img_worker_t g_workers[64];
 extern img_ctx_t g_worker_ctxs[64];
 extern img_mpmc_queue_t g_task_queue;
 
-void img_api_make_ctx(img_engine_t *engine, img_ctx_t *ctx);
+void img_api_make_ctx(const img_engine_t *engine, img_ctx_t *ctx);
 img_result_t img_api_process_fast_run(
     img_engine_t *engine,
     img_pipeline_desc_t *pipe,

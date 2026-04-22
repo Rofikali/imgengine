@@ -14,6 +14,7 @@ static struct option long_opts[] = {
     {"height", required_argument, 0, 6},
     {"dpi", required_argument, 0, 7},
     {"border", required_argument, 0, 8},
+    {"preset", required_argument, 0, 14},
     {"bleed", required_argument, 0, 9},
     {"crop-mark", required_argument, 0, 10},
     {"crop-thickness", required_argument, 0, 11},
@@ -40,6 +41,8 @@ int img_cli_parse_options(int argc, char **argv, img_cli_options_t *opts)
             rc = img_cli_parse_options_layout(opt, optarg, opts);
         else if (opt >= 5 && opt <= 8)
             rc = img_cli_parse_options_photo(opt, optarg, opts);
+        else if (opt == 14)
+            rc = img_cli_parse_options_print(opt, optarg, opts);
         else
             rc = img_cli_parse_options_print(opt, optarg, opts);
 

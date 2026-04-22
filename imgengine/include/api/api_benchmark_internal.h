@@ -9,6 +9,13 @@ img_result_t img_api_hot_bench_init(
     size_t input_size,
     img_hot_bench_state_t *state);
 
+img_result_t img_api_hot_bench_init_with_template(
+    img_engine_t *engine,
+    const uint8_t *input,
+    size_t input_size,
+    img_job_template_t preset_template,
+    img_hot_bench_state_t *state);
+
 img_result_t img_api_hot_bench_step(
     img_hot_bench_state_t *state);
 

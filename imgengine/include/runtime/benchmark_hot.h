@@ -1,26 +1,33 @@
 #ifndef IMGENGINE_RUNTIME_BENCHMARK_H
 #define IMGENGINE_RUNTIME_BENCHMARK_H
 
-#include "api/api_internal.h"
+#include <stddef.h>
+
+#include "core/context_internal.h"
 #include "core/buffer.h"
-#include "pipeline/pipeline_compiled.h"
-#include "pipeline/pipeline_types.h"
+#include "core/result.h"
+#include "memory/arena.h"
+#include "pipeline/canvas.h"
+#include "pipeline/render_cache.h"
+#include "pipeline/job.h"
+#include "pipeline/layout.h"
 
 typedef struct
 {
+    img_engine_t *engine;
     img_buffer_t decoded;
-    img_pipeline_desc_t pipe;
-    img_pipeline_compiled_t compiled;
+    img_job_t job;
     img_ctx_t ctx;
-    uint8_t *scratch;
-    size_t image_bytes;
-    size_t scratch_bytes;
+    img_canvas_t canvas;
+    img_layout_t layout;
+    img_render_cache_t render_cache;
+    img_arena_t *arena;
 } img_hot_bench_state_t;
 
 img_result_t img_runtime_hot_bench_init(
     img_engine_t *engine,
-    const uint8_t *input,
-    size_t input_size,
+    const img_buffer_t *decoded,
+    img_job_template_t preset_template,
     img_hot_bench_state_t *state);
 
 img_result_t img_runtime_hot_bench_step(

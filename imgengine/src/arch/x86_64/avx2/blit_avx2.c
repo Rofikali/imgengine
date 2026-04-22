@@ -53,18 +53,7 @@ void img_blit_avx2(
         /* prefetch next source row */
         __builtin_prefetch(src_row + src_stride, 0, 1);
 
-        uint32_t x = 0;
-
-        /* 32-byte AVX2 copy */
-        for (; x + 32 <= row_bytes; x += 32)
-        {
-            __m256i v = _mm256_loadu_si256((const __m256i *)(src_row + x));
-            _mm256_storeu_si256((__m256i *)(dst_row + x), v);
-        }
-
-        /* scalar tail */
-        for (; x < row_bytes; x++)
-            dst_row[x] = src_row[x];
+        memcpy(dst_row, src_row, row_bytes);
     }
 }
 
@@ -100,6 +89,7 @@ void img_blit_scalar(
         uint8_t *dst_row = dst->data +
                            (size_t)(dst_y + y) * dst->stride +
                            (size_t)dst_x * ch;
+
         memcpy(dst_row, src_row, row_bytes);
     }
 }

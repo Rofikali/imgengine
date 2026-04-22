@@ -1,7 +1,6 @@
 // ./src/cmd/imgengine/job_builder.c
 
 #include "cmd/imgengine/job_builder.h"
-#include <string.h>
 
 int img_build_job(const img_cli_options_t *opts, img_job_t *job)
 {
@@ -9,6 +8,8 @@ int img_build_job(const img_cli_options_t *opts, img_job_t *job)
         return -1;
 
     img_job_defaults(job);
+    if (opts->has_preset)
+        img_job_apply_template(job, opts->preset_template);
 
     /* layout */
     if (opts->has_cols)

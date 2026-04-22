@@ -3,6 +3,7 @@
 #define IMGENGINE_CLI_ARGS_INTERNAL_H
 
 #include "cmd/imgengine/args.h"
+#include "pipeline/job_presets.h"
 
 int img_cli_parse_u32(const char *text, uint32_t *out, const char *name);
 int img_cli_parse_float(const char *text, float *out, const char *name);

@@ -13,4 +13,5 @@ void img_cli_set_defaults(img_cli_options_t *opts)
     opts->threads = 1;
     opts->mode = IMG_FILL;
     opts->has_threads = true;
+    opts->preset_template = IMG_JOB_TEMPLATE_CUSTOM;
 }

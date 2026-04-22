@@ -33,11 +33,18 @@ img_result_t img_layout_prepare_fit_commit(
     if (!mem)
         return IMG_ERR_NOMEM;
 
-    for (size_t i = 0; i < required; i += 3)
+    if (bg_r == bg_g && bg_g == bg_b)
     {
-        mem[i] = bg_r;
-        mem[i + 1] = bg_g;
-        mem[i + 2] = bg_b;
+        memset(mem, bg_r, required);
+    }
+    else
+    {
+        for (size_t i = 0; i < required; i += 3)
+        {
+            mem[i] = bg_r;
+            mem[i + 1] = bg_g;
+            mem[i + 2] = bg_b;
+        }
     }
 
     dst->data = mem;

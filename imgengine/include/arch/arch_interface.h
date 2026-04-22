@@ -15,6 +15,10 @@ void img_arch_grayscale_scalar(img_ctx_t *, img_buffer_t *, void *);
 
 // ================= RESIZE (SEPARABLE) =================
 
+// Single-pass resize
+void img_arch_avx2_resize(img_ctx_t *, img_buffer_t *, void *);
+void resize_scalar(img_ctx_t *, img_buffer_t *, void *);
+
 // AVX2
 void img_arch_resize_h_avx2(img_ctx_t *, img_buffer_t *, void *);
 void img_arch_resize_v_avx2(img_ctx_t *, img_buffer_t *, void *);

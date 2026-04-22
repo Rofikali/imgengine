@@ -3,10 +3,35 @@
 
 #include <stdio.h>
 
+static int img_cli_parse_preset(const char *optarg, img_cli_options_t *opts)
+{
+    img_job_template_t template_id;
+
+    if (!optarg || !opts)
+        return -1;
+
+    if (img_job_template_lookup(optarg, &template_id) == 0)
+    {
+        opts->preset_template = template_id;
+        opts->has_preset = true;
+        return 0;
+    }
+
+    fprintf(stderr,
+            "imgengine: unknown preset '%s' (use %s, %s, %s)\n",
+            optarg,
+            img_job_template_name(IMG_JOB_TEMPLATE_PASSPORT_45X35),
+            img_job_template_name(IMG_JOB_TEMPLATE_PASSPORT_38X35),
+            img_job_template_name(IMG_JOB_TEMPLATE_PRINTREADY_6X6));
+    return -1;
+}
+
 int img_cli_parse_options_print(int opt, const char *optarg, img_cli_options_t *opts)
 {
     switch (opt)
     {
+    case 14:
+        return img_cli_parse_preset(optarg, opts);
     case 9:
         if (img_cli_parse_u32(optarg, &opts->bleed, "bleed") != 0)
             return -1;

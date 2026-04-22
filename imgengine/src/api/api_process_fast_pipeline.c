@@ -7,5 +7,8 @@ img_result_t img_api_process_fast_run(
     img_pipeline_desc_t *pipe,
     img_buffer_t *out_buf)
 {
-    return img_runtime_run_compiled_pipeline(engine, pipe, out_buf);
+    img_ctx_t ctx = {0};
+
+    img_api_make_ctx(engine, &ctx);
+    return img_runtime_run_compiled_pipeline(engine, &ctx, pipe, out_buf);
 }

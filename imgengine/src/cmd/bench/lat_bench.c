@@ -3,6 +3,7 @@
 #define _GNU_SOURCE
 
 #include <fcntl.h>
+#include <getopt.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,6 +17,8 @@
 #include "api/v1/img_error.h"
 #include "api/api_benchmark_internal.h"
 #include "api/api_internal.h"
+#include "api/api_process_fast_internal.h"
+#include "pipeline/job_presets.h"
 
 #define BENCH_ITERATIONS 1000
 #define BENCH_WARMUP 100
@@ -130,12 +133,16 @@ static int benchmark_raw(img_engine_t *engine, const uint8_t *input, size_t inpu
         img_encoded_free(out);
     }
 
-    print_stats("RAW path (decode + encode)", samples, BENCH_ITERATIONS);
+    print_stats("Cold path (decode + encode)", samples, BENCH_ITERATIONS);
     free(samples);
     return 0;
 }
 
-static int benchmark_hot(img_engine_t *engine, const uint8_t *input, size_t input_size)
+static int benchmark_hot(
+    img_engine_t *engine,
+    const uint8_t *input,
+    size_t input_size,
+    img_job_template_t preset_template)
 {
     img_hot_bench_state_t state;
     uint64_t *samples = calloc(BENCH_ITERATIONS, sizeof(*samples));
@@ -146,7 +153,8 @@ static int benchmark_hot(img_engine_t *engine, const uint8_t *input, size_t inpu
         return 1;
     }
 
-    img_result_t r = img_api_hot_bench_init(engine, input, input_size, &state);
+    img_result_t r = img_api_hot_bench_init_with_template(
+        engine, input, input_size, preset_template, &state);
     if (r != IMG_SUCCESS)
     {
         fprintf(stderr, "bench_lat: hot setup failed: %s\n", img_result_name(r));
@@ -183,16 +191,118 @@ static int benchmark_hot(img_engine_t *engine, const uint8_t *input, size_t inpu
         samples[i] = end_ns - start_ns;
     }
 
-    print_stats("RFC hot path (pipeline + arch only)", samples, BENCH_ITERATIONS);
+    if (preset_template != IMG_JOB_TEMPLATE_CUSTOM)
+    {
+        printf("  preset:   %s\n", img_job_template_name(preset_template));
+        fflush(stdout);
+    }
+
+    print_stats("Passport render stage (runtime + pipeline + arch)", samples, BENCH_ITERATIONS);
+    fflush(stdout);
 
     free(samples);
     img_api_hot_bench_destroy(engine, &state);
     return 0;
 }
 
+static int benchmark_decode_only(img_engine_t *engine, const uint8_t *input, size_t input_size)
+{
+    uint64_t *samples = calloc(BENCH_ITERATIONS, sizeof(*samples));
+    if (!samples)
+    {
+        fprintf(stderr, "bench_lat: decode benchmark allocation failed\n");
+        return 1;
+    }
+
+    for (int i = 0; i < BENCH_WARMUP; i++)
+    {
+        img_buffer_t out = {0};
+        img_result_t r = decode_image_secure(engine, input, input_size, &out);
+        if (r != IMG_SUCCESS)
+        {
+            fprintf(stderr, "bench_lat: decode warmup failed: %s\n", img_result_name(r));
+            free(samples);
+            img_api_release_raw_buffer(engine, &out);
+            return 1;
+        }
+        img_api_release_raw_buffer(engine, &out);
+    }
+
+    for (int i = 0; i < BENCH_ITERATIONS; i++)
+    {
+        img_buffer_t out = {0};
+
+        const uint64_t start_ns = monotonic_ns();
+        img_result_t r = decode_image_secure(engine, input, input_size, &out);
+        const uint64_t end_ns = monotonic_ns();
+
+        if (r != IMG_SUCCESS)
+        {
+            fprintf(stderr, "bench_lat: decode iteration %d failed: %s\n",
+                    i, img_result_name(r));
+            free(samples);
+            img_api_release_raw_buffer(engine, &out);
+            return 1;
+        }
+
+        samples[i] = end_ns - start_ns;
+        img_api_release_raw_buffer(engine, &out);
+    }
+
+    print_stats("Decode-only path (API decode helper)", samples, BENCH_ITERATIONS);
+    fflush(stdout);
+    free(samples);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    const char *path = (argc > 1) ? argv[1] : "tests/samples/4k_test.jpg";
+    static struct option long_opts[] = {
+        {"preset", required_argument, 0, 'p'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0},
+    };
+
+    img_job_template_t preset_template = IMG_JOB_TEMPLATE_CUSTOM;
+    int opt;
+    int idx = 0;
+
+    optind = 1;
+    while ((opt = getopt_long(argc, argv, "p:h", long_opts, &idx)) != -1)
+    {
+        switch (opt)
+        {
+        case 'p':
+            if (img_job_template_lookup(optarg, &preset_template) != 0)
+            {
+                fprintf(stderr,
+                        "bench_lat: unknown preset '%s' (use %s, %s, %s)\n",
+                        optarg,
+                        img_job_template_name(IMG_JOB_TEMPLATE_PASSPORT_45X35),
+                        img_job_template_name(IMG_JOB_TEMPLATE_PASSPORT_38X35),
+                        img_job_template_name(IMG_JOB_TEMPLATE_PRINTREADY_6X6));
+                return 1;
+            }
+            break;
+        case 'h':
+            printf("Usage: %s [--preset <name>] [file]\n", argv[0]);
+            return 0;
+        default:
+            fprintf(stderr, "bench_lat: invalid arguments\n");
+            return 1;
+        }
+    }
+
+    const char *path = "tests/samples/4k_test.jpg";
+    if (optind < argc)
+    {
+        path = argv[optind++];
+        if (optind < argc)
+        {
+            fprintf(stderr, "bench_lat: unexpected extra arguments\n");
+            return 1;
+        }
+    }
 
     int fd = open(path, O_RDONLY);
     if (fd < 0)
@@ -233,12 +343,20 @@ int main(int argc, char **argv)
     printf("\n=== imgengine latency benchmark ===\n");
     printf("  file:       %s (%lld bytes)\n", path, (long long)file_size);
     printf("  iterations: %d (+ %d warmup)\n", BENCH_ITERATIONS, BENCH_WARMUP);
+    fflush(stdout);
 
     int rc = 0;
-    if (benchmark_hot(engine, input, (size_t)file_size) != 0)
+    if (benchmark_hot(engine, input, (size_t)file_size, preset_template) != 0)
         rc = 1;
-    else if (benchmark_raw(engine, input, (size_t)file_size) != 0)
+    else if (benchmark_decode_only(engine, input, (size_t)file_size) != 0)
         rc = 1;
+    else
+    {
+        printf("\n--- entering cold path (decode + encode) ---\n");
+        fflush(stdout);
+        if (benchmark_raw(engine, input, (size_t)file_size) != 0)
+            rc = 1;
+    }
 
     printf("===================================\n\n");
 

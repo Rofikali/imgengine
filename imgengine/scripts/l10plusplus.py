@@ -355,7 +355,7 @@ CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
 FUNC_DEF_RE = re.compile(
     r"(?m)^[ \t]*(?P<prefix>(?:static\s+)?(?:inline\s+)?(?:extern\s+)?"
     r"(?:const\s+)?(?:[A-Za-z_][\w\s\*\(\),]*?\s+))"
-    r"(?P<name>[A-Za-z_]\w*)\s*\((?P<args>[^;{}]*)\)\s*\{"
+    r"(?:\*+\s*)?(?P<name>[A-Za-z_]\w*)\s*\((?P<args>[^;{}]*)\)\s*\{"
 )
 COMMENT_STRING_RE = re.compile(
     r'//.*?$|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
@@ -384,6 +384,7 @@ KNOWN_INDIRECT_CALLS = {
     "g_io_vtable.decode": "img_decode_to_buffer",
     "g_io_vtable.encode": "img_encode_from_buffer",
     "g_io_vtable.encode_pdf": "img_encode_pdf",
+    "resize_fn": "img_arch_avx2_resize",
 }
 
 # =========================================================

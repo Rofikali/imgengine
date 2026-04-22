@@ -1,16 +1,17 @@
 #include "runtime/job_exec.h"
 
-#include "api/api_internal.h"
+#include "core/context_internal.h"
 #include "cold/validation.h"
 #include "hot/pipeline_exec.h"
 #include "pipeline/pipeline_compiled.h"
 
 img_result_t img_runtime_run_compiled_pipeline(
     img_engine_t *engine,
+    img_ctx_t *ctx,
     img_pipeline_desc_t *pipe,
     img_buffer_t *out_buf)
 {
-    if (!engine || !pipe || !out_buf)
+    if (!engine || !ctx || !pipe || !out_buf)
         return IMG_ERR_SECURITY;
 
     if (!img_validate_pipeline_safety(pipe))
@@ -20,9 +21,6 @@ img_result_t img_runtime_run_compiled_pipeline(
     if (img_pipeline_compile(pipe, &compiled) != 0)
         return IMG_ERR_FORMAT;
 
-    img_ctx_t ctx = {0};
-    img_api_make_ctx(engine, &ctx);
-
-    img_pipeline_execute_compiled_hot(&ctx, &compiled, out_buf);
+    img_pipeline_execute_compiled_hot(ctx, &compiled, out_buf);
     return IMG_SUCCESS;
 }

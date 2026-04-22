@@ -19,6 +19,6 @@ img_result_t img_api_process_raw_prepare(
     if (sec != IMG_SUCCESS)
         return sec;
 
-    img_api_make_ctx((img_engine_t *)engine, ctx);
+    img_api_make_ctx(engine, ctx);
     return IMG_SUCCESS;
 }

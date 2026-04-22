@@ -30,6 +30,7 @@ img_result_t img_api_decode_input(
 
 img_result_t img_api_prepare_render_stage(
     img_engine_t *engine,
+    img_ctx_t *ctx,
     img_canvas_t *canvas,
     img_layout_t *layout,
     const img_job_t *job,

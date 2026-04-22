@@ -14,6 +14,7 @@
 #include <pthread.h>
 
 #include "runtime/queue_spsc.h"
+#include "pipeline/render_cache.h"
 
 struct img_scheduler;
 struct img_ctx;
@@ -26,6 +27,7 @@ typedef struct img_worker
     img_queue_t *queue;
     struct img_scheduler *scheduler;
     struct img_ctx *ctx;
+    img_render_cache_t render_cache;
 
     volatile int running;
 

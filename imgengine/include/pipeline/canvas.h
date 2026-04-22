@@ -31,6 +31,11 @@ typedef struct
     uint32_t start_x;    /* grid origin x */
     uint32_t start_y;    /* grid origin y */
 
+    uint32_t bg_signature;
+    uint8_t initialized;
+    uint8_t cache_owned;
+    uint8_t _pad0[2];
+
 } img_canvas_t;
 
 /*

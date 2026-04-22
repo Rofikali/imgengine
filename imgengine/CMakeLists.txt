@@ -58,7 +58,7 @@ set(IMGENGINE_COMMON_FLAGS
 )
 
 if(IMGENGINE_LTO)
-    list(APPEND IMGENGINE_COMMON_FLAGS -flto)
+    list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror)
     # list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror) This line must be uncommented in future
     set(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} -flto")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
@@ -74,16 +74,6 @@ endif()
 if(IMGENGINE_SANDBOX)
     add_definitions(-DIMG_SANDBOX_ENABLED)
 endif()
-
-# # ── Dependencies ───────────────────────────────────────────
-# find_package(Threads REQUIRED)
-
-# find_path(TURBOJPEG_INCLUDE NAMES turbojpeg.h)
-# find_library(TURBOJPEG_LIB  NAMES turbojpeg)
-# if(NOT TURBOJPEG_LIB)
-#     message(FATAL_ERROR "[IO] libturbojpeg not found — required")
-# endif()
-# message(STATUS "[IO] turbojpeg: ${TURBOJPEG_LIB}")
 
 # ── Dependencies ───────────────────────────────────────────
 find_package(Threads REQUIRED)
@@ -128,8 +118,8 @@ find_library(MATH_LIB  m)
 
 # ── Include paths ──────────────────────────────────────────
 set(IMGENGINE_INCLUDES
-    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/api/v1
     ${CMAKE_SOURCE_DIR}/third_party
     ${TURBOJPEG_INCLUDE}

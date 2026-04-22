@@ -21,6 +21,8 @@ typedef struct
     bool has_gap;
     uint32_t padding;
     bool has_padding;
+    img_job_template_t preset_template;
+    bool has_preset;
 
     /* photo */
     float photo_w_cm;

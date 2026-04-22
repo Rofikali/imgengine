@@ -1,9 +1,7 @@
 // ./src/api/api_init_engine.c
 #include "api/api_init_internal.h"
 #include "memory/slab.h"
-#include "pipeline/jump_table.h"
-
-void img_hw_register_kernels(cpu_caps_t caps);
+#include "startup/engine_init_internal.h"
 
 int img_api_init_prepare_engine(uint32_t workers)
 {
@@ -14,6 +12,7 @@ int img_api_init_prepare_engine(uint32_t workers)
 
     g_engine.worker_count = workers;
     g_engine.workers = g_workers;
+    g_engine.scheduler = NULL;
 
     g_engine.caps = img_cpu_detect_caps();
 
@@ -27,8 +26,7 @@ int img_api_init_prepare_engine(uint32_t workers)
         return -1;
     }
 
-    img_jump_table_init(g_engine.caps);
-    img_hw_register_kernels(g_engine.caps);
+    img_engine_init_compute(g_engine.caps);
 
     return 0;
 }

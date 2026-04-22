@@ -1,5 +1,5 @@
 #include "runtime/job_exec.h"
-#include "api/api_internal.h"
+#include "core/context_internal.h"
 
 img_result_t img_runtime_finish_job_stage(
     img_engine_t *engine,

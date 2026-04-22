@@ -1,0 +1,50 @@
+real banchmarks
+  === imgengine latency benchmark ===
+  file:       ../photo.jpg (814549 bytes)
+  iterations: 1000 (+ 100 warmup)
+Passport render stage (runtime + pipeline + arch)
+  avg:  369.139 ms (369139199 ns)
+  p50:  363.012 ms (363012450 ns)
+  p99:  969.997 ms (969997177 ns)
+  min:  249.028 ms (249027672 ns)
+  max:  1776.023 ms (1776023037 ns)
+  thr:  3 ops/sec
+Cold path (decode + encode)
+  avg:  387.223 ms (387222675 ns)
+  p50:  376.602 ms (376601874 ns)
+  p99:  560.818 ms (560818322 ns)
+  min:  351.039 ms (351038941 ns)
+  max:  789.356 ms (789355729 ns)
+  thr:  3 ops/sec
+  ===================================
+
+[imgengine_cli]
+  reachable functions: 95
+
+[bench_lat]
+  reachable functions: 43
+
+UNUSED / NOT REACHED FROM ENTRYPOINTS
+============================================================
+unreached function definitions: 159
+
+
+@ramdasbhumi-ai ➜ /workspaces/imgengine/imgengine/build (with_claude_from_main) $ ./bench_lat ../photo.jpg 
+
+=== imgengine latency benchmark ===
+  file:       ../photo.jpg (814549 bytes)
+  iterations: 1000 (+ 100 warmup)
+Passport render stage (runtime + pipeline + arch)
+  avg:  19.172 ms (19171680 ns)
+  p50:  17.000 ms (16999914 ns)
+  p99:  40.485 ms (40484730 ns)
+  min:  11.999 ms (11999182 ns)
+  max:  66.512 ms (66511758 ns)
+  thr:  52 ops/sec
+Kernel fast path (decode + compiled pipeline)
+  avg:  102.293 ms (102292618 ns)
+  p50:  95.258 ms (95257531 ns)
+  p99:  256.815 ms (256814575 ns)
+  min:  40.823 ms (40823151 ns)
+  max:  480.089 ms (480089451 ns)
+  thr:  10 ops/sec

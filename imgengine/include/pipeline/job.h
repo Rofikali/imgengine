@@ -35,9 +35,18 @@ extern "C"
         IMG_FILL = 1,
     } img_scale_mode_t;
 
+    typedef enum
+    {
+        IMG_JOB_TEMPLATE_CUSTOM = 0,
+        IMG_JOB_TEMPLATE_PASSPORT_45X35 = 1,
+        IMG_JOB_TEMPLATE_PASSPORT_38X35 = 2,
+        IMG_JOB_TEMPLATE_PRINTREADY_6X6 = 3,
+    } img_job_template_t;
+
     typedef struct img_job
     {
         uint32_t abi_version;
+        uint32_t template_id;
 
         float photo_w_cm;
         float photo_h_cm;
@@ -63,7 +72,7 @@ extern "C"
 
     } img_job_t;
 
-#define IMG_JOB_ABI_VERSION 1
+#define IMG_JOB_ABI_VERSION 2
 
     static inline void img_job_defaults(img_job_t *job)
     {
@@ -71,6 +80,7 @@ extern "C"
             return;
         *job = (img_job_t){
             .abi_version = IMG_JOB_ABI_VERSION,
+            .template_id = IMG_JOB_TEMPLATE_CUSTOM,
             .photo_w_cm = 4.5f,
             .photo_h_cm = 3.5f,
             .dpi = 300,
@@ -88,6 +98,72 @@ extern "C"
             .bg_g = 255,
             .bg_b = 255,
         };
+    }
+
+    static inline void img_job_apply_template(img_job_t *job, img_job_template_t template_id)
+    {
+        if (!job)
+            return;
+
+        switch (template_id)
+        {
+        case IMG_JOB_TEMPLATE_PASSPORT_45X35:
+            job->template_id = template_id;
+            job->photo_w_cm = 4.5f;
+            job->photo_h_cm = 3.5f;
+            job->cols = 6;
+            job->rows = 6;
+            job->gap = 15;
+            job->padding = 20;
+            job->border_px = 2;
+            job->bleed_px = 1;
+            job->crop_mark_px = 5;
+            job->crop_thickness = 10;
+            job->crop_offset_px = 5;
+            job->mode = IMG_FILL;
+            job->bg_r = 255;
+            job->bg_g = 255;
+            job->bg_b = 255;
+            break;
+        case IMG_JOB_TEMPLATE_PASSPORT_38X35:
+            job->template_id = template_id;
+            job->photo_w_cm = 3.8f;
+            job->photo_h_cm = 3.5f;
+            job->cols = 6;
+            job->rows = 6;
+            job->gap = 15;
+            job->padding = 20;
+            job->border_px = 2;
+            job->bleed_px = 1;
+            job->crop_mark_px = 5;
+            job->crop_thickness = 10;
+            job->crop_offset_px = 5;
+            job->mode = IMG_FILL;
+            job->bg_r = 255;
+            job->bg_g = 255;
+            job->bg_b = 255;
+            break;
+        case IMG_JOB_TEMPLATE_PRINTREADY_6X6:
+            job->template_id = template_id;
+            job->cols = 6;
+            job->rows = 6;
+            job->gap = 15;
+            job->padding = 20;
+            job->border_px = 2;
+            job->bleed_px = 1;
+            job->crop_mark_px = 5;
+            job->crop_thickness = 10;
+            job->crop_offset_px = 5;
+            job->mode = IMG_FILL;
+            job->bg_r = 255;
+            job->bg_g = 255;
+            job->bg_b = 255;
+            break;
+        case IMG_JOB_TEMPLATE_CUSTOM:
+        default:
+            job->template_id = IMG_JOB_TEMPLATE_CUSTOM;
+            break;
+        }
     }
 
 #ifdef __cplusplus

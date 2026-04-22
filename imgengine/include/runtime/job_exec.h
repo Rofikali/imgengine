@@ -10,9 +10,11 @@
 
 typedef struct img_engine img_engine_t;
 typedef struct img_buffer img_buffer_t;
+typedef struct img_ctx img_ctx_t;
 
 img_result_t img_runtime_prepare_render_stage(
     img_engine_t *engine,
+    img_ctx_t *ctx,
     img_canvas_t *canvas,
     img_layout_t *layout,
     const img_job_t *job,
@@ -26,6 +28,7 @@ img_result_t img_runtime_apply_job_postfx(
 
 img_result_t img_runtime_run_compiled_pipeline(
     img_engine_t *engine,
+    img_ctx_t *ctx,
     img_pipeline_desc_t *pipe,
     img_buffer_t *out_buf);
 

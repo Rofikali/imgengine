@@ -5,8 +5,10 @@
 #ifndef IMGENGINE_RUNTIME_SCHEDULER_H
 #define IMGENGINE_RUNTIME_SCHEDULER_H
 
+#include <sched.h>
 #include <stdint.h>
 
+#include "core/result.h"
 #include "runtime/task.h"
 #include "runtime/queue_spsc.h"
 #include "runtime/queue_mpmc.h"
@@ -37,6 +39,8 @@ void img_scheduler_destroy(img_scheduler_t *sched);
  * Submit
  */
 int img_scheduler_submit(img_scheduler_t *sched, img_task_t *task);
+int img_runtime_submit_task(img_engine_t *engine, img_task_t *task);
+img_result_t img_runtime_wait_task(img_task_t *task);
 
 /*
  * Steal

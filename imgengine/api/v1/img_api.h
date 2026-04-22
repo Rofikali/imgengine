@@ -18,6 +18,8 @@ extern "C"
      * Owns: worker threads, slab pools, jump tables, plugin registry.
      */
     typedef struct img_engine img_engine_t;
+    typedef struct img_pipeline_desc img_pipeline_desc_t;
+    typedef struct img_buffer img_buffer_t;
 
     /*
      * img_api_init()
@@ -85,6 +87,32 @@ extern "C"
         size_t input_size,
         uint8_t **output,
         size_t *output_size);
+
+    /*
+     * img_api_process_fast()
+     *
+     * Low-level kernel entrypoint:
+     *   validate input → decode → execute precompiled pipeline
+     *
+     * Intended for benchmark harnesses and advanced bindings that already
+     * own a compiled pipeline descriptor and output buffer.
+     */
+    img_result_t img_api_process_fast(
+        img_engine_t *engine,
+        const uint8_t *input,
+        size_t input_size,
+        img_pipeline_desc_t *pipe,
+        img_buffer_t *out_buf);
+
+    /*
+     * img_api_release_raw_buffer()
+     *
+     * Release a decoded/raw buffer previously produced by img_api_process_fast()
+     * or other API decode helpers.
+     */
+    void img_api_release_raw_buffer(
+        img_engine_t *engine,
+        img_buffer_t *buf);
 
     void img_encoded_free(uint8_t *ptr);
 

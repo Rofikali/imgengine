@@ -4,8 +4,6 @@
 
 #include "pipeline/canvas_internal.h"
 
-#include <string.h>
-
 img_result_t img_canvas_init(
     img_canvas_t *canvas,
     img_slab_pool_t *pool,
