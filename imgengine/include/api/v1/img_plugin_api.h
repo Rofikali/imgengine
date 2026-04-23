@@ -1,6 +1,8 @@
-#ifndef IMGENGINE_INCLUDE_API_V1_IMG_PLUGIN_API_WRAPPER_H
-#define IMGENGINE_INCLUDE_API_V1_IMG_PLUGIN_API_WRAPPER_H
+// ./api/v1/img_plugin_api.h
+// api/v1/img_plugin_api.h  (UPDATE — re-export)
 
-#include "../../../api/v1/img_plugin_api.h"
-
-#endif /* IMGENGINE_INCLUDE_API_V1_IMG_PLUGIN_API_WRAPPER_H */
+#ifndef IMGENGINE_PLUGIN_API_H
+#define IMGENGINE_PLUGIN_API_H
+/* Plugin ABI moved to pipeline/plugin_abi.h */
+#include "pipeline/plugin_abi.h"
+#endif

@@ -1,6 +1,28 @@
-#ifndef IMGENGINE_INCLUDE_API_V1_IMG_PIPELINE_WRAPPER_H
-#define IMGENGINE_INCLUDE_API_V1_IMG_PIPELINE_WRAPPER_H
+// ./api/v1/img_pipeline.h
 
-#include "../../../api/v1/img_pipeline.h"
 
-#endif /* IMGENGINE_INCLUDE_API_V1_IMG_PIPELINE_WRAPPER_H */
+#ifndef IMGENGINE_API_PIPELINE_H
+#define IMGENGINE_API_PIPELINE_H
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+    typedef struct img_pipeline img_pipeline_t;
+
+    img_pipeline_t *img_pipeline_create(void);
+    void img_pipeline_destroy(img_pipeline_t *pipe);
+
+    int img_pipeline_add_op(
+        img_pipeline_t *pipe,
+        uint32_t op_code,
+        void *params);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
