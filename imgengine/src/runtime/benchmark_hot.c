@@ -3,6 +3,7 @@
 #include "runtime/template_registry.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 img_result_t img_runtime_hot_bench_init(
     img_engine_t *engine,
@@ -36,11 +37,16 @@ img_result_t img_runtime_hot_bench_init(
     state->render_cache.pool = engine->global_pool;
     state->render_cache.allow_scaled_cache = 1;
     /*
-     * Keep scaled-cache reuse enabled, but disable the final canvas cache for
-     * benchmarking. Otherwise the prepared benchmark mostly measures a cache
-     * hit after warmup, which produces misleading sub-microsecond timings.
+     * Keep scaled-cache reuse enabled. By default disable the final canvas
+     * cache for benchmarking to avoid measuring warm-cache hits. Allow
+     * overriding via the environment variable `IMGENGINE_ENABLE_FINAL_CACHE`
+     * so we can measure the effect of final-buffer reuse as an immediate
+     * optimization (quick win).
      */
-    state->render_cache.allow_final_cache = 0;
+    if (getenv("IMGENGINE_ENABLE_FINAL_CACHE") != NULL)
+        state->render_cache.allow_final_cache = 1;
+    else
+        state->render_cache.allow_final_cache = 0;
     state->ctx.op_params = &state->render_cache;
     if (img_runtime_resolve_template_job(
             engine, preset_template, &state->job) != IMG_SUCCESS)

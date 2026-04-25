@@ -45,50 +45,7 @@ img_result_t img_layout_prepare_fit(
 
     r = img_layout_prepare_fit_commit(
         &tmp, dst, pool, cell_w, cell_h, bg_r, bg_g, bg_b);
-    img_slab_recycle(pool, tmp.data);
+    if (tmp.owner_pool == pool)
+        img_slab_recycle(pool, tmp.data);
     return r;
 }
-
-// // ./src/pipeline/layout_prepare_fit.c
-// #define _GNU_SOURCE
-
-// #include "pipeline/layout_resize_internal.h"
-
-// img_result_t img_layout_prepare_fit(
-//     const img_buffer_t *src,
-//     img_buffer_t *dst,
-//     uint32_t cell_w,
-//     uint32_t cell_h,
-//     img_slab_pool_t *pool,
-//     uint8_t bg_r,
-//     uint8_t bg_g,
-//     uint8_t bg_b)
-// {
-//     if (!src || !dst || !pool || !src->data || src->width == 0 || src->height == 0)
-//         return IMG_ERR_SECURITY;
-
-//     float sx = (float)cell_w / (float)src->width;
-//     float sy = (float)cell_h / (float)src->height;
-//     float s = (sx < sy) ? sx : sy;
-
-//     uint32_t fit_w = (uint32_t)((float)src->width * s);
-//     uint32_t fit_h = (uint32_t)((float)src->height * s);
-//     if (fit_w == 0)
-//         fit_w = 1;
-//     if (fit_h == 0)
-//         fit_h = 1;
-//     if (fit_w > cell_w)
-//         fit_w = cell_w;
-//     if (fit_h > cell_h)
-//         fit_h = cell_h;
-
-//     img_buffer_t tmp = {0};
-//     img_result_t r = img_layout_resize_bilinear(src, &tmp, fit_w, fit_h, pool);
-//     if (r != IMG_SUCCESS)
-//         return r;
-
-//     r = img_layout_prepare_fit_commit(&tmp, dst, pool, cell_w, cell_h,
-//                                       bg_r, bg_g, bg_b);
-//     img_slab_recycle(pool, tmp.data);
-//     return r;
-// }

@@ -54,6 +54,7 @@ void img_layout_resize_resample_bilinear(
  * Pure validation — no ctx needed.
  */
 img_result_t img_layout_resize_validate_alloc(
+    img_ctx_t *ctx,
     const img_buffer_t *src,
     img_buffer_t *dst,
     uint32_t new_w,

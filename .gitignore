@@ -2,6 +2,10 @@
 # 1. Build Artifacts (The "Dirty" Files)
 # ==========================================
 *build/
+*build-profile/
+out.peft
+out.folded
+build-san
 bin/
 obj/
 *.o

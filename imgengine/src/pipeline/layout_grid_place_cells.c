@@ -3,6 +3,8 @@
 
 #include "pipeline/layout_grid_internal.h"
 
+#include <assert.h>
+
 extern void img_blit_avx2(img_buffer_t *, const img_buffer_t *,
                           uint32_t, uint32_t);
 
@@ -17,6 +19,10 @@ uint32_t img_layout_grid_place_cells(
     uint32_t step_x = pw + job->gap;
     uint32_t step_y = ph + job->gap;
     uint32_t placed = 0;
+
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_UNDEFINED__)
+    assert(((uintptr_t)cells & 0xF) == 0 && "cells not 16-byte aligned");
+#endif
 
     for (uint32_t row = 0; row < job->rows; row++)
     {
@@ -35,6 +41,7 @@ uint32_t img_layout_grid_place_cells(
             img_blit_avx2(&canvas->buf, scaled, (uint32_t)x, (uint32_t)y);
 
             size_t idx = (size_t)row * (size_t)job->cols + (size_t)col;
+            /* sanitizer-only alignment check is done at function entry */
             cells[idx].x = x;
             cells[idx].y = y;
             cells[idx].w = pw;

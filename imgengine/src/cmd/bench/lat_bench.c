@@ -816,6 +816,7 @@ int main(int argc, char **argv)
 {
     static struct option long_opts[] = {
         {"preset", required_argument, 0, 'p'},
+        {"workers", required_argument, 0, 'w'},
         {"input-format", required_argument, 0, 'f'},
         {"input-width", required_argument, 0, 1},
         {"input-height", required_argument, 0, 2},
@@ -830,6 +831,7 @@ int main(int argc, char **argv)
     uint32_t input_width = 0;
     uint32_t input_height = 0;
     uint32_t input_stride = 0;
+    uint32_t workers = 1;
     bool has_input_width = false;
     bool has_input_height = false;
     bool has_input_stride = false;
@@ -853,6 +855,10 @@ int main(int argc, char **argv)
                         img_job_template_name(IMG_JOB_TEMPLATE_PRINTREADY_6X6));
                 return 1;
             }
+            break;
+        case 'w':
+            if (parse_u32_arg(optarg, &workers, "workers") != 0)
+                return 1;
             break;
         case 'f':
             if (strcmp(optarg, "encoded") == 0)
@@ -884,7 +890,7 @@ int main(int argc, char **argv)
             run_encode_sweep = true;
             break;
         case 'h':
-            printf("Usage: %s [--preset <name>] [--input-format encoded|raw-rgb24] [--input-width <px>] [--input-height <px>] [--input-stride <bytes>] [--encode-sweep] [file]\n", argv[0]);
+            printf("Usage: %s [--preset <name>] [--workers <n>] [--input-format encoded|raw-rgb24] [--input-width <px>] [--input-height <px>] [--input-stride <bytes>] [--encode-sweep] [file]\n", argv[0]);
             return 0;
         default:
             fprintf(stderr, "bench_lat: invalid arguments\n");
@@ -959,7 +965,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    img_engine_t *engine = img_api_init(1);
+    img_engine_t *engine = img_api_init(workers);
     if (!engine)
     {
         fprintf(stderr, "bench_lat: engine init failed\n");
@@ -970,6 +976,7 @@ int main(int argc, char **argv)
     printf("\n=== imgengine latency benchmark ===\n");
     printf("  file:       %s (%lld bytes)\n", path, (long long)file_size);
     printf("  format:     %s\n", bench_input_format_name(input_format));
+    printf("  workers:    %u\n", workers);
     if (input_format == BENCH_INPUT_FORMAT_RAW_RGB24)
         printf("  frame:      %ux%u stride=%u\n", input_width, input_height, input_stride);
     printf("  iterations: %d (+ %d warmup)\n", BENCH_ITERATIONS, BENCH_WARMUP);
