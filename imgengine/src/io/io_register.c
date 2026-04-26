@@ -8,8 +8,12 @@
 
 #define _GNU_SOURCE
 
+#include <stdlib.h>
+#include <strings.h>
+
 #include "io/io_vtable.h"
 #include "io/decoder/decoder_entry.h"
+#include "io/decoder/decoder_dispatch.h"
 #include "io/encoder/encoder_entry.h"
 #include "io/encoder/pdf_encoder.h"
 
@@ -34,8 +38,20 @@ void img_io_register(
  */
 void img_io_register_defaults(void)
 {
+    /* Allow override via env var before we pick default strategy */
+    const char *env = getenv("IMGENGINE_DECODE_STRATEGY");
+    if (env)
+    {
+        if (strcasecmp(env, "stream") == 0)
+            img_io_set_decode_strategy(IMG_DECODE_STRATEGY_STREAM);
+        else if (strcasecmp(env, "bulk") == 0)
+            img_io_set_decode_strategy(IMG_DECODE_STRATEGY_BULK);
+        else
+            img_io_set_decode_strategy(IMG_DECODE_STRATEGY_AUTO);
+    }
+
     img_io_register(
-        (img_decode_fn)img_decode_to_buffer,
+        (img_decode_fn)img_decode_dispatch,
         (img_encode_fn)img_encode_from_buffer,
         img_encode_pdf);
 }

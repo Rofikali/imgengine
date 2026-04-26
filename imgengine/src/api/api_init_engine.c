@@ -3,6 +3,7 @@
 #include "memory/slab.h"
 #include "runtime/template_registry.h"
 #include "startup/engine_init_internal.h"
+#include "pipeline/generated.h"
 
 int img_api_init_prepare_engine(uint32_t workers)
 {
@@ -33,6 +34,9 @@ int img_api_init_prepare_engine(uint32_t workers)
         img_api_init_reset_engine();
         return -1;
     }
+
+    /* Ensure generated/committed pipelines are registered deterministically. */
+    register_generated_pipelines();
 
     img_engine_init_compute(g_engine.caps);
 

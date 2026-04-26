@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant CLI as CLI / main
+    participant API as API Layer
+    participant IO as IO / VFS
+    participant DEC as Decoder
+    participant SCHED as Scheduler / Runtime
+    participant GQ as Global Queue (MPMC)
+    participant W as Worker Thread
+    participant PIPE as Pipeline Executor (hot)
+    participant JUMP as Jump Table
+    participant ARCH as Arch Kernel (SIMD)
+    participant ENC as Encoder
+    participant FS as Filesystem / IO
+
+    %% Normal path: file input -> decode -> submit -> execute -> encode
+    CLI->>API: img_api_run_job(engine, input_path, output_path, job)
+    API->>IO: open / mmap input file
+    IO->>DEC: call g_io_vtable.decode(ctx, data, size, &photo)
+    DEC-->>API: decoded img_buffer_t (photo)
+    API->>SCHED: img_runtime_submit_task(task)
+    SCHED->>GQ: push task (mpmc)
+    W->>GQ: pop task (spsc fast-path then global mpmc)
+    W->>PIPE: img_pipeline_execute_hot(ctx, compiled_pipeline, buffer)
+    PIPE->>JUMP: for each op: fn = g_jump_table[op_code]
+    JUMP->>ARCH: call kernel fn(ctx, buf, params)
+    ARCH-->>PIPE: writes processed pixels into buffer
+    W-->>API: task completed (status)
+    API->>ENC: img_api_finish_job_output(ctx, canvas, layout, job)
+    ENC->>FS: write output (io_uring or blocking write)
+    FS-->>API: write complete
+    API-->>CLI: return result
+
+    %% Raw RGB24 ingress (decode-bypass)
+    CLI->>API: img_api_run_job_rgb24_raw(engine, raw_rgb24, w,h,stride, job)
+    API->>SCHED: submit prepared render task (no decode)
+    SCHED->>W: schedule render stage
+    W->>PIPE: execute hot pipeline (same as above)
+    PIPE->>ENC: handoff to encoder (if required)
+
+    %% Notes
+    note over PIPE,JUMP: Jump table populated at startup (img_jump_table_init + hw registration)
+    note over ARCH: Arch kernels are branchless, no allocations in hot path

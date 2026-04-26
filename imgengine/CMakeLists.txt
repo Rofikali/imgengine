@@ -336,6 +336,7 @@ set(SOURCES_RUNTIME
 
 set(SOURCES_IO
     src/io/decoder/decoder_entry.c
+    src/io/decoder/decoder_dispatch.c
     src/io/decoder/png_decoder.c
     src/io/decoder/stb_bridge.c
     src/io/decoder/streaming_decoder.c
@@ -506,6 +507,14 @@ if(IMGENGINE_BENCH)
         target_link_libraries(bench_lat PRIVATE -fsanitize=address,undefined)
     endif()
 
+    add_executable(decoder_bench src/cmd/bench/decoder_bench.c)
+    target_include_directories(decoder_bench PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(decoder_bench PRIVATE ${IMGENGINE_COMMON_FLAGS})
+    target_link_libraries(decoder_bench PRIVATE imgengine)
+    if(IMGENGINE_SANITIZE)
+        target_link_libraries(decoder_bench PRIVATE -fsanitize=address,undefined)
+    endif()
+
     # add_executable(imgengine_cli_bench src/cmd/bench/cli_bench.c)
     # target_include_directories(imgengine_cli_bench PRIVATE ${IMGENGINE_INCLUDES})
     # target_compile_options(imgengine_cli_bench PRIVATE ${IMGENGINE_COMMON_FLAGS})
@@ -513,6 +522,14 @@ if(IMGENGINE_BENCH)
     # if(IMGENGINE_SANITIZE)
     #     target_link_libraries(imgengine_cli_bench PRIVATE -fsanitize=address,undefined)
     # endif()
+endif()
+# ── Verify generated pipelines test ─────────────────────────
+add_executable(verify_generated_registration src/tests/verify_generated_registration.c)
+target_include_directories(verify_generated_registration PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(verify_generated_registration PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(verify_generated_registration PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(verify_generated_registration PRIVATE -fsanitize=address,undefined)
 endif()
 
 # ── Build summary ──────────────────────────────────────────
