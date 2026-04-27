@@ -22,9 +22,9 @@ jobs:
 
       # 🔥 STRICT HEADER CHECK (ONLY ENGINE)
       - name: Check Headers (ENGINE ONLY)
-        run: python3 scripts/check_headers.py
+        run: python3 imgengine/scripts/check_headers.py
         # if headers are missing,
-        # python3 scripts/add_file_path_on_top.py
+        # python3 imgengine/scripts/add_file_path_on_top.py
 
       - name: Build Engine
         run: |
