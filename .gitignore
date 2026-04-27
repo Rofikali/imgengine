@@ -1,69 +1,53 @@
-# ==========================================
-# 1. Build Artifacts (The "Dirty" Files)
-# ==========================================
-*build/
-*build-profile/
-out.peft
-out.folded
-build-san
-bin/
-obj/
+# === Python / uv / Virtual Envs ===
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# === C / Systems Engineering ===
 *.o
+*.out
 *.so
 *.a
-*.la
-*.lo
-*.out
-*.app
-*lib
+imgengine_cli
+# Ignore all built binaries in the build folder
+build/
 
-# Images 
-dependency_graph.dot
-dependency_graph.png
-layer_graph.dot
-layer_graph.png
-
-
-# ==========================================
-# 4. Dependency & System Specific
-# ==========================================
-node_modules/
-.venv/
-env/
-vendor/
+# === Docker & Infrastructure ===
+.docker/
+# Ignore local database storage and logs
+data/
+logs/
 *.log
-*.swp
-*~
+
+# === Node.js / Nuxt / Vue (Frontend) ===
+node_modules/
+.nuxt/
+.output/
+dist/
+.env
+.env.*
+!.env.example
+
+# === Databases & State ===
+*.sqlite3
+*.db
+# Postgres data (if mounted locally)
+pgdata/
+
+# === OS & IDE Specific ===
 .DS_Store
-Thumbs.db
-
-
-# ==========================================
-# 5. IDE / Editor Configurations
-# ==========================================
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-.project
-.settings/
-.classpath
+*.swp
+*.bak
 
-# ==========================================
-# 6. Test Data & Corpus (Large Files)
-# ==========================================
-tests/corpus/*.jpg
-tests/corpus/*.png
-!tests/corpus/.gitkeep
-valgrind-out*
-gmon.out
-*.gcda
-*.gcno
-*.gcov
-
-# ==========================================
-# 7. Security & Secrets
-# ==========================================
-.env
-*.pem
-*.key
+# === Stress Testing & Temporary Files ===
+testing_scripts/*.jpg
+testing_scripts/*.png
+!testing_scripts/4.jpg
