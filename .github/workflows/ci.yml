@@ -20,11 +20,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake python3 clang-format imagemagick libturbojpeg-dev curl
 
-      # 🔥 STRICT HEADER CHECK (ONLY ENGINE)
-      - name: Check Headers (ENGINE ONLY)
-        run: python3 imgengine/scripts/check_headers.py
-        # if headers are missing,
-        # python3 imgengine/scripts/add_file_path_on_top.py
+      # # 🔥 STRICT HEADER CHECK (ONLY ENGINE)
+      # - name: Check Headers (ENGINE ONLY)
+      #   run: python3 imgengine/scripts/check_headers.py
+      
+      - name: Annotate and Check Headers
+        run: |
+          # 1. Run the fixer first from the root
+          python3 imgengine/scripts/add_file_path_on_top.py
+          
+          # 2. Run the check (should pass now)
+          python3 imgengine/scripts/check_headers.py
 
       - name: Build Engine
         run: |
