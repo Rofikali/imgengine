@@ -1,13 +1,12 @@
 // ./src/plugins/plugin_grayscale.c
 
- #include "pipeline/plugin_abi.h"
+#include "pipeline/plugin_abi.h"
 #include "core/opcodes.h"
 #include "arch/arch_interface.h"
 
 #include <stddef.h>
 
-static void grayscale_exec(img_ctx_t *ctx, img_buffer_t *buf, void *)
-{
+static void grayscale_exec(img_ctx_t *ctx, img_buffer_t *buf, void *) {
     (void)ctx;
 
     uint32_t n = buf->width * buf->height * buf->channels;

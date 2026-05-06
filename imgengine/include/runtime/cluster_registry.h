@@ -7,8 +7,7 @@
 
 #include <stdint.h>
 
-typedef struct
-{
+typedef struct {
     uint32_t node_id;
     const char *ip;
     uint16_t port;

@@ -6,9 +6,9 @@
 // Each kernel handles a specific combination of ops in a single batch pass.
 //
 // HOT PATH CONTRACT:
-//   - No malloc/free
+//   - No heap operations
 //   - No locks
-//   - No printf
+//   - No stdio calls
 //   - All kernels are pure (no global state reads/writes)
 //   - params pointer is always valid (checked by caller)
 //

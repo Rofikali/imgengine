@@ -2,15 +2,12 @@
 
 // ./src/security/fuzz_hooks.c
 
-
-
 #include "security/input_validator.h"
 #include <stdint.h>
 #include <stddef.h>
 
 // 🔥 AFL / libFuzzer ENTRY
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 12)
         return 0;
 

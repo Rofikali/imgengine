@@ -13,10 +13,7 @@
 #include "core/context_internal.h"
 #include "pipeline/batch.h"
 
-typedef void (*img_fused_kernel_fn)(
-    img_ctx_t *ctx,
-    img_batch_t *batch,
-    void *params);
+typedef void (*img_fused_kernel_fn)(img_ctx_t *ctx, img_batch_t *batch, void *params);
 
 /*
  * img_batch_execute_fused()
@@ -26,10 +23,7 @@ typedef void (*img_fused_kernel_fn)(
  * Includes RDTSC profiling and tracepoint hooks.
  * Used when pipeline ops have been fused into a single kernel.
  */
-void img_batch_execute_fused(
-    img_ctx_t *ctx,
-    img_batch_t *batch,
-    void *pipeline);
+void img_batch_execute_fused(img_ctx_t *ctx, img_batch_t *batch, void *pipeline);
 
 #endif /* IMGENGINE_BATCH_EXEC_H */
 

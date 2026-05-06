@@ -2,18 +2,13 @@
 
 // ./src/io/vfs/posix_io.c
 
-
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <stdint.h>
 
-img_result_t img_vfs_mmap_file(
-    const char *path,
-    uint8_t **data,
-    size_t *size)
-{
+img_result_t img_vfs_mmap_file(const char *path, uint8_t **data, size_t *size) {
     int fd = open(path, O_RDONLY);
     if (fd < 0)
         return IMG_ERR_IO;

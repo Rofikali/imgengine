@@ -4,6 +4,7 @@
 #ifndef IMGENGINE_HOT_PIPELINE_EXEC_H
 #define IMGENGINE_HOT_PIPELINE_EXEC_H
 
+#include "pipeline/pipeline_compiled.h"
 #include "pipeline/fused_kernel.h"
 #include "pipeline/fused_params.h"
 
@@ -20,10 +21,13 @@ typedef struct img_buffer img_buffer_t;
  * Sequential single-image hot path.
  * Uses jump table dispatch per op.
  */
-void img_pipeline_execute_hot(
-    img_ctx_t *__restrict ctx,
-    const img_pipeline_runtime_t *__restrict pipe,
-    img_buffer_t *__restrict buf);
+void img_pipeline_execute_hot(img_ctx_t *__restrict ctx,
+                              const img_pipeline_runtime_t *__restrict pipe,
+                              img_buffer_t *__restrict buf);
+
+void img_pipeline_execute_compiled_hot(img_ctx_t *__restrict ctx,
+                                       const img_pipeline_compiled_t *__restrict pipe,
+                                       img_buffer_t *__restrict buf);
 
 /*
  * img_pipeline_execute_fused()
@@ -34,10 +38,7 @@ void img_pipeline_execute_hot(
  *
  * NEVER pass img_fused_kernel_fn here — batch ABI is incompatible.
  */
-void img_pipeline_execute_fused(
-    img_ctx_t *ctx,
-    img_single_kernel_fn fn,
-    img_fused_params_t *params,
-    img_buffer_t *buf);
+void img_pipeline_execute_fused(img_ctx_t *ctx, img_single_kernel_fn fn, img_fused_params_t *params,
+                                img_buffer_t *buf);
 
 #endif /* IMGENGINE_HOT_PIPELINE_EXEC_H */

@@ -4,7 +4,7 @@
 #ifndef IMGENGINE_SECURITY_VALIDATOR_H
 #define IMGENGINE_SECURITY_VALIDATOR_H
 
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <stdint.h>
 #include <stddef.h>
 

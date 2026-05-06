@@ -11,11 +11,7 @@
 // #define MAX_PIXELS (16384ULL * 16384ULL)
 // #define MAX_CHANNELS 4
 
-img_result_t img_validate_header(
-    uint32_t w,
-    uint32_t h,
-    uint32_t ch)
-{
+img_result_t img_validate_header(uint32_t w, uint32_t h, uint32_t ch) {
     if (w == 0 || h == 0)
         return IMG_ERR_FORMAT;
 
@@ -36,18 +32,14 @@ img_result_t img_validate_header(
     return IMG_SUCCESS;
 }
 
-bool img_validate_pipeline_safety(
-    const img_pipeline_desc_t *pipe)
-{
+bool img_validate_pipeline_safety(const img_pipeline_desc_t *pipe) {
     if (!pipe)
         return false;
 
-    if (pipe->count == 0 ||
-        pipe->count > IMG_MAX_PIPELINE_OPS)
+    if (pipe->count == 0 || pipe->count > IMG_MAX_PIPELINE_OPS)
         return false;
 
-    for (uint32_t i = 0; i < pipe->count; i++)
-    {
+    for (uint32_t i = 0; i < pipe->count; i++) {
         uint32_t op = pipe->ops[i].op_code;
 
         if (op == 0 || op >= OP_CUSTOM_BASE)

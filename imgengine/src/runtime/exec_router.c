@@ -1,3 +1,4 @@
+// ./src/runtime/exec_router.c
 // src/runtime/exec_router.c
 
 // ================================================================
@@ -26,10 +27,8 @@
  *
  * Future: policy loaded from config, adaptive based on load metrics.
  */
-img_exec_mode_t img_exec_route(uint32_t op_code)
-{
-    switch (op_code)
-    {
+img_exec_mode_t img_exec_route(uint32_t op_code) {
+    switch (op_code) {
     case OP_RESIZE:
     case OP_RESIZE_H:
     case OP_RESIZE_V:
@@ -54,16 +53,10 @@ img_exec_mode_t img_exec_route(uint32_t op_code)
  * Replace direct g_jump_table[op_code](ctx, buf, params) calls with
  * img_exec_dispatch(ctx, op_code, buf, params) to enable routing.
  */
-int img_exec_dispatch(
-    img_ctx_t *ctx,
-    uint32_t op_code,
-    img_buffer_t *buf,
-    void *params)
-{
+int img_exec_dispatch(img_ctx_t *ctx, uint32_t op_code, img_buffer_t *buf, void *params) {
     img_exec_mode_t mode = img_exec_route(op_code);
 
-    if (mode == IMG_EXEC_LOCAL)
-    {
+    if (mode == IMG_EXEC_LOCAL) {
         img_kernel_fn fn = g_jump_table[op_code];
         if (!fn)
             return -1; /* op not registered */
@@ -74,42 +67,3 @@ int img_exec_dispatch(
     /* REMOTE: serialize and send via RPC */
     return img_rpc_send(op_code, buf, params);
 }
-
-// // ./src/runtime/exec_router.c
-
-// #include "runtime/exec_router.h"
-// #include "runtime/rpc_client.h"
-// #include "pipeline/jump_table.h"
-// #include "core/opcodes.h"
-
-// // 🔥 smart routing (L10 brain)
-// img_exec_mode_t img_exec_route(uint32_t op_code)
-// {
-//     switch (op_code)
-//     {
-//     case OP_RESIZE:
-//         return IMG_EXEC_LOCAL;
-
-//     default:
-//         return IMG_EXEC_REMOTE;
-//     }
-// }
-
-// int img_exec_dispatch(
-//     img_ctx_t *ctx,
-//     uint32_t op_code,
-//     img_buffer_t *buf,
-//     void *params)
-// {
-//     img_exec_mode_t mode = img_exec_route(op_code);
-
-//     if (mode == IMG_EXEC_LOCAL)
-//     {
-//         g_jump_table[op_code](ctx, buf, params);
-//         return 0;
-//     }
-//     else
-//     {
-//         return img_rpc_send(op_code, buf, params);
-//     }
-// }

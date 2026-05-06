@@ -15,10 +15,7 @@
  *
  * Used by: fused_dispatch.c, batch_exec.c, pipeline_fuse.c
  */
-typedef void (*img_fused_kernel_fn)(
-    img_ctx_t *ctx,
-    img_batch_t *batch,
-    void *params);
+typedef void (*img_fused_kernel_fn)(img_ctx_t *ctx, img_batch_t *batch, void *params);
 
 /*
  * SINGLE-IMAGE KERNEL ABI
@@ -29,9 +26,7 @@ typedef void (*img_fused_kernel_fn)(
  * Used by: pipeline_exec.c (hot path single-image)
  *          pipeline_fuse.c (AVX2/scalar fused exec)
  */
-typedef void (*img_single_kernel_fn)(
-    img_ctx_t *ctx,
-    img_buffer_t *buf);
+typedef void (*img_single_kernel_fn)(img_ctx_t *ctx, img_buffer_t *buf);
 
 /*
  * FUSED KERNEL DECLARATIONS

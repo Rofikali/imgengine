@@ -13,12 +13,7 @@
 #include <stddef.h> // <--- ADD THIS for size_t
 
 // 🔥 SAFE (NO OVERFLOW)
-static inline bool img_bounds_check(
-    const void *ptr,
-    size_t size,
-    const void *base,
-    size_t limit)
-{
+static inline bool img_bounds_check(const void *ptr, size_t size, const void *base, size_t limit) {
     uintptr_t p = (uintptr_t)ptr;
     uintptr_t b = (uintptr_t)base;
 

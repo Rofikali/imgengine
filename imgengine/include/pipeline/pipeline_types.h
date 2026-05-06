@@ -3,18 +3,7 @@
 #ifndef IMGENGINE_PIPELINE_TYPES_H
 #define IMGENGINE_PIPELINE_TYPES_H
 
-#include <stdint.h>
-
-typedef struct img_op_desc
-{
-    uint32_t op_code;
-    void *params;
-} __attribute__((aligned(64))) img_op_desc_t;
-
-typedef struct img_pipeline_desc
-{
-    img_op_desc_t *ops;
-    uint32_t count;
-} img_pipeline_desc_t;
+/* Canonical pipeline descriptor types live in core/pipeline_types.h. */
+#include "core/pipeline_types.h"
 
 #endif

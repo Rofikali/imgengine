@@ -7,8 +7,7 @@
 
 #include <stdint.h>
 
-typedef struct
-{
+typedef struct {
     const char *name;
     uint64_t start;
     uint64_t end;

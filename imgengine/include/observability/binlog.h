@@ -10,8 +10,7 @@
 
 #define IMG_MAX_CPUS 128
 
-typedef struct
-{
+typedef struct {
     uint64_t timestamp;
     uint32_t event_id;
     uint32_t cpu;
@@ -25,8 +24,7 @@ typedef struct
 /*
  * 🔥 PER-CPU RING BUFFER
  */
-typedef struct
-{
+typedef struct {
     img_log_entry_t *entries;
 
     uint32_t size;
@@ -40,8 +38,7 @@ typedef struct
 /*
  * 🔥 GLOBAL BINLOG (SHARDED)
  */
-typedef struct
-{
+typedef struct {
     uint32_t cpu_count;
     img_binlog_cpu_t cpu_logs[IMG_MAX_CPUS];
 
@@ -50,14 +47,11 @@ typedef struct
 /*
  * 🔥 API
  */
+void img_binlog_set_cpu(uint32_t cpu);
 int img_binlog_init(img_binlog_t *log, uint32_t cpu_count, uint32_t power);
 void img_binlog_destroy(img_binlog_t *log);
 
-void img_binlog_write(
-    img_binlog_t *log,
-    uint32_t event,
-    uint64_t arg0,
-    uint64_t arg1,
-    uint64_t arg2);
+void img_binlog_write(img_binlog_t *log, uint32_t event, uint64_t arg0, uint64_t arg1,
+                      uint64_t arg2);
 
 #endif

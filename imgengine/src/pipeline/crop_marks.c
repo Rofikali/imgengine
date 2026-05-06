@@ -35,12 +35,8 @@
 #include "pipeline/layout.h"
 #include "core/result.h"
 
-static inline void set_px(img_buffer_t *c, int32_t x, int32_t y,
-                          uint8_t r, uint8_t g, uint8_t b)
-{
-    if (x < 0 || y < 0 ||
-        (uint32_t)x >= c->width ||
-        (uint32_t)y >= c->height)
+static inline void set_px(img_buffer_t *c, int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b) {
+    if (x < 0 || y < 0 || (uint32_t)x >= c->width || (uint32_t)y >= c->height)
         return;
 
     uint8_t *p = c->data + (size_t)y * c->stride + (size_t)x * 3;
@@ -50,20 +46,16 @@ static inline void set_px(img_buffer_t *c, int32_t x, int32_t y,
 }
 
 /* Draw horizontal line from (x, y) rightward, length len, thickness th */
-static void draw_h(img_buffer_t *c,
-                   int32_t x, int32_t y, int32_t len, uint32_t th,
-                   uint8_t r, uint8_t g, uint8_t b)
-{
+static void draw_h(img_buffer_t *c, int32_t x, int32_t y, int32_t len, uint32_t th, uint8_t r,
+                   uint8_t g, uint8_t b) {
     for (uint32_t t = 0; t < th; t++)
         for (int32_t i = 0; i < len; i++)
             set_px(c, x + i, y + (int32_t)t, r, g, b);
 }
 
 /* Draw vertical line from (x, y) downward, length len, thickness th */
-static void draw_v(img_buffer_t *c,
-                   int32_t x, int32_t y, int32_t len, uint32_t th,
-                   uint8_t r, uint8_t g, uint8_t b)
-{
+static void draw_v(img_buffer_t *c, int32_t x, int32_t y, int32_t len, uint32_t th, uint8_t r,
+                   uint8_t g, uint8_t b) {
     for (uint32_t t = 0; t < th; t++)
         for (int32_t i = 0; i < len; i++)
             set_px(c, x + (int32_t)t, y + i, r, g, b);
@@ -87,11 +79,8 @@ static void draw_v(img_buffer_t *c,
  *         vertical mark (left of photo)
  *         goes from (y - offset - mark_len) upward to (y - offset)
  */
-img_result_t img_draw_crop_marks(
-    img_buffer_t *canvas,
-    const img_layout_t *layout,
-    const img_job_t *job)
-{
+img_result_t img_draw_crop_marks(img_buffer_t *canvas, const img_layout_t *layout,
+                                 const img_job_t *job) {
     if (!canvas || !layout || job->crop_mark_px == 0)
         return IMG_SUCCESS;
 
@@ -102,8 +91,7 @@ img_result_t img_draw_crop_marks(
     /* black crop marks */
     const uint8_t r = 0, g = 0, b = 0;
 
-    for (uint32_t i = 0; i < layout->count; i++)
-    {
+    for (uint32_t i = 0; i < layout->count; i++) {
         const img_cell_t *c = &layout->cells[i];
 
         const int32_t x = (int32_t)c->x;

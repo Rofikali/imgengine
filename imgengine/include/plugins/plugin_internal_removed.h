@@ -17,8 +17,7 @@ typedef void (*img_op_fn)(img_ctx_t *, img_buffer_t *, void *);
 typedef void (*img_batch_op_fn)(img_ctx_t *, img_batch_t *, void *);
 
 // Plugin descriptor
-typedef struct
-{
+typedef struct {
     uint32_t op_code;
     const char *name;
     img_op_fn single_exec;

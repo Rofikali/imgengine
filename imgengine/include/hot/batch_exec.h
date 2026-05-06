@@ -1,6 +1,5 @@
 // ./include/hot/batch_exec.h
 
-
 #ifndef IMGENGINE_HOT_BATCH_EXEC_H
 #define IMGENGINE_HOT_BATCH_EXEC_H
 
@@ -17,9 +16,7 @@ typedef struct img_pipeline_runtime img_pipeline_runtime_t;
  * Iterates jump table per op — used when pipeline is NOT fused.
  * Called by worker_loop() for standard (non-fused) pipelines.
  */
-void img_batch_execute_rt(
-    img_ctx_t *__restrict ctx,
-    img_batch_t *__restrict batch,
-    const img_pipeline_runtime_t *__restrict pipe);
+void img_batch_execute_rt(img_ctx_t *__restrict ctx, img_batch_t *__restrict batch,
+                          const img_pipeline_runtime_t *__restrict pipe);
 
 #endif /* IMGENGINE_HOT_BATCH_EXEC_H */

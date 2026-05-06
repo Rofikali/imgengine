@@ -5,7 +5,7 @@
 #ifndef IMGENGINE_KERNEL_ADAPTER_H
 #define IMGENGINE_KERNEL_ADAPTER_H
 
-#include "api/v1/img_plugin_api.h"
+#include "pipeline/plugin_abi.h"
 
 /*
  * KERNEL ABI — unified 3-arg signature
@@ -17,15 +17,9 @@
  * This eliminates the cast between img_op_fn and img_kernel_fn.
  * img_op_fn in img_plugin_api.h is redefined to match.
  */
-typedef void (*img_kernel_fn)(
-    img_ctx_t *ctx,
-    img_buffer_t *buf,
-    void *params);
+typedef void (*img_kernel_fn)(img_ctx_t *ctx, img_buffer_t *buf, void *params);
 
-typedef void (*img_batch_kernel_fn)(
-    img_ctx_t *ctx,
-    img_batch_t *batch,
-    void *params);
+typedef void (*img_batch_kernel_fn)(img_ctx_t *ctx, img_batch_t *batch, void *params);
 
 /*
  * img_adapt_op() — removed.

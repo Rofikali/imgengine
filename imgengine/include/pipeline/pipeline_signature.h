@@ -30,18 +30,14 @@ typedef uint32_t img_pipeline_sig_t;
  * Inline justified: trivial loop, called from cold path only,
  * avoids function call overhead at compile boundary.
  */
-static inline img_pipeline_sig_t
-img_pipeline_build_signature(const img_pipeline_desc_t *p)
-{
+static inline img_pipeline_sig_t img_pipeline_build_signature(const img_pipeline_desc_t *p) {
     img_pipeline_sig_t sig = 0;
 
     if (__builtin_expect(!p || p->count == 0, 0))
         return 0;
 
-    for (uint32_t i = 0; i < p->count; i++)
-    {
-        switch (p->ops[i].op_code)
-        {
+    for (uint32_t i = 0; i < p->count; i++) {
+        switch (p->ops[i].op_code) {
         case OP_GRAYSCALE:
             sig |= SIG_OP_GRAYSCALE;
             break;

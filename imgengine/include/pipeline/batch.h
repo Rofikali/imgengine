@@ -1,3 +1,4 @@
+// ./include/pipeline/batch.h
 // include/pipeline/batch.h  (UPDATE — compatibility shim)
 
 #ifndef IMGENGINE_PIPELINE_BATCH_H

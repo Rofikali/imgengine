@@ -16,8 +16,7 @@ typedef struct img_pipeline_desc img_pipeline_desc_t;
 
 #define IMG_MAX_PIPELINE_OPS 32
 
-typedef struct
-{
+typedef struct {
     uint32_t count;
 
     img_kernel_fn ops[IMG_MAX_PIPELINE_OPS];
@@ -26,8 +25,6 @@ typedef struct
 } img_pipeline_compiled_t;
 
 // compile step (cold path)
-int img_pipeline_compile(
-    const img_pipeline_desc_t *in,
-    img_pipeline_compiled_t *out);
+int img_pipeline_compile(const img_pipeline_desc_t *in, img_pipeline_compiled_t *out);
 
 #endif

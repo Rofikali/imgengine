@@ -1,0 +1,229 @@
+#include "api/v1/img_api.h"
+#include "api/api_job_internal.h"
+#include "api/io_vtable.h"
+#include "core/context_internal.h"
+#include "pipeline/border.h"
+#include "security/input_validator.h"
+
+#include <stdio.h>
+#include <sys/mman.h>
+
+img_result_t load_file_mmap(const char *path, uint8_t **data, size_t *size);
+
+img_result_t img_api_finish_job_output(
+    img_ctx_t *ctx,
+    img_canvas_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job,
+    const char *output_path);
+
+img_result_t img_api_render_job_output(
+    img_ctx_t *ctx,
+    img_canvas_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job,
+    uint8_t **out,
+    size_t *out_size);
+
+static void img_api_release_input(uint8_t *file_data, size_t file_size)
+{
+    if (file_data && file_size > 0)
+        munmap(file_data, file_size);
+}
+
+static img_result_t img_api_init_ctx(img_engine_t *engine, img_ctx_t *ctx)
+{
+    if (!engine || !ctx || !engine->global_pool)
+        return IMG_ERR_SECURITY;
+
+    img_api_make_ctx(engine, ctx);
+    return IMG_SUCCESS;
+}
+
+static img_result_t img_api_prepare_render_stage(
+    img_engine_t *engine,
+    img_canvas_t *canvas,
+    img_layout_t *layout,
+    const img_job_t *job,
+    img_buffer_t *photo,
+    img_arena_t **arena)
+{
+    if (!engine || !canvas || !layout || !job || !photo || !arena)
+        return IMG_ERR_SECURITY;
+
+    *arena = img_arena_create(1 * 1024 * 1024);
+    if (!*arena)
+        return IMG_ERR_NOMEM;
+
+    img_result_t r = img_canvas_init(canvas, engine->global_pool, job);
+    if (r != IMG_SUCCESS)
+    {
+        if (photo->data)
+            img_slab_free(engine->global_pool, photo->data);
+        img_arena_destroy(*arena);
+        *arena = NULL;
+        return r;
+    }
+
+    r = img_layout_grid(canvas, photo, job, layout, *arena, engine->global_pool);
+    if (photo->data)
+        img_slab_free(engine->global_pool, photo->data);
+    if (r != IMG_SUCCESS)
+    {
+        img_canvas_free(canvas, engine->global_pool);
+        img_arena_destroy(*arena);
+        *arena = NULL;
+        return r;
+    }
+
+    return IMG_SUCCESS;
+}
+
+static img_result_t img_api_begin_job(
+    img_engine_t *engine,
+    const char *input_path,
+    const img_job_t *job,
+    img_ctx_t *ctx,
+    img_canvas_t *canvas,
+    img_layout_t *layout,
+    img_arena_t **arena)
+{
+    if (!engine || !input_path || !job || !ctx || !canvas || !layout || !arena)
+        return IMG_ERR_SECURITY;
+
+    uint8_t *file_data = NULL;
+    size_t file_size = 0;
+
+    img_result_t r = load_file_mmap(input_path, &file_data, &file_size);
+    if (r != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[JOB] cannot open input '%s': %s\n",
+                input_path, img_result_name(r));
+        return r;
+    }
+
+    r = img_security_validate_request(16384, 16384, file_size);
+    if (r != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[JOB] security reject: %s\n", img_result_name(r));
+        img_api_release_input(file_data, file_size);
+        return r;
+    }
+
+    r = img_api_init_ctx(engine, ctx);
+    if (r != IMG_SUCCESS)
+    {
+        img_api_release_input(file_data, file_size);
+        return r;
+    }
+
+    img_buffer_t photo = {0};
+    r = (img_result_t)g_io_vtable.decode(ctx, file_data, file_size, &photo);
+    img_api_release_input(file_data, file_size);
+
+    if (r != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[JOB] decode failed: %s\n", img_result_name(r));
+        return r;
+    }
+
+    r = img_api_prepare_render_stage(
+        engine,
+        canvas,
+        layout,
+        job,
+        &photo,
+        arena);
+    if (r != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[JOB] layout prep failed: %s\n", img_result_name(r));
+        return r;
+    }
+
+    return IMG_SUCCESS;
+}
+
+img_result_t img_api_run_job_impl(
+    img_engine_t *engine,
+    const char *input_path,
+    const char *output_path,
+    const img_job_t *job)
+{
+    if (!engine || !input_path || !output_path || !job)
+        return IMG_ERR_SECURITY;
+
+    if (job->abi_version != IMG_JOB_ABI_VERSION)
+        return IMG_ERR_INTERNAL;
+
+    img_ctx_t ctx = {0};
+    img_canvas_t canvas = {0};
+    img_layout_t layout = {0};
+    img_arena_t *arena = NULL;
+
+    img_result_t r = img_api_begin_job(
+        engine,
+        input_path,
+        job,
+        &ctx,
+        &canvas,
+        &layout,
+        &arena);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    r = img_api_finish_job_output(
+        &ctx,
+        &canvas,
+        &layout,
+        job,
+        output_path);
+
+    if (r != IMG_SUCCESS)
+        fprintf(stderr, "[JOB] output stage failed: %s\n", img_result_name(r));
+
+    img_canvas_free(&canvas, engine->global_pool);
+    img_arena_destroy(arena);
+    return r;
+}
+
+img_result_t img_api_run_job_raw_impl(
+    img_engine_t *engine,
+    const char *input_path,
+    const img_job_t *job,
+    uint8_t **output,
+    size_t *output_size)
+{
+    if (!engine || !input_path || !job || !output || !output_size)
+        return IMG_ERR_SECURITY;
+
+    if (job->abi_version != IMG_JOB_ABI_VERSION)
+        return IMG_ERR_INTERNAL;
+
+    img_ctx_t ctx = {0};
+    img_canvas_t canvas = {0};
+    img_layout_t layout = {0};
+    img_arena_t *arena = NULL;
+
+    img_result_t r = img_api_begin_job(
+        engine,
+        input_path,
+        job,
+        &ctx,
+        &canvas,
+        &layout,
+        &arena);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    r = img_api_render_job_output(
+        &ctx,
+        &canvas,
+        &layout,
+        job,
+        output,
+        output_size);
+
+    img_canvas_free(&canvas, engine->global_pool);
+    img_arena_destroy(arena);
+    return r;
+}

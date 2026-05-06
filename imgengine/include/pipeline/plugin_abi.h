@@ -1,3 +1,4 @@
+// ./include/pipeline/plugin_abi.h
 //  include/pipeline/plugin_abi.h  (NEW FILE)
 
 #ifndef IMGENGINE_PIPELINE_PLUGIN_ABI_H
@@ -28,8 +29,7 @@ typedef struct img_batch img_batch_t;
 typedef void (*img_op_fn)(img_ctx_t *, img_buffer_t *, void *);
 typedef void (*img_batch_op_fn)(img_ctx_t *, img_batch_t *, void *);
 
-typedef struct img_plugin_descriptor
-{
+typedef struct img_plugin_descriptor {
     const char *name;
     uint32_t abi_version;
     uint32_t op_code;
@@ -48,8 +48,7 @@ typedef const img_plugin_descriptor_t *(*img_plugin_getter_fn)(void);
 #define IMG_PLUGIN_SECTION
 #endif
 
-#define IMG_REGISTER_PLUGIN(desc)          \
-    static const img_plugin_descriptor_t * \
-        __img_plugin_##desc IMG_PLUGIN_SECTION = &desc
+#define IMG_REGISTER_PLUGIN(desc)                                                                  \
+    static const img_plugin_descriptor_t *__img_plugin_##desc IMG_PLUGIN_SECTION = &desc
 
 #endif /* IMGENGINE_PIPELINE_PLUGIN_ABI_H */

@@ -28,16 +28,13 @@
  *   - g_jump_table populated before first call (img_jump_table_init)
  *   - No allocation, no locks, no branches in steady state
  */
-void img_pipeline_execute_hot(
-    img_ctx_t *__restrict ctx,
-    const img_pipeline_runtime_t *__restrict pipe,
-    img_buffer_t *__restrict buf)
-{
+void img_pipeline_execute_hot(img_ctx_t *__restrict ctx,
+                              const img_pipeline_runtime_t *__restrict pipe,
+                              img_buffer_t *__restrict buf) {
     const uint32_t count = pipe->count;
     const img_op_desc_t *__restrict ops = pipe->ops;
 
-    for (uint32_t i = 0; i < count; i++)
-    {
+    for (uint32_t i = 0; i < count; i++) {
 
         /* prefetch next op descriptor into L1 */
         if (i + PREFETCH_DISTANCE < count)
@@ -53,6 +50,22 @@ void img_pipeline_execute_hot(
 
         if (__builtin_expect(fn != NULL, 1))
             fn(ctx, buf, op->params);
+    }
+}
+
+void img_pipeline_execute_compiled_hot(img_ctx_t *__restrict ctx,
+                                       const img_pipeline_compiled_t *__restrict pipe,
+                                       img_buffer_t *__restrict buf) {
+    const uint32_t count = pipe->count;
+
+    for (uint32_t i = 0; i < count; i++) {
+        if (i + PREFETCH_DISTANCE < count)
+            __builtin_prefetch(&pipe->ops[i + PREFETCH_DISTANCE], 0, 1);
+
+        img_kernel_fn fn = pipe->ops[i];
+
+        if (__builtin_expect(fn != NULL, 1))
+            fn(ctx, buf, pipe->params[i]);
     }
 }
 
@@ -74,12 +87,8 @@ void img_pipeline_execute_hot(
  *   - fn must not be NULL (check before calling this)
  *   - ctx->fused_params must point to valid img_fused_params_t
  */
-void img_pipeline_execute_fused(
-    img_ctx_t *ctx,
-    img_single_kernel_fn fn,
-    img_fused_params_t *params,
-    img_buffer_t *buf)
-{
+void img_pipeline_execute_fused(img_ctx_t *ctx, img_single_kernel_fn fn, img_fused_params_t *params,
+                                img_buffer_t *buf) {
     /*
      * Hoist params into ctx once.
      * All subsequent reads by fn are from ctx->fused_params.

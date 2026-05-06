@@ -1,18 +1,17 @@
 // ./include/core/buffer.h
 
-// include/core/buffer.h
-
 #ifndef IMGENGINE_BUFFER_H
 #define IMGENGINE_BUFFER_H
 
 #include <stdint.h>
 #include <stdatomic.h>
 
+typedef struct img_slab_pool img_slab_pool_t;
+
 /*
  * 🔥 Metadata (placed BEFORE data pointer)
  */
-typedef struct
-{
+typedef struct {
     _Atomic uint32_t ref;
     uint32_t flags;
 } img_buf_header_t;
@@ -20,9 +19,9 @@ typedef struct
 /*
  * 🔥 Buffer (ZERO-COPY CONTRACT SAFE)
  */
-typedef struct img_buffer
-{
+typedef struct img_buffer {
     uint8_t *data;
+    img_slab_pool_t *owner_pool;
 
     uint32_t width;
     uint32_t height;
@@ -34,8 +33,7 @@ typedef struct img_buffer
 /*
  * 🔥 Helper: get header safely
  */
-static inline img_buf_header_t *img_buf_hdr(img_buffer_t *buf)
-{
+static inline img_buf_header_t *img_buf_hdr(img_buffer_t *buf) {
     return (img_buf_header_t *)(buf->data - sizeof(img_buf_header_t));
 }
 

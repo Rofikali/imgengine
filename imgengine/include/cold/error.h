@@ -19,9 +19,6 @@
 const char *img_error_to_string(img_result_t res);
 
 // 🔥 structured logging
-void img_log_error(
-    img_result_t res,
-    const char *func,
-    const char *msg);
+void img_log_error(img_result_t res, const char *func, const char *msg);
 
 #endif

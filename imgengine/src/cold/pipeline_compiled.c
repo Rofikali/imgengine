@@ -5,10 +5,7 @@
 #include "pipeline/pipeline_compiled.h"
 #include "pipeline/jump_table.h"
 
-int img_pipeline_compile(
-    const img_pipeline_desc_t *in,
-    img_pipeline_compiled_t *out)
-{
+int img_pipeline_compile(const img_pipeline_desc_t *in, img_pipeline_compiled_t *out) {
     if (!in || !out)
         return -1;
 
@@ -17,8 +14,7 @@ int img_pipeline_compile(
 
     out->count = in->count;
 
-    for (uint32_t i = 0; i < in->count; i++)
-    {
+    for (uint32_t i = 0; i < in->count; i++) {
         uint32_t opcode = in->ops[i].op_code;
 
         img_kernel_fn fn = g_jump_table[opcode];

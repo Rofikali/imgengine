@@ -1,3 +1,4 @@
+// ./src/pipeline/batch_exec.c
 
 // ================================================================
 // FILE: src/pipeline/batch_exec.c  (UPDATE)
@@ -16,11 +17,7 @@
 #include "core/buffer.h"
 #include <stddef.h>
 
-void img_batch_execute_fused(
-    img_ctx_t *ctx,
-    img_batch_t *batch,
-    void *pipeline)
-{
+void img_batch_execute_fused(img_ctx_t *ctx, img_batch_t *batch, void *pipeline) {
     if (__builtin_expect(!batch || batch->count == 0, 0))
         return;
 
@@ -30,14 +27,10 @@ void img_batch_execute_fused(
 
     const uint64_t start = PIPELINE_PROFILER_NOW();
 
-    if (__builtin_expect(pipe->fn_batch != NULL, 1))
-    {
+    if (__builtin_expect(pipe->fn_batch != NULL, 1)) {
         pipe->fn_batch(ctx, batch, ctx->fused_params);
-    }
-    else
-    {
-        for (uint32_t i = 0; i < batch->count; i++)
-        {
+    } else {
+        for (uint32_t i = 0; i < batch->count; i++) {
             if (__builtin_expect(batch->buffers[i] != NULL, 1))
                 pipe->fn(ctx, batch->buffers[i]);
         }

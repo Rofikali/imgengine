@@ -21,8 +21,7 @@
  *   - Read-only during kernel execution (hot path)
  *   - Never embed pointers — must be memcpy-safe
  */
-typedef struct __attribute__((aligned(64))) img_fused_params
-{
+typedef struct __attribute__((aligned(64))) img_fused_params {
     /* op presence flags */
     uint8_t has_grayscale;
     uint8_t has_brightness;

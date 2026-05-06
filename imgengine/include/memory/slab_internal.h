@@ -8,13 +8,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct slab_block
-{
+typedef struct slab_block {
     struct slab_block *next;
 } slab_block_t;
 
-struct img_slab_pool
-{
+struct img_slab_pool {
     slab_block_t *free_list;
 
     uint8_t *memory;

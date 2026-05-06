@@ -18,8 +18,7 @@
  * Wraps img_buffer_t with layout metadata.
  * All measurements in pixels at job->dpi.
  */
-typedef struct
-{
+typedef struct {
     img_buffer_t buf; /* raw pixel buffer (slab-owned) */
 
     uint32_t page_w_px; /* A4 width  at DPI (2480 @ 300dpi) */
@@ -31,6 +30,11 @@ typedef struct
     uint32_t start_x;    /* grid origin x */
     uint32_t start_y;    /* grid origin y */
 
+    uint32_t bg_signature;
+    uint8_t initialized;
+    uint8_t cache_owned;
+    uint8_t _pad0[2];
+
 } img_canvas_t;
 
 /*
@@ -41,23 +45,19 @@ typedef struct
  *
  * Returns IMG_SUCCESS or IMG_ERR_NOMEM.
  */
-img_result_t img_canvas_init(
-    img_canvas_t *canvas,
-    img_slab_pool_t *pool,
-    const img_job_t *job);
+img_result_t img_canvas_init(img_canvas_t *canvas, img_slab_pool_t *pool, const img_job_t *job);
 
 /*
- * img_canvas_free()
+ * img_canvas_release()
  *
  * Return canvas buffer to pool.
  */
-void img_canvas_free(img_canvas_t *canvas, img_slab_pool_t *pool);
+void img_canvas_release(img_canvas_t *canvas, img_slab_pool_t *pool);
 
 /*
  * CM to pixels conversion
  */
-static inline uint32_t img_cm_to_px(float cm, uint32_t dpi)
-{
+static inline uint32_t img_cm_to_px(float cm, uint32_t dpi) {
     return (uint32_t)(cm * (float)dpi / 2.54f + 0.5f);
 }
 

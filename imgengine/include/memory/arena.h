@@ -8,8 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct img_arena
-{
+typedef struct img_arena {
     uint8_t *base;
     size_t size;
     size_t offset;
@@ -23,10 +22,7 @@ void img_arena_destroy(img_arena_t *arena);
 // ================= ALLOC =================
 
 // 🔥 aligned allocation (cache-line safe)
-void *img_arena_alloc_aligned(
-    img_arena_t *arena,
-    size_t size,
-    size_t align);
+void *img_arena_alloc_aligned(img_arena_t *arena, size_t size, size_t align);
 
 // 🔥 default (16-byte aligned)
 void *img_arena_alloc(img_arena_t *arena, size_t size);

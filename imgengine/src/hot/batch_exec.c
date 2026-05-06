@@ -1,6 +1,5 @@
 // ./src/hot/batch_exec.c
 
-
 // src/hot/batch_exec.c
 
 // ================================================================
@@ -20,15 +19,11 @@
  * Dispatches each op via g_batch_jump_table[opcode].
  * Used for non-fused pipelines where ops are not combined.
  */
-void img_batch_execute_rt(
-    img_ctx_t *__restrict ctx,
-    img_batch_t *__restrict batch,
-    const img_pipeline_runtime_t *__restrict pipe)
-{
+void img_batch_execute_rt(img_ctx_t *__restrict ctx, img_batch_t *__restrict batch,
+                          const img_pipeline_runtime_t *__restrict pipe) {
     const uint32_t count = pipe->count;
 
-    for (uint32_t i = 0; i < count; i++)
-    {
+    for (uint32_t i = 0; i < count; i++) {
         uint32_t opcode = pipe->ops[i].op_code;
 
         img_batch_kernel_fn fn = g_batch_jump_table[opcode];

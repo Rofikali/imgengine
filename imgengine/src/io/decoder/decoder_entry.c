@@ -1,8 +1,5 @@
 // ./src/io/decoder/decoder_entry.c
 
-// ./src/io/decoder/decoder_entry.c
-
-
 #include "io/decoder/decoder_entry.h"
 
 #include <turbojpeg.h>
@@ -17,14 +14,21 @@
 
 #include "arch/arch_interface.h"
 
+static _Thread_local tjhandle g_tj_decoder = NULL;
+
+static tjhandle img_get_thread_decoder(void) {
+    if (!g_tj_decoder)
+        g_tj_decoder = tjInitDecompress();
+
+    return g_tj_decoder;
+}
+
 // ============================================================
 // 🔥 INTERNAL SAFE MULTIPLY (overflow guard)
 // ============================================================
 
-static inline int safe_mul(size_t a, size_t b, size_t *out)
-{
-    if (a == 0 || b == 0)
-    {
+static inline int safe_mul(size_t a, size_t b, size_t *out) {
+    if (a == 0 || b == 0) {
         *out = 0;
         return 1;
     }
@@ -40,12 +44,7 @@ static inline int safe_mul(size_t a, size_t b, size_t *out)
 // 🔥 SECURE JPEG DECODE ENTRY
 // ============================================================
 
-int img_decode_to_buffer(
-    img_ctx_t *ctx,
-    const uint8_t *input,
-    size_t size,
-    img_buffer_t *out)
-{
+int img_decode_to_buffer(img_ctx_t *ctx, const uint8_t *input, size_t size, img_buffer_t *out) {
     if (!ctx || !input || size == 0 || !out)
         return IMG_ERR_SECURITY;
 
@@ -60,7 +59,7 @@ int img_decode_to_buffer(
     // 🔥 2. INIT DECODER
     // ========================================================
 
-    tjhandle tj = tjInitDecompress();
+    tjhandle tj = img_get_thread_decoder();
     if (!tj)
         return IMG_ERR_NOMEM;
 
@@ -70,16 +69,7 @@ int img_decode_to_buffer(
     // 🔥 3. READ HEADER (UNTRUSTED)
     // ========================================================
 
-    if (tjDecompressHeader3(
-            tj,
-            input,
-            size,
-            &w,
-            &h,
-            &subsamp,
-            &cs) != 0)
-    {
-        tjDestroy(tj);
+    if (tjDecompressHeader3(tj, input, size, &w, &h, &subsamp, &cs) != 0) {
         return IMG_ERR_FORMAT;
     }
 
@@ -87,14 +77,9 @@ int img_decode_to_buffer(
     // 🔥 4. VALIDATE DIMENSIONS (CRITICAL)
     // ========================================================
 
-    img_result_t sec = img_security_validate_request(
-        (uint32_t)w,
-        (uint32_t)h,
-        size);
+    img_result_t sec = img_security_validate_request((uint32_t)w, (uint32_t)h, size);
 
-    if (sec != IMG_SUCCESS)
-    {
-        tjDestroy(tj);
+    if (sec != IMG_SUCCESS) {
         return sec;
     }
 
@@ -107,15 +92,11 @@ int img_decode_to_buffer(
     size_t stride = 0;
     size_t required = 0;
 
-    if (!safe_mul((size_t)w, ch, &stride))
-    {
-        tjDestroy(tj);
+    if (!safe_mul((size_t)w, ch, &stride)) {
         return IMG_ERR_SECURITY;
     }
 
-    if (!safe_mul(stride, (size_t)h, &required))
-    {
-        tjDestroy(tj);
+    if (!safe_mul(stride, (size_t)h, &required)) {
         return IMG_ERR_SECURITY;
     }
 
@@ -125,9 +106,7 @@ int img_decode_to_buffer(
 
     size_t block = img_slab_block_size(ctx->local_pool);
 
-    if (required > block)
-    {
-        tjDestroy(tj);
+    if (required > block) {
         return IMG_ERR_NOMEM;
     }
 
@@ -137,28 +116,15 @@ int img_decode_to_buffer(
 
     uint8_t *mem = img_slab_alloc(ctx->local_pool);
     if (!mem)
-    {
-        tjDestroy(tj);
         return IMG_ERR_NOMEM;
-    }
 
     // ========================================================
     // 🔥 8. DECODE (CONTROLLED WRITE)
     // ========================================================
 
-    if (tjDecompress2(
-            tj,
-            input,
-            size,
-            mem,
-            w,
-            (int)stride,
-            h,
-            TJPF_RGB,
-            TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-    {
+    if (tjDecompress2(tj, input, size, mem, w, (int)stride, h, TJPF_RGB,
+                      TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0) {
         img_slab_free(ctx->local_pool, mem);
-        tjDestroy(tj);
         return IMG_ERR_FORMAT;
     }
 
@@ -166,10 +132,8 @@ int img_decode_to_buffer(
     // 🔥 9. FINAL BOUNDS ASSERT (DEFENSE-IN-DEPTH)
     // ========================================================
 
-    if (!img_bounds_check(mem, required, mem, block))
-    {
+    if (!img_bounds_check(mem, required, mem, block)) {
         img_slab_free(ctx->local_pool, mem);
-        tjDestroy(tj);
         return IMG_ERR_SECURITY;
     }
 
@@ -178,11 +142,11 @@ int img_decode_to_buffer(
     // ========================================================
 
     out->data = mem;
+    out->owner_pool = ctx->local_pool;
     out->width = (uint32_t)w;
     out->height = (uint32_t)h;
     out->channels = (uint32_t)ch;
     out->stride = (uint32_t)stride;
 
-    tjDestroy(tj);
     return IMG_SUCCESS;
 }

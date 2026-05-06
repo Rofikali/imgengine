@@ -18,10 +18,7 @@ extern img_batch_kernel_fn g_batch_jump_table[IMG_MAX_OPS];
 /*
  * 🔥 REGISTER (AUTO ADAPT)
  */
-void img_register_op(
-    uint32_t opcode,
-    img_op_fn single_fn,
-    img_batch_op_fn batch_fn);
+void img_register_op(uint32_t opcode, img_op_fn single_fn, img_batch_op_fn batch_fn);
 
 /*
  * 🔥 INIT

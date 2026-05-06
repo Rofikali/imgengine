@@ -13,8 +13,7 @@
 /*
  * 🔥 Cell structure (cache-line aware)
  */
-typedef struct cell_t
-{
+typedef struct cell_t {
     _Atomic size_t seq;
     void *data;
 } cell_t;
@@ -22,8 +21,7 @@ typedef struct cell_t
 /*
  * 🔥 MPMC Queue (Vyukov bounded queue)
  */
-typedef struct __attribute__((aligned(64)))
-{
+typedef struct __attribute__((aligned(64))) {
     size_t size;
     size_t mask;
 

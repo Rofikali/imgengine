@@ -1,3 +1,4 @@
+// ./include/pipeline/trace.h
 
 // include/pipeline/trace.h  (NEW FILE)
 // Observability hooks for the pipeline hot path.

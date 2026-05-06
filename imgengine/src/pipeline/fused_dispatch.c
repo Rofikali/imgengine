@@ -42,9 +42,7 @@ static const img_fused_kernel_fn g_fused_dispatch[8] = {
  * Called once per pipeline compile (cold path), result cached in
  * img_pipeline_fused_t.fn for hot path reuse.
  */
-img_fused_kernel_fn
-img_get_fused_kernel(img_pipeline_sig_t sig)
-{
+img_fused_kernel_fn img_get_fused_kernel(img_pipeline_sig_t sig) {
     /* bounds guard: sig must not exceed table size */
     if (__builtin_expect(sig >= 8, 0))
         return NULL;

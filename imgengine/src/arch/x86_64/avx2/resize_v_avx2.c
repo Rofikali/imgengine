@@ -5,14 +5,12 @@
 #include "arch/arch_interface.h"
 #include "core/buffer.h"
 
-void img_arch_resize_v_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params)
-{
+void img_arch_resize_v_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params) {
     (void)ctx;
 
     resize_params_t *p = (resize_params_t *)params;
 
-    for (uint32_t y = 0; y < dst->height; y++)
-    {
+    for (uint32_t y = 0; y < dst->height; y++) {
         uint32_t sy = p->y_index[y];
 
         uint8_t *src_row = p->src->data + sy * p->src->stride;
@@ -22,14 +20,10 @@ void img_arch_resize_v_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params)
 
         uint32_t i = 0;
 
-        for (; i + 32 <= size; i += 32)
-        {
-            __m256i pixels = _mm256_loadu_si256(
-                (__m256i *)(src_row + i));
+        for (; i + 32 <= size; i += 32) {
+            __m256i pixels = _mm256_loadu_si256((__m256i *)(src_row + i));
 
-            _mm256_storeu_si256(
-                (__m256i *)(dst_row + i),
-                pixels);
+            _mm256_storeu_si256((__m256i *)(dst_row + i), pixels);
         }
 
         for (; i < size; i++)

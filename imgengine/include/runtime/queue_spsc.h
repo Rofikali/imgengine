@@ -15,6 +15,11 @@ typedef struct img_queue img_queue_t;
 img_queue_t *img_queue_create(uint32_t power);
 
 /**
+ * Release queue storage.
+ */
+void img_queue_destroy(img_queue_t *q);
+
+/**
  * Non-blocking push
  */
 bool img_queue_push(img_queue_t *q, void *data);

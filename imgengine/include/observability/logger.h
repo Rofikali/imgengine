@@ -7,13 +7,7 @@
 
 #include <stdint.h>
 
-typedef enum
-{
-    LOG_DEBUG = 0,
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERROR
-} img_log_level_t;
+typedef enum { LOG_DEBUG = 0, LOG_INFO, LOG_WARN, LOG_ERROR } img_log_level_t;
 
 void img_logger_init(void);
 void img_logger_shutdown(void);

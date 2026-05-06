@@ -1,0 +1,98 @@
+#include "api/v1/img_api.h"
+#include "api/api_internal.h"
+#include "api/io_vtable.h"
+#include "core/buffer.h"
+#include "memory/slab.h"
+#include "security/input_validator.h"
+
+#include <stdio.h>
+
+static img_result_t img_api_process_raw_validate(
+    const img_engine_t *engine,
+    const uint8_t *input,
+    uint8_t **output,
+    size_t *output_size,
+    size_t input_size)
+{
+    if (!engine || !input || !output || !output_size)
+        return IMG_ERR_SECURITY;
+
+    *output = NULL;
+    *output_size = 0;
+
+    return img_security_validate_request(4096, 4096, input_size);
+}
+
+static void img_api_process_raw_free_buffer(
+    img_engine_t *engine,
+    img_buffer_t *buf)
+{
+    if (engine && buf && buf->data)
+        img_slab_free(engine->global_pool, buf->data);
+}
+
+static img_result_t img_api_process_raw_decode(
+    img_ctx_t *ctx,
+    const uint8_t *input,
+    size_t input_size,
+    img_buffer_t *buf)
+{
+    return (img_result_t)g_io_vtable.decode(ctx, input, input_size, buf);
+}
+
+static img_result_t img_api_process_raw_encode(
+    img_ctx_t *ctx,
+    img_buffer_t *buf,
+    uint8_t **output,
+    size_t *output_size)
+{
+    return (img_result_t)g_io_vtable.encode(ctx, buf, output, output_size);
+}
+
+img_result_t img_api_process_raw(
+    img_engine_t *engine,
+    uint8_t *input,
+    size_t input_size,
+    uint8_t **output,
+    size_t *output_size)
+{
+    img_result_t sec = img_api_process_raw_validate(
+        engine,
+        input,
+        output,
+        output_size,
+        input_size);
+    if (sec != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[API] security validation failed: %d\n", sec);
+        return sec;
+    }
+
+    img_buffer_t buf = {0};
+    img_ctx_t ctx = {0};
+    img_api_make_ctx(engine, &ctx);
+
+    img_result_t dec = img_api_process_raw_decode(&ctx, input, input_size, &buf);
+    if (dec != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[API] decode failed: %d (%s)\n",
+                dec, img_result_name(dec));
+        return dec;
+    }
+
+    img_result_t enc = img_api_process_raw_encode(
+        &ctx,
+        &buf,
+        output,
+        output_size);
+    img_api_process_raw_free_buffer(engine, &buf);
+
+    if (enc != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[API] encode failed: %d (%s)\n",
+                enc, img_result_name(enc));
+        return enc;
+    }
+
+    return IMG_SUCCESS;
+}

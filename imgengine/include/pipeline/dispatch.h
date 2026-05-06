@@ -1,3 +1,4 @@
+// ./include/pipeline/dispatch.h
 // include/pipeline/dispatch.h  (NEW FILE)
 
 #ifndef IMGENGINE_PIPELINE_DISPATCH_H
@@ -18,11 +19,7 @@ typedef struct img_buffer img_buffer_t;
  * Registered at startup. pipeline/engine.c calls through
  * this pointer — no direct dep on runtime/exec_router.
  */
-typedef int (*img_dispatch_fn)(
-    img_ctx_t *ctx,
-    uint32_t op_code,
-    img_buffer_t *buf,
-    void *params);
+typedef int (*img_dispatch_fn)(img_ctx_t *ctx, uint32_t op_code, img_buffer_t *buf, void *params);
 
 extern img_dispatch_fn g_dispatch_fn;
 

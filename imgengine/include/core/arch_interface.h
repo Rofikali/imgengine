@@ -18,10 +18,7 @@ typedef struct img_buffer img_buffer_t;
  * 🔥 Kernel function signature
  * All SIMD/scalar kernels must follow this
  */
-typedef void (*img_kernel_fn)(
-    img_ctx_t *ctx,
-    img_buffer_t *buf,
-    void *params);
+typedef void (*img_kernel_fn)(img_ctx_t *ctx, img_buffer_t *buf, void *params);
 
 /*
  * 🔥 Hardware-specific implementations

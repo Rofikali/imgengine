@@ -10,8 +10,7 @@
 
 #define IMG_MAX_CORES 64
 
-typedef struct __attribute__((aligned(64)))
-{
+typedef struct __attribute__((aligned(64))) {
     uint64_t total_requests;
     uint64_t total_cycles;
     uint64_t max_latency;
@@ -19,8 +18,7 @@ typedef struct __attribute__((aligned(64)))
 
 } img_metrics_core_t;
 
-typedef struct
-{
+typedef struct {
     img_metrics_core_t cores[IMG_MAX_CORES];
 
     uint64_t backpressure_drops;

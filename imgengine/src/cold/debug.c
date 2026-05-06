@@ -11,34 +11,26 @@
 // 🔥 global debug level (cold path only)
 static _Atomic int g_debug_level = IMG_DEBUG_NONE;
 
-void img_debug_set_level(img_debug_level_t lvl)
-{
-    atomic_store(&g_debug_level, lvl);
-}
+void img_debug_set_level(img_debug_level_t lvl) { atomic_store(&g_debug_level, lvl); }
 
 #define DEBUG_ENABLED(lvl) (atomic_load(&g_debug_level) >= (lvl))
 
-void img_debug_dump_ctx(const img_ctx_t *ctx)
-{
+void img_debug_dump_ctx(const img_ctx_t *ctx) {
     if (!ctx || !DEBUG_ENABLED(IMG_DEBUG_BASIC))
         return;
 
-    printf("[CTX] thread=%u slab=%p caps=0x%x\n",
-           ctx->thread_id,
-           (void *)ctx->local_pool,
+    printf("[CTX] thread=%u slab=%p caps=0x%x\n", ctx->thread_id, (void *)ctx->local_pool,
            (unsigned int)ctx->caps);
 }
 
-void img_debug_dump_slab_usage(const img_ctx_t *ctx)
-{
+void img_debug_dump_slab_usage(const img_ctx_t *ctx) {
     if (!ctx || !DEBUG_ENABLED(IMG_DEBUG_VERBOSE))
         return;
 
     printf("[SLAB] pool=%p\n", (void *)ctx->local_pool);
 }
 
-void img_debug_print_cpu_info(void)
-{
+void img_debug_print_cpu_info(void) {
     if (!DEBUG_ENABLED(IMG_DEBUG_BASIC))
         return;
 

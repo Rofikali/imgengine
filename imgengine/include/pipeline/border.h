@@ -9,12 +9,9 @@
 
 #include "core/buffer.h"
 #include "pipeline/layout.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <stdint.h>
 
-img_result_t img_draw_borders(
-    img_buffer_t *canvas,
-    const img_layout_t *layout,
-    uint32_t border_px);
+img_result_t img_draw_borders(img_buffer_t *canvas, const img_layout_t *layout, uint32_t border_px);
 
 #endif /* IMGENGINE_PIPELINE_BORDER_H */

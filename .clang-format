@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 100
+DerivePointerBinding: false
+PointerBindsToType: false
+SpaceBeforeParens: ControlStatements
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+SortIncludes: false

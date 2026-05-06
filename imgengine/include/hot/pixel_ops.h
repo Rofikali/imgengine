@@ -9,8 +9,7 @@
 
 // inline = zero function call overhead
 
-static inline uint8_t pixel_lerp(uint8_t a, uint8_t b, uint8_t w)
-{
+static inline uint8_t pixel_lerp(uint8_t a, uint8_t b, uint8_t w) {
     return (uint8_t)(a + ((int16_t)w * (b - a) >> 8));
 }
 

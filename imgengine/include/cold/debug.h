@@ -10,12 +10,7 @@
 typedef struct img_ctx img_ctx_t;
 
 // 🔥 debug levels
-typedef enum
-{
-    IMG_DEBUG_NONE = 0,
-    IMG_DEBUG_BASIC,
-    IMG_DEBUG_VERBOSE
-} img_debug_level_t;
+typedef enum { IMG_DEBUG_NONE = 0, IMG_DEBUG_BASIC, IMG_DEBUG_VERBOSE } img_debug_level_t;
 
 // 🔥 runtime control
 void img_debug_set_level(img_debug_level_t lvl);

@@ -11,8 +11,7 @@
  * AVX2 batch-fused kernel (declared in arch layer)
  * Defined in: src/arch/x86_64/avx2/fused_resize_color_norm_avx2.c
  */
-extern void img_fused_resize_color_norm_avx2(
-    img_ctx_t *, img_batch_t *, void *);
+extern void img_fused_resize_color_norm_avx2(img_ctx_t *, img_batch_t *, void *);
 
 /*
  * img_fused_init()
@@ -26,17 +25,14 @@ extern void img_fused_resize_color_norm_avx2(
  * This function selects the best hardware implementation for
  * batch-level fused ops and wires them into the batch jump table.
  */
-void img_fused_init(cpu_caps_t caps)
-{
-    if (img_cpu_has_avx2(caps))
-    {
+void img_fused_init(cpu_caps_t caps) {
+    if (img_cpu_has_avx2(caps)) {
         /*
          * Register AVX2 fused batch kernel for OP_RESIZE.
          * This handles the common case: resize + color norm
          * in a single pass over the batch.
          */
-        g_batch_jump_table[OP_RESIZE] =
-            (img_batch_kernel_fn)img_fused_resize_color_norm_avx2;
+        g_batch_jump_table[OP_RESIZE] = (img_batch_kernel_fn)img_fused_resize_color_norm_avx2;
     }
 
     /*

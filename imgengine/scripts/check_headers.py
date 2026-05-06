@@ -20,10 +20,18 @@ errors = []
 # ============================================================
 # EXPECTED HEADER
 # ============================================================
-
 def expected_header(path):
-    rel = os.path.relpath(path, ENGINE_ROOT)
-    return f"// ./imgengine/{rel}"
+    # This logic ensures that if the path doesn't start with imgengine/, we add it.
+    rel = os.path.relpath(path, ".") 
+    if not rel.startswith("imgengine/"):
+        rel = os.path.join("imgengine", rel)
+    return f"// ./{rel}"
+
+
+# def expected_header(path):
+#     rel = os.path.relpath(path, ENGINE_ROOT)
+#     return f"// ./{rel}"
+#     # return f"// ./imgengine/{rel}"
 
 
 # ============================================================

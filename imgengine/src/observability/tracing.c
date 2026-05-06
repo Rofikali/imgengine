@@ -17,8 +17,7 @@
 //     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 // }
 
-img_span_t img_trace_start(const char *name)
-{
+img_span_t img_trace_start(const char *name) {
     img_span_t s;
     s.name = name;
     s.start = img_now_ns();
@@ -26,8 +25,7 @@ img_span_t img_trace_start(const char *name)
     return s;
 }
 
-void img_trace_end(img_span_t *s)
-{
+void img_trace_end(img_span_t *s) {
     if (!s)
         return;
 
@@ -44,11 +42,7 @@ void img_trace_end(img_span_t *s)
 //     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 // }
 
-void img_trace_emit(const char *name,
-                    uint64_t a0,
-                    uint64_t a1,
-                    uint64_t a2)
-{
+void img_trace_emit(const char *name, uint64_t a0, uint64_t a1, uint64_t a2) {
     (void)name;
 
     // 🔥 bridge to binlog (can later swap to eBPF)

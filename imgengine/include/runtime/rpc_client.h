@@ -10,9 +10,6 @@
 // Forward declarations
 typedef struct img_buffer img_buffer_t;
 
-int img_rpc_send(
-    uint32_t op_code,
-    img_buffer_t *buf,
-    void *params);
+int img_rpc_send(uint32_t op_code, img_buffer_t *buf, void *params);
 
 #endif

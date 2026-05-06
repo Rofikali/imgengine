@@ -7,8 +7,7 @@
 
 #include <stdint.h>
 
-static inline uint64_t img_profiler_now(void)
-{
+static inline uint64_t img_profiler_now(void) {
 #if defined(__x86_64__)
     return __builtin_ia32_rdtsc();
 #else

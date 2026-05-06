@@ -8,12 +8,9 @@
 #define IMGENGINE_PDF_ENCODER_H
 
 #include "core/buffer.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <stdint.h>
 
-img_result_t img_encode_pdf(
-    const img_buffer_t *buf,
-    const char *output_path,
-    uint32_t dpi);
+img_result_t img_encode_pdf(const img_buffer_t *buf, const char *output_path, uint32_t dpi);
 
 #endif /* IMGENGINE_PDF_ENCODER_H */

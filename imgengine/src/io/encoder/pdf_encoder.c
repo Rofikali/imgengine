@@ -5,7 +5,7 @@
 // Ported from pdf_plugin.c, upgraded: JPEG-compressed stream.
 
 #include "core/buffer.h"
-#include "api/v1/img_error.h"
+#include "core/result.h"
 #include <turbojpeg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,11 +25,7 @@
  *
  * Returns IMG_SUCCESS or IMG_ERR_IO.
  */
-img_result_t img_encode_pdf(
-    const img_buffer_t *buf,
-    const char *output_path,
-    uint32_t dpi)
-{
+img_result_t img_encode_pdf(const img_buffer_t *buf, const char *output_path, uint32_t dpi) {
     if (!buf || !output_path || !buf->data)
         return IMG_ERR_SECURITY;
 
@@ -41,18 +37,10 @@ img_result_t img_encode_pdf(
     unsigned char *jpeg_buf = NULL;
     unsigned long jpeg_size = 0;
 
-    int rc = tjCompress2(
-        tj,
-        buf->data,
-        (int)buf->width,
-        (int)buf->stride,
-        (int)buf->height,
-        TJPF_RGB,
-        &jpeg_buf,
-        &jpeg_size,
-        TJSAMP_444,
-        92, /* quality — high for print */
-        TJFLAG_FASTDCT);
+    int rc =
+        tjCompress2(tj, buf->data, (int)buf->width, (int)buf->stride, (int)buf->height, TJPF_RGB,
+                    &jpeg_buf, &jpeg_size, TJSAMP_444, 92, /* quality — high for print */
+                    TJFLAG_FASTDCT);
 
     tjDestroy(tj);
 
@@ -60,8 +48,7 @@ img_result_t img_encode_pdf(
         return IMG_ERR_IO;
 
     FILE *f = fopen(output_path, "wb");
-    if (!f)
-    {
+    if (!f) {
         tjFree(jpeg_buf);
         return IMG_ERR_IO;
     }
@@ -100,9 +87,8 @@ img_result_t img_encode_pdf(
 
     /* Object 4: Content stream */
     char content[256];
-    int content_len = snprintf(content, sizeof(content),
-                               "q\n%.2f 0 0 %.2f 0 0 cm\n/Im0 Do\nQ\n",
-                               pt_w, pt_h);
+    int content_len =
+        snprintf(content, sizeof(content), "q\n%.2f 0 0 %.2f 0 0 cm\n/Im0 Do\nQ\n", pt_w, pt_h);
 
     offsets[obj] = ftell(f);
     fprintf(f,
@@ -125,9 +111,7 @@ img_result_t img_encode_pdf(
             "   /Filter /DCTDecode\n"
             "   /Length %lu >>\n"
             "stream\n",
-            obj++,
-            buf->width, buf->height,
-            jpeg_size);
+            obj++, buf->width, buf->height, jpeg_size);
 
     fwrite(jpeg_buf, 1, jpeg_size, f);
     tjFree(jpeg_buf);

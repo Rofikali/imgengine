@@ -14,26 +14,18 @@
 #include "pipeline/layout.h"
 #include "core/result.h"
 
-static inline void fill_rect(
-    img_buffer_t *canvas,
-    int32_t x, int32_t y,
-    int32_t w, int32_t h,
-    uint8_t r, uint8_t g, uint8_t b)
-{
+static inline void fill_rect(img_buffer_t *canvas, int32_t x, int32_t y, int32_t w, int32_t h,
+                             uint8_t r, uint8_t g, uint8_t b) {
     const int32_t cw = (int32_t)canvas->width;
     const int32_t cht = (int32_t)canvas->height;
 
-    for (int32_t py = y; py < y + h; py++)
-    {
+    for (int32_t py = y; py < y + h; py++) {
         if (py < 0 || py >= cht)
             continue;
-        for (int32_t px = x; px < x + w; px++)
-        {
+        for (int32_t px = x; px < x + w; px++) {
             if (px < 0 || px >= cw)
                 continue;
-            uint8_t *p = canvas->data +
-                         (size_t)py * canvas->stride +
-                         (size_t)px * 3;
+            uint8_t *p = canvas->data + (size_t)py * canvas->stride + (size_t)px * 3;
             p[0] = r;
             p[1] = g;
             p[2] = b;
@@ -53,19 +45,15 @@ static inline void fill_rect(
  *
  * Standard photo lab border — thin black line around each print.
  */
-img_result_t img_draw_borders(
-    img_buffer_t *canvas,
-    const img_layout_t *layout,
-    uint32_t border_px)
-{
+img_result_t img_draw_borders(img_buffer_t *canvas, const img_layout_t *layout,
+                              uint32_t border_px) {
     if (!canvas || !layout || border_px == 0)
         return IMG_SUCCESS;
 
     const uint8_t r = 0, g = 0, b = 0; /* black */
     const int32_t bp = (int32_t)border_px;
 
-    for (uint32_t i = 0; i < layout->count; i++)
-    {
+    for (uint32_t i = 0; i < layout->count; i++) {
         const img_cell_t *c = &layout->cells[i];
 
         const int32_t x = (int32_t)c->x;

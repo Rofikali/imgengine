@@ -14,8 +14,7 @@
 /*
  * 🔥 SPSC BACKPRESSURE (worker-local queues)
  */
-static inline bool img_backpressure_check_spsc(img_queue_t *q)
-{
+static inline bool img_backpressure_check_spsc(img_queue_t *q) {
     if (!q)
         return true;
 
@@ -30,8 +29,7 @@ static inline bool img_backpressure_check_spsc(img_queue_t *q)
 /*
  * 🔥 MPMC BACKPRESSURE (global queue)
  */
-static inline bool img_backpressure_check_mpmc(img_mpmc_queue_t *q)
-{
+static inline bool img_backpressure_check_mpmc(img_mpmc_queue_t *q) {
     if (!q)
         return true;
 

@@ -2,8 +2,6 @@
 
 // ./src/security/input_validator.c
 
-
-
 #include "security/input_validator.h"
 
 #include <stddef.h>
@@ -11,11 +9,7 @@
 #define MAX_PIXELS (16384ULL * 16384ULL)
 #define MAX_RATIO 400ULL // tighter than before
 
-img_result_t img_security_validate_request(
-    uint32_t w,
-    uint32_t h,
-    size_t file_size)
-{
+img_result_t img_security_validate_request(uint32_t w, uint32_t h, size_t file_size) {
     // ================================
     // BASIC CHECK
     // ================================

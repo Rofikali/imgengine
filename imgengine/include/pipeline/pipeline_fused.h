@@ -21,8 +21,7 @@ typedef struct img_pipeline_desc img_pipeline_desc_t;
  * Used by scalar reference path only.
  * Hot path uses pre-compiled fn pointers.
  */
-typedef enum
-{
+typedef enum {
     FUSED_OP_NONE = 0,
     FUSED_OP_GRAYSCALE = 1,
     FUSED_OP_BRIGHTNESS = 2,
@@ -46,8 +45,7 @@ typedef enum
  *
  * 64-byte aligned: hot fields fit in first cache line.
  */
-typedef struct __attribute__((aligned(64)))
-{
+typedef struct __attribute__((aligned(64))) {
     uint32_t count;
 
     img_single_kernel_fn fn;      /* single-image exec (always set)  */
@@ -63,14 +61,9 @@ typedef uint32_t img_pipeline_sig_t;
 /*
  * API
  */
-int img_pipeline_fuse(
-    const img_pipeline_desc_t *in,
-    img_pipeline_fused_t *out);
+int img_pipeline_fuse(const img_pipeline_desc_t *in, img_pipeline_fused_t *out);
 
-void img_pipeline_execute_fused(
-    img_ctx_t *ctx,
-    img_pipeline_fused_t *pipe,
-    img_buffer_t *buf);
+void img_pipeline_execute_fused(img_ctx_t *ctx, img_pipeline_fused_t *pipe, img_buffer_t *buf);
 
 // void img_pipeline_execute_fused(
 //     img_ctx_t *ctx,
@@ -78,10 +71,8 @@ void img_pipeline_execute_fused(
 //     img_fused_params_t *params,
 //     img_buffer_t *buf);
 
-void img_pipeline_execute_fused_batch(
-    img_ctx_t *ctx,
-    img_pipeline_fused_t *pipe,
-    img_batch_t *batch);
+void img_pipeline_execute_fused_batch(img_ctx_t *ctx, img_pipeline_fused_t *pipe,
+                                      img_batch_t *batch);
 
 /*
  * Dispatch resolver

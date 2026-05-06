@@ -3,13 +3,11 @@
 #include "plugins/plugin_crop.h"
 #include "core/buffer.h"
 
-typedef struct
-{
+typedef struct {
     uint32_t x, y, w, h;
 } crop_params_t;
 
-void plugin_crop_single(img_ctx_t *ctx, img_buffer_t *buf, void *params)
-{
+void plugin_crop_single(img_ctx_t *ctx, img_buffer_t *buf, void *params) {
     (void)ctx;
 
     if (!buf || !params)
@@ -18,8 +16,7 @@ void plugin_crop_single(img_ctx_t *ctx, img_buffer_t *buf, void *params)
     crop_params_t *p = (crop_params_t *)params;
 
     // Bounds check
-    if (p->x + p->w > buf->width ||
-        p->y + p->h > buf->height)
+    if (p->x + p->w > buf->width || p->y + p->h > buf->height)
         return;
 
     // 🔥 ZERO-COPY slice

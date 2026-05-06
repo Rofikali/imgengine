@@ -1,0 +1,177 @@
+#include "api/v1/img_api.h"
+#include "api/io_vtable.h"
+#include "core/context_internal.h"
+#include "pipeline/border.h"
+
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int is_pdf_output(const char *path);
+img_result_t img_apply_bleed(
+    img_buffer_t *canvas,
+    const img_layout_t *layout,
+    uint32_t bleed_px);
+
+img_result_t img_draw_crop_marks(
+    img_buffer_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job);
+
+static img_result_t img_apply_job_postfx(
+    img_canvas_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job)
+{
+    img_result_t r = IMG_SUCCESS;
+
+    if (job->border_px > 0)
+    {
+        r = img_draw_borders(&canvas->buf, layout, job->border_px);
+        if (r != IMG_SUCCESS)
+            return r;
+    }
+
+    r = img_apply_bleed(&canvas->buf, layout, job->bleed_px);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    r = img_draw_crop_marks(&canvas->buf, layout, job);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    return IMG_SUCCESS;
+}
+
+img_result_t img_api_render_job_output(
+    img_ctx_t *ctx,
+    img_canvas_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job,
+    uint8_t **out,
+    size_t *out_size)
+{
+    if (!ctx || !canvas || !layout || !job || !out || !out_size)
+        return IMG_ERR_SECURITY;
+
+    *out = NULL;
+    *out_size = 0;
+
+    img_result_t r = img_apply_job_postfx(canvas, layout, job);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    r = (img_result_t)g_io_vtable.encode(ctx, &canvas->buf, out, out_size);
+    if (r != IMG_SUCCESS)
+    {
+        img_encoded_free(*out);
+        *out = NULL;
+        *out_size = 0;
+        return r;
+    }
+
+    if (!*out)
+        return IMG_ERR_IO;
+
+    return IMG_SUCCESS;
+}
+
+static img_result_t img_write_buffer_file(
+    const char *output_path,
+    const uint8_t *data,
+    size_t size)
+{
+    if (!output_path || !data)
+        return IMG_ERR_SECURITY;
+
+    int flags = O_WRONLY | O_CREAT | O_TRUNC;
+#ifdef O_CLOEXEC
+    flags |= O_CLOEXEC;
+#endif
+
+    int fd = open(output_path, flags, 0644);
+    if (fd < 0)
+        return IMG_ERR_IO;
+
+    size_t written = 0;
+    while (written < size)
+    {
+        ssize_t rc = write(fd, data + written, size - written);
+        if (rc < 0)
+        {
+            if (errno == EINTR)
+                continue;
+            close(fd);
+            return IMG_ERR_IO;
+        }
+
+        if (rc == 0)
+        {
+            close(fd);
+            return IMG_ERR_IO;
+        }
+
+        written += (size_t)rc;
+    }
+
+    if (close(fd) != 0)
+        return IMG_ERR_IO;
+
+    return IMG_SUCCESS;
+}
+
+img_result_t img_api_finish_job_output(
+    img_ctx_t *ctx,
+    img_canvas_t *canvas,
+    const img_layout_t *layout,
+    const img_job_t *job,
+    const char *output_path)
+{
+    if (!ctx || !canvas || !layout || !job || !output_path)
+        return IMG_ERR_SECURITY;
+
+    if (is_pdf_output(output_path))
+    {
+        img_result_t r = img_apply_job_postfx(canvas, layout, job);
+        if (r != IMG_SUCCESS)
+        {
+            fprintf(stderr, "[JOB] output postfx failed: %s\n", img_result_name(r));
+            return r;
+        }
+
+        r = g_io_vtable.encode_pdf(&canvas->buf, output_path, job->dpi);
+        if (r != IMG_SUCCESS)
+            fprintf(stderr, "[JOB] pdf encode failed: %s\n", img_result_name(r));
+        return r;
+    }
+
+    uint8_t *out = NULL;
+    size_t out_size = 0;
+
+    img_result_t r = img_api_render_job_output(
+        ctx,
+        canvas,
+        layout,
+        job,
+        &out,
+        &out_size);
+    if (r != IMG_SUCCESS)
+    {
+        fprintf(stderr, "[JOB] encode buffer failed: %s\n", img_result_name(r));
+        img_encoded_free(out);
+        return r;
+    }
+
+    if (!out)
+        return IMG_ERR_IO;
+
+    r = img_write_buffer_file(output_path, out, out_size);
+    img_encoded_free(out);
+    if (r != IMG_SUCCESS)
+        return r;
+
+    return IMG_SUCCESS;
+}

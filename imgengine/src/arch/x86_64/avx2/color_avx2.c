@@ -17,8 +17,7 @@
 #include "arch/arch_interface.h"
 #include "core/buffer.h"
 
-void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
-{
+void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params) {
     (void)ctx;
     (void)params;
 
@@ -40,8 +39,7 @@ void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
     const __m256i coeff_b = _mm256_set1_epi16(29);
     const __m256i zero = _mm256_setzero_si256();
 
-    for (uint32_t y = 0; y < h; y++)
-    {
+    for (uint32_t y = 0; y < h; y++) {
         uint8_t *row = data + (size_t)y * buf->stride;
 
         uint32_t x = 0;
@@ -57,8 +55,7 @@ void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
          * a 3-channel deinterleave — added in the next sprint.
          * This path: uniform coefficient approximation (fast, visually correct).
          */
-        for (; x + 32 <= row_bytes; x += 32)
-        {
+        for (; x + 32 <= row_bytes; x += 32) {
             __m256i v = _mm256_loadu_si256((const __m256i *)(row + x));
 
             /* unpack to 16-bit for multiply */
@@ -72,10 +69,8 @@ void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
              * coeff_g and coeff_b are used in the per-channel variant
              * below (scalar tail) demonstrating all three are live.
              */
-            __m256i lo_gray = _mm256_srli_epi16(
-                _mm256_mullo_epi16(lo, coeff_r), 8);
-            __m256i hi_gray = _mm256_srli_epi16(
-                _mm256_mullo_epi16(hi, coeff_r), 8);
+            __m256i lo_gray = _mm256_srli_epi16(_mm256_mullo_epi16(lo, coeff_r), 8);
+            __m256i hi_gray = _mm256_srli_epi16(_mm256_mullo_epi16(hi, coeff_r), 8);
 
             __m256i result = _mm256_packus_epi16(lo_gray, hi_gray);
             _mm256_storeu_si256((__m256i *)(row + x), result);
@@ -88,8 +83,7 @@ void img_arch_grayscale_avx2(img_ctx_t *ctx, img_buffer_t *buf, void *params)
          */
         uint32_t px_start = (x / 3) * 3; /* align to pixel boundary */
 
-        for (uint32_t i = px_start; i + 3 <= row_bytes; i += 3)
-        {
+        for (uint32_t i = px_start; i + 3 <= row_bytes; i += 3) {
             uint16_t gray = (uint16_t)((uint16_t)row[i] * 77u +      /* R × coeff_r */
                                        (uint16_t)row[i + 1] * 150u + /* G × coeff_g */
                                        (uint16_t)row[i + 2] * 29u    /* B × coeff_b */
