@@ -55,6 +55,18 @@ This environment workflow runs a **lightweight Arch userspace container**, optim
     # Step 3: Global initialization of Git LFS hooks
     git lfs install
 
+    # Step 4: for jpeg images
+    sudo pacman -Syu libjpeg-turbo
+    sudo pacman -Syu liburing
+
+    
+
+# Ensure you are inside your portfolio/build folder
+rm -rf *
+cmake ..
+make
+
+
 ---
 
 ## 🧑‍💻 Configuration
