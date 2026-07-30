@@ -1,28 +1,48 @@
-# # worker-service/Dockerfile
-FROM python:3.11-slim
+FROM debian:bookworm-slim AS engine-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    libnuma-dev \
+    libturbojpeg0-dev \
+    liburing-dev \
+    ninja-build \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src/imgengine
+COPY imgengine/ ./
+
+RUN cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DIMGENGINE_BENCH=OFF \
+      -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF \
+      -DIMGENGINE_LTO=OFF \
+    && cmake --build build --parallel \
+    && ctest --test-dir build --output-on-failure \
+    && build/imgengine_cli --help
+
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnuma1 \
+    libturbojpeg0 \
+    liburing2 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# 1. System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc6 \
-    && rm -rf /var/lib/apt/lists/*
+COPY imgengine-saas/backend/api-service/pyproject.toml \
+     imgengine-saas/backend/api-service/uv.lock ./
+RUN pip install --no-cache-dir uv \
+    && uv sync --frozen --no-install-project
 
-# 2. Install 'uv'
-RUN pip install uv
+COPY imgengine-saas/backend/api-service/app ./app
+COPY imgengine-saas/backend/worker-service/tasks.py ./tasks.py
+COPY imgengine-saas/backend/worker-service/engine_runner.py ./engine_runner.py
+COPY --from=engine-builder /src/imgengine/build/imgengine_cli /usr/local/bin/imgengine_cli
+COPY --from=engine-builder /src/imgengine/build/libimgengine.so /usr/local/lib/libimgengine.so
 
-# 3. Copy API Service files (Context is '..', so we are in imgengine-saas/)
-COPY backend/api-service/ /app/
+RUN ldconfig \
+    && imgengine_cli --help
 
-# 4. Install dependencies
-RUN uv sync --frozen
-
-# 5. Copy Worker specific files and binary
-COPY backend/worker-service/tasks.py /app/tasks.py
-COPY backend/worker-service/engine_runner.py /app/engine_runner.py
-COPY backend/worker-service/imgengine_cli /usr/local/bin/imgengine_cli
-RUN chmod +x /usr/local/bin/imgengine_cli
-
-# 6. Run Celery
-# Note: Since api-service files are in /app, Celery will find 'app.core'
 CMD ["uv", "run", "celery", "-A", "tasks", "worker", "--loglevel=info"]

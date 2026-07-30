@@ -1,73 +1,61 @@
-name: imgengine-ci
+name: imgengine-native-ci
 
 on:
   push:
-    branches: ["**"]  # This ensures 'with_claude_from_main' triggers it
+    branches: ["**"]
   pull_request:
     branches: ["**"]
 
-
 jobs:
-  build-test:
+  native-build-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4   # 🔥 FIXED (no Node 20 warning)
-
-      # - name: Install deps
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y build-essential cmake python3 clang-format imagemagick libturbojpeg-dev curl
-      
-      - name: Install deps
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            python3 \
-            clang-format \
-            imagemagick \
-            libturbojpeg-dev \
-            libnuma-dev \
-            liburing-dev \
-            curl
-
-
-
-      - name: Annotate and Check Headers
+          sudo apt-get install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+      - name: Configure native build
         run: |
-          # 1. Run the fixer first from the root
-          python3 imgengine/scripts/add_file_path_on_top.py
-          
-          # 2. Run the check (should pass now)
-          python3 imgengine/scripts/check_headers.py
+          cmake -S imgengine -B imgengine/build/ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
+            -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build native targets
+        run: cmake --build imgengine/build/ci --parallel
+      - name: Run CTest
+        run: ctest --test-dir imgengine/build/ci --output-on-failure
+      - name: Run CLI smoke test
+        run: imgengine/build/ci/imgengine_cli --help
+      - name: Run format check
+        run: cmake --build imgengine/build/ci --target format-check
+      - name: Run progressive JPEG regression
+        run: cmake --build imgengine/build/ci --target regression_progressive
+      - name: Check public ABI
+        env:
+          IMGENGINE_BUILD_DIR: ${{ github.workspace }}/imgengine/build/ci
+        run: python3 imgengine/scripts/check_exported_symbols.py
 
-      - name: Build Engine
-        run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake ..
-          make -j$(nproc)
-
-      - name: Run format-check
-        run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake --build . --target format-check || (echo "format-check failed" && exit 1)
-
-      - name: Run progressive-JPEG regression
-        run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake --build . --target regression_progressive || (echo "regression_progressive failed" && exit 1)
-
-      - name: Run Tests
-        run: |
-          if [ -f imgengine/tests/run_all.sh ]; then
-            cd imgengine
-            ./tests/run_all.sh
-          else
-            echo "No tests found"
-          fi
+  saas-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start API, worker, Redis, and PostgreSQL
+        working-directory: imgengine-saas/infra
+        env:
+          API_KEYS: integration-test-key
+          INTERNAL_API_TOKEN: integration-internal-token
+        run: docker compose up --build -d api worker
+      - name: Submit fixture and retrieve output
+        working-directory: imgengine-saas/infra
+        env:
+          API_URL: http://127.0.0.1:8000
+          API_KEYS: integration-test-key
+        run: bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg
+      - name: Print service logs on failure
+        if: failure()
+        working-directory: imgengine-saas/infra
+        run: docker compose logs --no-color
+      - name: Stop integration stack
+        if: always()
+        working-directory: imgengine-saas/infra
+        run: docker compose down --volumes --remove-orphans

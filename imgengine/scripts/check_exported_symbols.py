@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-BUILD_DIR = ROOT / 'imgengine' / 'build'
+ENGINE_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = ENGINE_ROOT.parent
+BUILD_DIR = Path(os.environ.get('IMGENGINE_BUILD_DIR', ENGINE_ROOT / 'build'))
 LIB = BUILD_DIR / 'libimgengine.so'
-JSON = ROOT / 'docs' / 'abi' / 'exported_symbols.json'
+JSON = REPO_ROOT / 'docs' / 'abi' / 'exported_symbols.json'
 
 def load_required():
     data = json.loads(JSON.read_text())

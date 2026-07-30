@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, status as http_status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.schemas.job import GenerateJob
 from app.core.db import SessionLocal
@@ -26,6 +27,10 @@ from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY, IMAGE_PROCESSED_TOT
 
 
 router = APIRouter()
+
+
+def output_url(job: Job) -> str | None:
+    return f"/api/output/{job.id}" if job.status == "completed" else None
 
 
 def get_db():
@@ -136,6 +141,7 @@ async def generate(
             "trace_id": job.trace_id,  # ✅ real trace
             "status": job.status,
             "output": job.output,
+            "output_url": output_url(job),
             "error": job.error,
             "carrier": carrier,
         }
@@ -152,4 +158,24 @@ def status(job_id: str, db: Session = Depends(get_db)):
         "trace_id": job.trace_id,
         "status": job.status,
         "output": job.output,
+        "output_url": output_url(job),
     }
+
+
+@router.get("/output/{job_id}", dependencies=[Depends(verify_api_key)])
+def download_output(job_id: str, db: Session = Depends(get_db)):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+    if job.status != "completed":
+        raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="Output is not available until the job completes")
+
+    output_root = Path(OUTPUT_DIR).resolve()
+    output_path = Path(job.output).resolve()
+    try:
+        output_path.relative_to(output_root)
+    except ValueError as exc:
+        raise HTTPException(status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Job output path is invalid") from exc
+    if not output_path.is_file():
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Output file not found")
+    return FileResponse(output_path, filename=f"{job_id}{output_path.suffix}")
