@@ -10,6 +10,8 @@ project(imgengine
     LANGUAGES C
 )
 
+include(CTest)
+
 # ── Standards ──────────────────────────────────────────────
 set(CMAKE_C_STANDARD            11)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
@@ -18,7 +20,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)   # for clangd / analyzer
 
 # ── Architecture detection ─────────────────────────────────
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
     set(IMGENGINE_ARCH      "x86_64")
     set(IMGENGINE_ARCH_DIR  "src/arch/x86_64")
     add_definitions(-DARCH_X86_64)
@@ -85,25 +87,33 @@ find_library(TURBOJPEG_LIB  NAMES turbojpeg)
 if(NOT TURBOJPEG_LIB OR NOT TURBOJPEG_INCLUDE)
     message(STATUS "[IO] libturbojpeg not found — downloading and building from source...")
     
-    include(FetchContent)
-    FetchContent_Declare(
-      libjpeg-turbo
-      GIT_REPOSITORY https://github.com
-      GIT_TAG        3.0.2  # Use a stable version tag
+    include(ExternalProject)
+    set(TURBOJPEG_EXTERNAL_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/libjpeg-turbo-src")
+    set(TURBOJPEG_EXTERNAL_BINARY_DIR "${CMAKE_BINARY_DIR}/_deps/libjpeg-turbo-build")
+    set(TURBOJPEG_EXTERNAL_LIBRARY "${TURBOJPEG_EXTERNAL_BINARY_DIR}/libturbojpeg.a")
+    ExternalProject_Add(libjpeg-turbo-external
+        GIT_REPOSITORY https://github.com/libjpeg-turbo/libjpeg-turbo.git
+        GIT_TAG 3.0.2
+        SOURCE_DIR "${TURBOJPEG_EXTERNAL_SOURCE_DIR}"
+        BINARY_DIR "${TURBOJPEG_EXTERNAL_BINARY_DIR}"
+        CMAKE_ARGS
+            -DENABLE_SHARED=OFF
+            -DENABLE_STATIC=ON
+            -DWITH_SIMD=ON
+            -DWITH_JAVA=OFF
+            -DWITH_TESTS=OFF
+            -DWITH_TOOLS=OFF
+        BUILD_BYPRODUCTS "${TURBOJPEG_EXTERNAL_LIBRARY}"
+        INSTALL_COMMAND ""
     )
-    
-    # 2. Disable unnecessary parts of libjpeg-turbo to speed up your build
-    set(WITH_SIMD ON CACHE BOOL "Enable SIMD" FORCE)
-    set(ENABLE_STATIC ON CACHE BOOL "Build static" FORCE)
-    set(ENABLE_SHARED OFF CACHE BOOL "Build shared" FORCE)
-
-    FetchContent_MakeAvailable(libjpeg-turbo)
-
-    # 3. Set variables so the rest of your script works
-    # Note: libjpeg-turbo exports a target named 'turbojpeg-static' or 'turbojpeg'
-    set(TURBOJPEG_LIB turbojpeg-static)
-    # The include path is handled automatically by the target, but for your logic:
-    get_target_property(TURBOJPEG_INCLUDE turbojpeg-static INTERFACE_INCLUDE_DIRECTORIES)
+    add_library(turbojpeg_external STATIC IMPORTED GLOBAL)
+    set_target_properties(turbojpeg_external PROPERTIES
+        IMPORTED_LOCATION "${TURBOJPEG_EXTERNAL_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${TURBOJPEG_EXTERNAL_SOURCE_DIR};${TURBOJPEG_EXTERNAL_BINARY_DIR}"
+    )
+    add_dependencies(turbojpeg_external libjpeg-turbo-external)
+    set(TURBOJPEG_LIB turbojpeg_external)
+    set(TURBOJPEG_INCLUDE "${TURBOJPEG_EXTERNAL_SOURCE_DIR};${TURBOJPEG_EXTERNAL_BINARY_DIR}")
 else()
     message(STATUS "[IO] Found system turbojpeg: ${TURBOJPEG_LIB}")
 endif()
@@ -530,6 +540,9 @@ target_compile_options(verify_generated_registration PRIVATE ${IMGENGINE_COMMON_
 target_link_libraries(verify_generated_registration PRIVATE imgengine)
 if(IMGENGINE_SANITIZE)
     target_link_libraries(verify_generated_registration PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME verify_generated_registration COMMAND verify_generated_registration)
 endif()
 
 # ── Regression test: progressive JPEG ────────────────────────

@@ -21,4 +21,4 @@ class Job(Base):
     logs = Column(Text, nullable=True)  # 🔥 NEW
 
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

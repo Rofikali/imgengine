@@ -135,6 +135,7 @@ TASK_LATENCY = Histogram("worker_task_duration_seconds", "Task duration")
 start_http_server(8001)
 
 API_URL = os.getenv("API_URL", "http://api:8000")
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "local-development-token")
 
 celery = Celery(
     "worker",
@@ -168,6 +169,8 @@ def process_image(self, job: dict, carrier: dict):
                 requests.patch(
                     f"{API_URL}/internal/jobs/{job_id}",
                     json={"status": "processing", "trace_id": trace_id},
+                    headers={"X-Internal-Token": INTERNAL_API_TOKEN},
+                    timeout=10,
                 )
 
             # 2. Run C-Engine
@@ -183,6 +186,8 @@ def process_image(self, job: dict, carrier: dict):
                         "trace_id": trace_id,
                         "error": result["stderr"],
                     },
+                    headers={"X-Internal-Token": INTERNAL_API_TOKEN},
+                    timeout=10,
                 )
                 return
 
@@ -195,6 +200,8 @@ def process_image(self, job: dict, carrier: dict):
                     "trace_id": trace_id,
                     "logs": result["stdout"],
                 },
+                headers={"X-Internal-Token": INTERNAL_API_TOKEN},
+                timeout=10,
             )
 
         except Exception as e:

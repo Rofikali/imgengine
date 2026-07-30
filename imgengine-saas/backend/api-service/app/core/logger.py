@@ -12,6 +12,9 @@
 import logging
 import json
 import sys
+from pathlib import Path
+
+from app.core.config import LOG_DIR
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,7 +38,8 @@ class JsonFormatter(logging.Formatter):
 
 
 logger = logging.getLogger("imgengine")
-handler = logging.FileHandler("/data/logs/app.log")
+Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
+handler = logging.FileHandler(Path(LOG_DIR) / "app.log")
 
 handler.setFormatter(JsonFormatter())
 

@@ -11,6 +11,10 @@ services:
     depends_on:
       - redis
       - db
+    environment:
+      API_KEYS: ${API_KEYS:?set API_KEYS in your environment}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?set INTERNAL_API_TOKEN in your environment}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
 
   worker:
     build:
@@ -23,6 +27,18 @@ services:
     depends_on:
       - redis
       - db
+    environment:
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?set INTERNAL_API_TOKEN in your environment}
+
+  web:
+    build: ../frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      NUXT_API_BASE: http://api:8000
+      NUXT_API_KEY: ${API_KEYS:?set API_KEYS in your environment}
 
   redis:
     image: redis:7
