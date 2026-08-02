@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from app.core.db import SessionLocal
 from app.models.job import Job
 from app.core.security import verify_internal_token
+from app.core.job_states import can_transition
+from app.schemas.job import JobStatusUpdate
 
 router = APIRouter()
 
@@ -18,21 +20,26 @@ def get_db():
 
 
 @router.patch("/jobs/{job_id}", dependencies=[Depends(verify_internal_token)])
-def update_job(job_id: str, data: dict, db: Session = Depends(get_db)):
+def update_job(job_id: str, data: JobStatusUpdate, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
 
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
 
-    if "status" in data:
-        job.status = data["status"]
+    if not can_transition(job.status, data.status):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot transition job from {job.status} to {data.status}",
+        )
 
-    if "logs" in data:
-        job.logs = data["logs"]
+    job.status = data.status
 
-    if "error" in data:
-        job.error = data["error"]
+    if data.logs is not None:
+        job.logs = data.logs
+
+    if data.error is not None:
+        job.error = data.error
 
     db.commit()
 
-    return {"message": "updated"}
+    return {"job_id": job.id, "status": job.status}

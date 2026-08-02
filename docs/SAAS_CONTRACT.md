@@ -55,6 +55,10 @@ Terminal states (`completed`, `failed`) never transition again. Future retry req
 
 ### `PATCH /internal/jobs/{job_id}`
 
+Authenticated worker-only endpoint. Status updates are constrained to this lifecycle:
+
+`queued → processing → completed | failed`, with `processing → retrying → processing | failed` for retriable failures. Terminal states cannot transition; repeating the current status is idempotent.
+
 Worker-only endpoint protected by `X-Internal-Token`. It must validate payload schema and transition legality; raw dictionaries are temporary implementation debt.
 
 ## 3. API-to-Worker Payload

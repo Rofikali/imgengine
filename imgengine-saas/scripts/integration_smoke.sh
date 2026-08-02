@@ -3,6 +3,7 @@ set -euo pipefail
 
 api_url="${API_URL:-http://127.0.0.1:8000}"
 api_key="${API_KEYS:?API_KEYS must be set}"
+internal_token="${INTERNAL_API_TOKEN:-}"
 fixture="${1:-imgengine/photo.jpg}"
 
 for attempt in {1..30}; do
@@ -19,6 +20,18 @@ for attempt in {1..60}; do
   if [[ "$job_status" == "completed" ]]; then
     curl --fail --silent -H "X-API-Key: $api_key" "$api_url/api/output/$job_id" --output /tmp/imgengine-output.png
     test -s /tmp/imgengine-output.png
+    if [[ -n "$internal_token" ]]; then
+      if curl --silent --output /dev/null --write-out '%{http_code}' --request PATCH \
+        "$api_url/internal/jobs/$job_id" \
+        -H "X-Internal-Token: $internal_token" \
+        -H 'Content-Type: application/json' \
+        --data '{"status":"processing"}' | grep -qx '409'; then
+        :
+      else
+        echo "completed job $job_id accepted an invalid state transition" >&2
+        exit 1
+      fi
+    fi
     echo "completed job $job_id"
     exit 0
   fi

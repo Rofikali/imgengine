@@ -106,8 +106,7 @@ int main(int argc, char **argv) {
      * Used for async output write — zero blocking on the critical path.
      * Depth 64: supports up to 64 concurrent I/O ops (more than enough for CLI).
      */
-    img_io_uring_t uring;
-    int uring_ok = (img_io_uring_init(&uring, 64) == 0);
+    int uring_ok = 0;
 
     if (opts.verbose && !opts.quiet) {
         printf("imgengine | %ux%u grid | %.1fx%.1f cm | %u dpi | io_uring=%s\n", job.cols, job.rows,
@@ -176,8 +175,5 @@ int main(int argc, char **argv) {
         printf("done: %s\n", opts.output_path);
 
     img_api_shutdown(engine);
-    if (uring_ok)
-        img_io_uring_destroy(&uring);
-
     return (r == IMG_SUCCESS) ? 0 : 1;
 }

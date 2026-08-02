@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, Field
 
+from app.core.job_states import JobStatus
+
 
 class GenerateJob(BaseModel):
     input: str
@@ -22,3 +24,9 @@ class GenerateJob(BaseModel):
 
     width: float = Field(4.5, gt=0, le=50)
     height: float = Field(3.5, gt=0, le=50)
+
+
+class JobStatusUpdate(BaseModel):
+    status: JobStatus
+    error: str | None = Field(default=None, max_length=10_000)
+    logs: str | None = Field(default=None, max_length=100_000)

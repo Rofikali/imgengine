@@ -144,6 +144,20 @@ celery = Celery(
 )
 
 
+def update_job(job_id: str, payload: dict) -> None:
+    response = requests.patch(
+        f"{API_URL}/internal/jobs/{job_id}",
+        json=payload,
+        headers={"X-Internal-Token": INTERNAL_API_TOKEN},
+        timeout=10,
+    )
+    response.raise_for_status()
+
+
+def is_terminal_transition_conflict(error: requests.HTTPError) -> bool:
+    return error.response is not None and error.response.status_code == 409
+
+
 @celery.task(
     name="tasks.process_image",
     bind=True,
@@ -164,57 +178,30 @@ def process_image(self, job: dict, carrier: dict):
         print(f"[TRACE {trace_id}] Processing job {job_id}")
 
         try:
-            # 1. Mark as Processing
-            with tracer.start_as_current_span("update-status-processing"):
-                requests.patch(
-                    f"{API_URL}/internal/jobs/{job_id}",
-                    json={"status": "processing", "trace_id": trace_id},
-                    headers={"X-Internal-Token": INTERNAL_API_TOKEN},
-                    timeout=10,
-                )
+            try:
+                update_job(job_id, {"status": "processing"})
+            except requests.HTTPError as error:
+                if is_terminal_transition_conflict(error):
+                    return
+                raise
 
-            # 2. Run C-Engine
             result = run_engine(job)
 
-            # 3. Handle Result
             if result["returncode"] != 0:
-                # FAILURE BLOCK
-                requests.patch(
-                    f"{API_URL}/internal/jobs/{job_id}",
-                    json={
-                        "status": "failed",
-                        "trace_id": trace_id,
-                        "error": result["stderr"],
-                    },
-                    headers={"X-Internal-Token": INTERNAL_API_TOKEN},
-                    timeout=10,
-                )
+                update_job(job_id, {"status": "failed", "error": result["stderr"]})
                 return
 
-            # SUCCESS BLOCK
-            SUCCESSFUL_IMAGES.inc()  # Increment ONLY on success
-            requests.patch(
-                f"{API_URL}/internal/jobs/{job_id}",
-                json={
-                    "status": "completed",
-                    "trace_id": trace_id,
-                    "logs": result["stdout"],
-                },
-                headers={"X-Internal-Token": INTERNAL_API_TOKEN},
-                timeout=10,
-            )
+            update_job(job_id, {"status": "completed", "logs": result["stdout"]})
+            SUCCESSFUL_IMAGES.inc()
 
-        except Exception as e:
-            # 4. Handle Retries
-            requests.patch(
-                f"{API_URL}/internal/jobs/{job_id}",
-                json={
-                    "status": "retrying",
-                    "trace_id": trace_id,
-                    "error": str(e),
-                },
-            )
-            raise self.retry(exc=e)
+        except Exception as error:
+            try:
+                update_job(job_id, {"status": "retrying", "error": str(error)})
+            except requests.HTTPError as update_error:
+                if is_terminal_transition_conflict(update_error):
+                    return
+                raise
+            raise self.retry(exc=error)
 
         finally:
             TASK_LATENCY.observe(time.time() - start)
