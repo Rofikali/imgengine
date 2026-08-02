@@ -4,7 +4,7 @@ import uuid
 import shutil
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Request, status as http_status
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Request, status as http_status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.schemas.job import GenerateJob
@@ -46,7 +46,21 @@ def get_db():
 # @limiter.limit("5/minute")    # here is Actually limit to 5 per minute for testing, change to 1000 in production
 @router.post("/generate", dependencies=[Depends(verify_api_key)])
 async def generate(
-    request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)
+    request: Request,
+    file: UploadFile = File(...),
+    cols: int = Form(6, ge=1, le=20),
+    rows: int = Form(6, ge=1, le=20),
+    gap: int = Form(15, ge=0, le=500),
+    padding: int = Form(20, ge=0, le=1000),
+    width: float = Form(4.5, gt=0, le=50),
+    height: float = Form(3.5, gt=0, le=50),
+    dpi: int = Form(300, ge=72, le=1200),
+    border: int = Form(2, ge=0, le=100),
+    bleed: int = Form(0, ge=0, le=500),
+    crop_mark: int = Form(15, ge=0, le=500),
+    crop_thickness: int = Form(2, ge=1, le=100),
+    crop_offset: int = Form(8, ge=0, le=500),
+    db: Session = Depends(get_db),
 ):
     from opentelemetry.trace.propagation.tracecontext import (
         TraceContextTextMapPropagator,
@@ -90,7 +104,22 @@ async def generate(
 
         # 1. Create default settings using your Pydantic model
         # This fills in 'cols', 'rows', etc., with the defaults you defined
-        settings = GenerateJob(input=input_path, output=output_path)
+        settings = GenerateJob(
+            input=input_path,
+            output=output_path,
+            cols=cols,
+            rows=rows,
+            gap=gap,
+            padding=padding,
+            width=width,
+            height=height,
+            dpi=dpi,
+            border=border,
+            bleed=bleed,
+            crop_mark=crop_mark,
+            crop_thickness=crop_thickness,
+            crop_offset=crop_offset,
+        )
 
         # save job in DB
         job = Job(

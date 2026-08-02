@@ -8,17 +8,17 @@ class GenerateJob(BaseModel):
 
     output: str = "output.png"
 
-    cols: int = 6
-    rows: int = 6
-    gap: int = 15
-    dpi: int = 300
-    border: int = 2
-    padding: int = 20
+    cols: int = Field(6, ge=1, le=20)
+    rows: int = Field(6, ge=1, le=20)
+    gap: int = Field(15, ge=0, le=500)
+    dpi: int = Field(300, ge=72, le=1200)
+    border: int = Field(2, ge=0, le=100)
+    padding: int = Field(20, ge=0, le=1000)
 
-    crop_mark: int = 15
-    crop_thickness: int = 2
-    bleed: int = 0
-    crop_offset: int = 8
+    crop_mark: int = Field(15, ge=0, le=500)
+    crop_thickness: int = Field(2, ge=1, le=100)
+    bleed: int = Field(0, ge=0, le=500)
+    crop_offset: int = Field(8, ge=0, le=500)
 
-    width: float = Field(4.5, alias="w_cm")
-    height: float = Field(3.5, alias="h_cm")
+    width: float = Field(4.5, gt=0, le=50)
+    height: float = Field(3.5, gt=0, le=50)

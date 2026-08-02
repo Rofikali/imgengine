@@ -20,9 +20,9 @@
 
 **Authentication:** `X-API-Key` on the FastAPI boundary. Nuxt adds it only on the server.
 
-**Input:** `multipart/form-data` with `file` and, after the layout-control UI is implemented, validated layout fields.
+**Input:** `multipart/form-data` with `file`, `width`, `height`, `dpi`, `cols`, `rows`, `gap`, `padding`, `border`, `bleed`, `crop_mark`, `crop_thickness`, and `crop_offset`.
 
-**Current implemented behavior:** accepts JPEG/PNG uploads, applies server defaults from `GenerateJob`, creates a `queued` job, and publishes to Celery. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
+**Current implemented behavior:** accepts JPEG/PNG uploads, validates bounded layout fields against `GenerateJob`, creates a `queued` job, and publishes to Celery. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
 
 **Target response:**
 
@@ -90,7 +90,7 @@ The worker rejects an unknown version, nonexistent input, invalid layout, or ill
 
 ## 4. Nuxt UX Requirements
 
-The initial UI must expose inputs for source image, width, height, DPI, rows, columns, gap, padding, border, bleed, crop-mark length/thickness/offset, scale mode, and output format. It must present safe defaults and a preset selector.
+The initial UI exposes inputs for source image, width, height, DPI, rows, columns, gap, padding, border, bleed, and crop-mark length/thickness/offset. Scale mode, output format, safe presets, and preset selector remain planned.
 
 The UI polls job status, shows a human-readable error returned by the server, disables download until `completed`, and never displays raw storage paths. Layout controls must map exactly to the API contract; no hidden client-only defaults.
 
@@ -114,4 +114,3 @@ The UI polls job status, shows a human-readable error returned by the server, di
 | Invalid layout | API returns `422` with field-level errors before persistence. |
 | Unauthorized request | API returns `401`; no job or upload is created. |
 | Output expired | Download returns `410` and UI explains expiry. |
-
