@@ -135,14 +135,8 @@ int main(int argc, char **argv) {
                 r = img_api_run_job_rgb24_raw(engine, raw_input, raw_size, opts.input_width,
                                               opts.input_height, stride, &job, &out, &out_size);
 
-                if (r == IMG_SUCCESS) {
-                    if (uring_ok)
-                        r = (img_io_uring_write_file(&uring, opts.output_path, out, out_size) == 0)
-                                ? IMG_SUCCESS
-                                : IMG_ERR_IO;
-                    else
-                        r = write_buffer_blocking(opts.output_path, out, out_size);
-                }
+                if (r == IMG_SUCCESS)
+                    r = write_buffer_blocking(opts.output_path, out, out_size);
 
                 img_encoded_free(out);
             }
@@ -157,14 +151,8 @@ int main(int argc, char **argv) {
 
         r = img_api_run_job_raw(engine, opts.input_path, &job, &out, &out_size);
 
-        if (r == IMG_SUCCESS) {
-            if (uring_ok)
-                r = (img_io_uring_write_file(&uring, opts.output_path, out, out_size) == 0)
-                        ? IMG_SUCCESS
-                        : IMG_ERR_IO;
-            else
-                r = write_buffer_blocking(opts.output_path, out, out_size);
-        }
+        if (r == IMG_SUCCESS)
+            r = write_buffer_blocking(opts.output_path, out, out_size);
 
         img_encoded_free(out);
     }

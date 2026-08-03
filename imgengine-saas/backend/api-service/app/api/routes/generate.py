@@ -1,7 +1,6 @@
 # backend/app/api/routes/generate.py
 
 import uuid
-import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Request, status as http_status
@@ -20,7 +19,8 @@ from app.core.logger import logger
 
 from app.core.tracing import tracer
 import time
-from app.core.config import MAX_UPLOAD_BYTES, OUTPUT_DIR, UPLOAD_DIR
+from app.core.config import MAX_UPLOAD_BYTES
+from app.core.storage import StoragePathError, artifact_store
 
 # Change your import at the top
 from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY, IMAGE_PROCESSED_TOTAL
@@ -86,16 +86,23 @@ async def generate(
             )
 
         filename = Path(file.filename or "upload").name
-        input_path = str(Path(UPLOAD_DIR) / f"{job_id}_{filename}")
-        output_path = str(Path(OUTPUT_DIR) / f"{job_id}.png")
+        try:
+            input_key = artifact_store.upload_key(job_id, filename)
+        except StoragePathError as exc:
+            raise HTTPException(
+                status_code=http_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Only JPEG and PNG uploads are supported",
+            ) from exc
+        output_key = artifact_store.output_key(job_id)
+        input_path = artifact_store.path_for(input_key)
 
         bytes_written = 0
-        with open(input_path, "wb") as buffer:
+        with input_path.open("wb") as buffer:
             while chunk := await file.read(1024 * 1024):
                 bytes_written += len(chunk)
                 if bytes_written > MAX_UPLOAD_BYTES:
                     buffer.close()
-                    Path(input_path).unlink(missing_ok=True)
+                    input_path.unlink(missing_ok=True)
                     raise HTTPException(
                         status_code=http_status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                         detail=f"Upload exceeds the {MAX_UPLOAD_BYTES} byte limit",
@@ -105,8 +112,8 @@ async def generate(
         # 1. Create default settings using your Pydantic model
         # This fills in 'cols', 'rows', etc., with the defaults you defined
         settings = GenerateJob(
-            input=input_path,
-            output=output_path,
+            input=input_key,
+            output=output_key,
             cols=cols,
             rows=rows,
             gap=gap,
@@ -125,8 +132,8 @@ async def generate(
         job = Job(
             id=job_id,
             trace_id=trace_id,
-            input=input_path,
-            output=output_path,
+            input=input_key,
+            output=output_key,
             status="queued",
         )
         db.add(job)
@@ -140,8 +147,8 @@ async def generate(
         job_payload = {
             "job_id": job_id,
             "trace_id": trace_id,
-            "input": input_path,
-            "output": output_path,
+            "input": input_key,
+            "output": output_key,
             **settings.model_dump(),
         }
 
@@ -169,14 +176,13 @@ async def generate(
             "job_id": job.id,
             "trace_id": job.trace_id,  # ✅ real trace
             "status": job.status,
-            "output": job.output,
             "output_url": output_url(job),
             "error": job.error,
             "carrier": carrier,
         }
 
 
-@router.get("/status/{job_id}")
+@router.get("/status/{job_id}", dependencies=[Depends(verify_api_key)])
 def status(job_id: str, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
@@ -186,7 +192,6 @@ def status(job_id: str, db: Session = Depends(get_db)):
         "job_id": job.id,
         "trace_id": job.trace_id,
         "status": job.status,
-        "output": job.output,
         "output_url": output_url(job),
     }
 
@@ -199,11 +204,9 @@ def download_output(job_id: str, db: Session = Depends(get_db)):
     if job.status != "completed":
         raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="Output is not available until the job completes")
 
-    output_root = Path(OUTPUT_DIR).resolve()
-    output_path = Path(job.output).resolve()
     try:
-        output_path.relative_to(output_root)
-    except ValueError as exc:
+        output_path = artifact_store.path_for(job.output)
+    except StoragePathError as exc:
         raise HTTPException(status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Job output path is invalid") from exc
     if not output_path.is_file():
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Output file not found")

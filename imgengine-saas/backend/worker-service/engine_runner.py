@@ -1,16 +1,19 @@
 # backend/service/engine_runner.py
 
 import subprocess
-from pathlib import Path
+
+from app.core.storage import artifact_store
 
 
 def run_engine(job: dict):
+    input_path = artifact_store.path_for(job["input"])
+    output_path = artifact_store.path_for(job["output"])
     cmd = [
         "imgengine_cli",
         "--input",
-        job["input"],
+        str(input_path),
         "--output",
-        job["output"],
+        str(output_path),
         "--cols",
         str(job["cols"]),
         "--rows",
@@ -39,7 +42,6 @@ def run_engine(job: dict):
 
     result = subprocess.run(cmd, capture_output=True, text=True)
 
-    output_path = Path(job["output"])
     output_valid = result.returncode == 0 and output_path.is_file() and output_path.stat().st_size > 0
     stderr = result.stderr
     if result.returncode == 0 and not output_valid:

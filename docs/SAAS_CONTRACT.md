@@ -12,7 +12,7 @@
 | Redis/Celery | Durable asynchronous delivery for initial release. | Be the source of truth for job state. |
 | Worker | Execute native CLI, update state, persist output metadata. | Accept public browser traffic. |
 | PostgreSQL | Durable job state and audit metadata. | Store unbounded image blobs in the first release. |
-| Storage | Private uploads/outputs with retention policy. | Be addressed by raw filesystem path in public APIs. |
+| Storage | Private uploads/outputs with retention policy. | Expose or persist raw filesystem paths as public API values. |
 
 ## 2. Public API v1
 
@@ -31,12 +31,12 @@
   "job_id": "uuid",
   "trace_id": "uuid",
   "status": "queued",
-  "output": null,
+  "output_url": null,
   "error": null
 }
 ```
 
-The public response must never reveal a server filesystem path. The current path field is transitional and must be replaced with an output download URL before external release.
+The public response never reveals a storage path. Storage is represented internally by server-generated keys such as `uploads/{job_id}.jpg` and `outputs/{job_id}.png`.
 
 ### `GET /api/status/{job_id}`
 

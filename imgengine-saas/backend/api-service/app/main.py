@@ -2,8 +2,6 @@
 
 
 from contextlib import asynccontextmanager
-from pathlib import Path
-
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.generate import router as generate_router
@@ -13,13 +11,13 @@ from app.core.limiter import limiter
 from app.api.routes.internal import router as internal_router
 from prometheus_client import generate_latest
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from app.core.config import CORS_ORIGINS, OUTPUT_DIR, UPLOAD_DIR
+from app.core.config import CORS_ORIGINS
+from app.core.storage import artifact_store
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
-    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    artifact_store.ensure_directories()
     Base.metadata.create_all(bind=engine)
     yield
 
