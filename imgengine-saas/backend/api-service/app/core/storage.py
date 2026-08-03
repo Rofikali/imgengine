@@ -48,6 +48,10 @@ class LocalArtifactStore:
     def download_url(self, key: str) -> str | None:
         return None
 
+    def is_ready(self) -> bool:
+        self.ensure_directories()
+        return self.path_for(UPLOAD_PREFIX).is_dir() and self.path_for(OUTPUT_PREFIX).is_dir()
+
 
 class S3ArtifactStore(LocalArtifactStore):
     def __init__(self, root: str):
@@ -88,6 +92,10 @@ class S3ArtifactStore(LocalArtifactStore):
             Params={"Bucket": S3_BUCKET, "Key": key},
             ExpiresIn=S3_PRESIGN_TTL_SECONDS,
         )
+
+    def is_ready(self) -> bool:
+        self.client.head_bucket(Bucket=S3_BUCKET)
+        return True
 
 
 artifact_store = S3ArtifactStore(STORAGE_ROOT) if STORAGE_BACKEND == "s3" else LocalArtifactStore(STORAGE_ROOT)

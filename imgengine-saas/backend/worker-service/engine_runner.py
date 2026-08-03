@@ -1,8 +1,15 @@
 # backend/service/engine_runner.py
 
 import subprocess
+import resource
 
+from app.core.config import ENGINE_CPU_TIME_SECONDS, ENGINE_MEMORY_LIMIT_BYTES, ENGINE_TIMEOUT_SECONDS, MAX_OUTPUT_BYTES
 from app.core.storage import artifact_store
+
+
+def apply_resource_limits() -> None:
+    resource.setrlimit(resource.RLIMIT_AS, (ENGINE_MEMORY_LIMIT_BYTES, ENGINE_MEMORY_LIMIT_BYTES))
+    resource.setrlimit(resource.RLIMIT_CPU, (ENGINE_CPU_TIME_SECONDS, ENGINE_CPU_TIME_SECONDS))
 
 
 def run_engine(job: dict):
@@ -40,12 +47,31 @@ def run_engine(job: dict):
         str(job["height"]),
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=ENGINE_TIMEOUT_SECONDS,
+            preexec_fn=apply_resource_limits,
+        )
+    except subprocess.TimeoutExpired:
+        output_path.unlink(missing_ok=True)
+        return {
+            "returncode": 1,
+            "stdout": "",
+            "stderr": "Engine execution exceeded the configured time limit.",
+        }
 
-    output_valid = result.returncode == 0 and output_path.is_file() and output_path.stat().st_size > 0
+    output_valid = (
+        result.returncode == 0
+        and output_path.is_file()
+        and 0 < output_path.stat().st_size <= MAX_OUTPUT_BYTES
+    )
     stderr = result.stderr
     if result.returncode == 0 and not output_valid:
-        stderr = f"Engine completed without creating a non-empty output file: {output_path}"
+        output_path.unlink(missing_ok=True)
+        stderr = "Engine did not create an output within the configured size limit."
     if output_valid:
         artifact_store.upload(job["output"])
 
