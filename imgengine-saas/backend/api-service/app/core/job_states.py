@@ -7,14 +7,16 @@ class JobStatus(StrEnum):
     RETRYING = "retrying"
     COMPLETED = "completed"
     FAILED = "failed"
+    EXPIRED = "expired"
 
 
 ALLOWED_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     JobStatus.QUEUED: {JobStatus.PROCESSING, JobStatus.FAILED},
     JobStatus.PROCESSING: {JobStatus.RETRYING, JobStatus.COMPLETED, JobStatus.FAILED},
     JobStatus.RETRYING: {JobStatus.PROCESSING, JobStatus.FAILED},
-    JobStatus.COMPLETED: set(),
-    JobStatus.FAILED: set(),
+    JobStatus.COMPLETED: {JobStatus.EXPIRED},
+    JobStatus.FAILED: {JobStatus.EXPIRED},
+    JobStatus.EXPIRED: set(),
 }
 
 

@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.generate import router as generate_router
-from app.core.db import Base, engine
 
 from app.core.limiter import limiter
 from app.api.routes.internal import router as internal_router
@@ -18,7 +17,6 @@ from app.core.storage import artifact_store
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     artifact_store.ensure_directories()
-    Base.metadata.create_all(bind=engine)
     yield
 
 app = FastAPI(title="ImgEngine API", version="0.1.0", lifespan=lifespan)

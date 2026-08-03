@@ -2,9 +2,10 @@
 
 import uuid
 from pathlib import Path
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Request, status as http_status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from app.schemas.job import GenerateJob
 from app.core.db import SessionLocal
@@ -19,7 +20,7 @@ from app.core.logger import logger
 
 from app.core.tracing import tracer
 import time
-from app.core.config import MAX_UPLOAD_BYTES
+from app.core.config import JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
 from app.core.storage import StoragePathError, artifact_store
 
 # Change your import at the top
@@ -31,6 +32,10 @@ router = APIRouter()
 
 def output_url(job: Job) -> str | None:
     return f"/api/output/{job.id}" if job.status == "completed" else None
+
+
+def serialize_expiry(job: Job) -> str | None:
+    return job.expires_at.isoformat() if job.expires_at else None
 
 
 def get_db():
@@ -108,6 +113,7 @@ async def generate(
                         detail=f"Upload exceeds the {MAX_UPLOAD_BYTES} byte limit",
                     )
                 buffer.write(chunk)
+        artifact_store.upload(input_key)
 
         # 1. Create default settings using your Pydantic model
         # This fills in 'cols', 'rows', etc., with the defaults you defined
@@ -135,6 +141,7 @@ async def generate(
             input=input_key,
             output=output_key,
             status="queued",
+            expires_at=datetime.utcnow() + timedelta(hours=JOB_RETENTION_HOURS),
         )
         db.add(job)
         db.commit()
@@ -177,6 +184,7 @@ async def generate(
             "trace_id": job.trace_id,  # ✅ real trace
             "status": job.status,
             "output_url": output_url(job),
+            "expires_at": serialize_expiry(job),
             "error": job.error,
             "carrier": carrier,
         }
@@ -193,6 +201,7 @@ def status(job_id: str, db: Session = Depends(get_db)):
         "trace_id": job.trace_id,
         "status": job.status,
         "output_url": output_url(job),
+        "expires_at": serialize_expiry(job),
     }
 
 
@@ -201,6 +210,8 @@ def download_output(job_id: str, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+    if job.status == "expired":
+        raise HTTPException(status_code=http_status.HTTP_410_GONE, detail="Job output has expired")
     if job.status != "completed":
         raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="Output is not available until the job completes")
 
@@ -209,5 +220,8 @@ def download_output(job_id: str, db: Session = Depends(get_db)):
     except StoragePathError as exc:
         raise HTTPException(status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Job output path is invalid") from exc
     if not output_path.is_file():
-        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Output file not found")
+        output_path = artifact_store.download(job.output)
+    signed_url = artifact_store.download_url(job.output)
+    if signed_url:
+        return RedirectResponse(signed_url)
     return FileResponse(output_path, filename=f"{job_id}{output_path.suffix}")

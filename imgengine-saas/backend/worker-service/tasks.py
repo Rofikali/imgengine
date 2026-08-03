@@ -121,6 +121,11 @@ from prometheus_client import Counter, Histogram, start_http_server
 import time
 from opentelemetry import trace
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+from datetime import datetime
+from app.core.config import RETENTION_CLEANUP_BATCH_SIZE, RETENTION_CLEANUP_INTERVAL_SECONDS
+from app.core.db import SessionLocal
+from app.core.storage import artifact_store
+from app.models.job import Job
 
 tracer = trace.get_tracer(__name__)
 
@@ -142,6 +147,13 @@ celery = Celery(
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/0",
 )
+celery.conf.beat_schedule = {
+    "expire-artifacts": {
+        "task": "tasks.expire_artifacts",
+        "schedule": RETENTION_CLEANUP_INTERVAL_SECONDS,
+    }
+}
+celery.conf.timezone = "UTC"
 
 
 def update_job(job_id: str, payload: dict) -> None:
@@ -156,6 +168,31 @@ def update_job(job_id: str, payload: dict) -> None:
 
 def is_terminal_transition_conflict(error: requests.HTTPError) -> bool:
     return error.response is not None and error.response.status_code == 409
+
+
+@celery.task(name="tasks.expire_artifacts")
+def expire_artifacts() -> int:
+    db = SessionLocal()
+    try:
+        jobs = (
+            db.query(Job)
+            .filter(Job.expires_at <= datetime.utcnow(), Job.status.in_(("completed", "failed")))
+            .order_by(Job.expires_at)
+            .limit(RETENTION_CLEANUP_BATCH_SIZE)
+            .all()
+        )
+        for job in jobs:
+            artifact_store.delete(job.input)
+            artifact_store.delete(job.output)
+            job.status = "expired"
+            job.error = "Job artifacts have expired."
+        db.commit()
+        return len(jobs)
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 @celery.task(

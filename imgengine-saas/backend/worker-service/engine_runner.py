@@ -6,7 +6,7 @@ from app.core.storage import artifact_store
 
 
 def run_engine(job: dict):
-    input_path = artifact_store.path_for(job["input"])
+    input_path = artifact_store.download(job["input"])
     output_path = artifact_store.path_for(job["output"])
     cmd = [
         "imgengine_cli",
@@ -46,6 +46,8 @@ def run_engine(job: dict):
     stderr = result.stderr
     if result.returncode == 0 and not output_valid:
         stderr = f"Engine completed without creating a non-empty output file: {output_path}"
+    if output_valid:
+        artifact_store.upload(job["output"])
 
     return {
         "returncode": 0 if output_valid else (result.returncode or 1),

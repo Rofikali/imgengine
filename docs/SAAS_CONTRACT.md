@@ -104,6 +104,8 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - Production rejects default development secrets at startup.
 - Upload filenames are sanitized and storage keys are server-generated.
 - Worker subprocess calls have execution timeout, output-size limit, resource constraints, and captured logs.
+- `JOB_RETENTION_HOURS` defines artifact expiry. The cleanup service marks terminal jobs `expired` and deletes their private upload/output keys.
+- `STORAGE_BACKEND=s3` enables an S3-compatible backend; configure endpoint, bucket, and credentials through `S3_*` variables. The API issues a short-lived signed redirect only after caller authorization.
 - `/healthz` reports process liveness; `/readyz` must report database, broker, and storage readiness before deployment.
 - Prometheus metrics include request result, upload size, queue publication failures, job transitions, worker duration, engine exit code, and output size.
 
