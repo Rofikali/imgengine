@@ -104,9 +104,11 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - `DEPLOYMENT_ENV=production` rejects default API keys, internal tokens shorter than 32 characters, wildcard CORS, and localhost CORS origins at startup.
 - Production rejects default development secrets at startup.
 - Upload filenames are sanitized and storage keys are server-generated.
+- `GENERATE_RATE_LIMIT` defaults to `30/minute` per hashed API key; unauthenticated attempts are limited by source address and accepted requests use the authenticated key identity.
 - Worker subprocess calls have execution timeout, output-size limit, resource constraints, and captured logs.
 - Local worker limits default to 30 seconds wall time, 25 seconds CPU time, 1 GiB address space, and 100 MiB output. Configure `ENGINE_*` and `MAX_OUTPUT_BYTES` for deployment capacity.
 - `JOB_RETENTION_HOURS` defines artifact expiry. The cleanup service marks terminal jobs `expired` and deletes their private upload/output keys.
+- `GET /api/jobs/{job_id}/logs` returns authenticated, path-sanitized job logs capped by `MAX_JOB_LOG_CHARS` (default `16000`). Logs are cleared by the same retention cleanup that expires artifacts.
 - `STORAGE_BACKEND=s3` enables an S3-compatible backend; configure endpoint, bucket, and credentials through `S3_*` variables. The API issues a short-lived signed redirect only after caller authorization.
 - `/healthz` reports process liveness; `/readyz` reports database, broker, and active storage readiness and returns `503` when any dependency is unavailable.
 - Prometheus metrics include request result, upload size, queue publication failures, job transitions, worker duration, engine exit code, and output size.

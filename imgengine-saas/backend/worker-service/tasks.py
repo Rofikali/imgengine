@@ -126,6 +126,7 @@ from app.core.config import RETENTION_CLEANUP_BATCH_SIZE, RETENTION_CLEANUP_INTE
 from app.core.db import SessionLocal
 from app.core.storage import artifact_store
 from app.models.job import Job
+from app.core.job_logs import sanitize_job_log
 from app.schemas.job import WorkerJob
 from pydantic import ValidationError
 
@@ -192,6 +193,7 @@ def expire_artifacts() -> int:
             artifact_store.delete(job.output)
             job.status = "expired"
             job.error = "Job artifacts have expired."
+            job.logs = None
         db.commit()
         return len(jobs)
     except Exception:
@@ -241,10 +243,10 @@ def process_image(self, job: dict, carrier: dict):
             ENGINE_EXIT_CODES.labels(result="success" if result["returncode"] == 0 else "failure").inc()
 
             if result["returncode"] != 0:
-                update_job(job_id, {"status": "failed", "error": result["stderr"]})
+                update_job(job_id, {"status": "failed", "error": sanitize_job_log(result["stderr"], job["input"], job["output"])})
                 return
 
-            update_job(job_id, {"status": "completed", "logs": result["stdout"]})
+            update_job(job_id, {"status": "completed", "logs": sanitize_job_log(result["stdout"], job["input"], job["output"])})
             SUCCESSFUL_IMAGES.inc()
             OUTPUT_BYTES.observe(result["output_bytes"])
 

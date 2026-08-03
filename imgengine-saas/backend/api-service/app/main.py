@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.generate import router as generate_router
 
 from app.core.limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from app.api.routes.internal import router as internal_router
 from prometheus_client import generate_latest
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -73,3 +75,4 @@ def metrics():
 
 
 app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

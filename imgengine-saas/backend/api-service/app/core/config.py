@@ -30,6 +30,8 @@ ENGINE_TIMEOUT_SECONDS = int(os.getenv("ENGINE_TIMEOUT_SECONDS", "30"))
 ENGINE_CPU_TIME_SECONDS = int(os.getenv("ENGINE_CPU_TIME_SECONDS", "25"))
 ENGINE_MEMORY_LIMIT_BYTES = int(os.getenv("ENGINE_MEMORY_LIMIT_BYTES", str(1024 * 1024 * 1024)))
 MAX_OUTPUT_BYTES = int(os.getenv("MAX_OUTPUT_BYTES", str(100 * 1024 * 1024)))
+MAX_JOB_LOG_CHARS = int(os.getenv("MAX_JOB_LOG_CHARS", "16000"))
+GENERATE_RATE_LIMIT = os.getenv("GENERATE_RATE_LIMIT", "30/minute")
 CORS_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")

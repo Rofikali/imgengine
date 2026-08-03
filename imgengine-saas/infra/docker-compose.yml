@@ -27,6 +27,7 @@ services:
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin}
       S3_BUCKET: ${S3_BUCKET:-imgengine}
+      GENERATE_RATE_LIMIT: ${GENERATE_RATE_LIMIT:-30/minute}
 
   worker:
     build:

@@ -20,7 +20,7 @@ from app.core.logger import logger
 
 from app.core.tracing import tracer
 import time
-from app.core.config import JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
+from app.core.config import GENERATE_RATE_LIMIT, JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
 from app.core.storage import StoragePathError, artifact_store
 
 # Change your import at the top
@@ -46,9 +46,7 @@ def get_db():
         db.close()
 
 
-# To this (for testing):
-@limiter.limit("1000/minute")
-# @limiter.limit("5/minute")    # here is Actually limit to 5 per minute for testing, change to 1000 in production
+@limiter.limit(GENERATE_RATE_LIMIT)
 @router.post("/generate", dependencies=[Depends(verify_api_key)])
 async def generate(
     request: Request,
@@ -205,7 +203,18 @@ def status(job_id: str, db: Session = Depends(get_db)):
         "status": job.status,
         "output_url": output_url(job),
         "expires_at": serialize_expiry(job),
+        "error": job.error,
     }
+
+
+@router.get("/jobs/{job_id}/logs", dependencies=[Depends(verify_api_key)])
+def job_logs(job_id: str, db: Session = Depends(get_db)):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+    if job.status == "expired":
+        raise HTTPException(status_code=http_status.HTTP_410_GONE, detail="Job logs have expired")
+    return {"job_id": job.id, "status": job.status, "logs": job.logs or ""}
 
 
 @router.get("/output/{job_id}", dependencies=[Depends(verify_api_key)])

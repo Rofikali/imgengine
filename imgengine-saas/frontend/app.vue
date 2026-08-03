@@ -4,6 +4,7 @@ type Job = { job_id: string; status: string; output_url?: string | null; error?:
 const selectedFile = ref<File | null>(null)
 const job = ref<Job | null>(null)
 const error = ref('')
+const logs = ref('')
 const submitting = ref(false)
 const layout = reactive({
   width: 4.5, height: 3.5, dpi: 300, cols: 6, rows: 6,
@@ -23,6 +24,7 @@ async function submit() {
   if (!selectedFile.value) return
   submitting.value = true
   error.value = ''
+  logs.value = ''
   const form = new FormData()
   form.append('file', selectedFile.value)
   for (const [key] of fields) form.append(key, String(layout[key]))
@@ -46,6 +48,12 @@ async function pollStatus() {
       return
     }
   }
+}
+
+async function loadLogs() {
+  if (!job.value) return
+  const response = await $fetch<{ logs: string }>(`/api/jobs/${job.value.job_id}/logs`)
+  logs.value = response.logs
 }
 </script>
 
@@ -72,6 +80,8 @@ async function pollStatus() {
         <span>{{ job.status }}</span>
         <p v-if="job.error" class="error">{{ job.error }}</p>
         <a v-if="job.output_url" :href="`/api/jobs/${job.job_id}/output`">Download output</a>
+        <button v-if="['completed', 'failed'].includes(job.status)" type="button" @click="loadLogs">Show job logs</button>
+        <pre v-if="logs">{{ logs }}</pre>
       </div>
     </section>
   </main>
