@@ -10,7 +10,7 @@ from app.core.limiter import limiter
 from app.api.routes.internal import router as internal_router
 from prometheus_client import generate_latest
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from app.core.config import CORS_ORIGINS
+from app.core.config import CORS_ORIGINS, validate_runtime_configuration
 from app.core.storage import artifact_store
 from app.core.celery_client import assert_broker_available
 from app.core.db import engine
@@ -19,6 +19,7 @@ from sqlalchemy import text
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    validate_runtime_configuration()
     artifact_store.ensure_directories()
     yield
 

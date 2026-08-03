@@ -6,6 +6,7 @@ import os
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql://imgengine:imgengine@db:5432/imgengine"
 )
+DEPLOYMENT_ENV = os.getenv("DEPLOYMENT_ENV", "development").lower()
 API_KEYS = frozenset(filter(None, os.getenv("API_KEYS", "test-key-123").split(",")))
 INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "local-development-token")
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(20 * 1024 * 1024)))
@@ -34,3 +35,18 @@ CORS_ORIGINS = [
     for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
     if origin.strip()
 ]
+
+
+def validate_runtime_configuration() -> None:
+    if DEPLOYMENT_ENV != "production":
+        return
+
+    invalid = []
+    if not API_KEYS or "test-key-123" in API_KEYS:
+        invalid.append("API_KEYS")
+    if INTERNAL_API_TOKEN == "local-development-token" or len(INTERNAL_API_TOKEN) < 32:
+        invalid.append("INTERNAL_API_TOKEN")
+    if not CORS_ORIGINS or "*" in CORS_ORIGINS or any("localhost" in origin for origin in CORS_ORIGINS):
+        invalid.append("CORS_ORIGINS")
+    if invalid:
+        raise RuntimeError(f"Invalid production configuration: {', '.join(invalid)}")

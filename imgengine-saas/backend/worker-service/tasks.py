@@ -126,6 +126,8 @@ from app.core.config import RETENTION_CLEANUP_BATCH_SIZE, RETENTION_CLEANUP_INTE
 from app.core.db import SessionLocal
 from app.core.storage import artifact_store
 from app.models.job import Job
+from app.schemas.job import WorkerJob
+from pydantic import ValidationError
 
 tracer = trace.get_tracer(__name__)
 
@@ -147,6 +149,10 @@ celery = Celery(
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/0",
 )
+ENGINE_EXIT_CODES = Counter(
+    "worker_engine_exit_codes_total", "Native engine result codes", ["result"]
+)
+OUTPUT_BYTES = Histogram("worker_output_bytes", "Generated artifact sizes in bytes")
 celery.conf.beat_schedule = {
     "expire-artifacts": {
         "task": "tasks.expire_artifacts",
@@ -209,8 +215,17 @@ def process_image(self, job: dict, carrier: dict):
         start = time.time()
         TASK_COUNT.inc()
 
-        job_id = job["job_id"]
-        trace_id = job.get("trace_id")
+        raw_job_id = job.get("job_id") if isinstance(job, dict) else None
+        try:
+            payload = WorkerJob.model_validate(job)
+        except ValidationError:
+            if isinstance(raw_job_id, str) and raw_job_id:
+                update_job(raw_job_id, {"status": "failed", "error": "Invalid processing payload."})
+            return
+
+        job = payload.model_dump()
+        job_id = payload.job_id
+        trace_id = payload.trace_id
 
         print(f"[TRACE {trace_id}] Processing job {job_id}")
 
@@ -223,6 +238,7 @@ def process_image(self, job: dict, carrier: dict):
                 raise
 
             result = run_engine(job)
+            ENGINE_EXIT_CODES.labels(result="success" if result["returncode"] == 0 else "failure").inc()
 
             if result["returncode"] != 0:
                 update_job(job_id, {"status": "failed", "error": result["stderr"]})
@@ -230,6 +246,7 @@ def process_image(self, job: dict, carrier: dict):
 
             update_job(job_id, {"status": "completed", "logs": result["stdout"]})
             SUCCESSFUL_IMAGES.inc()
+            OUTPUT_BYTES.observe(result["output_bytes"])
 
         except Exception as error:
             try:

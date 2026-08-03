@@ -50,6 +50,7 @@ jobs:
         env:
           API_URL: http://127.0.0.1:8000
           API_KEYS: integration-test-key
+          INTERNAL_API_TOKEN: integration-internal-token
         run: bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg
       - name: Print service logs on failure
         if: failure()

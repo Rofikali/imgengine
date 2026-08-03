@@ -79,4 +79,5 @@ def run_engine(job: dict):
         "returncode": 0 if output_valid else (result.returncode or 1),
         "stdout": result.stdout,
         "stderr": stderr,
+        "output_bytes": output_path.stat().st_size if output_valid else 0,
     }

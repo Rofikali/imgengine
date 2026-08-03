@@ -90,7 +90,7 @@ All new payloads must be versioned:
 }
 ```
 
-The worker rejects an unknown version, nonexistent input, invalid layout, or illegal job state before invoking the CLI.
+The worker accepts only payload `version: 1`. It rejects unknown versions, invalid layout, or malformed payloads before invoking the CLI, marking a known job as `failed` without retrying invalid work.
 
 ## 4. Nuxt UX Requirements
 
@@ -101,6 +101,7 @@ The UI polls job status, shows a human-readable error returned by the server, di
 ## 5. Security and Operations
 
 - Configure `API_KEYS`, `INTERNAL_API_TOKEN`, database URL, broker URL, storage paths, and CORS origins through environment variables.
+- `DEPLOYMENT_ENV=production` rejects default API keys, internal tokens shorter than 32 characters, wildcard CORS, and localhost CORS origins at startup.
 - Production rejects default development secrets at startup.
 - Upload filenames are sanitized and storage keys are server-generated.
 - Worker subprocess calls have execution timeout, output-size limit, resource constraints, and captured logs.
@@ -109,6 +110,7 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - `STORAGE_BACKEND=s3` enables an S3-compatible backend; configure endpoint, bucket, and credentials through `S3_*` variables. The API issues a short-lived signed redirect only after caller authorization.
 - `/healthz` reports process liveness; `/readyz` reports database, broker, and active storage readiness and returns `503` when any dependency is unavailable.
 - Prometheus metrics include request result, upload size, queue publication failures, job transitions, worker duration, engine exit code, and output size.
+- Alert on sustained queue publication failures, increases in `failed`/`retrying` transitions, engine failures, and readiness returning `503`.
 
 ## 6. SaaS Acceptance Matrix
 

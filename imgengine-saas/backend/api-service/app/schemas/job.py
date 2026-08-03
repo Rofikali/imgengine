@@ -1,5 +1,7 @@
 # backend/schemas/job.py
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.core.job_states import JobStatus
@@ -30,3 +32,9 @@ class JobStatusUpdate(BaseModel):
     status: JobStatus
     error: str | None = Field(default=None, max_length=10_000)
     logs: str | None = Field(default=None, max_length=100_000)
+
+
+class WorkerJob(GenerateJob):
+    version: Literal[1]
+    job_id: str = Field(min_length=1, max_length=64)
+    trace_id: str = Field(min_length=1, max_length=64)

@@ -14,6 +14,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      DEPLOYMENT_ENV: ${DEPLOYMENT_ENV:-development}
       API_KEYS: ${API_KEYS:?set API_KEYS in your environment}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?set INTERNAL_API_TOKEN in your environment}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}

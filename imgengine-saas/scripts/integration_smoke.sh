@@ -6,10 +6,15 @@ api_key="${API_KEYS:?API_KEYS must be set}"
 internal_token="${INTERNAL_API_TOKEN:-}"
 fixture="${1:-imgengine/photo.jpg}"
 
+ready="false"
 for attempt in {1..30}; do
-  curl --fail --silent "$api_url/healthz" >/dev/null && break
+  if curl --fail --silent "$api_url/readyz" >/dev/null; then
+    ready="true"
+    break
+  fi
   sleep 1
 done
+[[ "$ready" == "true" ]] || { echo "API did not become ready" >&2; exit 1; }
 
 response="$(curl --fail --silent -X POST "$api_url/api/generate" -H "X-API-Key: $api_key" -F "file=@$fixture;type=image/jpeg")"
 job_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["job_id"])' <<<"$response")"
@@ -32,6 +37,9 @@ for attempt in {1..60}; do
         exit 1
       fi
     fi
+    metrics="$(curl --fail --silent "$api_url/metrics")"
+    grep -q 'imgengine_job_transitions_total' <<<"$metrics"
+    grep -q 'imgengine_upload_bytes' <<<"$metrics"
     echo "completed job $job_id"
     exit 0
   fi

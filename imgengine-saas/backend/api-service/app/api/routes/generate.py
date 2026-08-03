@@ -24,7 +24,7 @@ from app.core.config import JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
 from app.core.storage import StoragePathError, artifact_store
 
 # Change your import at the top
-from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY, IMAGE_PROCESSED_TOTAL
+from app.core.metrics import IMAGE_PROCESSED_TOTAL, QUEUE_PUBLICATION_FAILURES, REQUEST_COUNT, REQUEST_LATENCY, UPLOAD_BYTES
 
 
 router = APIRouter()
@@ -114,6 +114,7 @@ async def generate(
                     )
                 buffer.write(chunk)
         artifact_store.upload(input_key)
+        UPLOAD_BYTES.observe(bytes_written)
 
         # 1. Create default settings using your Pydantic model
         # This fills in 'cols', 'rows', etc., with the defaults you defined
@@ -152,6 +153,7 @@ async def generate(
         # 3. Send the FULL dictionary to the worker
 
         job_payload = {
+            "version": 1,
             "job_id": job_id,
             "trace_id": trace_id,
             "input": input_key,
@@ -166,6 +168,7 @@ async def generate(
             args=[job_payload, carrier],  # ✅ CORRECT
             )
         except Exception as exc:
+            QUEUE_PUBLICATION_FAILURES.inc()
             job.status = "failed"
             job.error = "The processing queue is unavailable. Please retry shortly."
             db.commit()

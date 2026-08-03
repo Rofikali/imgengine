@@ -60,6 +60,8 @@ Build the native CLI inside the worker image or copy it from a named builder sta
 
 Run FastAPI, Redis, PostgreSQL, worker, and storage together. Submit a fixture image and prove `queued → processing → completed` plus a download assertion. Add corrupt-input and engine-failure tests.
 
+The integration smoke additionally requires `/readyz`, verifies terminal jobs reject a regression, and checks job-transition and upload-size metrics are exposed.
+
 ### Loop D — Layout Product Controls
 
 Expose the complete layout model in Nuxt and FastAPI, validate it once at the API boundary, serialize it into a versioned worker payload, and compare output fixtures for border/bleed/crop behavior.
@@ -67,4 +69,3 @@ Expose the complete layout model in Nuxt and FastAPI, validate it once at the AP
 ## 6. Definition of Done
 
 A loop is complete only when source, tests, documentation, local run instructions, and observability agree. A green compile alone is not done; a working manual demo without a repeatable test is not done; a benchmark without its command and input corpus is not a performance claim.
-
