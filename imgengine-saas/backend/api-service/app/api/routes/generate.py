@@ -1,5 +1,6 @@
 # backend/app/api/routes/generate.py
 
+import logging
 import uuid
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -16,7 +17,9 @@ from app.core.celery_client import assert_broker_available, celery
 from app.core.security import verify_api_key
 from app.core.limiter import limiter
 
-from app.core.logger import logger
+from app.core.logger import log_event
+from app.core.job_events import record_job_event
+from app.models.job_event import JobEvent
 
 from app.core.tracing import tracer
 import time
@@ -80,7 +83,7 @@ async def generate(
         # job_id = job_id["job_id"]
 
         # print("TRACE CARRIER:", carrier)
-        logger.info("job started", extra={"trace_id": trace_id})
+        log_event(logging.INFO, "job_submission_started", component="api", trace_id=trace_id, job_id=job_id)
 
         if file.content_type not in {"image/jpeg", "image/png"}:
             raise HTTPException(
@@ -143,6 +146,14 @@ async def generate(
             expires_at=datetime.utcnow() + timedelta(hours=JOB_RETENTION_HOURS),
         )
         db.add(job)
+        record_job_event(
+            db,
+            job,
+            event="job_queued",
+            component="api",
+            message="Upload validated and job queued for processing.",
+            details={"upload_bytes": bytes_written},
+        )
         db.commit()
 
         carrier = {}
@@ -169,8 +180,16 @@ async def generate(
             QUEUE_PUBLICATION_FAILURES.inc()
             job.status = "failed"
             job.error = "The processing queue is unavailable. Please retry shortly."
+            record_job_event(
+                db,
+                job,
+                event="queue_publication_failed",
+                component="api",
+                level="error",
+                message="The processing queue was unavailable.",
+            )
             db.commit()
-            logger.exception("job queue submission failed", extra={"trace_id": trace_id})
+            log_event(logging.ERROR, "queue_publication_failed", component="api", trace_id=trace_id, job_id=job_id)
             raise HTTPException(
                 status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Image processing is temporarily unavailable",
@@ -178,6 +197,7 @@ async def generate(
 
         REQUEST_LATENCY.labels(endpoint="/generate").observe(time.time() - start)
         IMAGE_PROCESSED_TOTAL.inc()  # Increment every time an image is made
+        log_event(logging.INFO, "job_enqueued", component="api", trace_id=trace_id, job_id=job_id, duration_ms=round((time.time() - start) * 1000, 2))
 
         await file.close()
         return {
@@ -214,7 +234,29 @@ def job_logs(job_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
     if job.status == "expired":
         raise HTTPException(status_code=http_status.HTTP_410_GONE, detail="Job logs have expired")
-    return {"job_id": job.id, "status": job.status, "logs": job.logs or ""}
+    events = (
+        db.query(JobEvent)
+        .filter(JobEvent.job_id == job.id)
+        .order_by(JobEvent.created_at, JobEvent.id)
+        .all()
+    )
+    return {
+        "job_id": job.id,
+        "trace_id": job.trace_id,
+        "status": job.status,
+        "logs": job.logs or "",
+        "events": [
+            {
+                "timestamp": event.created_at.isoformat(),
+                "event": event.event,
+                "component": event.component,
+                "level": event.level,
+                "message": event.message,
+                "details": event.details,
+            }
+            for event in events
+        ],
+    }
 
 
 @router.get("/output/{job_id}", dependencies=[Depends(verify_api_key)])

@@ -2,6 +2,8 @@
 
 import subprocess
 import resource
+import time
+import os
 
 from app.core.config import ENGINE_CPU_TIME_SECONDS, ENGINE_MEMORY_LIMIT_BYTES, ENGINE_TIMEOUT_SECONDS, MAX_OUTPUT_BYTES
 from app.core.storage import artifact_store
@@ -48,12 +50,14 @@ def run_engine(job: dict):
     ]
 
     try:
+        started_at = time.perf_counter()
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=ENGINE_TIMEOUT_SECONDS,
             preexec_fn=apply_resource_limits,
+            env={**os.environ, "IMGENGINE_TRACE_ID": job["trace_id"]},
         )
     except subprocess.TimeoutExpired:
         output_path.unlink(missing_ok=True)
@@ -61,6 +65,8 @@ def run_engine(job: dict):
             "returncode": 1,
             "stdout": "",
             "stderr": "Engine execution exceeded the configured time limit.",
+            "output_bytes": 0,
+            "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
         }
 
     output_valid = (
@@ -80,4 +86,5 @@ def run_engine(job: dict):
         "stdout": result.stdout,
         "stderr": stderr,
         "output_bytes": output_path.stat().st_size if output_valid else 0,
+        "duration_ms": round((time.perf_counter() - started_at) * 1000, 2),
     }

@@ -23,6 +23,11 @@ RUN cmake -S . -B build -G Ninja \
 
 FROM python:3.12-slim
 
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    UV_HTTP_RETRIES=5 \
+    UV_HTTP_TIMEOUT=300
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnuma1 \
     libturbojpeg0 \
@@ -33,7 +38,7 @@ WORKDIR /app
 
 COPY imgengine-saas/backend/api-service/pyproject.toml \
      imgengine-saas/backend/api-service/uv.lock ./
-RUN pip install --no-cache-dir uv \
+RUN pip install --no-cache-dir --retries 5 --timeout 300 uv \
     && uv sync --frozen --no-install-project
 
 COPY imgengine-saas/backend/api-service/app ./app

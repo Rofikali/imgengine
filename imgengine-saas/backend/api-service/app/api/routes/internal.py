@@ -8,6 +8,9 @@ from app.core.security import verify_internal_token
 from app.core.job_states import can_transition
 from app.schemas.job import JobStatusUpdate
 from app.core.metrics import JOB_TRANSITIONS
+from app.core.job_events import record_job_event
+from app.core.logger import log_event
+import logging
 
 router = APIRouter()
 
@@ -42,8 +45,27 @@ def update_job(job_id: str, data: JobStatusUpdate, db: Session = Depends(get_db)
     if data.error is not None:
         job.error = data.error
 
+    if data.event:
+        record_job_event(
+            db,
+            job,
+            event=data.event,
+            component="worker",
+            level=data.event_level,
+            message=data.event_message or data.event,
+            details=data.event_details,
+        )
+
     db.commit()
     if previous_status != job.status:
         JOB_TRANSITIONS.labels(from_status=previous_status, to_status=job.status).inc()
+        log_event(
+            logging.INFO if job.status not in {"failed"} else logging.ERROR,
+            "job_status_changed",
+            component="api",
+            trace_id=job.trace_id,
+            job_id=job.id,
+            message=f"Job status changed from {previous_status} to {job.status}.",
+        )
 
     return {"job_id": job.id, "status": job.status}

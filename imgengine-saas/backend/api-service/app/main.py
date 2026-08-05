@@ -2,7 +2,11 @@
 
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Response, status
+import logging
+import time
+import uuid
+
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.generate import router as generate_router
 
@@ -17,13 +21,17 @@ from app.core.storage import artifact_store
 from app.core.celery_client import assert_broker_available
 from app.core.db import engine
 from sqlalchemy import text
+from app.core.logger import configure_logging, log_event
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    configure_logging()
     validate_runtime_configuration()
     artifact_store.ensure_directories()
+    log_event(logging.INFO, "service_started", component="api")
     yield
+    log_event(logging.INFO, "service_stopped", component="api")
 
 app = FastAPI(title="ImgEngine API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
@@ -34,6 +42,35 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-API-Key"],
 )
 FastAPIInstrumentor.instrument_app(app)
+
+
+@app.middleware("http")
+async def request_observability(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    started_at = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        log_event(
+            logging.ERROR,
+            "http_request_failed",
+            component="api",
+            request_id=request_id,
+            duration_ms=round((time.perf_counter() - started_at) * 1000, 2),
+            message=f"{request.method} {request.url.path} failed",
+        )
+        raise
+    response.headers["X-Request-ID"] = request_id
+    log_event(
+        logging.INFO if response.status_code < 500 else logging.ERROR,
+        "http_request_completed",
+        component="api",
+        request_id=request_id,
+        status_code=response.status_code,
+        duration_ms=round((time.perf_counter() - started_at) * 1000, 2),
+        message=f"{request.method} {request.url.path} completed",
+    )
+    return response
 
 
 app.include_router(generate_router, prefix="/api")

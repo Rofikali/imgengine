@@ -32,6 +32,10 @@ class JobStatusUpdate(BaseModel):
     status: JobStatus
     error: str | None = Field(default=None, max_length=10_000)
     logs: str | None = Field(default=None, max_length=100_000)
+    event: str | None = Field(default=None, max_length=128)
+    event_message: str | None = Field(default=None, max_length=2_000)
+    event_level: Literal["debug", "info", "warning", "error"] = "info"
+    event_details: dict[str, str | int | float | bool] | None = None
 
 
 class WorkerJob(GenerateJob):

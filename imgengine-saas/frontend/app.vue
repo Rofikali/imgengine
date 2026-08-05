@@ -1,5 +1,7 @@
 <script setup lang="ts">
 type Job = { job_id: string; status: string; output_url?: string | null; error?: string | null }
+type JobEvent = { timestamp: string; level: string; component: string; message: string }
+type JobLogResponse = { logs: string; events: JobEvent[] }
 
 const selectedFile = ref<File | null>(null)
 const job = ref<Job | null>(null)
@@ -52,8 +54,11 @@ async function pollStatus() {
 
 async function loadLogs() {
   if (!job.value) return
-  const response = await $fetch<{ logs: string }>(`/api/jobs/${job.value.job_id}/logs`)
-  logs.value = response.logs
+  const response = await $fetch<JobLogResponse>(`/api/jobs/${job.value.job_id}/logs`)
+  const timeline = response.events.map(event =>
+    `[${event.timestamp}] ${event.level.toUpperCase()} ${event.component}: ${event.message}`,
+  )
+  logs.value = [...timeline, response.logs].filter(Boolean).join('\n')
 }
 </script>
 

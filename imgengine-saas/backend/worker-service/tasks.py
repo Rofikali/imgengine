@@ -126,9 +126,12 @@ from app.core.config import RETENTION_CLEANUP_BATCH_SIZE, RETENTION_CLEANUP_INTE
 from app.core.db import SessionLocal
 from app.core.storage import artifact_store
 from app.models.job import Job
+from app.models.job_event import JobEvent
 from app.core.job_logs import sanitize_job_log
 from app.schemas.job import WorkerJob
 from pydantic import ValidationError
+from app.core.logger import configure_logging, log_event, logger
+import logging
 
 tracer = trace.get_tracer(__name__)
 
@@ -191,6 +194,7 @@ def expire_artifacts() -> int:
         for job in jobs:
             artifact_store.delete(job.input)
             artifact_store.delete(job.output)
+            db.query(JobEvent).filter(JobEvent.job_id == job.id).delete(synchronize_session=False)
             job.status = "expired"
             job.error = "Job artifacts have expired."
             job.logs = None
@@ -211,6 +215,7 @@ def expire_artifacts() -> int:
     retry_kwargs={"max_retries": 3},
 )
 def process_image(self, job: dict, carrier: dict):
+    configure_logging()
     ctx = TraceContextTextMapPropagator().extract(carrier)
 
     with tracer.start_as_current_span("worker-process", context=ctx):
@@ -222,18 +227,34 @@ def process_image(self, job: dict, carrier: dict):
             payload = WorkerJob.model_validate(job)
         except ValidationError:
             if isinstance(raw_job_id, str) and raw_job_id:
-                update_job(raw_job_id, {"status": "failed", "error": "Invalid processing payload."})
+                update_job(
+                    raw_job_id,
+                    {
+                        "status": "failed",
+                        "error": "Invalid processing payload.",
+                        "event": "worker_payload_rejected",
+                        "event_level": "error",
+                        "event_message": "Worker rejected an invalid processing payload.",
+                    },
+                )
             return
 
         job = payload.model_dump()
         job_id = payload.job_id
         trace_id = payload.trace_id
 
-        print(f"[TRACE {trace_id}] Processing job {job_id}")
+        log_event(logging.INFO, "worker_task_received", component="worker", trace_id=trace_id, job_id=job_id)
 
         try:
             try:
-                update_job(job_id, {"status": "processing"})
+                update_job(
+                    job_id,
+                    {
+                        "status": "processing",
+                        "event": "engine_execution_started",
+                        "event_message": "Native image engine execution started.",
+                    },
+                )
             except requests.HTTPError as error:
                 if is_terminal_transition_conflict(error):
                     return
@@ -241,18 +262,68 @@ def process_image(self, job: dict, carrier: dict):
 
             result = run_engine(job)
             ENGINE_EXIT_CODES.labels(result="success" if result["returncode"] == 0 else "failure").inc()
+            log_event(
+                logging.INFO if result["returncode"] == 0 else logging.ERROR,
+                "engine_execution_finished",
+                component="worker",
+                trace_id=trace_id,
+                job_id=job_id,
+                duration_ms=result["duration_ms"],
+                message="Native image engine execution completed.",
+            )
 
             if result["returncode"] != 0:
-                update_job(job_id, {"status": "failed", "error": sanitize_job_log(result["stderr"], job["input"], job["output"])})
+                update_job(
+                    job_id,
+                    {
+                        "status": "failed",
+                        "error": sanitize_job_log(result["stderr"], job["input"], job["output"]),
+                        "event": "engine_execution_failed",
+                        "event_level": "error",
+                        "event_message": "Native image engine execution failed.",
+                        "event_details": {"duration_ms": result["duration_ms"]},
+                    },
+                )
                 return
 
-            update_job(job_id, {"status": "completed", "logs": sanitize_job_log(result["stdout"], job["input"], job["output"])})
+            update_job(
+                job_id,
+                {
+                    "status": "completed",
+                    "logs": sanitize_job_log(
+                        "\n".join(part for part in (result["stdout"], result["stderr"]) if part),
+                        job["input"],
+                        job["output"],
+                    ),
+                    "event": "engine_execution_completed",
+                    "event_message": "Native image engine execution completed successfully.",
+                    "event_details": {"duration_ms": result["duration_ms"], "output_bytes": result["output_bytes"]},
+                },
+            )
             SUCCESSFUL_IMAGES.inc()
             OUTPUT_BYTES.observe(result["output_bytes"])
 
         except Exception as error:
+            logger.exception(
+                "Worker task failed.",
+                extra={
+                    "event": "worker_task_error",
+                    "component": "worker",
+                    "trace_id": trace_id,
+                    "job_id": job_id,
+                },
+            )
             try:
-                update_job(job_id, {"status": "retrying", "error": str(error)})
+                update_job(
+                    job_id,
+                    {
+                        "status": "retrying",
+                        "error": "Processing failed unexpectedly and will be retried.",
+                        "event": "worker_retry_scheduled",
+                        "event_level": "error",
+                        "event_message": "Worker processing failed; retry scheduled.",
+                    },
+                )
             except requests.HTTPError as update_error:
                 if is_terminal_transition_conflict(update_error):
                     return
