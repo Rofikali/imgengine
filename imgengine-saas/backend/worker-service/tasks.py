@@ -122,7 +122,16 @@ import time
 from opentelemetry import trace
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from datetime import datetime
-from app.core.config import RETENTION_CLEANUP_BATCH_SIZE, RETENTION_CLEANUP_INTERVAL_SECONDS
+from app.core.config import (
+    CELERY_BROKER_URL,
+    CELERY_RESULT_BACKEND,
+    CELERY_RESULT_EXPIRES_SECONDS,
+    CELERY_TASK_SOFT_TIME_LIMIT_SECONDS,
+    CELERY_TASK_TIME_LIMIT_SECONDS,
+    CELERY_VISIBILITY_TIMEOUT_SECONDS,
+    RETENTION_CLEANUP_BATCH_SIZE,
+    RETENTION_CLEANUP_INTERVAL_SECONDS,
+)
 from app.core.db import SessionLocal
 from app.core.storage import artifact_store
 from app.models.job import Job
@@ -150,20 +159,36 @@ INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "local-development-token")
 
 celery = Celery(
     "worker",
-    broker="redis://redis:6379/0",
-    backend="redis://redis:6379/0",
+    broker=CELERY_BROKER_URL,
+    backend=CELERY_RESULT_BACKEND,
 )
 ENGINE_EXIT_CODES = Counter(
     "worker_engine_exit_codes_total", "Native engine result codes", ["result"]
 )
 OUTPUT_BYTES = Histogram("worker_output_bytes", "Generated artifact sizes in bytes")
-celery.conf.beat_schedule = {
-    "expire-artifacts": {
-        "task": "tasks.expire_artifacts",
-        "schedule": RETENTION_CLEANUP_INTERVAL_SECONDS,
-    }
-}
-celery.conf.timezone = "UTC"
+celery.conf.update(
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+    result_expires=CELERY_RESULT_EXPIRES_SECONDS,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    worker_prefetch_multiplier=1,
+    task_soft_time_limit=CELERY_TASK_SOFT_TIME_LIMIT_SECONDS,
+    task_time_limit=CELERY_TASK_TIME_LIMIT_SECONDS,
+    broker_connection_retry_on_startup=True,
+    broker_transport_options={
+        "visibility_timeout": CELERY_VISIBILITY_TIMEOUT_SECONDS,
+        "retry_on_timeout": True,
+    },
+    beat_schedule={
+        "expire-artifacts": {
+            "task": "tasks.expire_artifacts",
+            "schedule": RETENTION_CLEANUP_INTERVAL_SECONDS,
+        }
+    },
+    timezone="UTC",
+)
 
 
 def update_job(job_id: str, payload: dict) -> None:

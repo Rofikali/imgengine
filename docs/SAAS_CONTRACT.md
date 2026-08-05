@@ -110,6 +110,8 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - Upload filenames are sanitized and storage keys are server-generated.
 - `GENERATE_RATE_LIMIT` defaults to `30/minute` per hashed API key; unauthenticated attempts are limited by source address and accepted requests use the authenticated key identity.
 - Worker subprocess calls have execution timeout, output-size limit, resource constraints, and captured logs.
+- Celery accepts JSON payloads only. Jobs are acknowledged after execution, use one-message worker prefetch, and are re-delivered if a worker process is lost. Delivery is therefore at-least-once; status transitions are idempotent so a redelivery cannot overwrite a terminal job.
+- Queue publication has bounded retries. `CELERY_TASK_SOFT_TIME_LIMIT_SECONDS` and `CELERY_TASK_TIME_LIMIT_SECONDS` must remain greater than `ENGINE_TIMEOUT_SECONDS`; Redis visibility timeout must exceed the task time limit.
 - Local worker limits default to 30 seconds wall time, 25 seconds CPU time, 1 GiB address space, and 100 MiB output. Configure `ENGINE_*` and `MAX_OUTPUT_BYTES` for deployment capacity.
 - `JOB_RETENTION_HOURS` defines artifact expiry. The cleanup service marks terminal jobs `expired` and deletes their private upload/output keys.
 - `GET /api/jobs/{job_id}/logs` returns authenticated, path-sanitized job logs capped by `MAX_JOB_LOG_CHARS` (default `16000`). Logs are cleared by the same retention cleanup that expires artifacts.

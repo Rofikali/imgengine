@@ -3,16 +3,35 @@ from urllib.parse import urlparse
 
 from celery import Celery
 
-from app.core.config import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
+from app.core.config import (
+    CELERY_BROKER_URL,
+    CELERY_RESULT_BACKEND,
+    CELERY_RESULT_EXPIRES_SECONDS,
+    CELERY_VISIBILITY_TIMEOUT_SECONDS,
+)
 
 celery = Celery("api", broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)
-celery.conf.task_publish_retry = False
-celery.conf.broker_connection_timeout = 2
-celery.conf.broker_transport_options = {
-    "socket_connect_timeout": 2,
-    "socket_timeout": 2,
-    "retry_on_timeout": False,
-}
+celery.conf.update(
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+    result_expires=CELERY_RESULT_EXPIRES_SECONDS,
+    task_publish_retry=True,
+    task_publish_retry_policy={
+        "max_retries": 3,
+        "interval_start": 0.2,
+        "interval_step": 0.2,
+        "interval_max": 1.0,
+    },
+    broker_connection_timeout=2,
+    broker_connection_retry_on_startup=True,
+    broker_transport_options={
+        "socket_connect_timeout": 2,
+        "socket_timeout": 2,
+        "retry_on_timeout": True,
+        "visibility_timeout": CELERY_VISIBILITY_TIMEOUT_SECONDS,
+    },
+)
 
 
 def assert_broker_available(timeout_seconds: float = 2) -> None:
