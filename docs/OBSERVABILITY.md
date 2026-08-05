@@ -67,4 +67,4 @@ Kibana is available at `http://localhost:5601`, Grafana at `http://localhost:300
 - Do not log user-supplied filenames or absolute storage paths.
 - Keep native hot paths free of per-pixel logging; the worker emits lifecycle and duration telemetry around the CLI invocation.
 - The worker passes `trace_id` to the CLI as `IMGENGINE_TRACE_ID`; the CLI emits only safe process-boundary events (`engine_started`, `engine_completed`, `engine_failed`, initialization/build failures) and never logs artifact paths through this channel.
-- Limit access to the job-log endpoint to the authenticated job owner once tenant identity is introduced.
+- Job-log access is restricted to the hashed API-key owner of the job. Replace this identity with a tenant/user principal when full account authentication is introduced.

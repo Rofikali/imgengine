@@ -4,6 +4,7 @@ services:
 
   api:
     build: ../backend/api-service
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
@@ -20,7 +21,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
-      DATABASE_URL: postgresql://imgengine:imgengine@db:5432/imgengine
+      DATABASE_URL: ${DATABASE_URL:-postgresql://imgengine:imgengine@db:5432/imgengine}
       JOB_RETENTION_HOURS: ${JOB_RETENTION_HOURS:-24}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://minio:9000}
@@ -31,6 +32,11 @@ services:
       SERVICE_NAME: api
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   worker:
     build:
@@ -38,6 +44,7 @@ services:
       dockerfile: imgengine-saas/backend/worker-service/Dockerfile
 
     command: uv run celery -A tasks worker --loglevel=info
+    restart: unless-stopped
     volumes:
       - ../data:/data
     depends_on:
@@ -48,7 +55,7 @@ services:
     environment:
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?set INTERNAL_API_TOKEN in your environment}
       API_URL: http://api:8000
-      DATABASE_URL: postgresql://imgengine:imgengine@db:5432/imgengine
+      DATABASE_URL: ${DATABASE_URL:-postgresql://imgengine:imgengine@db:5432/imgengine}
       RETENTION_CLEANUP_INTERVAL_SECONDS: ${RETENTION_CLEANUP_INTERVAL_SECONDS:-3600}
       RETENTION_CLEANUP_BATCH_SIZE: ${RETENTION_CLEANUP_BATCH_SIZE:-100}
       ENGINE_TIMEOUT_SECONDS: ${ENGINE_TIMEOUT_SECONDS:-30}
@@ -68,6 +75,7 @@ services:
       context: ../..
       dockerfile: imgengine-saas/backend/worker-service/Dockerfile
     command: /app/.venv/bin/celery -A tasks beat --loglevel=info
+    restart: unless-stopped
     volumes:
       - ../data:/data
     depends_on:
@@ -76,12 +84,13 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://imgengine:imgengine@db:5432/imgengine
+      DATABASE_URL: ${DATABASE_URL:-postgresql://imgengine:imgengine@db:5432/imgengine}
       RETENTION_CLEANUP_INTERVAL_SECONDS: ${RETENTION_CLEANUP_INTERVAL_SECONDS:-3600}
       RETENTION_CLEANUP_BATCH_SIZE: ${RETENTION_CLEANUP_BATCH_SIZE:-100}
 
   web:
     build: ../frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
@@ -114,11 +123,11 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: imgengine
-      POSTGRES_PASSWORD: imgengine
-      POSTGRES_DB: imgengine
+      POSTGRES_USER: ${POSTGRES_USER:-imgengine}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-imgengine}
+      POSTGRES_DB: ${POSTGRES_DB:-imgengine}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U imgengine -d imgengine"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10

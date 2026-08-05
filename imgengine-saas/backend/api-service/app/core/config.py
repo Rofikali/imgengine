@@ -1,11 +1,11 @@
 # backend/core/config.py 
 
 import os
+from urllib.parse import urlsplit
 
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://imgengine:imgengine@db:5432/imgengine"
-)
+DEFAULT_DATABASE_URL = "postgresql://imgengine:imgengine@db:5432/imgengine"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 DEPLOYMENT_ENV = os.getenv("DEPLOYMENT_ENV", "development").lower()
 API_KEYS = frozenset(filter(None, os.getenv("API_KEYS", "test-key-123").split(",")))
 INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "local-development-token")
@@ -53,6 +53,9 @@ def validate_runtime_configuration() -> None:
         invalid.append("API_KEYS")
     if INTERNAL_API_TOKEN == "local-development-token" or len(INTERNAL_API_TOKEN) < 32:
         invalid.append("INTERNAL_API_TOKEN")
+    database_password = urlsplit(DATABASE_URL).password
+    if DATABASE_URL == DEFAULT_DATABASE_URL or database_password in {None, "imgengine"}:
+        invalid.append("DATABASE_URL")
     if not CORS_ORIGINS or "*" in CORS_ORIGINS or any("localhost" in origin for origin in CORS_ORIGINS):
         invalid.append("CORS_ORIGINS")
     if invalid:

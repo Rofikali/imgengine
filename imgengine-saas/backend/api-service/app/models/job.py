@@ -11,6 +11,7 @@ class Job(Base):
 
     id = Column(String, primary_key=True, index=True)
     trace_id = Column(String, nullable=True, index=True)
+    owner_key_hash = Column(String, nullable=True, index=True)
 
     input = Column(String)
     output = Column(String)

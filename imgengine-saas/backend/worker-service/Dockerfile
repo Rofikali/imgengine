@@ -23,6 +23,8 @@ RUN cmake -S . -B build -G Ninja \
 
 FROM python:3.12-slim
 
+ARG UV_VERSION=0.12.1
+
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_ROOT_USER_ACTION=ignore \
     UV_HTTP_RETRIES=5 \
@@ -38,7 +40,7 @@ WORKDIR /app
 
 COPY imgengine-saas/backend/api-service/pyproject.toml \
      imgengine-saas/backend/api-service/uv.lock ./
-RUN pip install --no-cache-dir --retries 5 --timeout 300 uv \
+RUN pip install --no-cache-dir --retries 5 --timeout 300 "uv==${UV_VERSION}" \
     && uv sync --frozen --no-install-project
 
 COPY imgengine-saas/backend/api-service/app ./app

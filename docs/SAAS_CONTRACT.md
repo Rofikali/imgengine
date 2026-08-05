@@ -101,6 +101,10 @@ The UI polls job status, shows a human-readable error returned by the server, di
 ## 5. Security and Operations
 
 - Configure `API_KEYS`, `INTERNAL_API_TOKEN`, database URL, broker URL, storage paths, and CORS origins through environment variables.
+- `DATABASE_URL` must be supplied with non-default credentials for production. The API rejects the local `imgengine:imgengine` database password whenever `DEPLOYMENT_ENV=production`.
+- Docker images pin the `uv` installer version and retry dependency downloads. API, worker, cleanup, and web services restart unless stopped; the API health check uses `/healthz`.
+- Every job is owned by the SHA-256 fingerprint of the API key that created it. Status, output, and job-log endpoints return `404` unless the same key is supplied; this prevents job-ID enumeration and cross-tenant reads. Raw API keys are never persisted.
+- Jobs created before the ownership migration have no owner fingerprint and are intentionally inaccessible through public endpoints. Let normal retention remove them, or migrate them with a controlled, one-time administrative process.
 - `DEPLOYMENT_ENV=production` rejects default API keys, internal tokens shorter than 32 characters, wildcard CORS, and localhost CORS origins at startup.
 - Production rejects default development secrets at startup.
 - Upload filenames are sanitized and storage keys are server-generated.

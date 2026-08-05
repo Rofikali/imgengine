@@ -49,10 +49,22 @@ def get_db():
         db.close()
 
 
+def get_owned_job(db: Session, job_id: str, owner_key_hash: str) -> Job:
+    job = (
+        db.query(Job)
+        .filter(Job.id == job_id, Job.owner_key_hash == owner_key_hash)
+        .first()
+    )
+    if not job:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+    return job
+
+
 @limiter.limit(GENERATE_RATE_LIMIT)
-@router.post("/generate", dependencies=[Depends(verify_api_key)])
+@router.post("/generate")
 async def generate(
     request: Request,
+    owner_key_hash: str = Depends(verify_api_key),
     file: UploadFile = File(...),
     cols: int = Form(6, ge=1, le=20),
     rows: int = Form(6, ge=1, le=20),
@@ -140,6 +152,7 @@ async def generate(
         job = Job(
             id=job_id,
             trace_id=trace_id,
+            owner_key_hash=owner_key_hash,
             input=input_key,
             output=output_key,
             status="queued",
@@ -211,11 +224,9 @@ async def generate(
         }
 
 
-@router.get("/status/{job_id}", dependencies=[Depends(verify_api_key)])
-def status(job_id: str, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+@router.get("/status/{job_id}")
+def status(job_id: str, owner_key_hash: str = Depends(verify_api_key), db: Session = Depends(get_db)):
+    job = get_owned_job(db, job_id, owner_key_hash)
 
     return {
         "job_id": job.id,
@@ -227,11 +238,9 @@ def status(job_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/jobs/{job_id}/logs", dependencies=[Depends(verify_api_key)])
-def job_logs(job_id: str, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+@router.get("/jobs/{job_id}/logs")
+def job_logs(job_id: str, owner_key_hash: str = Depends(verify_api_key), db: Session = Depends(get_db)):
+    job = get_owned_job(db, job_id, owner_key_hash)
     if job.status == "expired":
         raise HTTPException(status_code=http_status.HTTP_410_GONE, detail="Job logs have expired")
     events = (
@@ -259,11 +268,9 @@ def job_logs(job_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/output/{job_id}", dependencies=[Depends(verify_api_key)])
-def download_output(job_id: str, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Job not found")
+@router.get("/output/{job_id}")
+def download_output(job_id: str, owner_key_hash: str = Depends(verify_api_key), db: Session = Depends(get_db)):
+    job = get_owned_job(db, job_id, owner_key_hash)
     if job.status == "expired":
         raise HTTPException(status_code=http_status.HTTP_410_GONE, detail="Job output has expired")
     if job.status != "completed":
