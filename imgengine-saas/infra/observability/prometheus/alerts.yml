@@ -1,0 +1,31 @@
+groups:
+  - name: imgengine
+    rules:
+      - alert: ImgEngineApiUnavailable
+        expr: up{job="api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: ImgEngine API metrics endpoint is unavailable.
+      - alert: ImgEngineWorkerUnavailable
+        expr: up{job="worker"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: ImgEngine worker metrics endpoint is unavailable.
+      - alert: ImgEngineQueuePublicationFailed
+        expr: increase(imgengine_queue_publication_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Image jobs could not be published to the queue.
+      - alert: ImgEngineWorkerFailures
+        expr: increase(worker_engine_exit_codes_total{result="failure"}[10m]) > 3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Native engine failures exceed the investigation threshold.

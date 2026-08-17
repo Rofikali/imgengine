@@ -2,7 +2,7 @@
 
 **Status:** Living document  
 **Owner:** Product and Engineering  
-**Last updated:** 2026-07-30  
+**Last updated:** 2026-08-17
 **Delivery model:** Thin vertical slices; every loop ends with an observable user outcome and automated evidence.
 
 ## 1. Product Summary
@@ -42,7 +42,7 @@ IMGENGINE reduces this work to a validated job while preserving reproducible lay
 - JPEG and PNG upload.
 - Configurable grid: rows, columns, gap, padding, dimensions, DPI, border, bleed, and crop-mark settings.
 - Asynchronous job submission, status polling, and output download.
-- PNG output for the first externally usable release; PDF follows after validated engine support.
+- JPEG output for the first externally usable release; PDF follows after validated engine support.
 - API-key protected public API and worker-only internal status updates.
 - Local development with Compose; production configuration through environment variables.
 - Structured logs, metrics, traces, and health/readiness endpoints.
@@ -51,7 +51,7 @@ IMGENGINE reduces this work to a validated job while preserving reproducible lay
 
 - General-purpose image editing, collaborative editing, and a desktop GUI.
 - GPU-first processing.
-- CMYK workflow, billing, self-service accounts, and multi-tenant administration.
+- Billing, self-service accounts, and multi-tenant administration.
 - S3/object storage until local storage has lifecycle and cleanup guarantees.
 
 ## 6. Primary User Flow
@@ -153,7 +153,7 @@ Work one loop at a time. Do not begin the next loop until its exit criteria and 
 | --- | --- | --- | --- |
 | P0 | Make the native CLI build reproducibly on the declared development platform. | 0 | Clean build plus CLI smoke test and CTest pass. |
 | P0 | Build/copy the native CLI inside the worker image; remove dependence on an untracked binary. | 0/1 | `docker compose up --build` produces a worker containing a verified CLI. |
-| P0 | Add API/worker integration tests with Redis and PostgreSQL. | 1 | A real image reaches terminal state with artifact assertion. |
+| P0 | Maintain API/worker integration tests with Redis and PostgreSQL. | 1 | CI proves JPEG, PNG, progressive JPEG, and CMYK JPEG jobs reach terminal state with artifact, idempotency, timeline, and log assertions. |
 | P0 | Add `/readyz`, dependency checks, and documented local bootstrap. | 0/2 | Health semantics are tested; queue outage is actionable. |
 | P1 | Add authenticated output-download endpoint and UI action. | 3 | Completed job is downloadable; non-completed job returns correct status. |
 | P1 | Version the job payload and enforce job transition state machine. | 1/2 | Invalid version/transition is rejected and recorded. |
@@ -173,3 +173,9 @@ Work one loop at a time. Do not begin the next loop until its exit criteria and 
 ## 15. Definition of Release Readiness
 
 An external beta is ready only when Loop 1 and Loop 2 are complete, the native artifact is reproducibly built in CI, the worker executes a real job in a clean environment, secrets are externalized, and on-call operators can identify and recover from queue, worker, storage, and engine failures.
+
+## 16. Production Engineering Gates
+
+- The release gate proves JPEG, PNG, progressive JPEG, and CMYK JPEG processing, idempotency, audit events, durable service logs, and artifact integrity.
+- SLOs and Prometheus alert rules are defined in the SRE contract; local file logs remain a recovery aid while JSON stdout is the production collection path.
+- Current API-key ownership is sufficient for controlled beta use. Tenant principals, quota ledgers, key rotation, and malware-scanning policy are mandatory before commercial multi-tenant launch.

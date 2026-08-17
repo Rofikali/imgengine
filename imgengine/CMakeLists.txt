@@ -545,7 +545,7 @@ if(BUILD_TESTING)
     add_test(NAME verify_generated_registration COMMAND verify_generated_registration)
 endif()
 
-# ── Regression test: progressive JPEG ────────────────────────
+# ── Regression test: progressive and CMYK JPEG ───────────────
 add_custom_target(regression_progressive
     COMMAND ${CMAKE_COMMAND} -E env BUILD_DIR=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/tests/regression/progressive_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/regression_tmp
     DEPENDS imgengine_cli

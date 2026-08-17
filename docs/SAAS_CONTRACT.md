@@ -22,7 +22,7 @@
 
 **Input:** `multipart/form-data` with `file`, `width`, `height`, `dpi`, `cols`, `rows`, `gap`, `padding`, `border`, `bleed`, `crop_mark`, `crop_thickness`, and `crop_offset`.
 
-**Current implemented behavior:** accepts JPEG (including progressive CMYK/YCCK JPEGs normalized to RGB) and PNG uploads, validates bounded layout fields against `GenerateJob`, creates a `queued` job, and publishes to Celery. The SaaS worker produces JPEG output. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
+**Current implemented behavior:** accepts JPEG (including progressive CMYK/YCCK JPEGs normalized to RGB) and PNG uploads only when their magic bytes match the declared MIME type, validates bounded layout fields against `GenerateJob`, creates a `queued` job, and publishes to Celery. Storage keys use the detected type rather than the user filename. The SaaS worker produces JPEG output. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported or spoofed content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
 
 **Target response:**
 
@@ -110,6 +110,7 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - `DEPLOYMENT_ENV=production` rejects default API keys, internal tokens shorter than 32 characters, wildcard CORS, and localhost CORS origins at startup.
 - Production rejects default development secrets at startup.
 - Upload filenames are sanitized and storage keys are server-generated.
+- Upload MIME declarations are verified against JPEG/PNG signatures before storage. This is an ingress control, not a malware-scanning substitute.
 - `GENERATE_RATE_LIMIT` defaults to `30/minute` per hashed API key; unauthenticated attempts are limited by source address and accepted requests use the authenticated key identity.
 - Worker subprocess calls have execution timeout, output-size limit, resource constraints, and captured logs.
 - Celery accepts JSON payloads only. Jobs are acknowledged after execution, use one-message worker prefetch, and are re-delivered if a worker process is lost. Delivery is therefore at-least-once; status transitions are idempotent so a redelivery cannot overwrite a terminal job.

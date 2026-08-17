@@ -8,20 +8,19 @@ fi
 
 BUILD_DIR="$1"
 TMPDIR="${2:-${BUILD_DIR}/regression_tmp}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_IMAGE="${SCRIPT_DIR}/../../photo.jpg"
 mkdir -p "$TMPDIR"
 
-echo "Downloading sample image..."
-curl -sSL -o "$TMPDIR/sample.jpg" https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg
+[ -f "$SOURCE_IMAGE" ] || { echo "Missing regression fixture: $SOURCE_IMAGE" >&2; exit 3; }
 
 if command -v convert >/dev/null 2>&1; then
-  echo "Creating progressive JPEG with ImageMagick..."
-  convert "$TMPDIR/sample.jpg" -interlace JPEG "$TMPDIR/prog.jpg"
-elif command -v jpegtran >/dev/null 2>&1; then
-  echo "Creating progressive JPEG with jpegtran..."
-  jpegtran -progressive -outfile "$TMPDIR/prog.jpg" "$TMPDIR/sample.jpg"
+  echo "Creating progressive and CMYK JPEG fixtures with ImageMagick..."
+  convert "$SOURCE_IMAGE" -strip -interlace JPEG "$TMPDIR/progressive.jpg"
+  convert "$SOURCE_IMAGE" -strip -colorspace CMYK -interlace JPEG "$TMPDIR/cmyk.jpg"
 else
-  echo "Error: need ImageMagick 'convert' or 'jpegtran' to make progressive JPEG" >&2
-  exit 3
+  echo "Error: need ImageMagick 'convert' to create JPEG regression fixtures" >&2
+  exit 4
 fi
 
 CLI="$BUILD_DIR/imgengine_cli"
@@ -29,15 +28,12 @@ if [ ! -x "$CLI" ]; then
   CLI="$BUILD_DIR/imgengine_cli"
 fi
 
-OUT="$TMPDIR/out.jpg"
+for fixture in progressive cmyk; do
+  output="$TMPDIR/${fixture}-out.jpg"
+  echo "Running imgengine_cli on ${fixture} JPEG..."
+  "$CLI" --input "$TMPDIR/${fixture}.jpg" --output "$output" --cols 6 --rows 3 --gap 20 --padding 20
+  [ -s "$output" ] || { echo "Error: expected output for ${fixture} fixture" >&2; exit 5; }
+done
 
-echo "Running imgengine_cli on progressive JPEG..."
-"$CLI" --input "$TMPDIR/prog.jpg" --output "$OUT" --cols 6 --rows 3 --gap 20 --padding 20
-
-if [ ! -f "$OUT" ]; then
-  echo "Error: expected output file not produced" >&2
-  exit 4
-fi
-
-echo "OK: progressive regression passed, output=$OUT"
+echo "OK: progressive and CMYK JPEG regressions passed"
 exit 0

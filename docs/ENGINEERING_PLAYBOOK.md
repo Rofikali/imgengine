@@ -69,3 +69,13 @@ Expose the complete layout model in Nuxt and FastAPI, validate it once at the AP
 ## 6. Definition of Done
 
 A loop is complete only when source, tests, documentation, local run instructions, and observability agree. A green compile alone is not done; a working manual demo without a repeatable test is not done; a benchmark without its command and input corpus is not a performance claim.
+
+## 7. Release Gate
+
+Run the local release gate before handoff:
+
+```powershell
+./imgengine-saas/scripts/verify.ps1
+```
+
+The gate builds the API, worker, and Nuxt images, submits a real fixture, proves idempotency, validates the JPEG artifact, checks the authenticated audit timeline, and verifies API/worker file logs. CI additionally exercises PNG, progressive JPEG, and CMYK JPEG ingress.

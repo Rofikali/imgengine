@@ -49,9 +49,17 @@ jobs:
         working-directory: imgengine-saas/infra
         env:
           API_URL: http://127.0.0.1:8000
+          API_KEY: integration-test-key
           API_KEYS: integration-test-key
           INTERNAL_API_TOKEN: integration-internal-token
-        run: bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg
+        run: |
+          convert ../../imgengine/photo.jpg -strip /tmp/fixture.png
+          convert ../../imgengine/photo.jpg -strip -interlace Plane /tmp/fixture-progressive.jpg
+          convert ../../imgengine/photo.jpg -strip -colorspace CMYK /tmp/fixture-cmyk.jpg
+          bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg image/jpeg
+          bash ../scripts/integration_smoke.sh /tmp/fixture.png image/png
+          bash ../scripts/integration_smoke.sh /tmp/fixture-progressive.jpg image/jpeg
+          bash ../scripts/integration_smoke.sh /tmp/fixture-cmyk.jpg image/jpeg
       - name: Print service logs on failure
         if: failure()
         working-directory: imgengine-saas/infra

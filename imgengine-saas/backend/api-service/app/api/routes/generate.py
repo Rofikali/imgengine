@@ -2,7 +2,6 @@
 
 import logging
 import uuid
-from pathlib import Path
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, UploadFile, File, Form, Depends, Header, HTTPException, Request, status as http_status
@@ -27,6 +26,7 @@ import time
 from app.core.config import GENERATE_RATE_LIMIT, JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
 from app.core.storage import StoragePathError, artifact_store
 from app.core.presets import PRESETS, PresetName
+from app.core.upload_validation import detect_image_content_type, extension_for_content_type
 
 # Change your import at the top
 from app.core.metrics import IMAGE_PROCESSED_TOTAL, QUEUE_PUBLICATION_FAILURES, REQUEST_COUNT, REQUEST_LATENCY, UPLOAD_BYTES
@@ -143,14 +143,6 @@ async def generate(
                 detail="Only JPEG and PNG uploads are supported",
             )
 
-        filename = Path(file.filename or "upload").name
-        try:
-            input_key = artifact_store.upload_key(job_id, filename)
-        except StoragePathError as exc:
-            raise HTTPException(
-                status_code=http_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail="Only JPEG and PNG uploads are supported",
-            ) from exc
         try:
             artifact_store.ensure_directories()
         except OSError as exc:
@@ -165,11 +157,27 @@ async def generate(
                 status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Image storage is temporarily unavailable",
             ) from exc
+        first_chunk = await file.read(1024 * 1024)
+        detected_content_type = detect_image_content_type(first_chunk)
+        if detected_content_type != file.content_type:
+            await file.close()
+            raise HTTPException(
+                status_code=http_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Uploaded file content does not match its declared image type",
+            )
+        input_key = artifact_store.upload_key(job_id, f"upload{extension_for_content_type(detected_content_type)}")
         output_key = artifact_store.output_key(job_id)
         input_path = artifact_store.path_for(input_key)
 
-        bytes_written = 0
+        bytes_written = len(first_chunk)
+        if bytes_written > MAX_UPLOAD_BYTES:
+            await file.close()
+            raise HTTPException(
+                status_code=http_status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Upload exceeds the {MAX_UPLOAD_BYTES} byte limit",
+            )
         with input_path.open("wb") as buffer:
+            buffer.write(first_chunk)
             while chunk := await file.read(1024 * 1024):
                 bytes_written += len(chunk)
                 if bytes_written > MAX_UPLOAD_BYTES:
