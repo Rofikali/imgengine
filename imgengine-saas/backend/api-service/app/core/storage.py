@@ -23,7 +23,7 @@ class LocalArtifactStore:
         return f"{UPLOAD_PREFIX}/{job_id}{suffix}"
 
     def output_key(self, job_id: str) -> str:
-        return f"{OUTPUT_PREFIX}/{job_id}.png"
+        return f"{OUTPUT_PREFIX}/{job_id}.jpg"
 
     def path_for(self, key: str) -> Path:
         candidate = PurePosixPath(key)

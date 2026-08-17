@@ -110,7 +110,7 @@ services:
       - api
     environment:
       NUXT_API_BASE: http://api:8000
-      NUXT_API_KEY: ${API_KEYS:?set API_KEYS in your environment}
+      NUXT_API_KEY: ${WEB_API_KEY:?set WEB_API_KEY to one configured API key}
 
   redis:
     image: redis:7

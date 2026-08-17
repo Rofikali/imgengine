@@ -151,6 +151,20 @@ async def generate(
                 status_code=http_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 detail="Only JPEG and PNG uploads are supported",
             ) from exc
+        try:
+            artifact_store.ensure_directories()
+        except OSError as exc:
+            log_event(
+                logging.ERROR,
+                "storage_initialization_failed",
+                component="api",
+                trace_id=trace_id,
+                job_id=job_id,
+            )
+            raise HTTPException(
+                status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Image storage is temporarily unavailable",
+            ) from exc
         output_key = artifact_store.output_key(job_id)
         input_path = artifact_store.path_for(input_key)
 

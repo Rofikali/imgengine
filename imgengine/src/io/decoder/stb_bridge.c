@@ -5,10 +5,22 @@
 #include "core/buffer.h"
 #include "memory/slab.h"
 #include "src/third_party/stb/stb_image.h"
+#include "security/input_validator.h"
+#include <limits.h>
 #include <string.h>
 
 img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out) {
     int w, h, ch;
+
+    if (size > INT_MAX)
+        return IMG_ERR_SECURITY;
+
+    if (!stbi_info_from_memory(data, (int)size, &w, &h, &ch))
+        return IMG_ERR_FORMAT;
+
+    img_result_t security_result = img_security_validate_request((uint32_t)w, (uint32_t)h, size);
+    if (security_result != IMG_SUCCESS)
+        return security_result;
 
     uint8_t *decoded = stbi_load_from_memory(data, (int)size, &w, &h, &ch, 3);
 

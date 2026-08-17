@@ -15,6 +15,7 @@ def apply_resource_limits() -> None:
 
 
 def run_engine(job: dict):
+    artifact_store.ensure_directories()
     input_path = artifact_store.download(job["input"])
     output_path = artifact_store.path_for(job["output"])
     cmd = [
