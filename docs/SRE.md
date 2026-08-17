@@ -21,3 +21,7 @@
 ## Logging Policy
 
 JSON stdout is the primary production signal. Rotating files under `/data/logs` are a node-local recovery aid, not the durable source of truth. Ship stdout to a managed collector before multi-node deployment. Never place customer image bytes, API keys, credentials, or unredacted filenames in logs, metrics, traces, or alerts.
+
+## Recovery Evidence
+
+The single-node Docker deployment uses a named PostgreSQL volume and verified custom-format dumps. Follow [Database Recovery](DATABASE_RECOVERY.md) for backup, restore, retention, and quarterly restore-drill requirements. Treat `docker compose down -v` as destructive: it removes the PostgreSQL volume.

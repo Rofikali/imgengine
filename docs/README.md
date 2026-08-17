@@ -13,6 +13,7 @@ This directory is the documentation source of truth. Historical notes remain use
 | [SRE Contract](SRE.md) | SLOs, alert rules, and incident response expectations. | Platform and on-call engineers |
 | [Security Operations](SECURITY_OPERATIONS.md) | Implemented controls and beta tenancy/security gates. | Security and platform engineers |
 | [Release Checklist](RELEASE_CHECKLIST.md) | Required verification evidence and rollout governance. | Release owners |
+| [Database Recovery](DATABASE_RECOVERY.md) | Verified local PostgreSQL backup, restore, and recovery boundaries. | Platform and on-call engineers |
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
 | [HLD](hld.md) | Native architecture and performance constraints. | Native engineers |
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |

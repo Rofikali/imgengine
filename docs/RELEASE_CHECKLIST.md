@@ -8,6 +8,7 @@
 - JPEG, PNG, progressive JPEG, and CMYK JPEG fixtures complete with valid JPEG artifacts.
 - Idempotency, owner isolation, audit timeline, persistent logs, and MIME-spoof rejection are verified.
 - SLO dashboards and alert routes are reviewed by the on-call owner.
+- A current verified PostgreSQL backup exists, and the latest recorded restore drill meets the recovery objective.
 
 ## Change Control
 
