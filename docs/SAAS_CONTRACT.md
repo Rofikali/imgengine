@@ -22,7 +22,7 @@
 
 **Input:** `multipart/form-data` with `file`, `width`, `height`, `dpi`, `cols`, `rows`, `gap`, `padding`, `border`, `bleed`, `crop_mark`, `crop_thickness`, and `crop_offset`.
 
-**Current implemented behavior:** accepts JPEG/PNG uploads, validates bounded layout fields against `GenerateJob`, creates a `queued` job, and publishes to Celery. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
+**Current implemented behavior:** accepts JPEG (including progressive CMYK/YCCK JPEGs normalized to RGB) and PNG uploads, validates bounded layout fields against `GenerateJob`, creates a `queued` job, and publishes to Celery. The SaaS worker produces JPEG output. Files over `MAX_UPLOAD_BYTES` return `413`; unsupported content types return `415`; missing/invalid API key returns `401`; unavailable Redis returns `503` within approximately three seconds.
 
 **Target response:**
 
@@ -71,7 +71,7 @@ All new payloads must be versioned:
   "job_id": "uuid",
   "trace_id": "uuid",
   "input_key": "uploads/uuid.jpg",
-  "output_key": "outputs/uuid.png",
+  "output_key": "outputs/uuid.jpg",
   "layout": {
     "width_cm": 4.5,
     "height_cm": 3.5,
@@ -128,7 +128,7 @@ The UI polls job status, shows a human-readable error returned by the server, di
 
 | Scenario | Expected behavior |
 | --- | --- |
-| Browser submits JPEG | Job is queued and status becomes terminal without exposing a secret. |
+| Browser submits JPEG | Baseline, progressive, CMYK, and YCCK JPEGs are normalized to RGB; the job becomes terminal without exposing a secret. |
 | Redis unavailable | API responds `503` quickly; job records queue failure; UI shows retryable message. |
 | Engine fails | Worker records `failed` with safe error code/message; no partial download. |
 | Valid engine run | Job becomes `completed`; authorized output endpoint returns the expected content type. |

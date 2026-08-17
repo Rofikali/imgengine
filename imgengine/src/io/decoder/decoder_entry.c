@@ -73,6 +73,9 @@ int img_decode_to_buffer(img_ctx_t *ctx, const uint8_t *input, size_t size, img_
         return IMG_ERR_FORMAT;
     }
 
+    if (cs == TJCS_CMYK || cs == TJCS_YCCK)
+        return img_decode_stb(ctx, input, size, out);
+
     // ========================================================
     // 🔥 4. VALIDATE DIMENSIONS (CRITICAL)
     // ========================================================

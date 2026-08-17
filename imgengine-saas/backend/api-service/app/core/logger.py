@@ -31,23 +31,33 @@ logger = logging.getLogger("imgengine")
 
 
 def configure_logging() -> None:
-    if logger.handlers:
-        return
     Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
     formatter = JsonFormatter()
-    stdout = logging.StreamHandler(sys.stdout)
-    stdout.setFormatter(formatter)
-    file_handler = RotatingFileHandler(
-        Path(LOG_DIR) / f"{Path(SERVICE_NAME).name or 'imgengine'}.log",
-        maxBytes=LOG_FILE_MAX_BYTES,
-        backupCount=LOG_FILE_BACKUP_COUNT,
-        encoding="utf-8",
-    )
-    file_handler.setFormatter(formatter)
+    log_path = (Path(LOG_DIR) / f"{Path(SERVICE_NAME).name or 'imgengine'}.log").resolve()
     logger.setLevel(LOG_LEVEL)
     logger.propagate = False
-    logger.addHandler(stdout)
-    logger.addHandler(file_handler)
+
+    if not any(
+        isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        for handler in logger.handlers
+    ):
+        stdout = logging.StreamHandler(sys.stdout)
+        stdout.setFormatter(formatter)
+        logger.addHandler(stdout)
+
+    if not any(
+        isinstance(handler, logging.FileHandler)
+        and Path(handler.baseFilename).resolve() == log_path
+        for handler in logger.handlers
+    ):
+        file_handler = RotatingFileHandler(
+            log_path,
+            maxBytes=LOG_FILE_MAX_BYTES,
+            backupCount=LOG_FILE_BACKUP_COUNT,
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
 
 def log_event(level: int, event: str, message: str | None = None, **context: Any) -> None:

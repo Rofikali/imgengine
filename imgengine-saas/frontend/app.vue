@@ -1,6 +1,6 @@
 <script setup lang="ts">
 type Job = { job_id: string; status: string; output_url?: string | null; error?: string | null }
-type JobEvent = { timestamp: string; level: string; component: string; message: string }
+type JobEvent = { timestamp: string; level: string; component: string; message: string; details?: string | null }
 type JobLogResponse = { logs: string; events: JobEvent[] }
 type Preset = { name: string; label: string; description: string }
 
@@ -63,13 +63,14 @@ async function pollStatus() {
       return
     }
   }
+  if (job.value && ['completed', 'failed'].includes(job.value.status)) await loadLogs()
 }
 
 async function loadLogs() {
   if (!job.value) return
   const response = await $fetch<JobLogResponse>(`/api/jobs/${job.value.job_id}/logs`)
   const timeline = response.events.map(event =>
-    `[${event.timestamp}] ${event.level.toUpperCase()} ${event.component}: ${event.message}`,
+    `[${event.timestamp}] ${event.level.toUpperCase()} ${event.component}: ${event.message}${event.details ? ` ${event.details}` : ''}`,
   )
   logs.value = [...timeline, response.logs].filter(Boolean).join('\n')
 }

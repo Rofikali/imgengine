@@ -10,9 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Default threshold for choosing streaming vs bulk when in AUTO mode */
-#define IMG_DECODE_AUTO_THRESHOLD (128 * 1024)
-
 static img_decode_strategy_t g_decode_strategy = IMG_DECODE_STRATEGY_AUTO;
 
 static int img_is_png(const uint8_t *input, size_t size) {
@@ -32,10 +29,8 @@ img_result_t img_decode_dispatch(img_ctx_t *ctx, const uint8_t *input, size_t si
         return img_decode_stb(ctx, input, size, out);
 
     img_decode_strategy_t mode = g_decode_strategy;
-    if (mode == IMG_DECODE_STRATEGY_AUTO) {
-        mode = (size > IMG_DECODE_AUTO_THRESHOLD) ? IMG_DECODE_STRATEGY_STREAM
-                                                  : IMG_DECODE_STRATEGY_BULK;
-    }
+    if (mode == IMG_DECODE_STRATEGY_AUTO)
+        mode = IMG_DECODE_STRATEGY_BULK;
 
     if (mode == IMG_DECODE_STRATEGY_BULK) {
         return (img_result_t)img_decode_to_buffer(ctx, input, size, out);

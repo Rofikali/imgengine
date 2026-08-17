@@ -196,9 +196,3 @@ Designed for **print shops, studios, and automation pipelines**, it delivers pre
 ## 📄 License
 
     MIT License
-
-
-$env:API_KEYS = 'local-test-key'
-$env:INTERNAL_API_TOKEN = 'local-internal-token'
-docker compose -f imgengine-saas/infra/docker-compose.yml up --build -d api worker cleanup
-docker compose -f imgengine-saas/infra/docker-compose.yml up --build -d api worker
