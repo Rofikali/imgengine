@@ -2,12 +2,15 @@
 type Job = { job_id: string; status: string; output_url?: string | null; error?: string | null }
 type JobEvent = { timestamp: string; level: string; component: string; message: string }
 type JobLogResponse = { logs: string; events: JobEvent[] }
+type Preset = { name: string; label: string; description: string }
 
 const selectedFile = ref<File | null>(null)
 const job = ref<Job | null>(null)
 const error = ref('')
 const logs = ref('')
 const submitting = ref(false)
+const selectedPreset = ref('')
+const presets = ref<Preset[]>([])
 const layout = reactive({
   width: 4.5, height: 3.5, dpi: 300, cols: 6, rows: 6,
   gap: 15, padding: 20, border: 2, bleed: 0,
@@ -22,6 +25,11 @@ const fields = [
   ['crop_thickness', 'Crop thickness (px)', 1, 100, 1], ['crop_offset', 'Crop offset (px)', 0, 500, 1],
 ] as const
 
+onMounted(async () => {
+  const response = await $fetch<{ presets: Preset[] }>('/api/presets')
+  presets.value = response.presets
+})
+
 async function submit() {
   if (!selectedFile.value) return
   submitting.value = true
@@ -29,9 +37,14 @@ async function submit() {
   logs.value = ''
   const form = new FormData()
   form.append('file', selectedFile.value)
+  if (selectedPreset.value) form.append('preset', selectedPreset.value)
   for (const [key] of fields) form.append(key, String(layout[key]))
   try {
-    job.value = await $fetch<Job>('/api/jobs', { method: 'POST', body: form })
+    job.value = await $fetch<Job>('/api/jobs', {
+      method: 'POST',
+      body: form,
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
+    })
     void pollStatus()
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Unable to submit job'
@@ -71,6 +84,14 @@ async function loadLogs() {
       <form @submit.prevent="submit">
         <label for="file">Source image</label>
         <input id="file" accept="image/jpeg,image/png" type="file" required @change="selectedFile = ($event.target as HTMLInputElement).files?.[0] ?? null">
+        <label>
+          Print preset
+          <select v-model="selectedPreset">
+            <option value="">Custom layout</option>
+            <option v-for="preset in presets" :key="preset.name" :value="preset.name">{{ preset.label }}</option>
+          </select>
+        </label>
+        <p v-if="selectedPreset" class="intro">{{ presets.find(preset => preset.name === selectedPreset)?.description }}</p>
         <div class="fields">
           <label v-for="[key, label, min, max, step] in fields" :key="key">
             {{ label }}
@@ -97,5 +118,5 @@ async function loadLogs() {
 main { min-height: 100vh; display: grid; place-items: center; padding: 2rem; } section { width: min(100%, 56rem); padding: 3rem; border: 1px solid #273752; border-radius: 1rem; background: #101c30; box-shadow: 0 2rem 6rem #0005; }
 .eyebrow { color: #76a7ff; font-weight: 700; letter-spacing: .14em; font-size: .75rem; } h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: .3rem 0; line-height: 1.05; }.intro { color: #b5c3dc; }
 form { display: grid; gap: .8rem; margin-top: 2rem; }.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .8rem; } label { display: grid; gap: .35rem; color: #c8d4ea; }
-input, button { box-sizing: border-box; font: inherit; padding: .75rem; border-radius: .5rem; } input { width: 100%; border: 1px solid #415577; background: #0a1425; color: inherit; }button { border: 0; background: #76a7ff; color: #07101e; cursor: pointer; font-weight: 700; }button:disabled { opacity: .5; cursor: not-allowed; }.job { display: grid; gap: .5rem; margin-top: 1.5rem; padding: 1rem; background: #0a1425; border-radius: .5rem; }.error { color: #ff9ba4; }.job a { color: #76a7ff; }
+input, select, button { box-sizing: border-box; font: inherit; padding: .75rem; border-radius: .5rem; } input, select { width: 100%; border: 1px solid #415577; background: #0a1425; color: inherit; }button { border: 0; background: #76a7ff; color: #07101e; cursor: pointer; font-weight: 700; }button:disabled { opacity: .5; cursor: not-allowed; }.job { display: grid; gap: .5rem; margin-top: 1.5rem; padding: 1rem; background: #0a1425; border-radius: .5rem; }.error { color: #ff9ba4; }.job a { color: #76a7ff; }
 </style>

@@ -322,7 +322,11 @@ def process_image(self, job: dict, carrier: dict):
                     ),
                     "event": "engine_execution_completed",
                     "event_message": "Native image engine execution completed successfully.",
-                    "event_details": {"duration_ms": result["duration_ms"], "output_bytes": result["output_bytes"]},
+                        "event_details": {
+                            "duration_ms": result["duration_ms"],
+                            "output_bytes": result["output_bytes"],
+                            **({"preset": job["preset"]} if job.get("preset") else {}),
+                        },
                 },
             )
             SUCCESSFUL_IMAGES.inc()

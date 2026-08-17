@@ -94,7 +94,7 @@ The worker accepts only payload `version: 1`. It rejects unknown versions, inval
 
 ## 4. Nuxt UX Requirements
 
-The initial UI exposes inputs for source image, width, height, DPI, rows, columns, gap, padding, border, bleed, and crop-mark length/thickness/offset. Scale mode, output format, safe presets, and preset selector remain planned.
+The UI exposes inputs for source image, width, height, DPI, rows, columns, gap, padding, border, bleed, and crop-mark length/thickness/offset. It also exposes the native `passport-45x35`, `passport-38x35`, and `printready-6x6` catalogs through `GET /api/presets`. Selecting a preset runs the native preset without mixing in custom layout flags.
 
 The UI polls job status, shows a human-readable error returned by the server, disables download until `completed`, and never displays raw storage paths. Layout controls must map exactly to the API contract; no hidden client-only defaults.
 
@@ -104,6 +104,7 @@ The UI polls job status, shows a human-readable error returned by the server, di
 - `DATABASE_URL` must be supplied with non-default credentials for production. The API rejects the local `imgengine:imgengine` database password whenever `DEPLOYMENT_ENV=production`.
 - Docker images pin the `uv` installer version and retry dependency downloads. API, worker, cleanup, and web services restart unless stopped; the API health check uses `/healthz`.
 - Every job is owned by the SHA-256 fingerprint of the API key that created it. Status, output, and job-log endpoints return `404` unless the same key is supplied; this prevents job-ID enumeration and cross-tenant reads. Raw API keys are never persisted.
+- `POST /api/generate` accepts an optional `Idempotency-Key` header (maximum 128 characters). Repeating a key with the same API-key owner returns the original job without creating or queuing a second job. Concurrent duplicate requests are resolved by a database unique index and the losing upload is deleted.
 - Jobs created before the ownership migration have no owner fingerprint and are intentionally inaccessible through public endpoints. Let normal retention remove them, or migrate them with a controlled, one-time administrative process.
 - `DEPLOYMENT_ENV=production` rejects default API keys, internal tokens shorter than 32 characters, wildcard CORS, and localhost CORS origins at startup.
 - Production rejects default development secrets at startup.

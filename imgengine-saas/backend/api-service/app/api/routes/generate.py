@@ -5,9 +5,10 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Request, status as http_status
+from fastapi import APIRouter, UploadFile, File, Form, Depends, Header, HTTPException, Request, status as http_status
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.schemas.job import GenerateJob
 from app.core.db import SessionLocal
 from app.models.job import Job
@@ -25,6 +26,7 @@ from app.core.tracing import tracer
 import time
 from app.core.config import GENERATE_RATE_LIMIT, JOB_RETENTION_HOURS, MAX_UPLOAD_BYTES
 from app.core.storage import StoragePathError, artifact_store
+from app.core.presets import PRESETS, PresetName
 
 # Change your import at the top
 from app.core.metrics import IMAGE_PROCESSED_TOTAL, QUEUE_PUBLICATION_FAILURES, REQUEST_COUNT, REQUEST_LATENCY, UPLOAD_BYTES
@@ -39,6 +41,17 @@ def output_url(job: Job) -> str | None:
 
 def serialize_expiry(job: Job) -> str | None:
     return job.expires_at.isoformat() if job.expires_at else None
+
+
+def serialize_job(job: Job) -> dict[str, str | None]:
+    return {
+        "job_id": job.id,
+        "trace_id": job.trace_id,
+        "status": job.status,
+        "output_url": output_url(job),
+        "expires_at": serialize_expiry(job),
+        "error": job.error,
+    }
 
 
 def get_db():
@@ -60,12 +73,19 @@ def get_owned_job(db: Session, job_id: str, owner_key_hash: str) -> Job:
     return job
 
 
+@router.get("/presets")
+def list_presets():
+    return {"presets": PRESETS}
+
+
 @limiter.limit(GENERATE_RATE_LIMIT)
 @router.post("/generate")
 async def generate(
     request: Request,
     owner_key_hash: str = Depends(verify_api_key),
+    idempotency_key: str | None = Header(default=None, max_length=128),
     file: UploadFile = File(...),
+    preset: PresetName | None = Form(None),
     cols: int = Form(6, ge=1, le=20),
     rows: int = Form(6, ge=1, le=20),
     gap: int = Form(15, ge=0, le=500),
@@ -88,6 +108,26 @@ async def generate(
         start = time.time()
 
         REQUEST_COUNT.labels(method="POST", endpoint="/generate").inc()
+        if idempotency_key:
+            existing_job = (
+                db.query(Job)
+                .filter(
+                    Job.owner_key_hash == owner_key_hash,
+                    Job.idempotency_key == idempotency_key,
+                )
+                .first()
+            )
+            if existing_job:
+                await file.close()
+                log_event(
+                    logging.INFO,
+                    "job_submission_replayed",
+                    component="api",
+                    trace_id=existing_job.trace_id,
+                    job_id=existing_job.id,
+                )
+                return serialize_job(existing_job)
+
         job_id = str(uuid.uuid4())
 
         trace_id = str(uuid.uuid4())
@@ -134,6 +174,7 @@ async def generate(
         settings = GenerateJob(
             input=input_key,
             output=output_key,
+            preset=preset,
             cols=cols,
             rows=rows,
             gap=gap,
@@ -153,6 +194,7 @@ async def generate(
             id=job_id,
             trace_id=trace_id,
             owner_key_hash=owner_key_hash,
+            idempotency_key=idempotency_key,
             input=input_key,
             output=output_key,
             status="queued",
@@ -165,9 +207,27 @@ async def generate(
             event="job_queued",
             component="api",
             message="Upload validated and job queued for processing.",
-            details={"upload_bytes": bytes_written},
+            details={"upload_bytes": bytes_written, **({"preset": preset} if preset else {})},
         )
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            artifact_store.delete(input_key)
+            if not idempotency_key:
+                raise
+            existing_job = (
+                db.query(Job)
+                .filter(
+                    Job.owner_key_hash == owner_key_hash,
+                    Job.idempotency_key == idempotency_key,
+                )
+                .first()
+            )
+            if not existing_job:
+                raise
+            await file.close()
+            return serialize_job(existing_job)
 
         carrier = {}
         TraceContextTextMapPropagator().inject(carrier)
@@ -220,7 +280,6 @@ async def generate(
             "output_url": output_url(job),
             "expires_at": serialize_expiry(job),
             "error": job.error,
-            "carrier": carrier,
         }
 
 

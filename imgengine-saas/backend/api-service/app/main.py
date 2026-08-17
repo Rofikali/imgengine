@@ -39,7 +39,7 @@ app.add_middleware(
     allow_origins=CORS_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "X-API-Key"],
+    allow_headers=["Content-Type", "Idempotency-Key", "X-API-Key"],
 )
 FastAPIInstrumentor.instrument_app(app)
 

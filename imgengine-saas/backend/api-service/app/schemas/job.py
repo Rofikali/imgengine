@@ -5,12 +5,14 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.core.job_states import JobStatus
+from app.core.presets import PresetName
 
 
 class GenerateJob(BaseModel):
     input: str
 
     output: str = "output.png"
+    preset: PresetName | None = None
 
     cols: int = Field(6, ge=1, le=20)
     rows: int = Field(6, ge=1, le=20)

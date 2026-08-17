@@ -23,31 +23,24 @@ def run_engine(job: dict):
         str(input_path),
         "--output",
         str(output_path),
-        "--cols",
-        str(job["cols"]),
-        "--rows",
-        str(job["rows"]),
-        "--gap",
-        str(job["gap"]),
-        "--dpi",
-        str(job["dpi"]),
-        "--border",
-        str(job["border"]),
-        "--padding",
-        str(job["padding"]),
-        "--crop-mark",
-        str(job["crop_mark"]),
-        "--crop-thickness",
-        str(job["crop_thickness"]),
-        "--bleed",
-        str(job["bleed"]),
-        "--crop-offset",
-        str(job["crop_offset"]),
-        "--width",
-        str(job["width"]),
-        "--height",
-        str(job["height"]),
     ]
+    if job.get("preset"):
+        cmd.extend(["--preset", job["preset"]])
+    else:
+        cmd.extend([
+            "--cols", str(job["cols"]),
+            "--rows", str(job["rows"]),
+            "--gap", str(job["gap"]),
+            "--dpi", str(job["dpi"]),
+            "--border", str(job["border"]),
+            "--padding", str(job["padding"]),
+            "--crop-mark", str(job["crop_mark"]),
+            "--crop-thickness", str(job["crop_thickness"]),
+            "--bleed", str(job["bleed"]),
+            "--crop-offset", str(job["crop_offset"]),
+            "--width", str(job["width"]),
+            "--height", str(job["height"]),
+        ])
 
     try:
         started_at = time.perf_counter()
