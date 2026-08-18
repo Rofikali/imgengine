@@ -29,6 +29,8 @@ IMGENGINE_BUILD_DIR="$PWD/imgengine/build/dev" python3 imgengine/scripts/check_e
 
 The baseline disables LTO and benchmarks to reduce CI variance. Enable them only in dedicated performance jobs with recorded hardware and input corpus.
 
+For the benchmark contract and canonical evidence command, see [Native Benchmarking](NATIVE_BENCHMARKING.md).
+
 ## Windows
 
 Windows is not a supported native-engine release target yet. The current POSIX memory-mapping implementation blocks compilation. Use Linux CI, WSL with a configured distribution, or a Linux container until the platform abstraction is complete.

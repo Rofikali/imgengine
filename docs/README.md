@@ -15,6 +15,7 @@ This directory is the documentation source of truth. Historical notes remain use
 | [Release Checklist](RELEASE_CHECKLIST.md) | Required verification evidence and rollout governance. | Release owners |
 | [Database Recovery](DATABASE_RECOVERY.md) | Verified local PostgreSQL backup, restore, and recovery boundaries. | Platform and on-call engineers |
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
+| [Native Benchmarking](NATIVE_BENCHMARKING.md) | Reproducible native performance measurement contract and evidence policy. | Native and performance engineers |
 | [HLD](hld.md) | Native architecture and performance constraints. | Native engineers |
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |
 | [Design Patterns](design_patterns.md) | Pattern guidance for the native implementation. | Native engineers |

@@ -1,121 +1,82 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${ROOT_DIR}/build"
-ENGINE_SAMPLE="${ROOT_DIR}/photo.jpg"
-CLI_RUNS=100
-CLI_WORKERS=""
-PRESET=""
-RUN_RAW_CLI=0
-
-detect_workers() {
-    local detected=""
-
-    if command -v nproc >/dev/null 2>&1; then
-        detected="$(nproc)"
-    elif command -v getconf >/dev/null 2>&1; then
-        detected="$(getconf _NPROCESSORS_ONLN || true)"
-    fi
-
-    if [[ -z "${detected}" || "${detected}" -lt 1 ]]; then
-        detected=1
-    fi
-
-    printf '%s\n' "${detected}"
-}
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+build_dir="${root_dir}/build/benchmark"
+sample="${root_dir}/photo.jpg"
+iterations=1000
+warmup=100
+preset="passport-45x35"
+results_dir=""
 
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
 
 Options:
-  --build-dir <path>     CMake build directory (default: ${BUILD_DIR})
-  --sample <path>        Encoded image for bench_lat (default: ${ENGINE_SAMPLE})
-  --cli-runs <n>         Runs for imgengine_cli_bench (default: ${CLI_RUNS})
-  --cli-workers <n>      Worker threads for imgengine_cli_bench (default: auto-detected)
-  --raw-cli              Also benchmark the CLI raw-rgb24 decode-bypass path
-  --preset <name>        Optional bench_lat preset name
-  --help                 Show help
-
-This runs:
-  1. bench_lat            -> engine hot/cold path truth
-  2. imgengine_cli_bench  -> process-per-job CLI overhead
+  --build-dir <path>    CMake build directory
+  --sample <path>       JPEG/PNG fixture
+  --iterations <n>      Measured iterations (default: ${iterations})
+  --warmup <n>          Warm-up iterations (default: ${warmup})
+  --preset <name>       Native layout template (default: ${preset})
+  --results-dir <path>  Evidence directory
+  --help                Show this help
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --build-dir)
-            BUILD_DIR="$2"
-            shift 2
-            ;;
-        --sample)
-            ENGINE_SAMPLE="$2"
-            shift 2
-            ;;
-        --cli-runs)
-            CLI_RUNS="$2"
-            shift 2
-            ;;
-        --cli-workers)
-            CLI_WORKERS="$2"
-            shift 2
-            ;;
-        --raw-cli)
-            RUN_RAW_CLI=1
-            shift 1
-            ;;
-        --preset)
-            PRESET="$2"
-            shift 2
-            ;;
-        --help)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "Unknown argument: $1" >&2
-            usage >&2
-            exit 1
-            ;;
+        --build-dir) build_dir="$2"; shift 2 ;;
+        --sample) sample="$2"; shift 2 ;;
+        --iterations) iterations="$2"; shift 2 ;;
+        --warmup) warmup="$2"; shift 2 ;;
+        --preset) preset="$2"; shift 2 ;;
+        --results-dir) results_dir="$2"; shift 2 ;;
+        --help) usage; exit 0 ;;
+        *) echo "Unknown argument: $1" >&2; usage >&2; exit 64 ;;
     esac
 done
 
-if [[ ! -f "${ENGINE_SAMPLE}" ]]; then
-    echo "Sample image not found: ${ENGINE_SAMPLE}" >&2
-    exit 1
+[[ -f "$sample" ]] || { echo "Fixture not found: $sample" >&2; exit 66; }
+[[ "$iterations" =~ ^[1-9][0-9]*$ ]] || { echo "--iterations must be positive" >&2; exit 64; }
+[[ "$warmup" =~ ^[0-9]+$ ]] || { echo "--warmup must be non-negative" >&2; exit 64; }
+
+if [[ -z "$results_dir" ]]; then
+    results_dir="${root_dir}/build/benchmark-results/$(date -u +%Y%m%dT%H%M%SZ)"
 fi
+mkdir -p "$results_dir"
 
-if [[ -z "${CLI_WORKERS}" ]]; then
-    CLI_WORKERS="$(detect_workers)"
-fi
+cmake -S "$root_dir" -B "$build_dir" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON \
+  -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+cmake --build "$build_dir" --target bench_lat decoder_bench --parallel
 
-cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}"
-cmake --build "${BUILD_DIR}" --target bench_lat imgengine_cli_bench
+{
+    echo "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "git_revision=$(git -C "$root_dir" rev-parse HEAD 2>/dev/null || echo unknown)"
+    if [[ -z "$(git -C "$root_dir" status --porcelain)" ]]; then
+        echo "git_worktree=clean"
+    else
+        echo "git_worktree=dirty"
+    fi
+    echo "fixture_sha256=$(sha256sum "$sample" | awk '{print $1}')"
+    echo "fixture_bytes=$(wc -c < "$sample" | tr -d ' ')"
+    echo "preset=$preset"
+    echo "iterations=$iterations"
+    echo "warmup=$warmup"
+    uname -a
+    command -v lscpu >/dev/null && lscpu
+    for governor_file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        [[ -r "$governor_file" ]] && echo "$(basename "$(dirname "$governor_file")")_governor=$(<"$governor_file")"
+    done
+    [[ -r /sys/devices/system/cpu/intel_pstate/no_turbo ]] && echo "intel_turbo_disabled=$(</sys/devices/system/cpu/intel_pstate/no_turbo)"
+    [[ -r /sys/devices/system/cpu/cpufreq/boost ]] && echo "cpu_boost_disabled=$(</sys/devices/system/cpu/cpufreq/boost)"
+    cc --version | head -n 1
+    cmake --version | head -n 1
+} > "$results_dir/environment.txt"
 
-echo
-echo "=== 1. ENGINE TRUTH: bench_lat ==="
-if [[ -n "${PRESET}" ]]; then
-    "${BUILD_DIR}/bench_lat" --preset "${PRESET}" "${ENGINE_SAMPLE}"
-else
-    "${BUILD_DIR}/bench_lat" "${ENGINE_SAMPLE}"
-fi
+"$build_dir/bench_lat" --preset "$preset" --iterations "$iterations" --warmup "$warmup" \
+  "$sample" | tee "$results_dir/latency.txt"
+"$build_dir/decoder_bench" "$sample" auto "$iterations" | tee "$results_dir/decoder.txt"
 
-echo
-echo "=== 2. CLI PROCESS OVERHEAD: imgengine_cli_bench ==="
-echo "Using auto-detected CLI workers: ${CLI_WORKERS}"
-"${BUILD_DIR}/imgengine_cli_bench" --runs "${CLI_RUNS}" --workers "${CLI_WORKERS}"
-
-if [[ "${RUN_RAW_CLI}" -eq 1 ]]; then
-    echo
-    echo "=== 3. CLI RAW-RGB24 PATH: imgengine_cli_bench ==="
-    "${BUILD_DIR}/imgengine_cli_bench" --runs "${CLI_RUNS}" --workers "${CLI_WORKERS}" --prepare-raw-rgb24
-fi
-
-echo
-echo "Next step:"
-echo "  Benchmark the long-lived service path with:"
-echo "  cd ${ROOT_DIR}/../imgengine-saas/api-service"
-echo "  API_GENERATE_RATE_LIMIT=100000/minute uv run python ../data/testing_scripts/service_benchmark.py --requests 20"
+echo "Benchmark evidence written to: $results_dir"

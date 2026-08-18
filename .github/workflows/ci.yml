@@ -22,6 +22,8 @@ jobs:
             -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
       - name: Build native targets
         run: cmake --build imgengine/build/ci --parallel
+      - name: Build benchmark targets
+        run: cmake -S imgengine -B imgengine/build/bench-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF && cmake --build imgengine/build/bench-ci --target bench_lat decoder_bench --parallel
       - name: Run CTest
         run: ctest --test-dir imgengine/build/ci --output-on-failure
       - name: Run CLI smoke test
