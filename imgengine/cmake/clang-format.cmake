@@ -31,6 +31,9 @@ if(CMAKE_BINARY_DIR)
     list(FILTER CLANG_FORMAT_FILES EXCLUDE REGEX "${CMAKE_BINARY_DIR}")
 endif()
 
+# Vendored sources keep their upstream formatting and are not formatter-owned.
+list(FILTER CLANG_FORMAT_FILES EXCLUDE REGEX "/third_party/")
+
 if(NOT CLANG_FORMAT_FILES)
     message(STATUS "[fmt] No source files found for clang-format")
     return()

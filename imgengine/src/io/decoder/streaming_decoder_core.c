@@ -41,7 +41,9 @@ img_result_t img_decode_stream_core(img_slab_pool_t *pool, img_stream_t *stream,
         return IMG_ERR_FORMAT;
     }
 
-    (void)w; (void)h; (void)stream; /* debug prints removed; use observability logger if needed */
+    (void)w;
+    (void)h;
+    (void)stream; /* debug prints removed; use observability logger if needed */
 
     img_result_t sec = img_security_validate_request(w, h, stream->size);
     if (sec != IMG_SUCCESS) {

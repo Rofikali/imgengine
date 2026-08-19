@@ -5,7 +5,9 @@ void img_arch_avx2_resize(img_ctx_t *ctx, img_buffer_t *dst, void *params) {
     resize_scalar(ctx, dst, params);
 }
 
-void resize_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params) { resize_scalar(ctx, dst, params); }
+void resize_avx2(img_ctx_t *ctx, img_buffer_t *dst, void *params) {
+    resize_scalar(ctx, dst, params);
+}
 
 void img_arch_resize_avx512(img_ctx_t *ctx, img_buffer_t *dst, void *params) {
     resize_scalar(ctx, dst, params);

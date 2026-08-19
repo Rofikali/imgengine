@@ -106,21 +106,20 @@ jobs:
 
   saas-integration:
     runs-on: ubuntu-latest
+    env:
+      API_KEYS: integration-test-key
+      WEB_API_KEY: integration-test-key
+      INTERNAL_API_TOKEN: integration-internal-token
     steps:
       - uses: actions/checkout@v4
       - name: Build and start API, worker, Redis, and PostgreSQL
         working-directory: imgengine-saas/infra
-        env:
-          API_KEYS: integration-test-key
-          INTERNAL_API_TOKEN: integration-internal-token
         run: docker compose up --build -d api worker
       - name: Submit fixture and retrieve output
         working-directory: imgengine-saas/infra
         env:
           API_URL: http://127.0.0.1:8000
           API_KEY: integration-test-key
-          API_KEYS: integration-test-key
-          INTERNAL_API_TOKEN: integration-internal-token
         run: |
           convert ../../imgengine/photo.jpg -strip /tmp/fixture.png
           convert ../../imgengine/photo.jpg -strip -interlace Plane /tmp/fixture-progressive.jpg
