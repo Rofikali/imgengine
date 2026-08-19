@@ -6,6 +6,7 @@ api_key="${API_KEY:-${API_KEYS:?API_KEYS must be set}}"
 internal_token="${INTERNAL_API_TOKEN:-}"
 fixture="${1:-imgengine/photo.jpg}"
 content_type="${2:-image/jpeg}"
+log_dir="${LOG_DIR:-../data/logs}"
 
 ready="false"
 for attempt in {1..30}; do
@@ -45,8 +46,8 @@ events = [event["event"] for event in payload["events"]]
 assert events == ["job_queued", "engine_execution_started", "engine_execution_completed"], events
 assert payload["logs"], "missing native job diagnostics"
 ' <<<"$timeline"
-    grep -q "$job_id" ../data/logs/api.log
-    grep -q "$job_id" ../data/logs/worker.log
+    grep -q "$job_id" "$log_dir/api.log"
+    grep -q "$job_id" "$log_dir/worker.log"
     if [[ -n "$internal_token" ]]; then
       if curl --silent --output /dev/null --write-out '%{http_code}' --request PATCH \
         "$api_url/internal/jobs/$job_id" \

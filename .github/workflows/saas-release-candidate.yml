@@ -1,0 +1,74 @@
+name: SaaS Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: Candidate version recorded in retained evidence
+        required: true
+        default: 1.0.0-rc.1
+
+permissions:
+  contents: read
+
+jobs:
+  verify-container-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      API_KEYS: release-candidate-key
+      WEB_API_KEY: release-candidate-key
+      INTERNAL_API_TOKEN: release-candidate-internal-token
+      IMGENGINE_API_IMAGE: imgengine-candidate/api:${{ github.sha }}
+      IMGENGINE_WORKER_IMAGE: imgengine-candidate/worker:${{ github.sha }}
+      IMGENGINE_WEB_IMAGE: imgengine-candidate/web:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render candidate Compose configuration
+        working-directory: imgengine-saas/infra
+        run: |
+          mkdir -p ../../artifacts/saas-release-candidate
+          docker compose --project-name "imgengine-rc-${{ github.run_id }}" config > ../../artifacts/saas-release-candidate/compose.rendered.yaml
+      - name: Build candidate images
+        working-directory: imgengine-saas/infra
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" build api worker web
+      - name: Start verified runtime services
+        working-directory: imgengine-saas/infra
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" up -d api worker
+      - name: Exercise JPEG and PNG request paths
+        working-directory: imgengine-saas/infra
+        env:
+          API_URL: http://127.0.0.1:8000
+          API_KEY: release-candidate-key
+        run: |
+          convert ../../imgengine/photo.jpg -strip /tmp/release-candidate.png
+          bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg image/jpeg
+          bash ../scripts/integration_smoke.sh /tmp/release-candidate.png image/png
+      - name: Record candidate image identities
+        if: always()
+        run: |
+          python3 imgengine-saas/scripts/create_image_manifest.py \
+            --compose-config artifacts/saas-release-candidate/compose.rendered.yaml \
+            --candidate-version "${{ inputs.candidate_version }}" \
+            --git-revision "${{ github.sha }}" \
+            --output artifacts/saas-release-candidate/image-manifest.json \
+            --service-image "api=${IMGENGINE_API_IMAGE}" \
+            --service-image "worker=${IMGENGINE_WORKER_IMAGE}" \
+            --service-image "cleanup=${IMGENGINE_WORKER_IMAGE}" \
+            --service-image "web=${IMGENGINE_WEB_IMAGE}"
+      - name: Collect Compose logs
+        if: always()
+        working-directory: imgengine-saas/infra
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" logs --no-color > ../../artifacts/saas-release-candidate/compose.log || true
+      - name: Retain candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgengine-saas-${{ inputs.candidate_version }}-${{ github.sha }}
+          path: artifacts/saas-release-candidate
+          if-no-files-found: error
+          retention-days: 90
+      - name: Stop candidate stack
+        if: always()
+        working-directory: imgengine-saas/infra
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" down --volumes --remove-orphans
