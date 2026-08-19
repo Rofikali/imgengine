@@ -17,8 +17,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install native dependencies
         run: |
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
       - name: Configure native build
         run: |
           cmake -S imgengine -B imgengine/build/ci -G Ninja \
@@ -66,8 +72,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install native dependencies
         run: |
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
       - name: Configure sanitizer build
         run: |
           cmake -S imgengine -B imgengine/build/sanitize-ci -G Ninja \
@@ -91,8 +103,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install fuzzing dependencies
         run: |
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
-          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
       - name: Configure libFuzzer target
         run: |
           CC=clang cmake -S imgengine -B imgengine/build/fuzz-ci -G Ninja \
