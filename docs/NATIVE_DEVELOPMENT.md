@@ -72,6 +72,8 @@ imgengine/build/fuzz/fuzz_decoder imgengine/photo.jpg /tmp/imgengine-fuzz-seed.p
 
 The manual `imgengine-native-coverage` workflow uses a real Clang-instrumented build, runs CTest, and retains LLVM profile, text, and LCOV artifacts for 90 days. It is evidence collection, not a percentage gate; define a threshold only after stable measurements and review of error-only paths.
 
+The manual `imgengine-native-release-candidate` workflow stages a Linux x86_64 package containing the CLI, versioned shared library, plugin, public v1 headers, README, and SHA-256 manifest. It verifies CTest, regressions, ABI exports, and staged CLI loading before retaining a non-published archive for approval.
+
 The baseline disables LTO and benchmarks to reduce CI variance. Enable them only in dedicated performance jobs with recorded hardware and input corpus.
 
 For the benchmark contract and canonical evidence command, see [Native Benchmarking](NATIVE_BENCHMARKING.md).

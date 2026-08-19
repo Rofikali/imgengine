@@ -11,6 +11,7 @@ project(imgengine
 )
 
 include(CTest)
+include(GNUInstallDirs)
 
 # ── Standards ──────────────────────────────────────────────
 set(CMAKE_C_STANDARD            11)
@@ -465,6 +466,7 @@ set(IMGENGINE_LIB_SOURCES
 
 # ── Shared library ─────────────────────────────────────────
 add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES})
+set_target_properties(imgengine PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 target_include_directories(imgengine PUBLIC ${IMGENGINE_INCLUDES})
 target_compile_options(imgengine PRIVATE ${IMGENGINE_COMMON_FLAGS})
@@ -539,6 +541,18 @@ endif()
 if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine_cli PRIVATE -fsanitize=address,undefined)
 endif()
+
+install(TARGETS imgengine imgengine_cli
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(TARGETS plugin_resize
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/imgengine/plugins
+    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/imgengine/plugins
+)
+install(DIRECTORY include/api/v1 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/imgengine/api)
+install(FILES packaging/README.txt DESTINATION .)
 
 # ── Latency benchmark ──────────────────────────────────────
 if(IMGENGINE_BENCH)
