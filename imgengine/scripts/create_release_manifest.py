@@ -60,6 +60,7 @@ def main() -> int:
         Path("include/imgengine/api/v1/img_api.h"),
         Path("lib/libimgengine.so"),
         Path("lib/imgengine/plugins/libplugin_resize.so"),
+        Path("runtime.spdx.json"),
     )
     missing = [str(path) for path in required_paths if not (stage / path).exists()]
     if missing:

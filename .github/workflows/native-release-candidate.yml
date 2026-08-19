@@ -42,6 +42,11 @@ jobs:
           stage="$PWD/imgengine/build/release-stage"
           DESTDIR="$stage" cmake --install imgengine/build/release-candidate --prefix /usr
           stage_root="$stage/usr"
+          git_revision="$(git rev-parse HEAD)"
+          python3 imgengine/scripts/create_runtime_sbom.py \
+            --stage "$stage_root" \
+            --version '${{ inputs.version }}' \
+            --git-revision "$git_revision"
           python3 imgengine/scripts/create_release_manifest.py \
             --stage "$stage_root" \
             --release-version '${{ inputs.version }}'
