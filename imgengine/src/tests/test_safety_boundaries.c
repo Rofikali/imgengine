@@ -17,18 +17,18 @@ static int test_input_validation(void) {
     int failures = 0;
 
     failures += expect_result("minimal valid", img_security_validate_request(1, 1, 1), IMG_SUCCESS);
-    failures += expect_result("zero width", img_security_validate_request(0, 1, 1),
-                              IMG_ERR_SECURITY);
-    failures += expect_result("zero file", img_security_validate_request(1, 1, 0),
-                              IMG_ERR_SECURITY);
+    failures +=
+        expect_result("zero width", img_security_validate_request(0, 1, 1), IMG_ERR_SECURITY);
+    failures +=
+        expect_result("zero file", img_security_validate_request(1, 1, 0), IMG_ERR_SECURITY);
     failures += expect_result("dimension cap", img_security_validate_request(16385, 1, SIZE_MAX),
                               IMG_ERR_SECURITY);
     failures += expect_result("compression ratio", img_security_validate_request(1000, 1, 2),
                               IMG_ERR_SECURITY);
-    failures += expect_result("compression ratio boundary", img_security_validate_request(1000, 1, 3),
-                              IMG_SUCCESS);
-    failures += expect_result("large file arithmetic", img_security_validate_request(1, 1, SIZE_MAX),
-                              IMG_SUCCESS);
+    failures += expect_result("compression ratio boundary",
+                              img_security_validate_request(1000, 1, 3), IMG_SUCCESS);
+    failures += expect_result("large file arithmetic",
+                              img_security_validate_request(1, 1, SIZE_MAX), IMG_SUCCESS);
     return failures;
 }
 

@@ -78,16 +78,16 @@ static inline void img_resize_blend8_rgb(uint8_t *dst_row, const uint8_t *row0, 
         __m256i p11_v =
             _mm256_setr_epi32(p11[0], p11[1], p11[2], p11[3], p11[4], p11[5], p11[6], p11[7]);
 
-        __m256i top_v = _mm256_add_epi32(_mm256_mullo_epi32(p00_v, wx0_v),
-                                          _mm256_mullo_epi32(p10_v, fx_v));
-        __m256i bottom_v = _mm256_add_epi32(_mm256_mullo_epi32(p01_v, wx0_v),
-                                             _mm256_mullo_epi32(p11_v, fx_v));
+        __m256i top_v =
+            _mm256_add_epi32(_mm256_mullo_epi32(p00_v, wx0_v), _mm256_mullo_epi32(p10_v, fx_v));
+        __m256i bottom_v =
+            _mm256_add_epi32(_mm256_mullo_epi32(p01_v, wx0_v), _mm256_mullo_epi32(p11_v, fx_v));
         __m256i top_odd_v = _mm256_srli_si256(top_v, 4);
         __m256i bottom_odd_v = _mm256_srli_si256(bottom_v, 4);
-        __m256i value_even_v = _mm256_add_epi64(_mm256_mul_epu32(top_v, wy0_v),
-                                                 _mm256_mul_epu32(bottom_v, fy_v));
+        __m256i value_even_v =
+            _mm256_add_epi64(_mm256_mul_epu32(top_v, wy0_v), _mm256_mul_epu32(bottom_v, fy_v));
         __m256i value_odd_v = _mm256_add_epi64(_mm256_mul_epu32(top_odd_v, wy0_v),
-                                                _mm256_mul_epu32(bottom_odd_v, fy_v));
+                                               _mm256_mul_epu32(bottom_odd_v, fy_v));
 
         uint64_t value_even[4];
         uint64_t value_odd[4];

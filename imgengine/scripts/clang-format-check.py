@@ -28,6 +28,8 @@ def find_files(root: Path):
             if f.is_file() and f.suffix.lower() in exts:
                 if "build" in f.parts:
                     continue
+                if "third_party" in f.parts:
+                    continue
                 files.append(f)
     for f in root.glob("*.c"):
         files.append(f)

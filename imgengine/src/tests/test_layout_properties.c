@@ -24,10 +24,10 @@ int main(void) {
 
         uint32_t page_width = img_cm_to_px(IMG_A4_W_CM, job.dpi);
         uint32_t page_height = img_cm_to_px(IMG_A4_H_CM, job.dpi);
-        uint64_t horizontal_reserved = (uint64_t)job.padding * 2u +
-                                       (uint64_t)(job.cols - 1u) * job.gap;
-        uint64_t vertical_reserved = (uint64_t)job.padding * 2u +
-                                     (uint64_t)(job.rows - 1u) * job.gap;
+        uint64_t horizontal_reserved =
+            (uint64_t)job.padding * 2u + (uint64_t)(job.cols - 1u) * job.gap;
+        uint64_t vertical_reserved =
+            (uint64_t)job.padding * 2u + (uint64_t)(job.rows - 1u) * job.gap;
         int feasible = horizontal_reserved < page_width && vertical_reserved < page_height &&
                        ((uint64_t)page_width - horizontal_reserved) / job.cols > 0u &&
                        ((uint64_t)page_height - vertical_reserved) / job.rows > 0u;
@@ -45,10 +45,10 @@ int main(void) {
             return 1;
         }
 
-        uint64_t grid_width = (uint64_t)job.cols * canvas.photo_w_px +
-                              (uint64_t)(job.cols - 1u) * job.gap;
-        uint64_t grid_height = (uint64_t)job.rows * canvas.photo_h_px +
-                               (uint64_t)(job.rows - 1u) * job.gap;
+        uint64_t grid_width =
+            (uint64_t)job.cols * canvas.photo_w_px + (uint64_t)(job.cols - 1u) * job.gap;
+        uint64_t grid_height =
+            (uint64_t)job.rows * canvas.photo_h_px + (uint64_t)(job.rows - 1u) * job.gap;
         if (canvas.photo_w_px == 0 || canvas.photo_h_px == 0 || canvas.start_x > page_width ||
             canvas.start_y > page_height || grid_width > page_width || grid_height > page_height ||
             (uint64_t)canvas.start_x + grid_width > page_width ||

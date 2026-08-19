@@ -1,0 +1,75 @@
+name: imgengine-native-release-candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact CMake project version to package
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Verify and package Linux x86_64 candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build python3 imagemagick \
+            libturbojpeg-dev libnuma-dev liburing-dev
+      - name: Configure release build
+        run: |
+          cmake -S imgengine -B imgengine/build/release-candidate -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
+            -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF \
+            -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib
+      - name: Build and verify native release candidate
+        run: |
+          cmake --build imgengine/build/release-candidate --parallel
+          ctest --test-dir imgengine/build/release-candidate --output-on-failure
+          cmake --build imgengine/build/release-candidate --target \
+            regression_progressive regression_geometry regression_security
+          IMGENGINE_BUILD_DIR="$PWD/imgengine/build/release-candidate" \
+            python3 imgengine/scripts/check_exported_symbols.py
+      - name: Stage and verify package contents
+        run: |
+          stage="$PWD/imgengine/build/release-stage"
+          DESTDIR="$stage" cmake --install imgengine/build/release-candidate --prefix /usr
+          stage_root="$stage/usr"
+          git_revision="$(git rev-parse HEAD)"
+          python3 imgengine/scripts/create_runtime_sbom.py \
+            --stage "$stage_root" \
+            --version '${{ inputs.version }}' \
+            --git-revision "$git_revision"
+          python3 imgengine/scripts/create_release_manifest.py \
+            --stage "$stage_root" \
+            --release-version '${{ inputs.version }}'
+          LD_LIBRARY_PATH="$stage_root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+            "$stage_root/bin/imgengine_cli" --help
+      - name: Create deterministic release archive
+        run: |
+          artifact_dir="$PWD/imgengine/build/release-artifacts"
+          stage_root="$PWD/imgengine/build/release-stage/usr"
+          mkdir -p "$artifact_dir"
+          archive="$artifact_dir/imgengine-${{ inputs.version }}-linux-x86_64.tar.gz"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C "$stage_root" -czf "$archive" .
+          verification_archive="$artifact_dir/archive-determinism-check.tar.gz"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C "$stage_root" -czf "$verification_archive" .
+          cmp --silent "$archive" "$verification_archive"
+          rm "$verification_archive"
+          sha256sum "$archive" | tee "$archive.sha256"
+      - name: Upload verified release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgengine-${{ inputs.version }}-linux-x86_64-release-candidate
+          path: imgengine/build/release-artifacts/
+          if-no-files-found: error
+          retention-days: 90

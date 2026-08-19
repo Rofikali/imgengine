@@ -16,7 +16,6 @@ int img_decode_to_buffer(img_ctx_t *ctx,
                          const uint8_t *input, // ✅ FIXED
                          size_t size, img_buffer_t *out);
 
-img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *input, size_t size,
-                            img_buffer_t *out);
+img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *input, size_t size, img_buffer_t *out);
 
 #endif
