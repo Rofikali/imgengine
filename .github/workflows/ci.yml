@@ -112,6 +112,10 @@ jobs:
       INTERNAL_API_TOKEN: integration-internal-token
     steps:
       - uses: actions/checkout@v4
+      - name: Install image fixture tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
       - name: Build and start API, worker, Redis, and PostgreSQL
         working-directory: imgengine-saas/infra
         run: docker compose up --build -d api worker
