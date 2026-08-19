@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install native dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
       - name: Configure native build
         run: |
           cmake -S imgengine -B imgengine/build/ci -G Ninja \
@@ -62,8 +62,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install native dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
       - name: Configure sanitizer build
         run: |
           cmake -S imgengine -B imgengine/build/sanitize-ci -G Ninja \
@@ -87,8 +87,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install fuzzing dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev
       - name: Configure libFuzzer target
         run: |
           CC=clang cmake -S imgengine -B imgengine/build/fuzz-ci -G Ninja \
@@ -114,8 +114,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install image fixture tooling
         run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 update
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=60 install -y imagemagick
       - name: Build and start API, worker, Redis, and PostgreSQL
         working-directory: imgengine-saas/infra
         run: docker compose up --build -d api worker
