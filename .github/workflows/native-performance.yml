@@ -15,6 +15,10 @@ on:
         description: Native layout template
         required: true
         default: passport-45x35
+      runs:
+        description: Independent benchmark samples (5-10)
+        required: true
+        default: "5"
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ jobs:
   benchmark:
     name: Controlled native benchmark
     runs-on: [self-hosted, linux, x64, imgengine-perf]
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Verify benchmark runner prerequisites
@@ -31,19 +35,36 @@ jobs:
           command -v cmake
           command -v ninja
           command -v cc
+          command -v python3
           command -v sha256sum
           command -v lscpu
           test -f /usr/include/turbojpeg.h
-      - name: Record benchmark evidence
+      - name: Record comparable benchmark evidence
         run: |
-          results_dir="imgengine/build/benchmark-results/${{ github.run_id }}-${{ github.run_attempt }}"
-          mkdir -p "$results_dir"
-          bash imgengine/scripts/check_benchmark_host.sh --strict | tee "$results_dir/preflight.txt"
-          bash imgengine/scripts/production_benchmark.sh \
-            --iterations '${{ inputs.iterations }}' \
-            --warmup '${{ inputs.warmup }}' \
-            --preset '${{ inputs.preset }}' \
-            --results-dir "$results_dir"
+          runs='${{ inputs.runs }}'
+          [[ "$runs" =~ ^([5-9]|10)$ ]] || {
+            echo "runs must be an integer from 5 through 10" >&2
+            exit 64
+          }
+
+          root_results="imgengine/build/benchmark-results/${{ github.run_id }}-${{ github.run_attempt }}"
+          result_dirs=()
+          for run_index in $(seq 1 "$runs"); do
+            results_dir="$root_results/run-$run_index"
+            mkdir -p "$results_dir"
+            bash imgengine/scripts/check_benchmark_host.sh --strict | tee "$results_dir/preflight.txt"
+            bash imgengine/scripts/production_benchmark.sh \
+              --iterations '${{ inputs.iterations }}' \
+              --warmup '${{ inputs.warmup }}' \
+              --preset '${{ inputs.preset }}' \
+              --results-dir "$results_dir"
+            result_dirs+=("$results_dir")
+          done
+
+          python3 imgengine/scripts/analyze_benchmark_baseline.py \
+            "${result_dirs[@]}" \
+            --minimum-runs "$runs" \
+            --output "$root_results/baseline-summary.json"
       - name: Upload benchmark evidence
         if: always()
         uses: actions/upload-artifact@v4

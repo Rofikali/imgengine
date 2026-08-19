@@ -38,12 +38,12 @@ The manual `imgengine-native-performance` GitHub Actions workflow runs only on a
 1. Provision Ubuntu with the native toolchain from [Native Development](NATIVE_DEVELOPMENT.md), a fixed `performance` CPU governor, and no concurrent benchmark workloads. `check_benchmark_host.sh --strict` enforces this before workflow execution.
 2. Register it as a repository runner with the `imgengine-perf` label and restrict workflow-dispatch permission to performance owners.
 3. Record CPU model, microcode, kernel, governor, turbo/boost policy, compiler, CMake, fixture hash, Git revision, and Git cleanliness for every run; the harness writes this to `environment.txt` and `preflight.txt`.
-4. Trigger five independent workflow runs for the same revision. Retain the artifacts and record the median run-level p95 plus worst p99 as the proposed baseline.
+4. Trigger `imgengine-native-performance` once with five samples for the same revision. The workflow runs strict preflight before every sample, writes `baseline-summary.json`, and retains the complete evidence artifact.
 5. Review output-correctness and scalar/SIMD regression evidence before accepting any performance improvement. Add a threshold only after this baseline is stable.
 
 ## Baseline Analysis
 
-Download the five workflow artifacts and pass their extracted evidence directories to the analyzer:
+The workflow writes `baseline-summary.json` automatically. To analyze previously retained evidence manually, pass five or more extracted run directories to the analyzer:
 
 ```bash
 python3 imgengine/scripts/analyze_benchmark_baseline.py run-1 run-2 run-3 run-4 run-5 \
