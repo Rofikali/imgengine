@@ -24,6 +24,8 @@ Use a fixed CPU governor, an otherwise idle runner, the same container/image, an
 
 PR CI builds benchmark binaries to prevent bit rot, but does not enforce latency thresholds on variable hardware. A dedicated, pinned Linux performance runner publishes evidence and compares only equivalent fixture, build flags, CPU model, microcode/kernel, and compiler combinations. Any optimization change includes before/after evidence, output-correctness regression, and fallback-path coverage.
 
+The regular Linux CI sanitizer job is a correctness prerequisite for performance work. Do not accept a benchmark improvement that relies on undefined behavior, memory leaks, or sanitizer suppression.
+
 The manual `imgengine-native-performance` GitHub Actions workflow runs only on a self-hosted runner labelled `linux`, `x64`, and `imgengine-perf`; it uploads raw evidence for 90 days. Never add `ubuntu-latest` as a fallback runner.
 
 ## Performance Runner Standard
@@ -33,6 +35,17 @@ The manual `imgengine-native-performance` GitHub Actions workflow runs only on a
 3. Record CPU model, microcode, kernel, governor, turbo/boost policy, compiler, CMake, fixture hash, Git revision, and Git cleanliness for every run; the harness writes this to `environment.txt` and `preflight.txt`.
 4. Trigger five independent workflow runs for the same revision. Retain the artifacts and record the median run-level p95 plus worst p99 as the proposed baseline.
 5. Review output-correctness and scalar/SIMD regression evidence before accepting any performance improvement. Add a threshold only after this baseline is stable.
+
+## Baseline Analysis
+
+Download the five workflow artifacts and pass their extracted evidence directories to the analyzer:
+
+```bash
+python3 imgengine/scripts/analyze_benchmark_baseline.py run-1 run-2 run-3 run-4 run-5 \
+  --output proposed-baseline.json
+```
+
+The analyzer rejects dirty worktrees, missing strict-governor evidence, and any mismatch in revision, fixture, preset, sample counts, compiler, CMake version, or CPU model. Its output reports `median_run_p95_ms` and `worst_run_p99_ms` for the prepared-render stage. Review and approve this JSON as a baseline record before encoding an enforceable regression threshold.
 
 ## Current Boundaries
 

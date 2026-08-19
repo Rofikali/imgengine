@@ -43,7 +43,7 @@ typedef struct {
  * Allocate canvas from pool, fill with background color,
  * compute grid geometry from job parameters.
  *
- * Returns IMG_SUCCESS or IMG_ERR_NOMEM.
+ * Returns IMG_SUCCESS, IMG_ERR_NOMEM, or IMG_ERR_SECURITY for infeasible geometry.
  */
 img_result_t img_canvas_init(img_canvas_t *canvas, img_slab_pool_t *pool, const img_job_t *job);
 

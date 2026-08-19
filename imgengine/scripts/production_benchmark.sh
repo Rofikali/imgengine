@@ -71,8 +71,8 @@ cmake --build "$build_dir" --target bench_lat decoder_bench --parallel
     done
     [[ -r /sys/devices/system/cpu/intel_pstate/no_turbo ]] && echo "intel_turbo_disabled=$(</sys/devices/system/cpu/intel_pstate/no_turbo)"
     [[ -r /sys/devices/system/cpu/cpufreq/boost ]] && echo "cpu_boost_disabled=$(</sys/devices/system/cpu/cpufreq/boost)"
-    cc --version | head -n 1
-    cmake --version | head -n 1
+    echo "compiler=$(cc --version | head -n 1)"
+    echo "cmake_version=$(cmake --version | head -n 1)"
 } > "$results_dir/environment.txt"
 
 "$build_dir/bench_lat" --preset "$preset" --iterations "$iterations" --warmup "$warmup" \

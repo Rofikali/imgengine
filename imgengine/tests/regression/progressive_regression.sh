@@ -9,7 +9,8 @@ fi
 BUILD_DIR="$1"
 TMPDIR="${2:-${BUILD_DIR}/regression_tmp}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_IMAGE="${SCRIPT_DIR}/../../photo.jpg"
+SOURCE_ROOT="${IMGENGINE_SOURCE_DIR:-${SCRIPT_DIR}/../..}"
+SOURCE_IMAGE="${SOURCE_ROOT}/photo.jpg"
 mkdir -p "$TMPDIR"
 
 [ -f "$SOURCE_IMAGE" ] || { echo "Missing regression fixture: $SOURCE_IMAGE" >&2; exit 3; }

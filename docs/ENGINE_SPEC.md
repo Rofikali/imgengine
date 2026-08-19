@@ -112,9 +112,10 @@ Linux is the deployment target. Windows developer support is incomplete until th
 | JPEG → PNG sheet | Build test plus image dimensions/layout fixture. |
 | PNG → PNG sheet | Build test plus image dimensions/layout fixture. |
 | PDF output | Valid PDF open/parse smoke test. |
-| FIT and FILL | Golden-image fixtures with different source aspect ratios. |
-| Border, bleed, crop marks | Pixel-level fixture proving requested geometry. |
-| Corrupt input | Stable error code; no crash, leak, or partial output. |
-| No SIMD support | Scalar fallback fixture produces semantically equivalent output. |
+| FIT and FILL | `regression_geometry` uses a deterministic wide RGB fixture and proves the two modes produce different A4 rasters. |
+| Border, bleed, crop marks | `regression_geometry` proves each enabled control changes the expected raster while preserving A4 dimensions. |
+| Layout bounds | `layout_properties` executes 1,000 deterministic combinations of DPI, grid, gap, padding, and photo dimensions; every computed cell grid must remain inside A4 bounds. |
+| Corrupt input | `regression_security` verifies malformed data returns `IMG_ERR_FORMAT`, unsafe dimensions return `IMG_ERR_SECURITY`, and neither creates an output artifact. |
+| No SIMD support | CI compares the optimized binary with a portable baseline build that excludes AVX objects and requires pixel-equivalent output. |
 | Sanitizers | ASan/UBSan clean native test run on supported platform. |
-
+| Memory and arithmetic boundaries | Pure-C CTest covers validation and slab exhaustion; bounded libFuzzer covers the untrusted dimension/file-size parser plus real JPEG/PNG decoder dispatch with ASan/UBSan. |

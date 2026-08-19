@@ -7,6 +7,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 build/
+imgengine/build-*/
 dist/
 
 # === C / Systems Engineering ===
@@ -20,6 +21,7 @@ build/
 
 # === Docker & Infrastructure ===
 .docker/
+.docker-session/
 # Ignore local database storage and logs
 data/
 logs/

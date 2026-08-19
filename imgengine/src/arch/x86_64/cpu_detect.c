@@ -3,7 +3,12 @@
 #include "arch/cpu_caps.h"
 #include <stddef.h>
 
-#if defined(__x86_64__)
+#if defined(IMGENGINE_PORTABLE_BASELINE)
+
+cpu_caps_t img_cpu_detect_caps(void) { return 0; }
+
+#elif defined(__x86_64__)
+
 #include <cpuid.h>
 
 cpu_caps_t img_cpu_detect_caps(void) {

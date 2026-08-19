@@ -22,6 +22,14 @@ jobs:
             -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
       - name: Build native targets
         run: cmake --build imgengine/build/ci --parallel
+      - name: Configure portable scalar reference build
+        run: |
+          cmake -S imgengine -B imgengine/build/portable-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
+            -DIMGENGINE_BENCH=OFF -DIMGENGINE_PORTABLE_BASELINE=ON \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build portable scalar reference CLI
+        run: cmake --build imgengine/build/portable-ci --target imgengine_cli --parallel
       - name: Build benchmark targets
         run: cmake -S imgengine -B imgengine/build/bench-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF && cmake --build imgengine/build/bench-ci --target bench_lat decoder_bench --parallel
       - name: Run CTest
@@ -32,10 +40,67 @@ jobs:
         run: cmake --build imgengine/build/ci --target format-check
       - name: Run progressive JPEG regression
         run: cmake --build imgengine/build/ci --target regression_progressive
+      - name: Run layout geometry regression
+        run: cmake --build imgengine/build/ci --target regression_geometry
+      - name: Compare optimized and portable scalar output
+        run: bash imgengine/tests/regression/scalar_equivalence.sh imgengine/build/ci/imgengine_cli imgengine/build/portable-ci/imgengine_cli
+      - name: Run hostile input regression
+        run: cmake --build imgengine/build/ci --target regression_security
       - name: Check public ABI
         env:
           IMGENGINE_BUILD_DIR: ${{ github.workspace }}/imgengine/build/ci
         run: python3 imgengine/scripts/check_exported_symbols.py
+
+  native-sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+      - name: Configure sanitizer build
+        run: |
+          cmake -S imgengine -B imgengine/build/sanitize-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIMGENGINE_SANITIZE=ON \
+            -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build sanitizer targets
+        run: cmake --build imgengine/build/sanitize-ci --parallel
+      - name: Run sanitizer CTest suite
+        run: ctest --test-dir imgengine/build/sanitize-ci --output-on-failure
+      - name: Run sanitizer progressive JPEG regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_progressive
+      - name: Run sanitizer layout geometry regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_geometry
+      - name: Run sanitizer hostile input regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_security
+
+  native-fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install fuzzing dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev
+      - name: Configure libFuzzer target
+        run: |
+          CC=clang cmake -S imgengine -B imgengine/build/fuzz-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIMGENGINE_FUZZ=ON \
+            -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Run bounded input validator fuzzing
+        run: imgengine/build/fuzz-ci/fuzz_input_validator -max_total_time=30 -max_len=4096
+      - name: Run bounded JPEG and PNG decoder fuzzing
+        run: |
+          mkdir -p /tmp/imgengine-fuzz-corpus
+          cp imgengine/photo.jpg /tmp/imgengine-fuzz-corpus/seed.jpg
+          convert imgengine/photo.jpg -strip /tmp/imgengine-fuzz-corpus/seed.png
+          imgengine/build/fuzz-ci/fuzz_decoder /tmp/imgengine-fuzz-corpus -max_total_time=60 -max_len=8388608
 
   saas-integration:
     runs-on: ubuntu-latest

@@ -3,6 +3,8 @@ FROM debian:bookworm-slim AS engine-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
+    imagemagick \
+    python3 \
     libnuma-dev \
     libturbojpeg0-dev \
     liburing-dev \

@@ -42,11 +42,13 @@ option(IMGENGINE_SANITIZE   "Enable ASAN + UBSAN"          OFF)
 option(IMGENGINE_LTO        "Enable link-time optimization" ON)
 option(IMGENGINE_SANDBOX    "Enable seccomp sandbox"        OFF)
 option(IMGENGINE_BENCH      "Build latency benchmark"       ON)
+option(IMGENGINE_PORTABLE_BASELINE "Build without optional SIMD instructions" OFF)
+option(IMGENGINE_FUZZ "Build libFuzzer security targets (Clang only)" OFF)
+option(IMGENGINE_COVERAGE "Build LLVM source-coverage instrumentation (Clang only)" OFF)
 
 # ── Compiler flags ─────────────────────────────────────────
 set(IMGENGINE_COMMON_FLAGS
     -O3
-    -march=native
     -fno-plt
     -fstrict-aliasing
     -fstack-protector-strong
@@ -58,6 +60,16 @@ set(IMGENGINE_COMMON_FLAGS
     -Werror=implicit-function-declaration
     -Werror=incompatible-pointer-types
 )
+
+if(IMGENGINE_PORTABLE_BASELINE AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    list(APPEND IMGENGINE_COMMON_FLAGS -march=x86-64)
+else()
+    list(APPEND IMGENGINE_COMMON_FLAGS -march=native)
+endif()
+
+if(IMGENGINE_PORTABLE_BASELINE)
+    add_definitions(-DIMGENGINE_PORTABLE_BASELINE=1)
+endif()
 
 if(IMGENGINE_LTO)
     list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror)
@@ -76,6 +88,7 @@ endif()
 if(IMGENGINE_SANDBOX)
     add_definitions(-DIMG_SANDBOX_ENABLED)
 endif()
+
 
 # ── Dependencies ───────────────────────────────────────────
 find_package(Threads REQUIRED)
@@ -409,17 +422,24 @@ set(SOURCES_PLUGINS
 
 set(SOURCES_ARCH_X86
     src/arch/x86_64/avx2/blit_avx2.c
-    src/arch/x86_64/avx2/color_avx2.c
-    src/arch/x86_64/avx2/fused_resize_color_norm_avx2.c
-    src/arch/x86_64/avx2/resize_avx2.c
-    src/arch/x86_64/avx2/resize_fused_avx2.c
-    src/arch/x86_64/avx2/resize_h_avx2.c
-    src/arch/x86_64/avx2/resize_v_avx2.c
-    src/arch/x86_64/avx512/avx512.c
     src/arch/x86_64/scalar/color_scalar.c
     src/arch/x86_64/scalar/resize_scalar.c
     src/arch/x86_64/cpu_detect.c
 )
+
+if(IMGENGINE_PORTABLE_BASELINE)
+    list(APPEND SOURCES_ARCH_X86 src/arch/x86_64/scalar/simd_disabled_stubs.c)
+else()
+    list(APPEND SOURCES_ARCH_X86
+        src/arch/x86_64/avx2/color_avx2.c
+        src/arch/x86_64/avx2/fused_resize_color_norm_avx2.c
+        src/arch/x86_64/avx2/resize_avx2.c
+        src/arch/x86_64/avx2/resize_fused_avx2.c
+        src/arch/x86_64/avx2/resize_h_avx2.c
+        src/arch/x86_64/avx2/resize_v_avx2.c
+        src/arch/x86_64/avx512/avx512.c
+    )
+endif()
 
 set(SOURCES_THIRD_PARTY
     src/third_party/stb/stb_image_impl.c
@@ -461,6 +481,19 @@ if(NUMA_LIB)
 endif()
 if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
+endif()
+
+if(IMGENGINE_COVERAGE)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "IMGENGINE_COVERAGE requires Clang/LLVM tools")
+    endif()
+    list(APPEND IMGENGINE_COMMON_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+endif()
+if(IMGENGINE_FUZZ)
+    target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
+endif()
+if(IMGENGINE_COVERAGE)
+    target_link_options(imgengine PRIVATE -fprofile-instr-generate -fcoverage-mapping)
 endif()
 
 # ── Dynamic plugin (loadable) ──────────────────────────────
@@ -545,9 +578,66 @@ if(BUILD_TESTING)
     add_test(NAME verify_generated_registration COMMAND verify_generated_registration)
 endif()
 
+add_executable(test_safety_boundaries src/tests/test_safety_boundaries.c)
+target_include_directories(test_safety_boundaries PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_safety_boundaries PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_safety_boundaries PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_safety_boundaries PRIVATE -fsanitize=address,undefined)
+endif()
+
+if(IMGENGINE_FUZZ)
+    list(APPEND IMGENGINE_COMMON_FLAGS -fsanitize=address,undefined -fno-omit-frame-pointer)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME safety_boundaries COMMAND test_safety_boundaries)
+endif()
+
+add_executable(test_layout_properties src/tests/test_layout_properties.c)
+target_include_directories(test_layout_properties PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_layout_properties PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_layout_properties PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_layout_properties PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME layout_properties COMMAND test_layout_properties)
+endif()
+
+if(IMGENGINE_FUZZ)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "IMGENGINE_FUZZ requires Clang/libFuzzer")
+    endif()
+    add_executable(fuzz_input_validator tests/fuzz/target_input_validator.c src/security/input_validator.c)
+    target_include_directories(fuzz_input_validator PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(fuzz_input_validator PRIVATE -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer)
+    target_link_options(fuzz_input_validator PRIVATE -fsanitize=fuzzer,address,undefined)
+
+    add_executable(fuzz_decoder tests/fuzz/target_decoder.c)
+    target_include_directories(fuzz_decoder PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(fuzz_decoder PRIVATE -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer)
+    target_link_libraries(fuzz_decoder PRIVATE imgengine)
+    target_link_options(fuzz_decoder PRIVATE -fsanitize=fuzzer,address,undefined)
+endif()
+
 # ── Regression test: progressive and CMYK JPEG ───────────────
 add_custom_target(regression_progressive
-    COMMAND ${CMAKE_COMMAND} -E env BUILD_DIR=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/tests/regression/progressive_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/regression_tmp
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/progressive_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/progressive_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND ${CMAKE_COMMAND} -E env IMGENGINE_SOURCE_DIR=${CMAKE_SOURCE_DIR} bash ${CMAKE_BINARY_DIR}/regression_scripts/progressive_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/regression_tmp
+    DEPENDS imgengine_cli
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+add_custom_target(regression_geometry
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/geometry_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/geometry_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND bash ${CMAKE_BINARY_DIR}/regression_scripts/geometry_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/geometry_regression_tmp
+    DEPENDS imgengine_cli
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+add_custom_target(regression_security
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/security_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/security_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND bash ${CMAKE_BINARY_DIR}/regression_scripts/security_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/security_regression_tmp
     DEPENDS imgengine_cli
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
@@ -562,6 +652,7 @@ message(STATUS " Sanitizers   : ${IMGENGINE_SANITIZE}")
 message(STATUS " LTO          : ${IMGENGINE_LTO}")
 message(STATUS " Sandbox      : ${IMGENGINE_SANDBOX}")
 message(STATUS " Bench        : ${IMGENGINE_BENCH}")
+message(STATUS " Portable     : ${IMGENGINE_PORTABLE_BASELINE}")
 message(STATUS "======================================")
 message(STATUS "")
 
