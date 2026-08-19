@@ -99,6 +99,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIMGENGINE_FUZZ=ON \
             -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
             -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build libFuzzer targets
+        run: cmake --build imgengine/build/fuzz-ci --target fuzz_input_validator fuzz_decoder --parallel
       - name: Run bounded input validator fuzzing
         run: imgengine/build/fuzz-ci/fuzz_input_validator -max_total_time=30 -max_len=4096
       - name: Run bounded JPEG and PNG decoder fuzzing
