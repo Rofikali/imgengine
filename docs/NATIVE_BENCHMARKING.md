@@ -6,7 +6,9 @@
 
 `bench_lat` is the canonical latency benchmark. It reports separately prepared render, decode, encode, and cold decode-plus-encode paths. The prepared render metric excludes final encoding and output I/O; it is the only metric relevant to the RFC render-only target. It must never be presented as SaaS end-to-end latency.
 
-The committed `imgengine/photo.jpg` fixture is the baseline input. Every result records its SHA-256, byte length, preset, warm-up count, iteration count, Git revision, compiler, CMake version, kernel, and CPU topology. Results from different machines are informational only and must not be compared as a regression.
+The committed `imgengine/photo.jpg` fixture is the baseline input. Every result records its SHA-256, byte length, preset, warm-up count, iteration count, build profile, Git revision, compiler, CMake version, kernel, and CPU topology. Results from different machines are informational only and must not be compared as a regression.
+
+The default profile is `optimized`. Use `--portable-baseline` only to produce a separate `portable-scalar` evidence set; the analyzer rejects attempts to combine profiles into one baseline.
 
 ## Run
 
@@ -14,6 +16,9 @@ On the supported Linux environment:
 
 ```bash
 bash imgengine/scripts/production_benchmark.sh
+
+# Optional scalar-reference comparison; do not mix this evidence into the optimized baseline.
+bash imgengine/scripts/production_benchmark.sh --portable-baseline
 ```
 
 The command creates `imgengine/build/benchmark-results/<UTC timestamp>/` containing environment metadata and human-readable latency and decoder outputs. Keep baseline evidence outside Git, such as CI artifacts or a controlled performance-results store.

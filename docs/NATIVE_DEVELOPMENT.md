@@ -36,7 +36,8 @@ cmake -S imgengine -B imgengine/build/portable -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
   -DIMGENGINE_BENCH=OFF -DIMGENGINE_PORTABLE_BASELINE=ON \
   -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
-cmake --build imgengine/build/portable --target imgengine_cli --parallel
+cmake --build imgengine/build/portable --parallel
+ctest --test-dir imgengine/build/portable --output-on-failure
 bash imgengine/tests/regression/scalar_equivalence.sh \
   imgengine/build/dev/imgengine_cli imgengine/build/portable/imgengine_cli
 ```
@@ -88,7 +89,7 @@ Windows is not a supported native-engine release target yet. The current POSIX m
 - Progressive-JPEG regression passes.
 - FIT/FILL, border, bleed, and crop-mark geometry regression passes.
 - Malformed and oversized image fixtures fail safely without an output artifact.
-- Optimized and portable baseline binaries produce pixel-equivalent output.
+- Optimized and portable baseline binaries produce pixel-equivalent output. A direct AVX2/scalar CTest validates the resize-kernel arithmetic before AVX2 dispatch is released.
 - ABI checker resolves `libimgengine.so` and all required symbols.
 - ASan/UBSan CTest and progressive-JPEG regression are clean on Linux.
 - Bounded libFuzzer input-validation run completes without a sanitizer finding.

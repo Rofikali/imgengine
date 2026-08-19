@@ -44,7 +44,6 @@ static inline void img_resize_blend8_rgb(uint8_t *dst_row, const uint8_t *row0, 
         fx[lane] = frac;
     }
 
-    const __m256i rounding = _mm256_set1_epi32(0x8000);
     const __m256i fy_v = _mm256_set1_epi32((int32_t)fy);
     const __m256i wy0_v = _mm256_set1_epi32((int32_t)wy0);
 
@@ -79,28 +78,26 @@ static inline void img_resize_blend8_rgb(uint8_t *dst_row, const uint8_t *row0, 
         __m256i p11_v =
             _mm256_setr_epi32(p11[0], p11[1], p11[2], p11[3], p11[4], p11[5], p11[6], p11[7]);
 
-        __m256i top_v =
-            _mm256_srli_epi32(_mm256_add_epi32(_mm256_add_epi32(_mm256_mullo_epi32(p00_v, wx0_v),
-                                                                _mm256_mullo_epi32(p10_v, fx_v)),
-                                               rounding),
-                              16);
-        __m256i bottom_v =
-            _mm256_srli_epi32(_mm256_add_epi32(_mm256_add_epi32(_mm256_mullo_epi32(p01_v, wx0_v),
-                                                                _mm256_mullo_epi32(p11_v, fx_v)),
-                                               rounding),
-                              16);
+        __m256i top_v = _mm256_add_epi32(_mm256_mullo_epi32(p00_v, wx0_v),
+                                          _mm256_mullo_epi32(p10_v, fx_v));
+        __m256i bottom_v = _mm256_add_epi32(_mm256_mullo_epi32(p01_v, wx0_v),
+                                             _mm256_mullo_epi32(p11_v, fx_v));
+        __m256i top_odd_v = _mm256_srli_si256(top_v, 4);
+        __m256i bottom_odd_v = _mm256_srli_si256(bottom_v, 4);
+        __m256i value_even_v = _mm256_add_epi64(_mm256_mul_epu32(top_v, wy0_v),
+                                                 _mm256_mul_epu32(bottom_v, fy_v));
+        __m256i value_odd_v = _mm256_add_epi64(_mm256_mul_epu32(top_odd_v, wy0_v),
+                                                _mm256_mul_epu32(bottom_odd_v, fy_v));
 
-        __m256i out_v =
-            _mm256_srli_epi32(_mm256_add_epi32(_mm256_add_epi32(_mm256_mullo_epi32(top_v, wy0_v),
-                                                                _mm256_mullo_epi32(bottom_v, fy_v)),
-                                               rounding),
-                              16);
-
-        int32_t out_i[8];
-        _mm256_storeu_si256((__m256i *)out_i, out_v);
+        uint64_t value_even[4];
+        uint64_t value_odd[4];
+        _mm256_storeu_si256((__m256i *)value_even, value_even_v);
+        _mm256_storeu_si256((__m256i *)value_odd, value_odd_v);
 
         for (uint32_t lane = 0; lane < 8; lane++) {
-            dst_row[(size_t)(base_dx + lane) * 3u + c] = img_resize_clamp_u8(out_i[lane]);
+            uint64_t value = (lane & 1u) ? value_odd[lane / 2u] : value_even[lane / 2u];
+            dst_row[(size_t)(base_dx + lane) * 3u + c] =
+                img_resize_clamp_u8((int32_t)((value + (1ULL << 31)) >> 32));
         }
     }
 }

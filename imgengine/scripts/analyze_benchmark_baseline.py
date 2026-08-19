@@ -16,6 +16,7 @@ REQUIRED_METADATA = (
     "preset",
     "iterations",
     "warmup",
+    "build_profile",
     "git_worktree",
     "compiler",
     "cmake_version",

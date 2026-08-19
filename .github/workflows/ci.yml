@@ -28,8 +28,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
             -DIMGENGINE_BENCH=OFF -DIMGENGINE_PORTABLE_BASELINE=ON \
             -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
-      - name: Build portable scalar reference CLI
-        run: cmake --build imgengine/build/portable-ci --target imgengine_cli --parallel
+      - name: Build portable scalar reference targets
+        run: cmake --build imgengine/build/portable-ci --parallel
+      - name: Run portable scalar CTest suite
+        run: ctest --test-dir imgengine/build/portable-ci --output-on-failure
       - name: Build benchmark targets
         run: cmake -S imgengine -B imgengine/build/bench-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF && cmake --build imgengine/build/bench-ci --target bench_lat decoder_bench --parallel
       - name: Run CTest

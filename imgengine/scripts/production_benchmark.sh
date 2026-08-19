@@ -3,11 +3,14 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_dir="${root_dir}/build/benchmark"
+build_dir_explicit=0
 sample="${root_dir}/photo.jpg"
 iterations=1000
 warmup=100
 preset="passport-45x35"
 results_dir=""
+portable_baseline=0
+build_profile="optimized"
 
 usage() {
     cat <<EOF
@@ -20,18 +23,20 @@ Options:
   --warmup <n>          Warm-up iterations (default: ${warmup})
   --preset <name>       Native layout template (default: ${preset})
   --results-dir <path>  Evidence directory
+  --portable-baseline   Build and measure the portable scalar profile
   --help                Show this help
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --build-dir) build_dir="$2"; shift 2 ;;
+        --build-dir) build_dir="$2"; build_dir_explicit=1; shift 2 ;;
         --sample) sample="$2"; shift 2 ;;
         --iterations) iterations="$2"; shift 2 ;;
         --warmup) warmup="$2"; shift 2 ;;
         --preset) preset="$2"; shift 2 ;;
         --results-dir) results_dir="$2"; shift 2 ;;
+        --portable-baseline) portable_baseline=1; build_profile="portable-scalar"; shift ;;
         --help) usage; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; usage >&2; exit 64 ;;
     esac
@@ -41,6 +46,10 @@ done
 [[ "$iterations" =~ ^[1-9][0-9]*$ ]] || { echo "--iterations must be positive" >&2; exit 64; }
 [[ "$warmup" =~ ^[0-9]+$ ]] || { echo "--warmup must be non-negative" >&2; exit 64; }
 
+if [[ "$portable_baseline" -eq 1 && "$build_dir_explicit" -eq 0 ]]; then
+    build_dir="${root_dir}/build/benchmark-portable"
+fi
+
 if [[ -z "$results_dir" ]]; then
     results_dir="${root_dir}/build/benchmark-results/$(date -u +%Y%m%dT%H%M%SZ)"
 fi
@@ -48,6 +57,7 @@ mkdir -p "$results_dir"
 
 cmake -S "$root_dir" -B "$build_dir" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON \
+  -DIMGENGINE_PORTABLE_BASELINE="$portable_baseline" \
   -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
 cmake --build "$build_dir" --target bench_lat decoder_bench --parallel
 
@@ -64,6 +74,7 @@ cmake --build "$build_dir" --target bench_lat decoder_bench --parallel
     echo "preset=$preset"
     echo "iterations=$iterations"
     echo "warmup=$warmup"
+    echo "build_profile=$build_profile"
     uname -a
     command -v lscpu >/dev/null && lscpu
     for governor_file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do

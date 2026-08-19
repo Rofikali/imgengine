@@ -116,6 +116,6 @@ Linux is the deployment target. Windows developer support is incomplete until th
 | Border, bleed, crop marks | `regression_geometry` proves each enabled control changes the expected raster while preserving A4 dimensions. |
 | Layout bounds | `layout_properties` executes 1,000 deterministic combinations of DPI, grid, gap, padding, and photo dimensions; every computed cell grid must remain inside A4 bounds. |
 | Corrupt input | `regression_security` verifies malformed data returns `IMG_ERR_FORMAT`, unsafe dimensions return `IMG_ERR_SECURITY`, and neither creates an output artifact. |
-| No SIMD support | CI compares the optimized binary with a portable baseline build that excludes AVX objects and requires pixel-equivalent output. |
+| No SIMD support | CI compares the optimized binary with a portable baseline build that excludes AVX objects and requires pixel-equivalent output. A direct AVX2/scalar CTest validates the resize-kernel arithmetic before AVX2 dispatch is released. |
 | Sanitizers | ASan/UBSan clean native test run on supported platform. |
 | Memory and arithmetic boundaries | Pure-C CTest covers validation and slab exhaustion; bounded libFuzzer covers the untrusted dimension/file-size parser plus real JPEG/PNG decoder dispatch with ASan/UBSan. |
