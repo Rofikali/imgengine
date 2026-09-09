@@ -23,6 +23,12 @@ img_slab_pool_t *img_slab_create(size_t total_size, size_t block_size) {
         return NULL;
     }
 
+    const size_t block_count = total_size / block_size;
+    if (block_count == 0) {
+        free(pool);
+        return NULL;
+    }
+
     int node = img_numa_get_node();
 
     pool->memory = img_numa_alloc_onnode(total_size, node);
@@ -31,10 +37,23 @@ img_slab_pool_t *img_slab_create(size_t total_size, size_t block_size) {
         return NULL;
     }
 
+    pool->allocated = calloc(block_count, sizeof(*pool->allocated));
+    if (!pool->allocated) {
+        img_numa_free(pool->memory, total_size);
+        free(pool);
+        return NULL;
+    }
+    if (pthread_mutex_init(&pool->lock, NULL) != 0) {
+        free(pool->allocated);
+        img_numa_free(pool->memory, total_size);
+        free(pool);
+        return NULL;
+    }
+
     pool->numa_node = node;
     pool->total_size = total_size;
     pool->block_size = block_size;
-    pool->block_count = total_size / block_size;
+    pool->block_count = block_count;
     pool->free_list = NULL;
 
     uint8_t *ptr = (uint8_t *)pool->memory;

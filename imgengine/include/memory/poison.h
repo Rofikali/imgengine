@@ -30,6 +30,12 @@
 #endif
 #endif
 
+#if defined(__SANITIZE_ADDRESS__) && !defined(IMG_POISON_MEMORY)
+#include <sanitizer/asan_interface.h>
+#define IMG_POISON_MEMORY(addr, size) ASAN_POISON_MEMORY_REGION(addr, size)
+#define IMG_UNPOISON_MEMORY(addr, size) ASAN_UNPOISON_MEMORY_REGION(addr, size)
+#endif
+
 #ifndef IMG_POISON_MEMORY
 #define IMG_POISON_MEMORY(addr, size) ((void)(addr), (void)(size))
 #define IMG_UNPOISON_MEMORY(addr, size) ((void)(addr), (void)(size))

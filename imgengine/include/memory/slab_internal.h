@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <pthread.h>
 
 typedef struct slab_block {
     struct slab_block *next;
@@ -20,6 +21,8 @@ struct img_slab_pool {
 
     size_t block_size;
     size_t block_count;
+    uint8_t *allocated;
+    pthread_mutex_t lock;
 
     int numa_node;
 };

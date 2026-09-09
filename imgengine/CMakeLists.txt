@@ -47,6 +47,23 @@ option(IMGENGINE_PORTABLE_BASELINE "Build without optional SIMD instructions" OF
 option(IMGENGINE_FUZZ "Build libFuzzer security targets (Clang only)" OFF)
 option(IMGENGINE_COVERAGE "Build LLVM source-coverage instrumentation (Clang only)" OFF)
 
+set(IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS)
+set(IMGENGINE_INSTRUMENTATION_LINK_FLAGS)
+if(IMGENGINE_SANITIZE OR IMGENGINE_FUZZ)
+    list(APPEND IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+    list(APPEND IMGENGINE_INSTRUMENTATION_LINK_FLAGS -fsanitize=address,undefined)
+endif()
+if(IMGENGINE_COVERAGE)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "IMGENGINE_COVERAGE requires Clang/LLVM tools")
+    endif()
+    list(APPEND IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+    list(APPEND IMGENGINE_INSTRUMENTATION_LINK_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+endif()
+
 # ── Compiler flags ─────────────────────────────────────────
 set(IMGENGINE_COMMON_FLAGS
     -O3
@@ -469,7 +486,8 @@ add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES})
 set_target_properties(imgengine PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 target_include_directories(imgengine PUBLIC ${IMGENGINE_INCLUDES})
-target_compile_options(imgengine PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_compile_options(imgengine PRIVATE ${IMGENGINE_COMMON_FLAGS} ${IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS})
+target_link_options(imgengine PRIVATE ${IMGENGINE_INSTRUMENTATION_LINK_FLAGS})
 
 target_link_libraries(imgengine
     PUBLIC  ${TURBOJPEG_LIB}
@@ -485,18 +503,6 @@ if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
 endif()
 
-if(IMGENGINE_COVERAGE)
-    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
-        message(FATAL_ERROR "IMGENGINE_COVERAGE requires Clang/LLVM tools")
-    endif()
-    list(APPEND IMGENGINE_COMMON_FLAGS -fprofile-instr-generate -fcoverage-mapping)
-endif()
-if(IMGENGINE_FUZZ)
-    target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
-endif()
-if(IMGENGINE_COVERAGE)
-    target_link_options(imgengine PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-endif()
 
 # ── Dynamic plugin (loadable) ──────────────────────────────
 add_library(plugin_resize SHARED src/plugins/plugin_resize.c)
@@ -600,9 +606,6 @@ if(IMGENGINE_SANITIZE)
     target_link_libraries(test_safety_boundaries PRIVATE -fsanitize=address,undefined)
 endif()
 
-if(IMGENGINE_FUZZ)
-    list(APPEND IMGENGINE_COMMON_FLAGS -fsanitize=address,undefined -fno-omit-frame-pointer)
-endif()
 if(BUILD_TESTING)
     add_test(NAME safety_boundaries COMMAND test_safety_boundaries)
 endif()
@@ -627,6 +630,19 @@ if(IMGENGINE_SANITIZE)
 endif()
 if(BUILD_TESTING)
     add_test(NAME resize_kernel_equivalence COMMAND test_resize_kernel_equivalence)
+endif()
+
+if(IMGENGINE_SANDBOX)
+    add_executable(test_sandbox_lifecycle src/tests/test_sandbox_lifecycle.c)
+    target_include_directories(test_sandbox_lifecycle PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(test_sandbox_lifecycle PRIVATE ${IMGENGINE_COMMON_FLAGS})
+    target_link_libraries(test_sandbox_lifecycle PRIVATE imgengine)
+    if(IMGENGINE_SANITIZE)
+        target_link_libraries(test_sandbox_lifecycle PRIVATE -fsanitize=address,undefined)
+    endif()
+    if(BUILD_TESTING)
+        add_test(NAME sandbox_lifecycle COMMAND test_sandbox_lifecycle)
+    endif()
 endif()
 
 if(IMGENGINE_FUZZ)

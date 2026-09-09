@@ -7,9 +7,6 @@
 void img_io_register_defaults(void);
 
 img_engine_t *img_api_init(uint32_t workers) {
-    if (img_api_init_enter_sandbox() != 0)
-        return NULL;
-
     if (img_api_init_prepare_engine(workers) != 0)
         return NULL;
 
@@ -17,6 +14,11 @@ img_engine_t *img_api_init(uint32_t workers) {
 
     if (img_api_init_boot_workers(workers) != 0)
         return NULL;
+
+    if (img_api_init_enter_sandbox() != 0) {
+        img_api_shutdown(&g_engine);
+        return NULL;
+    }
 
     return &g_engine;
 }
