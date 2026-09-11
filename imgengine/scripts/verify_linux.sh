@@ -23,11 +23,19 @@ run_ctest() {
     cmake --build "$build_dir" --target regression_security regression_geometry regression_progressive
 }
 
+run_rust_ffi_smoke() {
+    local build_dir="$1"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
+        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
+}
+
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
 configure "$build_root/normal"
 run_ctest "$build_root/normal"
+run_rust_ffi_smoke "$build_root/normal"
 
 configure "$build_root/asan" -DIMGENGINE_SANITIZE=ON
 ASAN_OPTIONS="detect_leaks=1:halt_on_error=1" \
