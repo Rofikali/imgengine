@@ -16,10 +16,18 @@ This directory is the documentation source of truth. Historical notes remain use
 | [Database Recovery](DATABASE_RECOVERY.md) | Verified local PostgreSQL backup, restore, and recovery boundaries. | Platform and on-call engineers |
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
 | [Native Benchmarking](NATIVE_BENCHMARKING.md) | Reproducible native performance measurement contract and evidence policy. | Native and performance engineers |
+| [Linux Native Verification](LINUX_VERIFICATION.md) | Ubuntu 24.04 Docker verification gate for C correctness and security. | Native engineers and CI owners |
 | [HLD](hld.md) | Native architecture and performance constraints. | Native engineers |
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |
 | [Design Patterns](design_patterns.md) | Pattern guidance for the native implementation. | Native engineers |
 | [v2 RFC](v2.0%20RFC.md) | Historical high-performance architecture proposal. | Architecture reference |
+| [Target Architecture](architecture.md) | Planned Rust/C/Nuxt runtime boundaries and decisions. | Architecture and platform engineers |
+| [Migration Plan](migration.md) | Audited, reversible replacement plan for the current SaaS stack. | Engineering and release owners |
+| [Security Design](security.md) | Target security controls and migration gates. | Security and platform engineers |
+| [Threat Model](threat-model.md) | Assets, threats, mitigations, and verification. | Security and engineering |
+| [Rust API Contract](api.md) | Planned synchronous, ephemeral API behavior. | Frontend and backend engineers |
+| [Deployment Design](deployment.md) | Hardened low-cost VPS operating model. | Platform and on-call engineers |
+| [Performance Strategy](performance.md) | Native and end-to-end measurement gates. | Native and performance engineers |
 
 ## Documentation Rules
 
@@ -35,9 +43,9 @@ This directory is the documentation source of truth. Historical notes remain use
 - **Cell:** one positioned, scaled copy of the source photo on a sheet.
 - **Sheet/canvas:** the final printable output containing one or more cells.
 - **Layout job:** dimensions, grid, print-safety, color, and output parameters used to render a sheet.
-- **Job:** a durable SaaS record that tracks one submitted layout job.
-- **Control plane:** Nuxt/FastAPI validation, authorization, state, and scheduling.
-- **Execution plane:** worker and native engine processing of pixels.
+- **Job:** a durable SaaS record in the legacy asynchronous architecture; the target synchronous architecture has no durable job artifact.
+- **Control plane:** currently Nuxt/FastAPI; target Rust validation, authorization, lifecycle, and scheduling.
+- **Execution plane:** currently worker plus native engine; target Rust supervisor plus native engine processing pixels.
 
 ## Status Legend
 
