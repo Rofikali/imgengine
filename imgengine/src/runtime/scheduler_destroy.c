@@ -10,8 +10,10 @@ void img_scheduler_destroy(img_scheduler_t *sched) {
         return;
 
     for (uint32_t i = 0; i < sched->worker_count; i++) {
-        img_worker_stop(&sched->workers[i]);
-        img_worker_join(&sched->workers[i]);
+        if (sched->workers[i].running) {
+            img_worker_stop(&sched->workers[i]);
+            img_worker_join(&sched->workers[i]);
+        }
         img_render_cache_discard(&sched->workers[i].render_cache);
         if (sched->workers[i].queue) {
             img_queue_destroy(sched->workers[i].queue);

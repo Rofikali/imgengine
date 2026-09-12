@@ -2,7 +2,10 @@
 #include <stdio.h>
 
 #include "core/result.h"
+#include "memory/arena.h"
 #include "memory/slab.h"
+#include "runtime/queue_mpmc.h"
+#include "runtime/scheduler.h"
 #include "security/input_validator.h"
 
 static int expect_result(const char *name, img_result_t actual, img_result_t expected) {
@@ -62,6 +65,10 @@ static int test_slab_lifecycle(void) {
     }
     for (size_t index = 0; index < 4; index++)
         img_slab_free(pool, blocks[index]);
+    uint8_t foreign_block[256] = {0};
+    img_slab_free(pool, foreign_block);
+    img_slab_free(pool, blocks[0]);
+    img_slab_free(pool, blocks[0] + 1);
     for (size_t index = 0; index < 4; index++) {
         if (!img_slab_alloc(pool)) {
             fprintf(stderr, "slab did not recycle a released block\n");
@@ -73,8 +80,53 @@ static int test_slab_lifecycle(void) {
     return 0;
 }
 
+static int test_arena_boundaries(void) {
+    if (img_arena_create(0) != NULL || img_arena_create(SIZE_MAX) != NULL) {
+        fprintf(stderr, "arena accepted invalid size\n");
+        return 1;
+    }
+
+    img_arena_t *arena = img_arena_create(128);
+    if (!arena || !img_arena_alloc(arena, 64) || img_arena_alloc(arena, SIZE_MAX) ||
+        img_arena_alloc_aligned(arena, 1, 3) || img_arena_alloc_aligned(arena, 1, 256) ||
+        img_arena_alloc_aligned(arena, SIZE_MAX, 64)) {
+        fprintf(stderr, "arena boundary validation failed\n");
+        img_arena_destroy(arena);
+        return 1;
+    }
+    img_arena_destroy(arena);
+    return 0;
+}
+
+static int test_scheduler_overflow_queue(void) {
+    img_scheduler_t scheduler = {0};
+    img_task_t tasks[1024] = {0};
+
+    if (img_scheduler_init(&scheduler, 1) != 0) {
+        fprintf(stderr, "scheduler initialization failed\n");
+        return 1;
+    }
+
+    int failures = 0;
+    for (size_t index = 0; index < 1024; index++) {
+        if (img_scheduler_submit(&scheduler, &tasks[index]) != 0) {
+            fprintf(stderr, "scheduler rejected task %zu\n", index);
+            failures = 1;
+            break;
+        }
+    }
+    if (!failures && img_mpmc_pop(&scheduler.global_queue) != &tasks[1023]) {
+        fprintf(stderr, "scheduler did not route overflow task to global queue\n");
+        failures = 1;
+    }
+
+    img_scheduler_destroy(&scheduler);
+    return failures;
+}
+
 int main(void) {
-    int failures = test_input_validation() + test_slab_lifecycle();
+    int failures = test_input_validation() + test_slab_lifecycle() + test_arena_boundaries() +
+                   test_scheduler_overflow_queue();
     if (failures != 0)
         return 1;
     printf("[safety] input and slab boundary tests passed\n");

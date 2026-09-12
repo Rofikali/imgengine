@@ -15,6 +15,7 @@ dist/
 *.out
 *.so
 *.a
+target/
 imgengine_cli
 # Ignore all built binaries in the build folder
 build/

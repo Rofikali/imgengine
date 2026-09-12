@@ -5,6 +5,8 @@
 
 #include <linux/seccomp.h>
 #include <sys/prctl.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 #include <stdio.h>
 
 bool img_sandbox_apply_filter(const struct sock_fprog *prog) {
@@ -13,8 +15,8 @@ bool img_sandbox_apply_filter(const struct sock_fprog *prog) {
         return false;
     }
 
-    if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, prog) != 0) {
-        perror("prctl PR_SET_SECCOMP");
+    if (syscall(SYS_seccomp, SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, prog) != 0) {
+        perror("seccomp TSYNC");
         return false;
     }
 

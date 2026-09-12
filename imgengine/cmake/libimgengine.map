@@ -1,0 +1,12 @@
+IMGENGINE_1.0 {
+    global:
+        imgengine_abi_version;
+        imgengine_status_message;
+        imgengine_engine_create;
+        imgengine_engine_destroy;
+        imgengine_capability_supported;
+        imgengine_process_encoded_image_to_jpeg;
+        imgengine_output_release;
+    local:
+        *;
+};

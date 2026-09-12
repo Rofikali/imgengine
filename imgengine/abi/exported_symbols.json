@@ -1,0 +1,9 @@
+[
+  {"symbol":"imgengine_abi_version","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_status_message","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_engine_create","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_engine_destroy","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_capability_supported","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_process_encoded_image_to_jpeg","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_output_release","abi":"IMGENGINE_1.0"}
+]

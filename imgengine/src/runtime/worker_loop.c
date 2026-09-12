@@ -42,6 +42,9 @@ void *img_worker_loop(void *arg) {
         task = (img_task_t *)img_queue_pop(w->queue);
 
         /* 2. Global MPMC submission queue — this is where api submits */
+        if (!task && w->scheduler)
+            task = (img_task_t *)img_mpmc_pop(&w->scheduler->global_queue);
+
         if (!task)
             task = (img_task_t *)img_mpmc_pop(&g_task_queue);
 

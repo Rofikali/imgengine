@@ -1,5 +1,7 @@
 # ImgEngine Observability
 
+> **Migration note:** This document records the current FastAPI/Celery implementation. The Rust/C/Nuxt target is defined in [migration.md](migration.md); its target signal model is summarized there and in [architecture.md](architecture.md). This filename intentionally remains uppercase for cross-platform compatibility; do not add a second `observability.md` that differs only by case.
+
 ## Objectives
 
 Every production request and asynchronous image job must be diagnosable using a request ID, `trace_id`, and `job_id` without logging uploaded image content, API keys, storage credentials, or absolute artifact paths.

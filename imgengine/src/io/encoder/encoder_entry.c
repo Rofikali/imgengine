@@ -1,18 +1,55 @@
 // ./src/io/encoder/encoder_entry.c
 
 #include "io/encoder/encoder_entry.h"
+#include <pthread.h>
 #include <turbojpeg.h>
 #include <stdlib.h>
 
 #include "core/buffer.h"
 
-static _Thread_local tjhandle g_tj_encoder = NULL;
+static pthread_key_t g_tj_encoder_key;
+static pthread_once_t g_tj_encoder_key_once = PTHREAD_ONCE_INIT;
+static int g_tj_encoder_key_status;
+
+static void img_destroy_thread_encoder(void *handle) {
+    if (handle)
+        tjDestroy((tjhandle)handle);
+}
+
+static void img_create_thread_encoder_key(void) {
+    g_tj_encoder_key_status = pthread_key_create(&g_tj_encoder_key, img_destroy_thread_encoder);
+}
 
 static tjhandle img_get_thread_encoder(void) {
-    if (!g_tj_encoder)
-        g_tj_encoder = tjInitCompress();
+    if (pthread_once(&g_tj_encoder_key_once, img_create_thread_encoder_key) != 0 ||
+        g_tj_encoder_key_status != 0)
+        return NULL;
 
-    return g_tj_encoder;
+    tjhandle encoder = pthread_getspecific(g_tj_encoder_key);
+    if (!encoder) {
+        encoder = tjInitCompress();
+        if (!encoder)
+            return NULL;
+        if (pthread_setspecific(g_tj_encoder_key, encoder) != 0) {
+            tjDestroy(encoder);
+            return NULL;
+        }
+    }
+
+    return encoder;
+}
+
+void img_encoder_release_thread(void) {
+    if (pthread_once(&g_tj_encoder_key_once, img_create_thread_encoder_key) != 0 ||
+        g_tj_encoder_key_status != 0)
+        return;
+
+    tjhandle encoder = pthread_getspecific(g_tj_encoder_key);
+    if (!encoder)
+        return;
+
+    (void)pthread_setspecific(g_tj_encoder_key, NULL);
+    tjDestroy(encoder);
 }
 
 int img_encode_from_buffer_ex(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data,
