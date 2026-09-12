@@ -1,198 +1,188 @@
-# 📸 IMGENGINE CLI
+# imgengine
 
-### Professional Photo Layout & Print Pipeline
+> A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a path toward a Rust-backed SaaS platform.
 
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Platform](https://img.shields.io/badge/platform-linux--windows-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Language](https://img.shields.io/badge/core-C11-00599C.svg)](https://en.wikipedia.org/wiki/C11)
+[![Build](https://img.shields.io/badge/build-CMake-064F8C.svg)](https://cmake.org/)
+[![Focus](https://img.shields.io/badge/focus-systems%20%2B%20image%20processing-111827.svg)](#)
 
-`imgengine_cli` is a high-performance command-line tool for generating **print-ready photo sheets** such as passport photos, ID cards, and studio layouts.
+## Why imgengine?
 
-Designed for **print shops, studios, and automation pipelines**, it delivers precise, DPI-aware outputs with professional-grade features like bleed and crop marks.
+`imgengine` is designed around a simple engineering boundary:
 
----
+**the native engine owns image processing; the application layer owns product concerns.**
 
-## 🔷 Overview
+The native core handles decoding, geometry, layout, rendering and encoding. Authentication, tenant policy, uploads, persistence, retries and billing belong outside the engine.
 
-`imgengine` is built with a **systems-level architecture in C**, focused on:
+That separation makes the project useful both as a native library/CLI and as the processing core of a future SaaS product.
 
-- ⚡ Speed (SIMD / AVX2 optimized)
-- 🧠 Memory efficiency (custom memory pool)
-- 🖨️ Print accuracy (DPI + real-world dimensions)
-- 🔧 Extensibility (plugin-based pipeline)
+## What it does
 
----
+- Decode supported source images
+- Convert physical print dimensions (cm + DPI) into pixel dimensions
+- `FIT` or `FILL` image placement
+- Grid-based sheet composition
+- Borders, bleed and crop marks
+- PNG/JPEG/PDF output paths
+- CLI and public C API
+- RGB24/raw ingress for already-decoded frames
+- SIMD-accelerated paths with portable fallbacks
+- Bounded resource validation for untrusted input
 
-## ⚡ Features
+## Architecture
 
-- ✅ Grid-based layout engine (rows × columns)
-- ✅ DPI-aware resizing (real-world print accuracy)
-- ✅ Automatic scaling (fit-to-page)
-- ✅ Per-photo crop marks (lab standard)
-- ✅ Bleed support (cut-safe output)
-- ✅ PNG + PDF export
-- ✅ CLI-first (automation ready)
-- ✅ SIMD accelerated (AVX2)
+```text
+                         Product / SaaS Layer
+                                  │
+                         ┌────────▼────────┐
+                         │ Rust Backend     │
+                         │ API / policy /   │
+                         │ lifecycle /      │
+                         │ observability    │
+                         └────────┬────────┘
+                                  │ stable FFI
+                         ┌────────▼────────┐
+                         │ imgengine Core   │
+                         │ C11             │
+                         ├─────────────────┤
+                         │ decode          │
+                         │ resize / crop   │
+                         │ layout          │
+                         │ render          │
+                         │ encode          │
+                         │ SIMD dispatch   │
+                         └─────────────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    ▼                           ▼
+                  PNG/JPEG                    PDF
+```
 
----
+The native specification defines the processing contract and acceptance matrix in [`docs/ENGINE_SPEC.md`](docs/ENGINE_SPEC.md).
 
-## 📦 Installation
+## Processing pipeline
+
+```text
+Input
+  │
+  ▼
+Decode / validate
+  │
+  ▼
+FIT or FILL
+  │
+  ▼
+Grid placement
+  │
+  ▼
+Border
+  │
+  ▼
+Bleed + crop marks
+  │
+  ▼
+Encode
+  │
+  ▼
+Print-ready output
+```
+
+## Native API
+
+The public C API exposes an explicit engine lifecycle and job execution boundary, including file-to-file, raw encoded output and RGB24 ingress paths.
+
+The project treats ABI stability as an engineering contract: public symbols, ownership, lifecycle, threading and release semantics are tested rather than left implicit.
+
+## Build
 
 ### Requirements
 
-- CMake ≥ 3.16
-- GCC / Clang / MSVC
-- Linux / Windows (WSL supported)
+- CMake 3.16+
+- GCC or Clang
+- Linux (primary deployment target)
+- NASM for JPEG SIMD dependency builds where required
 
----
+```bash
+git clone https://github.com/Rofikali/imgengine.git
+cd imgengine
 
-### Build
+cmake -S . -B build
+cmake --build build -j
+```
 
-    --- bash ---
-    git clone https://github.com/Rofikali/imgengine
-    cd imgengine
+Run the CLI:
 
-    mkdir build && cd build
-    cmake ..
-    make
+```bash
+./build/imgengine_cli --help
+```
 
-## Run
+## Example
 
-    ./imgengine_cli --help
+```bash
+./build/imgengine_cli \
+  --input photo.jpg \
+  --output sheet.png \
+  --cols 6 \
+  --rows 6 \
+  --width 4.5 \
+  --height 3.5 \
+  --dpi 300 \
+  --bleed 10 \
+  --crop-mark 20
+```
 
-## 🧑‍💻 Usage
+## Engineering quality
 
-    Basic Syntax
-    imgengine_cli --input <file> [--output <file>] [OPTIONS]
+Correctness is treated as a first-class feature. The native acceptance matrix covers:
 
-## 📥 Input / Output
+- deterministic geometry and layout fixtures
+- FIT vs FILL behavior
+- border, bleed and crop-mark behavior
+- layout-boundary/property testing
+- malformed-input and unsafe-dimension handling
+- SIMD vs scalar equivalence
+- ASan/UBSan validation
+- bounded fuzzing of untrusted parsing/decoder paths
+- memory and arithmetic boundary tests
 
-    Type Supported Formats
-    Input JPG, PNG
-    Output PNG, PDF
+See [`docs/ENGINE_SPEC.md`](docs/ENGINE_SPEC.md) for the detailed contract.
 
-## ⚙️ Configuration Options
+## Project direction
 
-    🔹 Required
-    Option Description
-    --input Input image file
-    🔹 Output
-    Option Description Default
-    --output Output file (png/pdf) output.png
-    --quiet Disable logs off
+The project is evolving from a native image-processing engine toward a low-cost, secure SaaS architecture:
 
-## Layout
+```text
+C native engine
+      ↓
+stable C ABI
+      ↓
+Rust FFI boundary
+      ↓
+Rust service / lifecycle orchestration
+      ↓
+Nuxt + TypeScript frontend
+```
 
-    Option Description Default
-    --cols Number of columns 2
-    --rows Number of rows 3
-    --gap Space between photos (px) 15
-    --padding Page margin (px) 20
+The design deliberately avoids making the native engine responsible for authentication, billing, persistence or product policy.
 
-## 🔹 Photo Settings
+## Repository structure
 
-    Option Description Default
-    --width Photo width (cm) 4.5
-    --height Photo height (cm) 3.5
-    --dpi Print DPI 300
-    --border Border thickness (px) 2
+```text
+imgengine/
+├── include/          # public/internal C interfaces
+├── src/              # native implementation
+├── tests/             # native correctness and security tests
+├── docs/              # specifications and verification evidence
+├── imgengine-saas/    # application/SaaS layer
+├── CMakeLists.txt
+└── README.md
+```
 
-## 🔹 Professional Print
+## Status
 
-    Option Description Default
-    --bleed Extra pixels for cutting safety 10
-    --crop-mark Crop mark length 20
-    --crop-thickness Crop mark thickness 2
-    --crop-offset Distance from image edge 8
+This is an actively engineered project. Native correctness and ABI hardening are being completed before retiring the legacy application stack and moving the production orchestration layer to Rust.
 
-## 🧠 Processing Pipeline
+## License
 
-    Input Image
-       ↓
-    Center Crop
-       ↓
-    DPI Resize
-       ↓
-    Border Apply
-       ↓
-    Grid Layout Engine
-       ↓
-    Plugin System (Bleed + Crop Marks)
-       ↓
-    Final Output (PNG / PDF)
-
-## 🧪 Examples
-
-    1. Passport Sheet
-    imgengine_cli --input photo.jpg --cols 3 --rows 2
-    2. Studio Layout (A4)
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.png \
-      --cols 6 \
-      --rows 2 \
-      --gap 15 \
-      --padding 20 \
-      --width 3.5 \
-      --height 3.0
-    3. Print-Ready (Bleed + Crop Marks)
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.png \
-      --cols 6 \
-      --rows 2 \
-      --bleed 10 \
-      --crop-mark 25 \
-      --crop-offset 8
-    4. PDF Export
-    imgengine_cli \
-      --input photo.jpg \
-      --output out.pdf \
-      --cols 6 \
-      --rows 2 \
-      --bleed 10
-
-## 🚀 Architecture
-
-    Core Components
-    Context System
-    Central memory pool
-    Layout metadata storage
-    Layout Engine
-    Grid-based placement
-    Auto-scaling logic
-    Plugin System
-    Crop marks
-    Bleed rendering
-    SIMD Layer
-    AVX2 accelerated image operations
-
-## ⚡ Performance
-
-    Memory pool allocation (no malloc overhead)
-    SIMD optimized blitting and resizing
-    Designed for batch processing workflows
-
-## 📝 Best Practices
-
-    Use 300 DPI for professional printing
-    Always enable:
-    --bleed
-    --crop-mark
-    Keep gap ≥ 10px for safe cutting
-
-## 🔮 Roadmap
-
-     Batch multi-image input
-     ISO passport presets
-     GUI (Electron / Web UI)
-     CMYK color support
-     Cloud API (FastAPI integration)
-
-## 🤝 Contributing
-
-    Pull requests are welcome.
-
-## 📄 License
-
-    MIT License
+MIT
