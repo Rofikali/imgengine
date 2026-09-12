@@ -17,6 +17,7 @@ dist/
 *.a
 target/
 imgengine_cli
+imgengine/photo.png
 # Ignore all built binaries in the build folder
 build/
 

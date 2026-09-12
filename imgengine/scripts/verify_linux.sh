@@ -36,11 +36,15 @@ mkdir -p "$build_root"
 configure "$build_root/normal"
 run_ctest "$build_root/normal"
 run_rust_ffi_smoke "$build_root/normal"
+bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/normal" "$source_dir"
 
 configure "$build_root/asan" -DIMGENGINE_SANITIZE=ON
 ASAN_OPTIONS="detect_leaks=1:halt_on_error=1" \
 UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1" \
     run_ctest "$build_root/asan"
+ASAN_OPTIONS="detect_leaks=1:halt_on_error=1" \
+UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1" \
+    bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/asan" "$source_dir" c-only
 
 configure "$build_root/sandbox" -DIMGENGINE_SANDBOX=ON
 cmake --build "$build_root/sandbox" --parallel "$jobs"

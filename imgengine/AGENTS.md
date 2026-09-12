@@ -61,12 +61,15 @@ C implementation
 Current phase:
 
 ```
-Priority 2 — Stable C ABI
+Priority 2 acceptance — real-image verification
 ```
 
 Priority 1 security/correctness work has already passed its Linux verification gate.
 
 Do not use the completion of Priority 1 as permission to perform unrelated native rewrites.
+
+Priority 3 Rust work must not begin until the public ABI is verified with
+reproducible, real JPEG and PNG inputs through both C and Rust consumers.
 
 ---
 
@@ -415,6 +418,24 @@ Compare:
 * memory where relevant.
 
 A benchmark regression should be investigated before claiming completion.
+
+---
+
+# 19.1 Real-Image Verification
+
+Synthetic tests, fuzzing, and generated micro-fixtures are necessary but do
+not replace end-to-end real-image evidence. Before closing a native security or
+ABI gate, run reproducible Ubuntu 24.04/Docker verification with generated or
+project-owned JPEG and PNG inputs covering representative color spaces,
+progressive encoding, unusual aspect ratios, and malformed inputs.
+
+The verification must exercise the same public interface intended for
+production. ABI verification must use only installed/public headers and public
+symbols; Rust verification must use its safe wrapper. Validate output using an
+independent decoder, record input/output dimensions and sizes, status results,
+timing methodology, sanitizer result, and toolchain version. Do not commit
+personal images or large binary fixtures; generate deterministic fixtures in
+the verifier or document their license and provenance.
 
 ---
 
