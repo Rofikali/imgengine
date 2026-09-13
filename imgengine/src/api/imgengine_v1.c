@@ -65,7 +65,8 @@ imgengine_status_t imgengine_engine_create(const imgengine_engine_options_t *opt
     if (!options || options->struct_size < sizeof(*options) || options->worker_count == 0 ||
         options->worker_count > 64)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
-    for (size_t index = 0; index < sizeof(options->reserved) / sizeof(options->reserved[0]); index++) {
+    for (size_t index = 0; index < sizeof(options->reserved) / sizeof(options->reserved[0]);
+         index++) {
         if (options->reserved[index] != 0)
             return IMGENGINE_STATUS_INVALID_ARGUMENT;
     }
@@ -125,8 +126,8 @@ imgengine_status_t imgengine_capability_supported(const char *identifier, uint32
 }
 
 imgengine_status_t imgengine_process_encoded_image_to_jpeg(imgengine_engine_t *engine,
-                                                            const uint8_t *input, size_t input_size,
-                                                            imgengine_output_t *output) {
+                                                           const uint8_t *input, size_t input_size,
+                                                           imgengine_output_t *output) {
     if (!output)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
     output->data = NULL;

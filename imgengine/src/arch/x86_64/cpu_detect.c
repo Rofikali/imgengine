@@ -45,8 +45,8 @@ cpu_caps_t img_cpu_detect_caps(void) {
             caps |= CPU_CAP_AVX2;
 
         // AVX512F (bit 16 of EBX)
-        const uint64_t avx512_state = avx_state | (UINT64_C(1) << 5) |
-                                      (UINT64_C(1) << 6) | (UINT64_C(1) << 7);
+        const uint64_t avx512_state =
+            avx_state | (UINT64_C(1) << 5) | (UINT64_C(1) << 6) | (UINT64_C(1) << 7);
         if ((ebx & bit_AVX512F) != 0 && (xcr0 & avx512_state) == avx512_state)
             caps |= CPU_CAP_AVX512;
     }

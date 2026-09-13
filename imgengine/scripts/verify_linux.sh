@@ -40,6 +40,7 @@ rm -rf "$build_root"
 mkdir -p "$build_root"
 
 configure "$build_root/normal"
+cmake --build "$build_root/normal" --target format-check
 run_ctest "$build_root/normal"
 run_rust_ffi_smoke "$build_root/normal"
 bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/normal" "$source_dir"
