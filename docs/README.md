@@ -17,6 +17,7 @@ This directory is the documentation source of truth. Historical notes remain use
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
 | [Native Benchmarking](NATIVE_BENCHMARKING.md) | Reproducible native performance measurement contract and evidence policy. | Native and performance engineers |
 | [Linux Native Verification](LINUX_VERIFICATION.md) | Ubuntu 24.04 Docker verification gate for C correctness and security. | Native engineers and CI owners |
+| [Rust FFI Boundary](RUST_FFI.md) | Safe ownership boundary over `libimgengine` ABI v1. | Rust and native engineers |
 | [HLD](hld.md) | Native architecture and performance constraints. | Native engineers |
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |
 | [Design Patterns](design_patterns.md) | Pattern guidance for the native implementation. | Native engineers |

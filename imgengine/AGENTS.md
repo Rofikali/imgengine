@@ -61,15 +61,16 @@ C implementation
 Current phase:
 
 ```
-Priority 2 acceptance — real-image verification
+Priority 3 — safe Rust FFI
 ```
 
 Priority 1 security/correctness work has already passed its Linux verification gate.
 
 Do not use the completion of Priority 1 as permission to perform unrelated native rewrites.
 
-Priority 3 Rust work must not begin until the public ABI is verified with
-reproducible, real JPEG and PNG inputs through both C and Rust consumers.
+Priority 2 is closed after reproducible real JPEG and PNG verification through
+the public C ABI and Rust consumer. Keep Priority 3 limited to a safe wrapper;
+do not move scheduling, memory management, or backend orchestration yet.
 
 ---
 

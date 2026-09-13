@@ -27,7 +27,13 @@ run_rust_ffi_smoke() {
     local build_dir="$1"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
+        cargo test --quiet --manifest-path "$source_dir/rust/imgengine/Cargo.toml"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
         cargo run --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
+        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
 }
 
 rm -rf "$build_root"

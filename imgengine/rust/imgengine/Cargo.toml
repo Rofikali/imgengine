@@ -1,11 +1,9 @@
 [package]
-name = "imgengine-ffi-smoke"
+name = "imgengine"
 version = "0.1.0"
 edition = "2021"
 publish = false
+description = "Safe Rust wrapper for libimgengine ABI v1"
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
-
-[dependencies]
-imgengine = { path = "../imgengine" }

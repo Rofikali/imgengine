@@ -38,7 +38,7 @@ Emit one JSON record per lifecycle event with `request_id`, `trace_id`, route, r
 
 1. **Security and correctness:** fix and regress-test scheduler delivery, real decoded-dimension validation, AVX/XCR0 detection, arena overflow, slab ownership/ASAN behavior, sandbox ordering, and fuzz instrumentation.
 2. **Clean C ABI:** make installed headers self-contained; define visibility, symbol/version policy, ownership, error, lifecycle, and compatibility guarantees for `libimgengine`.
-3. **Rust FFI:** add a safe Rust wrapper over the stable C ABI with ownership-safe output types, cancellation and malformed-input integration tests, and no scheduler migration yet.
+3. **Rust FFI:** add a safe Rust wrapper over the stable C ABI with ownership-safe output types and malformed-input integration tests. ABI v1 has no mid-operation cancellation, so request-level deadlines remain outside the wrapper. Do not migrate the scheduler yet.
 4. **Move orchestration selectively:** benchmark and prove safety before moving scheduler and then memory ownership from C to Rust. Keep C kernels as the correctness/performance baseline.
 5. **Rust SaaS backend:** introduce Axum/Tokio only after the native boundary is stable; reach contract parity before Nuxt cutover.
 6. **Remove obsolete infrastructure:** retire FastAPI, Python workers, Celery, Redis, and job-only PostgreSQL only after the Rust route has passed its rollback window.

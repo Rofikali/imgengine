@@ -5,10 +5,3 @@ version = 3
 [[package]]
 name = "imgengine"
 version = "0.1.0"
-
-[[package]]
-name = "imgengine-ffi-smoke"
-version = "0.1.0"
-dependencies = [
- "imgengine",
-]
