@@ -36,6 +36,22 @@ run_rust_ffi_smoke() {
         cargo test --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
 }
 
+run_rust_supervisor() {
+    local build_dir="$1"
+    local workspace_root="$build_dir/supervisor-workspaces"
+    local output="$build_dir/supervisor-smoke.jpg"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
+        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
+        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml" -- \
+        "$source_dir/photo.jpg" "$output" "$workspace_root"
+    identify -format '%m %wx%h' "$output"
+    test -d "$workspace_root"
+    test -z "$(find "$workspace_root" -mindepth 1 -print -quit)"
+}
+
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
@@ -43,6 +59,7 @@ configure "$build_root/normal"
 cmake --build "$build_root/normal" --target format-check
 run_ctest "$build_root/normal"
 run_rust_ffi_smoke "$build_root/normal"
+run_rust_supervisor "$build_root/normal"
 bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/normal" "$source_dir"
 
 configure "$build_root/asan" -DIMGENGINE_SANITIZE=ON

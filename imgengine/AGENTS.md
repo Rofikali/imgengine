@@ -61,7 +61,7 @@ C implementation
 Current phase:
 
 ```
-Priority 3 — safe Rust FFI
+Priority 4 discovery — Rust supervisor foundation
 ```
 
 Priority 1 security/correctness work has already passed its Linux verification gate.
@@ -69,8 +69,9 @@ Priority 1 security/correctness work has already passed its Linux verification g
 Do not use the completion of Priority 1 as permission to perform unrelated native rewrites.
 
 Priority 2 is closed after reproducible real JPEG and PNG verification through
-the public C ABI and Rust consumer. Keep Priority 3 limited to a safe wrapper;
-do not move scheduling, memory management, or backend orchestration yet.
+the public C ABI and Rust consumer. Priority 3's safe wrapper is implemented.
+Priority 4 may add a single-engine lifecycle and filesystem-policy proof, but
+must not move scheduling, memory management, or backend orchestration yet.
 
 ---
 
