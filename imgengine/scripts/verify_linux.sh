@@ -20,7 +20,7 @@ run_ctest() {
     local build_dir="$1"
     cmake --build "$build_dir" --parallel "$jobs"
     ctest --test-dir "$build_dir" --output-on-failure
-    cmake --build "$build_dir" --target regression_security regression_geometry regression_progressive
+    cmake --build "$build_dir" --target regression_security regression_geometry regression_progressive regression_output_format
 }
 
 run_rust_ffi_smoke() {

@@ -59,15 +59,15 @@ make
     Use code with caution.
 
 ##  Input & Output
-    The output format is auto-detected based on the file extension.
+    The output format is selected based on the file extension.
     Type Formats Supported
     Input JPG, PNG
-    Output PNG, PDF
+    Output JPEG (.jpg/.jpeg), PDF
 ## ⚙️ Configuration Options
     🔹 Required & Global
     Option Description
     --input <file> Path to the source image.
-    --output <file> Path to save result (Default: output.png).
+    --output <file> Path to save result (Default: output.jpg).
     --quiet Suppress console output.
     --help Show help message.
 ## 🔹 Layout & Sizing
@@ -99,7 +99,7 @@ make
     
     2. Studio A4 Layout (Specific Dimensions)
     bash
-    imgengine_cli --input photo.jpg --output output.png --cols 6 --rows 2 --gap 15 --width 3.5 --height 3.0
+    imgengine_cli --input photo.jpg --output output.jpg --cols 6 --rows 2 --gap 15 --width 3.5 --height 3.0
     Use code with caution.
     
     3. Print-Ready PDF with Bleed
@@ -134,7 +134,7 @@ make
 
     ./imgengine_cli \
     --input ../input.jpg \
-    --output final_output.png \
+    --output final_output.jpg \
     --cols 6 \
     --rows 2 \
     --gap 15 \
@@ -146,7 +146,7 @@ make
 
     ./imgengine_cli \
     --input ../input.jpg \
-    --output final.png \      
+    --output final.pdf \
     --cols 6 \
     --rows 2 \
     --gap 15 \

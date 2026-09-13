@@ -10,6 +10,6 @@ void img_cli_print_usage_section(const char *bin) {
             "REQUIRED:\n"
             "  --input <file>         Input image or raw frame\n\n"
             "OUTPUT:\n"
-            "  --output <file>        Output file .jpg/.png/.pdf (default: output.jpg)\n\n",
+            "  --output <file>        Output file .jpg/.jpeg/.pdf (default: output.jpg)\n\n",
             bin);
 }

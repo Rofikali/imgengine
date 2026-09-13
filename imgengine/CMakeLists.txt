@@ -730,6 +730,13 @@ add_custom_target(regression_security
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
+add_custom_target(regression_output_format
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/output_format_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/output_format_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND bash ${CMAKE_BINARY_DIR}/regression_scripts/output_format_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/output_format_regression_tmp
+    DEPENDS imgengine_cli
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 # ── Build summary ──────────────────────────────────────────
 message(STATUS "")
 message(STATUS "======================================")
