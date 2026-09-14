@@ -4,6 +4,13 @@
 //! only synchronous processing. It does not replace the native scheduler and
 //! cannot cancel an operation already executing in ABI v1.
 
+mod admission;
+
+pub use admission::{
+    AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionOptions,
+    AdmissionRequest,
+};
+
 use imgengine::{Engine, EngineOptions, Error as EngineError};
 use std::fmt;
 use std::fs;
@@ -17,6 +24,9 @@ const RANDOM_BYTES: usize = 16;
 const CREATE_ATTEMPTS: usize = 8;
 const DEFAULT_STALE_AFTER: Duration = Duration::from_secs(5 * 60);
 
+#[cfg(test)]
+static TEST_ENGINE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 /// The safe result classes intended for logs and metrics.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ResultClass {
@@ -24,6 +34,7 @@ pub enum ResultClass {
     InvalidArgument,
     InvalidImage,
     ResourceLimit,
+    Overloaded,
     Unavailable,
     Internal,
     DeadlineExceeded,
@@ -38,6 +49,7 @@ impl ResultClass {
             Self::InvalidArgument => "invalid_argument",
             Self::InvalidImage => "invalid_image",
             Self::ResourceLimit => "resource_limit",
+            Self::Overloaded => "overloaded",
             Self::Unavailable => "unavailable",
             Self::Internal => "internal",
             Self::DeadlineExceeded => "deadline_exceeded",
@@ -404,6 +416,7 @@ mod tests {
 
     #[test]
     fn supervisor_cleans_up_and_preserves_deadline_contract() {
+        let _engine_lock = super::TEST_ENGINE_LOCK.lock().expect("lock test engine");
         let root = test_root("process");
         let mut supervisor =
             Supervisor::new(SupervisorOptions::new(root.clone())).expect("create supervisor");
