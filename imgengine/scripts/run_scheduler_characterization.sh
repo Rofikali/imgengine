@@ -17,6 +17,8 @@ warmup=5
 concurrency=4
 queue_capacity=4
 real_image=""
+camera_fixture="$source_dir/tests/fixtures/cc0_camera_landscape.jpg"
+camera_fixture_sha256="95b1d6cdc0421f8582e0761f5509fa0f81aaf44b4905e87b651ea2dc6d574d5e"
 
 usage() {
     cat <<EOF
@@ -57,6 +59,11 @@ for value in "$iterations" "$concurrency" "$queue_capacity"; do
 done
 [[ "$warmup" =~ ^[0-9]+$ ]] || { echo "--warmup must be non-negative" >&2; exit 64; }
 [[ -z "$real_image" || -f "$real_image" ]] || { echo "--real-image not found: $real_image" >&2; exit 66; }
+[[ -f "$camera_fixture" ]] || { echo "missing project-owned camera fixture: $camera_fixture" >&2; exit 66; }
+[[ "$(sha256sum "$camera_fixture" | awk '{print $1}')" == "$camera_fixture_sha256" ]] || {
+    echo "camera fixture checksum mismatch" >&2
+    exit 65
+}
 command -v convert >/dev/null || { echo "ImageMagick convert is required" >&2; exit 69; }
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 69; }
 
@@ -126,12 +133,15 @@ run_pair() {
         --queue-capacity "$request_queue_capacity" >> "$results"
 }
 
-for fixture in small-jpeg.jpg small-png.png representative-jpeg.jpg large-jpeg.jpg progressive-jpeg.jpg truncated-jpeg.jpg; do
+for fixture in small-jpeg.jpg small-png.png representative-jpeg.jpg large-jpeg.jpg progressive-jpeg.jpg; do
     run_pair "$fixture" "$fixtures_dir/$fixture" sequential 1 "$queue_capacity"
 done
+run_pair cc0-camera-landscape.jpg "$camera_fixture" sequential 1 "$queue_capacity"
+run_pair truncated-jpeg.jpg "$fixtures_dir/truncated-jpeg.jpg" sequential 1 "$queue_capacity"
 for fixture in small-jpeg.jpg representative-jpeg.jpg large-jpeg.jpg; do
     run_pair "$fixture" "$fixtures_dir/$fixture" concurrent "$concurrency" "$queue_capacity"
 done
+run_pair cc0-camera-landscape.jpg "$camera_fixture" concurrent "$concurrency" "$queue_capacity"
 saturation_concurrency=$((concurrency > 8 ? concurrency : 8))
 run_pair small-jpeg.jpg "$fixtures_dir/small-jpeg.jpg" saturation "$saturation_concurrency" 1
 if [[ -n "$real_image" ]]; then

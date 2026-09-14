@@ -33,12 +33,14 @@ CI-safe project-owned fixtures using ImageMagick:
 - 1600×1200 representative textured JPEG;
 - 2048×1536 large JPEG;
 - 640×427 progressive JPEG;
+- a 2048×1365 project-owned CC0 camera-landscape JPEG, with an enforced
+  SHA-256 recorded in `tests/fixtures/README.md`;
 - truncated JPEG for a failed-completion path.
 
 Sequential, concurrent, and queue-saturation runs are included. The script can
 also measure a local `--real-image` without copying it to results or source
-control. A licensed, project-owned real-camera fixture remains required before
-this gate can claim real-world corpus coverage in CI.
+control. Local images are supplemental only; the tracked CC0 fixture provides
+the reproducible real-camera workload.
 
 ## Metrics and Method
 
