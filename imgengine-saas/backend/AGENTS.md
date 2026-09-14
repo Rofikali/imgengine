@@ -32,19 +32,19 @@ Edge / Cloudflare where appropriate
 Rust Axum API
   |
   v
-Request validation
+Rust application/request lifecycle
   |
   v
-Authorization / limits
+Rust bounded admission/control
   |
   v
-Ephemeral request workspace
+Safe Rust imgengine wrapper
   |
   v
-Safe Rust FFI
+libimgengine ABI v1
   |
   v
-libimgengine
+C scheduler
   |
   v
 C native engine
@@ -86,18 +86,19 @@ Nuxt
   ->
 Rust/Axum
   ->
-Rust
+Rust request lifecycle / bounded admission
   ->
-safe FFI
+safe FFI / libimgengine ABI v1
   ->
-libimgengine
+C scheduler
   ->
-C engine
+C native engine
 ```
 
-The Rust backend must not become the first migration step.
-
-The native C ABI must stabilize first.
+Completed boundaries are: stable ABI v1, safe Rust FFI, Rust supervisor,
+bounded Rust admission/control, scheduler characterization, and the
+transport-neutral Rust request lifecycle. Production Axum, legacy retirement,
+and distributed scaling remain planned.
 
 ---
 
@@ -106,22 +107,20 @@ The native C ABI must stabilize first.
 Backend implementation should follow:
 
 ```
-Stable C ABI
+Implemented ABI/FFI/lifecycle/admission boundaries
     ->
-Safe Rust FFI
+Small HTTP adapter around the request lifecycle contract
     ->
-Rust request/orchestration layer
-    ->
-API contract parity
-    ->
-Integration tests
+API contract parity and integration tests
     ->
 Canary
     ->
 Legacy retirement
 ```
 
-Do not start a large Axum implementation while the ABI is still unstable unless explicitly requested as a separate design/prototype task.
+Do not start a full production Axum implementation as part of lower-boundary
+work. HTTP is an adapter around the application contract, not the location of
+lifecycle/business logic.
 
 ---
 
@@ -133,7 +132,7 @@ Rust should own:
 * request validation,
 * authentication/authorization when introduced,
 * request lifecycle,
-* cancellation,
+* application-level request/disconnect handling,
 * concurrency limits,
 * rate limiting,
 * filesystem policy,
@@ -144,6 +143,14 @@ Rust should own:
 * tracing,
 * safe C FFI wrapper,
 * API error mapping.
+
+The Rust supervisor/admission layer is NOT a replacement for the C scheduler.
+Rust owns bounded admission and overload behavior around native execution; C
+owns native scheduling and worker execution.
+
+C continues to own native scheduling, worker execution, image decoding and
+encoding, rendering/layout, SIMD, and native memory/execution internals. Do
+not duplicate these responsibilities in Rust application or HTTP code.
 
 Rust should not own native image kernels simply for architectural purity.
 
@@ -251,6 +258,19 @@ Actual decoded dimensions must ultimately be established by the appropriate nati
 
 ---
 
+# 9.1 Request Lifecycle Contract
+
+The transport-neutral request lifecycle contract is implemented in the Rust
+supervisor layer and documented in `docs/RUST_REQUEST_LIFECYCLE.md`. It owns
+request IDs/correlation, content-type and byte validation, lifecycle state,
+admission decision, deadline policy, ephemeral workspace/output lifecycle,
+safe error mapping, and redacted events.
+
+An HTTP server must adapt to this contract rather than reimplement it. The
+application layer must remain testable without a network server.
+
+---
+
 # 10. Ephemeral Workspace
 
 Each request should receive an isolated temporary workspace.
@@ -308,6 +328,9 @@ Do not introduce Redis simply because:
 * tutorials use Redis.
 
 The initial architecture should use in-process bounded concurrency and appropriate OS/runtime primitives where sufficient.
+
+Queue saturation must produce explicit overload behavior; it must not retain
+unbounded request bodies or silently block callers.
 
 Redis may be reconsidered later when measured requirements justify it.
 
@@ -386,6 +409,11 @@ Where native cancellation is unavailable, the supervisor must define bounded beh
 
 Every long-running operation needs an upper bound.
 
+ABI v1 does not support mid-operation native cancellation. Model client
+cancellation as Rust/application response abandonment, preserve cleanup, and
+never claim that an in-flight C operation was cancelled. Orderly shutdown must
+stop new submissions and drain accepted work within its documented budget.
+
 ---
 
 # 16. Concurrency
@@ -424,6 +452,10 @@ Eventually measure and enforce limits for:
 * request rate.
 
 Limits must be based on evidence where possible.
+
+The current boundary already composes application and admission input-byte
+limits using the stricter limit. Continue to bound temporary storage and
+concurrency; do not add permanent image storage for ephemeral jobs.
 
 Do not select arbitrary "million-user" limits without capacity measurements.
 

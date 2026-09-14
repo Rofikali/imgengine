@@ -36,16 +36,22 @@ Primary responsibilities include:
 * security boundaries,
 * native observability.
 
-The target external architecture is:
+The retained native execution architecture is:
 
 ```
-Rust
+Rust request lifecycle / bounded admission
   |
   v
-stable libimgengine ABI
+safe Rust FFI
   |
   v
-C implementation
+libimgengine ABI v1
+  |
+  v
+C scheduler
+  |
+  v
+C native engine
   |
   +--> TurboJPEG
   +--> rendering
@@ -58,20 +64,14 @@ C implementation
 
 # 3. Current Migration Priority
 
-Current phase:
+Completed evidence: Priority 1 security/correctness, Priority 2 stable ABI v1,
+Priority 3 safe Rust FFI, the Rust supervisor, bounded Rust admission/control,
+and scheduler characterization. The Rust transport-neutral request-lifecycle
+boundary is implemented and Linux/Docker validated.
 
-```
-Priority 4 discovery — Rust supervisor foundation
-```
-
-Priority 1 security/correctness work has already passed its Linux verification gate.
-
-Do not use the completion of Priority 1 as permission to perform unrelated native rewrites.
-
-Priority 2 is closed after reproducible real JPEG and PNG verification through
-the public C ABI and Rust consumer. Priority 3's safe wrapper is implemented.
-Priority 4 may add a single-engine lifecycle and filesystem-policy proof, but
-must not move scheduling, memory management, or backend orchestration yet.
+Do not use these completions as permission for unrelated native rewrites.
+Production Axum, legacy retirement, and any scheduler/memory migration remain
+planned work.
 
 ---
 
@@ -95,12 +95,17 @@ Potential future Rust candidates:
 * filesystem policy,
 * lifecycle management,
 * safe ownership facade,
-* scheduling,
 * non-kernel infrastructure.
 
 Do not migrate scheduler, arena, slab, or other memory/concurrency components simply because they are difficult.
 
-Migration requires evidence.
+The C scheduler is intentionally retained. Do not migrate or rewrite it merely
+because Rust is the control-plane language. Characterization found provisional
+Rust-overhead thresholds failed for small/progressive and some concurrent
+workloads, so scheduler migration is not currently justified. Rust may own
+request lifecycle and bounded admission around the scheduler; C continues to
+own scheduling and native execution. Revisiting scheduler ownership requires
+new measured evidence and a separate architectural decision.
 
 ---
 
@@ -168,6 +173,10 @@ Do not accidentally export:
 
 Maintain an explicit exported-symbol manifest.
 
+ABI v1 intentionally exports seven public symbols only. Preserve opaque
+lifecycle, explicit output ownership/release, process-scope one-engine
+semantics, and documented thread safety.
+
 ABI checking must detect both:
 
 * missing required symbols,
@@ -230,10 +239,12 @@ Public API failures should distinguish meaningful categories such as:
 * resource limit,
 * allocation failure,
 * internal engine failure,
-* cancelled operation,
 * output failure.
 
 Do not leak internal implementation details through public errors.
+
+ABI v1 does not expose mid-operation cancellation. Do not add a misleading
+`cancelled` result merely to simplify an application boundary.
 
 ---
 
@@ -292,7 +303,6 @@ When modifying scheduler behavior, verify:
 * overflow behavior,
 * worker visibility,
 * shutdown,
-* cancellation,
 * teardown,
 * queue ownership,
 * no stranded tasks,
@@ -300,6 +310,9 @@ When modifying scheduler behavior, verify:
 * no double execution.
 
 Any queue topology change requires a regression test.
+
+ABI v1 has no mid-operation cancellation; orderly shutdown drains accepted
+work. Any future change to that contract requires a separate ABI decision.
 
 ---
 
@@ -420,6 +433,12 @@ Compare:
 * memory where relevant.
 
 A benchmark regression should be investigated before claiming completion.
+
+`docs/SCHEDULER_CHARACTERIZATION_REPORT.md` is the canonical scheduler
+evidence. Do not benchmark merely to justify a predetermined Rust migration.
+A future scheduler migration needs representative workloads, reproducible
+baseline, P50/P95/P99 where applicable, throughput, CPU, RSS, queue and
+shutdown behavior, acceptance thresholds, and a rollback strategy.
 
 ---
 

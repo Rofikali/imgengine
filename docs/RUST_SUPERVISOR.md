@@ -1,13 +1,15 @@
 # Rust Supervisor Foundation
 
-**Status:** Implemented as a Priority 4 discovery/proof path. It does not
-replace the C scheduler, Rust FFI boundary, FastAPI backend, or legacy worker.
+**Status:** Implemented and validated as the single-engine supervisor
+foundation. It does not replace the C scheduler, Rust FFI boundary, FastAPI
+backend, or legacy worker.
 
 ## Purpose
 
 `imgengine/rust/imgengine-supervisor` is a synchronous control-plane component
-that owns exactly one safe `imgengine::Engine`. It proves the lifecycle rules
-needed before scheduler migration or an Axum service is considered:
+that owns exactly one safe `imgengine::Engine`. It established lifecycle rules
+used by bounded admission and the transport-neutral request lifecycle; neither
+boundary authorizes scheduler migration or a production Axum service:
 
 - one engine and one in-flight operation per process;
 - isolated request directories created with Linux `/dev/urandom` names and
@@ -43,10 +45,10 @@ hard wall-clock timeout outside the engine process.
 
 ## Non-Goals
 
-This proof intentionally does not add Tokio, Axum, a queue, Redis, PostgreSQL,
-or scheduler replacement. The bounded Rust channel is an admission boundary,
-not a replacement for the C scheduler. It does not make the opaque engine
-`Send` or `Sync`.
+This proof intentionally does not add Tokio, Axum, an external/distributed
+queue, Redis, PostgreSQL, or scheduler replacement. The bounded Rust channel
+is an admission boundary, not a replacement for the C scheduler. It does not
+make the opaque engine `Send` or `Sync`.
 The native C scheduler, arena, slab, SIMD, and codec layers remain unchanged.
 
 ## Verification

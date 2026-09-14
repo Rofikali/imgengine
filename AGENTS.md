@@ -29,22 +29,25 @@ The goal is:
 
 # 2. Current Repository Architecture
 
-The target architecture is:
+The proven architecture and planned transport boundary are:
 
 ```
 Nuxt 4/5 + Vue + TypeScript
                 |
                 v
-         Rust / Axum
+Rust HTTP/application layer (planned Axum adapter)
                 |
                 v
-      Rust application layer
+      Rust request lifecycle
                 |
                 v
-         Safe Rust FFI
+ Rust bounded admission/control
                 |
                 v
-        libimgengine C ABI
+           C scheduler
+                |
+                v
+        libimgengine C ABI v1
                 |
                 v
          IMGENGINE C core
@@ -56,9 +59,10 @@ Nuxt 4/5 + Vue + TypeScript
                 +--> JPEG/PDF encoding
 ```
 
-The C engine remains the performance-critical native execution layer.
+The C scheduler and C engine remain the performance-critical execution plane.
 
-Rust becomes the primary control-plane and orchestration language.
+Rust owns the control plane: request/application lifecycle and bounded
+admission/control. The supervisor is not a scheduler replacement.
 
 The frontend remains a separate presentation layer.
 
@@ -112,7 +116,7 @@ Priority 1 — Security and Correctness:
 COMPLETE / VALIDATED
 ```
 
-Priority 2 — Stable C ABI:
+Priority 2 — Stable C ABI v1:
 
 ```
 IMPLEMENTED / VALIDATED
@@ -124,40 +128,47 @@ Priority 3 — Safe Rust FFI:
 IMPLEMENTED / VALIDATED
 ```
 
-Priority 4 — Selective orchestration migration:
+Rust supervisor foundation:
 
 ```
-CURRENT PHASE — DISCOVERY FOUNDATION
+COMPLETE / VALIDATED
 ```
 
-Planned sequence:
+Rust bounded admission/control:
 
 ```
-P1 Security + correctness
-  |
-  v
-P2 Stable C ABI
-  |
-  v
-P3 Safe Rust FFI
-  |
-  v
-P4 Selective orchestration migration
-  |
-  v
-P5 Rust/Axum backend
-  |
-  v
-P6 Legacy infrastructure retirement
-  |
-  v
-P7 Nuxt modernization
-  |
-  v
-P8 Production economics + scale
+COMPLETE / VALIDATED
 ```
 
-Do not skip phases simply because a later technology is attractive.
+Scheduler characterization:
+
+```
+COMPLETE / VALIDATED
+```
+
+Rust request-lifecycle boundary:
+
+```
+IMPLEMENTED / VALIDATED
+```
+
+The measured architectural decision is:
+
+> Rust owns request/application lifecycle and bounded admission/control. The
+> existing C scheduler remains the execution-plane scheduler unless future
+> measured evidence explicitly justifies revisiting this decision.
+
+This is an evidence-based decision, not a permanent prohibition on future
+investigation. Queue saturation must produce explicit overload behavior. ABI
+v1 has no mid-operation native cancellation; client/request cancellation is
+application-level response abandonment, not a claim that native work stopped.
+The transport-neutral request lifecycle remains independently testable from
+HTTP.
+
+Planned, in order: smallest HTTP adapter around the lifecycle contract;
+Axum production service and contract parity; legacy retirement after a rollback
+window; Nuxt modernization; and measured production economics/scale. Do not
+mark a planned phase as implemented merely because its lower boundary exists.
 
 ---
 
@@ -600,6 +611,10 @@ Only implement thread-safety traits when the underlying C object is proven safe 
 Never hide ownership ambiguity behind convenient wrappers.
 
 The safe Rust API must make invalid states difficult to represent.
+
+Request/application code must preserve ABI v1 process scope, explicit output
+ownership/release, and no-mid-operation-cancellation semantics. A dropped
+client response must not be represented as cancellation of native execution.
 
 ---
 
