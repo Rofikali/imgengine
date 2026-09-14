@@ -70,8 +70,10 @@ docker run --rm \
 ## Provisional Acceptance Thresholds
 
 There is no historical ABI-v1 scheduler baseline. The first successful run is
-the baseline and must be retained with its environment metadata. Until three
-stable runs on a pinned host exist, thresholds are provisional:
+the baseline and must be retained with its environment metadata. Three Docker
+CPU-set-pinned Ubuntu runs are recorded in
+`SCHEDULER_CHARACTERIZATION_REPORT.md`; the thresholds remain provisional until
+they are repeated on a dedicated Linux host:
 
 - for successful sequential fixtures, Rust admission P50 and P95 wall latency
   may be no more than **15%** above direct C ABI;
