@@ -262,6 +262,11 @@ impl AdmissionController {
         self.metrics.snapshot()
     }
 
+    /// Returns the maximum request body retained by this admission boundary.
+    pub fn max_input_bytes(&self) -> usize {
+        self.max_input_bytes
+    }
+
     /// Stops accepting new work and waits for accepted work to complete.
     pub fn shutdown(&self) -> Result<(), AdmissionError> {
         self.stop()

@@ -5,10 +5,16 @@
 //! cannot cancel an operation already executing in ABI v1.
 
 mod admission;
+mod request_lifecycle;
 
 pub use admission::{
     AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionOptions,
     AdmissionRequest,
+};
+pub use request_lifecycle::{
+    AdmittedRequest, ApplicationError, ApplicationFailure, ApplicationResponse, ContentType,
+    IncomingRequest, RequestEvent, RequestId, RequestLifecycleService, RequestPolicy, RequestState,
+    TransportStatus,
 };
 
 use imgengine::{Engine, EngineOptions, Error as EngineError};
@@ -331,7 +337,7 @@ fn request_directory_name() -> io::Result<String> {
     Ok(name)
 }
 
-fn size_bucket(size: usize) -> &'static str {
+pub(crate) fn size_bucket(size: usize) -> &'static str {
     match size {
         0..=4_095 => "0-4KiB",
         4_096..=65_535 => "4-64KiB",

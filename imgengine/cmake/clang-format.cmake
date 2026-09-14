@@ -3,7 +3,9 @@
 
 find_program(CLANG_FORMAT_EXE
     NAMES
-      clang-format-16 clang-format-15 clang-format-14 clang-format-13 clang-format
+      clang-format-23 clang-format-22 clang-format-21 clang-format-20 clang-format-19
+      clang-format-18 clang-format-17 clang-format-16 clang-format-15 clang-format-14
+      clang-format-13 clang-format
 )
 
 if(NOT CLANG_FORMAT_EXE)
