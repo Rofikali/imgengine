@@ -45,7 +45,8 @@ run_rust_supervisor() {
         cargo test --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml" -- \
+        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml" \
+        --bin imgengine-supervisor -- \
         "$source_dir/photo.jpg" "$output" "$workspace_root"
     identify -format '%m %wx%h' "$output"
     test -d "$workspace_root"

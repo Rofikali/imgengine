@@ -609,6 +609,11 @@ endif()
 
 # ── Latency benchmark ──────────────────────────────────────
 if(IMGENGINE_BENCH)
+    add_executable(scheduler_c_baseline_bench tests/benchmark/scheduler_c_baseline_bench.c)
+    target_include_directories(scheduler_c_baseline_bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_compile_options(scheduler_c_baseline_bench PRIVATE ${IMGENGINE_COMMON_FLAGS})
+    target_link_libraries(scheduler_c_baseline_bench PRIVATE imgengine Threads::Threads)
+
     add_executable(bench_lat src/cmd/bench/lat_bench.c)
     target_include_directories(bench_lat PRIVATE ${IMGENGINE_INCLUDES})
     target_compile_options(bench_lat PRIVATE ${IMGENGINE_COMMON_FLAGS})

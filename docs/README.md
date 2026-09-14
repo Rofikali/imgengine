@@ -19,6 +19,8 @@ This directory is the documentation source of truth. Historical notes remain use
 | [Linux Native Verification](LINUX_VERIFICATION.md) | Ubuntu 24.04 Docker verification gate for C correctness and security. | Native engineers and CI owners |
 | [Rust FFI Boundary](RUST_FFI.md) | Safe ownership boundary over `libimgengine` ABI v1. | Rust and native engineers |
 | [Rust Supervisor Foundation](RUST_SUPERVISOR.md) | Ephemeral single-engine request lifecycle proof. | Rust and platform engineers |
+| [Scheduler Benchmark Contract](SCHEDULER_BENCHMARK_CONTRACT.md) | Decision gate for C execution and Rust admission evidence. | Rust and native engineers |
+| [Scheduler Characterization Report](SCHEDULER_CHARACTERIZATION_REPORT.md) | Recorded decision gate result: keep C scheduler ownership. | Architecture reviewers |
 | [HLD](hld.md) | Native architecture and performance constraints. | Native engineers |
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |
 | [Design Patterns](design_patterns.md) | Pattern guidance for the native implementation. | Native engineers |
