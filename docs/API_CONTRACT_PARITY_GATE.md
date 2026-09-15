@@ -105,10 +105,12 @@ from bounded-admission `429 overloaded`; no rate limiter is in the first slice.
 
 ## Cancellation, data lifecycle, and shutdown
 
-ABI v1 cannot cancel native work mid-operation. Before admission, a disconnect
-releases request bytes. After admission, the adapter calls `abandon`, which
-drops only its response receiver and records `ResponseAbandoned`; queued or
-executing native work completes normally. Never describe this as C cancellation.
+ABI v1 cannot cancel native work mid-operation. Real socket-level HTTP
+disconnect/abandonment behavior is not implemented or verified by the P5 Axum
+adapter. An admitted request may continue through lifecycle processing and
+cleanup, but P5 must not be documented as calling `AdmittedRequest::abandon`
+when a client disconnects. Never describe a future abandonment mechanism as C
+cancellation.
 
 The supervisor creates random private `0700` workspaces, uses server-generated
 names, removes them after success, failure, deadline, or abandonment, and
@@ -149,16 +151,24 @@ behavior.
 8. Full admission queue returns `429 overloaded` without retaining another body.
 9. Safe-wrapper/native failure returns its mapped problem without disclosure.
 10. Post-operation deadline returns `504`, discards output, and claims no interruption.
-11. Disconnect after admission records abandonment; work and cleanup complete.
-12. Shutdown returns `503` for new requests and drains accepted work.
+11. **P5.x required:** prove real socket-level disconnect/abandonment behavior;
+    it is not current P5 evidence.
+12. **P5.x required:** prove HTTP graceful shutdown rejects new work and drains
+    accepted work; it is not current P5 evidence.
 13. Invalid credentials return `401` before admission.
 14. If `Idempotency-Key` is accepted, prove active-window behavior; do not emulate durable replay.
 
-## P5 Implementation Readiness Decision
+## P5 Status
 
-**Decision:** READY FOR AXUM IMPLEMENTATION for the narrow first vertical
-slice defined here. This is not a claim that Axum is implemented, verified,
-production-ready, or a replacement for the legacy API.
+**IMPLEMENTED + VERIFIED:** the narrow first vertical slice is implemented and
+verified in the Ubuntu 24.04 Docker gate. This is not a production-readiness
+claim or a replacement for the legacy API.
+
+**PRODUCTION STATUS: NOT READY / NOT CLAIMED.**
+
+**LEGACY API: UNCHANGED + SUPPORTED.** `/api/generate` remains the supported
+legacy API until a separate parity, migration, rollback, and retirement
+decision.
 
 ### Authentication
 
@@ -280,13 +290,20 @@ clean Ubuntu 24.04 container:
 7. Run sanitizer/native verification and preserve sandbox/security verification wherever the existing native gate requires them.
 8. Run `git diff --check`.
 
-These are future Axum gate requirements, not claims that an Axum endpoint or
-its complete end-to-end test suite already exists.
+These are future Axum/P5.x gate requirements, not claims that all HTTP
+transport, disconnect, shutdown, or production-capacity behavior is already
+implemented or verified.
 
 ### NOT YET VERIFIED
 
-Real HTTP client-disconnect behavior, full Axum-to-C end-to-end behavior, and
-production capacity are not yet verified.
+Real socket-level HTTP client-disconnect/abandonment behavior, graceful HTTP
+shutdown/draining evidence, and production capacity are not yet verified. The
+P5 in-process Axum-router-to-native path is verified; a real listener/client
+socket end-to-end path remains future evidence.
+
+Pre-lifecycle HTTP errors currently use sequential transport request IDs;
+admitted requests use entropy-backed lifecycle IDs. This is a non-blocking
+future hardening item and does not change P5 authorization or processing.
 
 ### Reproducible evidence
 
@@ -307,18 +324,19 @@ or documented licensed fixtures; do not require personal or private images.
 Axum must not create engines/workspaces, use raw FFI, duplicate lifecycle
 validation, or implement scheduler/lifecycle state machines.
 
-## Gate: READY FOR AXUM IMPLEMENTATION
+## Future P5.x Gate
 
-The narrow first slice is ready to implement under the P5 readiness decision:
-process-configured `X-API-Key` authentication, multipart `file` only,
-JPEG/PNG-to-JPEG, bounded admission, and no distributed rate limiting. This
-does not authorize a production release, API parity claim, or legacy retirement.
+P5.x must provide real HTTP disconnect and graceful-shutdown evidence without
+changing the established P5 contract: process-configured `X-API-Key`
+authentication, multipart `file` only, JPEG/PNG-to-JPEG, bounded admission,
+and no distributed rate limiting. This does not authorize a production release,
+API parity claim, or legacy retirement.
 
-Open implementation/release questions are multipart extra-field handling;
-production size/disk/output/deadline/drain values; active-window idempotency
-policy; capability-backed layout/PDF work; and HTTP disconnect/shutdown
-verification. They must be addressed by the adapter design, tests, and future
-release evidence without weakening this contract.
+Open implementation/release questions are production size/disk/output/deadline/
+drain values; active-window idempotency policy; capability-backed layout/PDF
+work; future rate limiting; and HTTP disconnect/shutdown verification. They
+must be addressed by separate design, tests, and future release evidence
+without weakening this contract.
 
 ## Smallest implementation slice
 

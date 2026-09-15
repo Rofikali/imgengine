@@ -1,26 +1,40 @@
 # IMGENGINE API Contract: Rust Target
 
-**Status:** Planned broader `v1` target. The current `/api/generate` asynchronous contract remains supported until its announced retirement.
+**Status:** P5 is implemented and verified in the Ubuntu 24.04 Docker gate.
+The broader `v1` target remains planned. The current `/api/generate`
+asynchronous contract remains supported until its announced retirement.
 
-## P5 First HTTP Slice
+## CURRENT P5 IMPLEMENTATION
 
-The implemented P5 adapter scope is narrower than this future target:
-`POST /api/v1/render` accepts exactly one multipart `file` field with JPEG or
-PNG input and returns a completed JPEG response. It has no layout fields,
-presets, PDF output, job identifier, polling, durable artifact, or legacy API
-parity claim. See `API_CONTRACT_PARITY_GATE.md` for the authoritative P5
-authentication, multipart, limit, and verification contract.
+The only implemented P5 endpoint is `POST /api/v1/render`:
 
-## Public Endpoints
+- `multipart/form-data` with exactly one `file` field;
+- JPEG or PNG input and a completed JPEG response;
+- synchronous, ephemeral processing with no job, polling, durable artifact, or
+  legacy API-parity claim;
+- `X-API-Key` authentication from `IMGENGINE_API_KEYS`;
+- bounded HTTP/admission input handling, including `413` for oversized input
+  and `429 overloaded` for bounded-admission rejection; and
+- safe, redacted HTTP error mapping and verified real JPEG/PNG processing.
+
+The provisional 1 MiB input limit, queue capacity 1, and 10-second deadline
+are integration values, not production capacity commitments. See
+`API_CONTRACT_PARITY_GATE.md` for the authoritative P5 contract and evidence.
+
+## FUTURE / PLANNED API
+
+The following is a broader target, not implemented P5 behavior.
 
 | Endpoint | Behavior |
 | --- | --- |
-| `POST /api/v1/render` | P5: accepts exactly one JPEG/PNG `file` and returns completed JPEG bytes. Layout fields, PDF, and streaming are future-target capabilities. |
-| `GET /healthz` | Liveness only; no dependency checks. |
-| `GET /readyz` | Readiness: config loaded, writable temporary root, engine executable/version available, concurrency capacity configured. |
-| `GET /metrics` | Prometheus metrics on a private network or authenticated scrape path. |
+| `POST /api/v1/render` | Future capability-backed expansion may add layout fields, PDF, and producer-to-client streaming only after separate design and verification. |
+| `GET /healthz` | Planned liveness endpoint. |
+| `GET /readyz` | Planned readiness endpoint. |
+| `GET /metrics` | Planned private/authenticated metrics endpoint. |
 
-`POST /api/v1/render` accepts an `Idempotency-Key` for safe retry only during the active request window. It is not a durable job identifier. The response contains `X-Request-Id`, `X-Trace-Id`, content type, and a safe generated download filename. Errors use RFC 9457-style JSON with stable `type`, `title`, `status`, `code`, and `request_id` fields.
+Active-window `Idempotency-Key`, `X-Trace-Id`, generated download filenames,
+rate limiting, broader output capabilities, and production streaming semantics
+are planned or deferred. They are not implemented by P5.
 
 ## Compatibility Rules
 
@@ -29,7 +43,10 @@ authentication, multipart, limit, and verification contract.
 3. Announce deprecation only after production parity evidence and a documented client migration window.
 4. Never leak temporary paths, command lines, storage keys, engine diagnostics containing paths, or authentication data.
 
-## Validation Order
+## Planned Validation Order
 
-Authenticate and apply rate limits; enforce byte limits while streaming; validate content signature; decode bounded metadata; validate layout/preset; reserve concurrency; render in isolation; stream only a completed bounded output; remove all temporary state in `finally`/drop handling.
+Future API work may authenticate, apply a separately designed rate policy,
+enforce byte limits while streaming, validate capability-backed layout/preset
+fields, and add bounded output delivery. P5 performs only its documented
+file-only JPEG/PNG-to-JPEG path.
 
