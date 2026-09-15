@@ -1,0 +1,27 @@
+[package]
+name = "imgengine-api"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Narrow Axum adapter for the IMGENGINE request lifecycle"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[dependencies]
+axum = { version = "0.7", features = ["multipart"] }
+# Ubuntu 24.04's repository Cargo is 1.75; constrain Axum/multer's optional
+# charset dependency below the edition-2024 release until the verifier toolchain
+# is intentionally upgraded.
+encoding_rs = "=0.8.33"
+imgengine-supervisor = { path = "../imgengine-supervisor" }
+# The JPEG validation test reaches rayon transitively; retain compatibility with
+# the Rust 1.75 toolchain installed by the Ubuntu 24.04 verifier.
+rayon-core = "=1.12.1"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["macros", "rt", "sync"] }
+
+[dev-dependencies]
+http-body-util = "0.1"
+jpeg-decoder = "0.3"
+tower = { version = "0.5", features = ["util"] }

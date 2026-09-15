@@ -53,6 +53,13 @@ run_rust_supervisor() {
     test -z "$(find "$workspace_root" -mindepth 1 -print -quit)"
 }
 
+run_rust_api() {
+    local build_dir="$1"
+    LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    RUSTFLAGS="-L native=$build_dir" \
+        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-api/Cargo.toml"
+}
+
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
@@ -61,6 +68,7 @@ cmake --build "$build_root/normal" --target format-check
 run_ctest "$build_root/normal"
 run_rust_ffi_smoke "$build_root/normal"
 run_rust_supervisor "$build_root/normal"
+run_rust_api "$build_root/normal"
 bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/normal" "$source_dir"
 
 configure "$build_root/asan" -DIMGENGINE_SANITIZE=ON

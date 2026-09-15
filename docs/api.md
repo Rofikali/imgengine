@@ -1,12 +1,21 @@
 # IMGENGINE API Contract: Rust Target
 
-**Status:** Planned `v1` target. The current `/api/generate` asynchronous contract remains supported until its announced retirement.
+**Status:** Planned broader `v1` target. The current `/api/generate` asynchronous contract remains supported until its announced retirement.
+
+## P5 First HTTP Slice
+
+The implemented P5 adapter scope is narrower than this future target:
+`POST /api/v1/render` accepts exactly one multipart `file` field with JPEG or
+PNG input and returns a completed JPEG response. It has no layout fields,
+presets, PDF output, job identifier, polling, durable artifact, or legacy API
+parity claim. See `API_CONTRACT_PARITY_GATE.md` for the authoritative P5
+authentication, multipart, limit, and verification contract.
 
 ## Public Endpoints
 
 | Endpoint | Behavior |
 | --- | --- |
-| `POST /api/v1/render` | Accepts one multipart JPEG/PNG and layout fields; validates, renders within the request deadline, and streams a JPEG/PDF response. |
+| `POST /api/v1/render` | P5: accepts exactly one JPEG/PNG `file` and returns completed JPEG bytes. Layout fields, PDF, and streaming are future-target capabilities. |
 | `GET /healthz` | Liveness only; no dependency checks. |
 | `GET /readyz` | Readiness: config loaded, writable temporary root, engine executable/version available, concurrency capacity configured. |
 | `GET /metrics` | Prometheus metrics on a private network or authenticated scrape path. |
