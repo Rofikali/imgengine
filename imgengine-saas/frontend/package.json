@@ -5,12 +5,19 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
-    "start": "node .output/server/index.mjs"
+    "start": "node .output/server/index.mjs",
+    "test": "vitest run",
+    "typecheck": "nuxi typecheck"
   },
   "dependencies": {
     "nuxt": "3.17.0"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "^3.5.40"
+    "@types/node": "^22.15.3",
+    "@vue/compiler-sfc": "^3.5.40",
+    "@nuxt/schema": "3.17.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^2.2.10"
   }
 }

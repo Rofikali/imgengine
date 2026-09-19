@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const jobId = getRouterParam(event, 'jobId')
   return await $fetch(`/api/jobs/${encodeURIComponent(jobId ?? '')}/logs`, {
