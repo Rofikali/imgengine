@@ -56,7 +56,7 @@ That separation makes the project useful both as a native library/CLI and as the
                                   │
                     ┌─────────────┴─────────────┐
                     ▼                           ▼
-                  PNG/JPEG                    PDF
+                    JPEG                      PDF
 ```
 
 The native specification defines the processing contract and acceptance matrix in [`docs/ENGINE_SPEC.md`](docs/ENGINE_SPEC.md).
@@ -122,7 +122,7 @@ Run the CLI:
 ```bash
 ./build/imgengine_cli \
   --input photo.jpg \
-  --output sheet.png \
+  --output sheet.jpg \
   --cols 6 \
   --rows 6 \
   --width 4.5 \

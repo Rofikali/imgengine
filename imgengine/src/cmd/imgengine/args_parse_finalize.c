@@ -1,8 +1,31 @@
 // ./src/cmd/imgengine/args_parse_finalize.c
 #include "cmd/imgengine/args_internal.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+
+static int img_cli_extension_equals(const char *path, const char *extension) {
+    const char *dot = strrchr(path, '.');
+
+    if (!dot)
+        return 0;
+
+    while (*dot && *extension) {
+        if (tolower((unsigned char)*dot) != tolower((unsigned char)*extension))
+            return 0;
+        ++dot;
+        ++extension;
+    }
+
+    return *dot == '\0' && *extension == '\0';
+}
+
+static int img_cli_output_format_supported(const char *path) {
+    return img_cli_extension_equals(path, ".jpg") || img_cli_extension_equals(path, ".jpeg") ||
+           img_cli_extension_equals(path, ".pdf");
+}
 
 int img_cli_finalize_options(img_cli_options_t *opts) {
     if (!opts)
@@ -10,6 +33,11 @@ int img_cli_finalize_options(img_cli_options_t *opts) {
 
     if (!opts->input_path) {
         fprintf(stderr, "imgengine: missing required --input\n");
+        return -1;
+    }
+
+    if (!opts->output_path || !img_cli_output_format_supported(opts->output_path)) {
+        fprintf(stderr, "imgengine: unsupported output extension; use .jpg, .jpeg, or .pdf\n");
         return -1;
     }
 
