@@ -47,14 +47,14 @@ typedef struct imgengine_output {
 
 IMGENGINE_API uint32_t imgengine_abi_version(void);
 IMGENGINE_API const char *imgengine_status_message(imgengine_status_t status);
-IMGENGINE_API imgengine_status_t imgengine_engine_create(
-    const imgengine_engine_options_t *options, imgengine_engine_t **out_engine);
+IMGENGINE_API imgengine_status_t imgengine_engine_create(const imgengine_engine_options_t *options,
+                                                         imgengine_engine_t **out_engine);
 IMGENGINE_API void imgengine_engine_destroy(imgengine_engine_t *engine);
 IMGENGINE_API imgengine_status_t imgengine_capability_supported(const char *identifier,
-                                                                 uint32_t *out_supported);
-IMGENGINE_API imgengine_status_t imgengine_process_encoded_image_to_jpeg(
-    imgengine_engine_t *engine, const uint8_t *input, size_t input_size,
-    imgengine_output_t *output);
+                                                                uint32_t *out_supported);
+IMGENGINE_API imgengine_status_t
+imgengine_process_encoded_image_to_jpeg(imgengine_engine_t *engine, const uint8_t *input,
+                                        size_t input_size, imgengine_output_t *output);
 IMGENGINE_API void imgengine_output_release(imgengine_output_t *output);
 
 #ifdef __cplusplus

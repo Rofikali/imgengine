@@ -1,0 +1,12 @@
+[package]
+name = "imgengine-supervisor"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Single-engine ephemeral request supervisor for libimgengine ABI v1"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[dependencies]
+imgengine = { path = "../imgengine" }

@@ -115,7 +115,19 @@ COMPLETE / VALIDATED
 Priority 2 — Stable C ABI:
 
 ```
-CURRENT PHASE
+IMPLEMENTED / VALIDATED
+```
+
+Priority 3 — Safe Rust FFI:
+
+```
+IMPLEMENTED / VALIDATED
+```
+
+Priority 4 — Selective orchestration migration:
+
+```
+CURRENT PHASE — DISCOVERY FOUNDATION
 ```
 
 Planned sequence:
