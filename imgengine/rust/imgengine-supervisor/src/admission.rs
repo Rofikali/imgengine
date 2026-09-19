@@ -1,7 +1,7 @@
 use crate::{ProcessReport, ResultClass, Supervisor, SupervisorError, SupervisorOptions};
 use std::fmt;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::mpsc::{self, Receiver, SyncSender, TrySendError};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, SyncSender, TrySendError};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -80,11 +80,31 @@ impl AdmissionMetrics {
 }
 
 /// Immutable bounded-admission policy for one process-scoped supervisor.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AdmissionOptions {
     supervisor_options: SupervisorOptions,
     queue_capacity: usize,
     max_input_bytes: usize,
+    execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
+}
+
+impl fmt::Debug for AdmissionOptions {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AdmissionOptions")
+            .field("supervisor_options", &self.supervisor_options)
+            .field("queue_capacity", &self.queue_capacity)
+            .field("max_input_bytes", &self.max_input_bytes)
+            .field("has_execution_observer", &self.execution_observer.is_some())
+            .finish()
+    }
+}
+
+/// Controlled lifecycle observer invoked by the dedicated admission worker
+/// immediately before native processing. It cannot access image bytes, change
+/// scheduling, or cancel work. Production callers should leave it unset.
+pub trait AdmissionExecutionObserver: Send + Sync {
+    fn before_native_processing(&self);
 }
 
 impl AdmissionOptions {
@@ -101,7 +121,18 @@ impl AdmissionOptions {
             supervisor_options,
             queue_capacity,
             max_input_bytes,
+            execution_observer: None,
         })
+    }
+
+    /// Adds a controlled observer for lifecycle verification. It is not a
+    /// scheduler hook and must not be used to alter native execution policy.
+    pub fn with_execution_observer(
+        mut self,
+        execution_observer: Arc<dyn AdmissionExecutionObserver>,
+    ) -> Self {
+        self.execution_observer = Some(execution_observer);
+        self
     }
 }
 
@@ -163,6 +194,20 @@ impl AdmissionRequest {
             .map_err(|_| AdmissionError::Unavailable)?
             .map_err(AdmissionError::Supervisor)
     }
+
+    /// Waits for one completion for at most `timeout` without consuming the
+    /// response receiver. This lets the transport-neutral lifecycle observe
+    /// response abandonment while native work remains owned by the worker.
+    pub(crate) fn wait_timeout(
+        &self,
+        timeout: Duration,
+    ) -> Result<Option<ProcessReport>, AdmissionError> {
+        match self.response.recv_timeout(timeout) {
+            Ok(result) => result.map(Some).map_err(AdmissionError::Supervisor),
+            Err(RecvTimeoutError::Timeout) => Ok(None),
+            Err(RecvTimeoutError::Disconnected) => Err(AdmissionError::Unavailable),
+        }
+    }
 }
 
 /// Thread-safe bounded admission handle for a single-engine worker thread.
@@ -190,9 +235,18 @@ impl AdmissionController {
         let metrics = Arc::new(AdmissionMetrics::default());
         let worker_metrics = Arc::clone(&metrics);
         let supervisor_options = options.supervisor_options;
+        let execution_observer = options.execution_observer;
         let worker = thread::Builder::new()
             .name("imgengine-supervisor".to_owned())
-            .spawn(move || worker_loop(receiver, ready_sender, worker_metrics, supervisor_options))
+            .spawn(move || {
+                worker_loop(
+                    receiver,
+                    ready_sender,
+                    worker_metrics,
+                    supervisor_options,
+                    execution_observer,
+                )
+            })
             .map_err(|_| AdmissionError::Unavailable)?;
 
         match ready_receiver.recv() {
@@ -296,6 +350,7 @@ fn worker_loop(
     ready_sender: SyncSender<Result<(), SupervisorError>>,
     metrics: Arc<AdmissionMetrics>,
     options: SupervisorOptions,
+    execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
 ) {
     let mut supervisor = match Supervisor::new(options) {
         Ok(supervisor) => {
@@ -310,6 +365,9 @@ fn worker_loop(
 
     for request in receiver {
         metrics.record_dequeue();
+        if let Some(observer) = &execution_observer {
+            observer.before_native_processing();
+        }
         let result = supervisor.process(&request.input, request.deadline);
         metrics.record_completion(&result);
         let _ = request.response.send(result);

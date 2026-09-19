@@ -69,9 +69,10 @@ Priority 3 safe Rust FFI, the Rust supervisor, bounded Rust admission/control,
 and scheduler characterization. The Rust transport-neutral request-lifecycle
 boundary is implemented and Linux/Docker validated.
 
-Do not use these completions as permission for unrelated native rewrites.
-Production Axum, legacy retirement, and any scheduler/memory migration remain
-planned work.
+Do not use these completions as permission for unrelated native rewrites. The
+narrow P5 Axum adapter and P6 lifecycle evidence are implemented and verified;
+production readiness, legacy retirement, and any scheduler/memory migration
+remain planned work.
 
 ---
 

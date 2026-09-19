@@ -1,13 +1,16 @@
 use crate::{
-    size_bucket, AdmissionController, AdmissionError, AdmissionRequest, ProcessReport, ResultClass,
+    size_bucket, AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionRequest,
+    ProcessReport, ResultClass,
 };
 use std::fmt;
 use std::fs;
 use std::io::{self, Read};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
 const REQUEST_ID_BYTES: usize = 16;
+const RESPONSE_ABANDONMENT_POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 /// Transport-neutral accepted image media types.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -231,22 +234,108 @@ pub struct ApplicationResponse {
     pub event: RequestEvent,
 }
 
+/// Redacted lifecycle counters that never contain request contents or client
+/// credentials.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct LifecycleMetricsSnapshot {
+    pub response_abandoned: u64,
+}
+
+#[derive(Default)]
+struct LifecycleMetrics {
+    response_abandoned: AtomicU64,
+}
+
+impl LifecycleMetrics {
+    fn snapshot(&self) -> LifecycleMetricsSnapshot {
+        LifecycleMetricsSnapshot {
+            response_abandoned: self.response_abandoned.load(Ordering::Relaxed),
+        }
+    }
+}
+
+/// Receives only the redacted event emitted when an admitted response is
+/// abandoned. It is deliberately independent of HTTP and cannot cancel work.
+pub trait ResponseAbandonmentObserver: Send + Sync {
+    fn response_abandoned(&self, event: &RequestEvent);
+}
+
+/// One-way transport signal indicating that a response is no longer awaited.
+/// Signalling it never cancels queued or active native work.
+#[derive(Clone, Default)]
+pub struct ResponseAbandonmentSignal {
+    abandoned: Arc<AtomicBool>,
+}
+
+impl ResponseAbandonmentSignal {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Marks the associated response as no longer deliverable.
+    pub fn abandon(&self) {
+        self.abandoned.store(true, Ordering::Release);
+    }
+
+    fn is_abandoned(&self) -> bool {
+        self.abandoned.load(Ordering::Acquire)
+    }
+}
+
+/// The terminal result of waiting for an admitted request with a transport
+/// abandonment signal.
+pub enum AdmittedWaitOutcome {
+    Completed(Result<ApplicationResponse, ApplicationFailure>),
+    ResponseAbandoned(RequestEvent),
+}
+
 /// Transport-independent application boundary over bounded Rust admission.
 pub struct RequestLifecycleService {
     admission: Arc<AdmissionController>,
     policy: RequestPolicy,
     effective_max_input_bytes: usize,
+    metrics: Arc<LifecycleMetrics>,
+    response_abandonment_observer: Option<Arc<dyn ResponseAbandonmentObserver>>,
 }
 
 impl RequestLifecycleService {
     /// Wraps an existing bounded admission controller; it does not own a scheduler.
     pub fn new(admission: Arc<AdmissionController>, policy: RequestPolicy) -> Self {
+        Self::new_with_response_abandonment_observer(admission, policy, None)
+    }
+
+    /// Creates a lifecycle service with an optional redacted abandonment
+    /// observer. The observer is not an execution or cancellation hook.
+    pub fn new_with_response_abandonment_observer(
+        admission: Arc<AdmissionController>,
+        policy: RequestPolicy,
+        response_abandonment_observer: Option<Arc<dyn ResponseAbandonmentObserver>>,
+    ) -> Self {
         let effective_max_input_bytes = policy.max_input_bytes.min(admission.max_input_bytes());
         Self {
             admission,
             policy,
             effective_max_input_bytes,
+            metrics: Arc::new(LifecycleMetrics::default()),
+            response_abandonment_observer,
         }
+    }
+
+    /// Returns redacted lifecycle counters for transport observability.
+    pub fn metrics(&self) -> LifecycleMetricsSnapshot {
+        self.metrics.snapshot()
+    }
+
+    /// Returns the existing redacted admission counters without exposing the
+    /// controller or native engine to a transport adapter.
+    pub fn admission_metrics(&self) -> AdmissionMetricsSnapshot {
+        self.admission.metrics()
+    }
+
+    /// Closes bounded admission and joins its worker after all previously
+    /// accepted work has completed. ABI v1 native work is never cancelled.
+    pub fn shutdown(&self) -> Result<(), AdmissionError> {
+        self.admission.shutdown()
     }
 
     /// Validates and transfers an owned body into bounded admission.
@@ -271,6 +360,8 @@ impl RequestLifecycleService {
             content_type,
             input_size_bucket,
             admission: Some(admission),
+            metrics: Arc::clone(&self.metrics),
+            response_abandonment_observer: self.response_abandonment_observer.clone(),
         })
     }
 
@@ -358,6 +449,8 @@ pub struct AdmittedRequest {
     content_type: ContentType,
     input_size_bucket: &'static str,
     admission: Option<AdmissionRequest>,
+    metrics: Arc<LifecycleMetrics>,
+    response_abandonment_observer: Option<Arc<dyn ResponseAbandonmentObserver>>,
 }
 
 impl AdmittedRequest {
@@ -373,20 +466,55 @@ impl AdmittedRequest {
         }
     }
 
+    /// Waits for completion while allowing the transport to abandon only
+    /// response delivery. Completion wins when its result is observed first;
+    /// abandonment wins when the signal is observed first. Neither outcome
+    /// cancels queued or active ABI-v1 native work.
+    pub fn wait_or_abandon(self, signal: &ResponseAbandonmentSignal) -> AdmittedWaitOutcome {
+        loop {
+            if signal.is_abandoned() {
+                return AdmittedWaitOutcome::ResponseAbandoned(self.abandon());
+            }
+            let result = self
+                .admission
+                .as_ref()
+                .expect("accepted request is consumed once")
+                .wait_timeout(RESPONSE_ABANDONMENT_POLL_INTERVAL);
+            match result {
+                Ok(Some(report)) => {
+                    return AdmittedWaitOutcome::Completed(Ok(self.response(report)))
+                }
+                Ok(None) => continue,
+                Err(error) => {
+                    return AdmittedWaitOutcome::Completed(Err(
+                        self.failure(ApplicationError::from_admission(error))
+                    ));
+                }
+            }
+        }
+    }
+
     /// Marks the client response as abandoned and drops the response receiver.
     ///
     /// The accepted native operation remains queued or runs to completion; ABI v1
     /// has no in-flight cancellation operation.
     pub fn abandon(mut self) -> RequestEvent {
         self.admission.take();
-        RequestEvent {
+        let event = RequestEvent {
             request_id: self.request_id,
             state: RequestState::ResponseAbandoned,
             result: None,
             input_content_type: Some(self.content_type),
             input_size_bucket: Some(self.input_size_bucket),
             output_size_bucket: None,
+        };
+        self.metrics
+            .response_abandoned
+            .fetch_add(1, Ordering::Relaxed);
+        if let Some(observer) = &self.response_abandonment_observer {
+            observer.response_abandoned(&event);
         }
+        event
     }
 
     fn response(&self, report: ProcessReport) -> ApplicationResponse {
@@ -529,6 +657,44 @@ mod tests {
         };
         assert_eq!(failure.error, ApplicationError::PayloadTooLarge);
         admission.shutdown().expect("shutdown");
+        drop(admission);
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[test]
+    fn exact_input_limit_reaches_native_validation_and_next_byte_is_rejected() {
+        let _engine_lock = TEST_ENGINE_LOCK.lock().expect("lock test engine");
+        let root = test_root("input-limit-boundary");
+        let (service, admission) = service(root.clone());
+
+        let exact_limit = match service
+            .admit(IncomingRequest::new(
+                Some("image/png".to_owned()),
+                vec![0; 1024],
+            ))
+            .expect("exact configured input limit is admitted")
+            .wait()
+        {
+            Err(failure) => failure,
+            Ok(_) => panic!("synthetic exact-limit input unexpectedly completed"),
+        };
+        assert_eq!(exact_limit.error, ApplicationError::InvalidImage);
+
+        let above_limit = match service.admit(IncomingRequest::new(
+            Some("image/png".to_owned()),
+            vec![0; 1025],
+        )) {
+            Err(failure) => failure,
+            Ok(_) => panic!("one byte above the configured input limit was admitted"),
+        };
+        assert_eq!(above_limit.error, ApplicationError::PayloadTooLarge);
+        assert_eq!(above_limit.error.transport_status().as_u16(), 413);
+
+        admission.shutdown().expect("shutdown");
+        assert!(fs::read_dir(&root)
+            .expect("list workspace root")
+            .next()
+            .is_none());
         drop(admission);
         fs::remove_dir_all(root).expect("remove root");
     }

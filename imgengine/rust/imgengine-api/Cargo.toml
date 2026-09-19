@@ -19,7 +19,7 @@ imgengine-supervisor = { path = "../imgengine-supervisor" }
 # the Rust 1.75 toolchain installed by the Ubuntu 24.04 verifier.
 rayon-core = "=1.12.1"
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1", features = ["macros", "rt", "sync"] }
+tokio = { version = "1", features = ["io-util", "macros", "net", "rt", "rt-multi-thread", "sync", "time"] }
 
 [dev-dependencies]
 http-body-util = "0.1"

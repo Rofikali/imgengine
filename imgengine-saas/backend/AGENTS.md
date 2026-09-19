@@ -50,10 +50,10 @@ C scheduler
 C native engine
   |
   v
-JPEG / PDF result
+JPEG result (implemented P5); PDF planned
   |
   v
-Stream result
+Bounded response delivery (streaming planned)
   |
   v
 Cleanup
@@ -97,8 +97,9 @@ C native engine
 
 Completed boundaries are: stable ABI v1, safe Rust FFI, Rust supervisor,
 bounded Rust admission/control, scheduler characterization, and the
-transport-neutral Rust request lifecycle. Production Axum, legacy retirement,
-and distributed scaling remain planned.
+transport-neutral Rust request lifecycle. The narrow P5 Axum adapter and P6
+lifecycle evidence are implemented and verified; production readiness, legacy
+retirement, and distributed scaling remain planned.
 
 ---
 
@@ -109,7 +110,7 @@ Backend implementation should follow:
 ```
 Implemented ABI/FFI/lifecycle/admission boundaries
     ->
-Small HTTP adapter around the request lifecycle contract
+Implemented narrow HTTP adapter around the request lifecycle contract
     ->
 API contract parity and integration tests
     ->
@@ -118,9 +119,9 @@ Canary
 Legacy retirement
 ```
 
-Do not start a full production Axum implementation as part of lower-boundary
-work. HTTP is an adapter around the application contract, not the location of
-lifecycle/business logic.
+Do not expand the narrow verified adapter into a full production Axum service
+without separate evidence. HTTP remains an adapter around the application
+contract, not the location of lifecycle/business logic.
 
 ---
 

@@ -29,13 +29,13 @@ The goal is:
 
 # 2. Current Repository Architecture
 
-The proven architecture and planned transport boundary are:
+The proven architecture and implemented first-slice transport boundary are:
 
 ```
 Nuxt 4/5 + Vue + TypeScript
                 |
                 v
-Rust HTTP/application layer (planned Axum adapter)
+Rust HTTP/application layer (implemented P5 Axum adapter; production not claimed)
                 |
                 v
       Rust request lifecycle
@@ -165,10 +165,11 @@ application-level response abandonment, not a claim that native work stopped.
 The transport-neutral request lifecycle remains independently testable from
 HTTP.
 
-Planned, in order: smallest HTTP adapter around the lifecycle contract;
-Axum production service and contract parity; legacy retirement after a rollback
-window; Nuxt modernization; and measured production economics/scale. Do not
-mark a planned phase as implemented merely because its lower boundary exists.
+Implemented: the smallest authenticated Axum adapter around the lifecycle
+contract, with P6 transport/limit evidence. Planned: production-service
+evidence and contract expansion, legacy retirement after a rollback window,
+Nuxt modernization, and measured production economics/scale. Do not mark those
+planned phases as implemented merely because the first vertical slice exists.
 
 ---
 

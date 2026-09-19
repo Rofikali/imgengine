@@ -79,14 +79,16 @@ download filename are PLANNED. `ApplicationResponse` currently holds a full
 
 ### Errors
 
-Errors use planned `application/problem+json`:
+Errors use the implemented `application/problem+json` shape:
 
 ```json
 {"type":"https://imgengine.example/problems/invalid-image","title":"Invalid image","status":422,"code":"invalid_image","request_id":"server-generated-id"}
 ```
 
-The base URI is PLANNED. Responses never contain native diagnostics, paths,
-filenames, image bytes, secrets, or internal identifiers.
+`imgengine.example` is a deliberately non-production problem-type namespace;
+clients must classify errors by the stable `code` and HTTP status rather than
+by treating that URI as a live public service. Responses never contain native
+diagnostics, paths, filenames, image bytes, secrets, or internal identifiers.
 
 | Application error | HTTP | Code |
 | --- | ---: | --- |
@@ -105,22 +107,29 @@ from bounded-admission `429 overloaded`; no rate limiter is in the first slice.
 
 ## Cancellation, data lifecycle, and shutdown
 
-ABI v1 cannot cancel native work mid-operation. Real socket-level HTTP
-disconnect/abandonment behavior is not implemented or verified by the P5 Axum
-adapter. An admitted request may continue through lifecycle processing and
-cleanup, but P5 must not be documented as calling `AdmittedRequest::abandon`
-when a client disconnects. Never describe a future abandonment mechanism as C
-cancellation.
+ABI v1 cannot cancel native work mid-operation. P6.2 verifies real loopback
+TCP client disconnect after lifecycle admission: Axum handler cancellation
+signals response abandonment, the lifecycle records one redacted
+`ResponseAbandoned` event, and queued or active native work continues through
+normal cleanup. This is response-delivery abandonment only, never C
+cancellation. A disconnect while upload/multipart parsing is still
+pre-admission transport behavior: it creates no `AdmittedRequest`, native
+operation, workspace, or abandonment event.
 
 The supervisor creates random private `0700` workspaces, uses server-generated
 names, removes them after success, failure, deadline, or abandonment, and
 sweeps stale directories at startup. Target stale retention is at most five
 minutes. The new route creates no durable job, image, output, or image metadata.
 
-Orderly shutdown rejects new submissions as `503 unavailable` and drains
-accepted work. Executing native work is not interrupted. HTTP graceful-shutdown
-and response-socket budgets remain PLANNED and must be compatible with drain
-behavior.
+P6.3 verifies the real loopback Axum graceful-shutdown sequence: runtime state
+becomes `Draining`, new lifecycle admission closes at that state transition,
+the listener stops accepting, and previously accepted active and queued work
+drains in the existing worker order before its sole join owner marks the runtime
+`Stopped`. A request already executing in a live handler when drain begins is
+rejected as `503 unavailable` before admission. A connection attempted after
+listener closure is a connection-level failure, not an asserted HTTP `503`.
+Executing native work is not interrupted. Deployment/process termination and
+response-socket budgets remain outside this graceful-drain evidence.
 
 ## Parity matrix
 
@@ -151,11 +160,17 @@ behavior.
 8. Full admission queue returns `429 overloaded` without retaining another body.
 9. Safe-wrapper/native failure returns its mapped problem without disclosure.
 10. Post-operation deadline returns `504`, discards output, and claims no interruption.
-11. **P5.x required:** prove real socket-level disconnect/abandonment behavior;
-    it is not current P5 evidence.
-12. **P5.x required:** prove HTTP graceful shutdown rejects new work and drains
-    accepted work; it is not current P5 evidence.
+11. **P6.2 verified:** real loopback TCP disconnect after admission records
+    exactly one response-abandonment event while native work completes and
+    cleans up; disconnect during upload does not enter lifecycle admission.
+12. **P6.3 verified:** real loopback graceful shutdown rejects live-handler
+    new work as `503 unavailable`, closes listener acceptance, drains accepted
+    active and queued work in order, joins the worker, cleans workspaces, and
+    reaches `Stopped`; repeated shutdown is safe.
 13. Invalid credentials return `401` before admission.
+14. **P6.4 verified:** an already admitted request that exceeds the existing
+    post-dequeue execution deadline returns `504`, completes its cleanup, and
+    is still drained by graceful shutdown; expiry does not cancel native work.
 14. If `Idempotency-Key` is accepted, prove active-window behavior; do not emulate durable replay.
 
 ## P5 Status
@@ -234,6 +249,42 @@ rate-limit dependency. Any later in-process rate policy requires separate,
 bounded design and verification; it must use a response distinct from admission
 overload.
 
+### P6.4 resource and deadline evidence
+
+| Limit / budget | Current owner and behavior | Status |
+| --- | --- | --- |
+| HTTP request body | Axum `DefaultBodyLimit` rejects bodies beyond the configured 1 MiB integration value before multipart retention. | IMPLEMENTED + TESTED; PROVISIONAL |
+| Lifecycle / admission input | `RequestPolicy` and `AdmissionController` apply the stricter 1 MiB configured bound to owned image bytes; boundary rejections map to `413`. | IMPLEMENTED + TESTED; PROVISIONAL |
+| Decoded dimensions / pixels | Native validation rejects zero dimensions, either dimension above 16,384, more than 268,435,456 pixels, implausible compression ratios, and RGBA estimates above 4 GiB before unsafe processing. | IMPLEMENTED + TESTED native safety guard; product-level limit DEFERRED |
+| JPEG output bytes | The safe wrapper returns a Rust-owned in-memory `Vec<u8>` after native encode. There is no configured post-encode output-byte ceiling. | NOT IMPLEMENTED |
+| Workspace / temporary disk bytes | Workspaces are private, ephemeral directories and are removed on completion/failure/deadline/abandonment; no per-workspace or aggregate byte accounting exists. | IMPLEMENTED + TESTED cleanup; byte limit NOT IMPLEMENTED |
+| Queue capacity | One bounded Rust admission slot plus one active worker; overflow is `429 overloaded`. | IMPLEMENTED + TESTED; PROVISIONAL |
+| Worker / concurrency | One `Supervisor` worker owns the one ABI-v1 engine. Rust admission is control-plane only; C remains the scheduler/execution plane. | IMPLEMENTED + TESTED; PROVISIONAL characterization only |
+| Execution deadline | The provisional 10-second duration begins after dequeue, immediately before `Supervisor::process`; it is checked after native execution and workspace cleanup. A late result is discarded as `504 deadline_exceeded`. | IMPLEMENTED + TESTED; PROVISIONAL |
+| Queue-wait budget | Queue waiting is intentionally outside the execution deadline and has no separately configured budget. | IMPLEMENTED semantics; separate budget DEFERRED |
+| HTTP response / transport budget | Client disconnect abandons response delivery; no server response timeout or write-delivery budget exists. | DEFERRED |
+| Graceful-drain budget | P6.3 drains accepted work with no internal maximum duration; deployment termination remains external. | IMPLEMENTED drain semantics; budget DEFERRED |
+| Startup stale-workspace cleanup | Supervisor startup removes stale `request-*` directories older than five minutes, with symlink-safe handling. | IMPLEMENTED + TESTED; PROVISIONAL operational retention |
+
+The native pixel guard is exercised by hostile-dimension security regressions
+and sanitizer/fuzz gates. P6.4 does not select a lower product pixel ceiling:
+that requires measured memory/RSS and representative-image evidence. Likewise,
+an output ceiling can only protect retained response memory after native encode
+with the current ABI; it cannot prevent native allocation without a separately
+designed native/ABI capability. Workspace accounting and periodic sweeping are
+not present; startup sweep and per-request cleanup are the only current disk
+controls.
+
+Queue time, multipart parsing, and HTTP response delivery do not consume the
+10-second execution duration. It covers post-dequeue `Supervisor::process`,
+native execution, and workspace cleanup. ABI v1 means deadline expiry and
+client disconnect both allow queued/active native work to finish; only late
+output or response delivery is discarded. Graceful drain waits for that same
+accepted work, subject to an external deployment termination budget.
+The P6.4 loopback test explicitly covers an accepted request that reaches this
+deadline while drain is in progress: it returns `504`, is cleaned up, and the
+worker is joined without attempting native cancellation.
+
 ## Verification Environment — Ubuntu 24.04 Docker Gate
 
 Development and Linux verification are distinct:
@@ -273,8 +324,9 @@ The P5 adapter's focused in-process Axum integration tests have passed in this
 Ubuntu Docker gate: authentication, multipart policy, JPEG/PNG processing,
 safe error mapping, provisional limits, admission overload, deadline
 classification, independently decoded JPEG responses, and workspace cleanup.
-This is Linux evidence for the in-process Axum-router-to-native path; it does
-not establish real client-socket disconnect behavior or production capacity.
+This is Linux evidence for the in-process Axum-router-to-native path. Separate
+P6.2 and P6.3 loopback tests establish the implemented socket-disconnect and
+graceful-drain behaviors; none of this establishes production capacity.
 
 ### FUTURE AXUM GATE REQUIREMENTS
 
@@ -290,16 +342,17 @@ clean Ubuntu 24.04 container:
 7. Run sanitizer/native verification and preserve sandbox/security verification wherever the existing native gate requires them.
 8. Run `git diff --check`.
 
-These are future Axum/P5.x gate requirements, not claims that all HTTP
-transport, disconnect, shutdown, or production-capacity behavior is already
-implemented or verified.
+These were future Axum/P5.x gate requirements. P6.2/P6.3 now provide loopback
+TCP disconnect and graceful-drain evidence; this remains distinct from
+production-capacity or deployment termination evidence.
 
 ### NOT YET VERIFIED
 
-Real socket-level HTTP client-disconnect/abandonment behavior, graceful HTTP
-shutdown/draining evidence, and production capacity are not yet verified. The
-P5 in-process Axum-router-to-native path is verified; a real listener/client
-socket end-to-end path remains future evidence.
+Production capacity, deployment/process termination budgets, and response-write
+delivery confirmation are not yet verified. P6.2 establishes loopback TCP
+disconnect evidence for the admitted response path and pre-admission upload
+disconnect. P6.3 establishes real loopback graceful drain, but does not turn a
+connection after listener closure into an HTTP-status guarantee.
 
 Pre-lifecycle HTTP errors currently use sequential transport request IDs;
 admitted requests use entropy-backed lifecycle IDs. This is a non-blocking
@@ -326,17 +379,17 @@ validation, or implement scheduler/lifecycle state machines.
 
 ## Future P5.x Gate
 
-P5.x must provide real HTTP disconnect and graceful-shutdown evidence without
-changing the established P5 contract: process-configured `X-API-Key`
-authentication, multipart `file` only, JPEG/PNG-to-JPEG, bounded admission,
-and no distributed rate limiting. This does not authorize a production release,
-API parity claim, or legacy retirement.
+P6.2/P6.3 provide the required real HTTP disconnect and graceful-shutdown
+evidence without changing the established P5 contract: process-configured
+`X-API-Key` authentication, multipart `file` only, JPEG/PNG-to-JPEG, bounded
+admission, and no distributed rate limiting. This does not authorize a
+production release, API parity claim, or legacy retirement.
 
 Open implementation/release questions are production size/disk/output/deadline/
 drain values; active-window idempotency policy; capability-backed layout/PDF
-work; future rate limiting; and HTTP disconnect/shutdown verification. They
-must be addressed by separate design, tests, and future release evidence
-without weakening this contract.
+work; future rate limiting; production capacity; response-write delivery; and
+deployment termination evidence. They must be addressed by separate design,
+tests, and future release evidence without weakening this contract.
 
 ## Smallest implementation slice
 

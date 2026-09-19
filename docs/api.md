@@ -17,9 +17,13 @@ The only implemented P5 endpoint is `POST /api/v1/render`:
   and `429 overloaded` for bounded-admission rejection; and
 - safe, redacted HTTP error mapping and verified real JPEG/PNG processing.
 
-The provisional 1 MiB input limit, queue capacity 1, and 10-second deadline
-are integration values, not production capacity commitments. See
-`API_CONTRACT_PARITY_GATE.md` for the authoritative P5 contract and evidence.
+The provisional 1 MiB input limit, queue capacity 1, and 10-second
+post-dequeue execution deadline are integration values, not production capacity
+commitments. Queue wait, upload, and response delivery are outside that
+deadline; native work is never cancelled by expiry. Output bytes are currently
+held in memory without a configured output-size ceiling, and workspace byte
+accounting is not implemented. See `API_CONTRACT_PARITY_GATE.md` for the
+authoritative P5/P6 evidence and limit inventory.
 
 ## FUTURE / PLANNED API
 
