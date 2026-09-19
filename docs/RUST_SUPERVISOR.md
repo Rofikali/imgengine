@@ -1,13 +1,16 @@
 # Rust Supervisor Foundation
 
-**Status:** Implemented as a Priority 4 discovery/proof path. It does not
-replace the C scheduler, Rust FFI boundary, FastAPI backend, or legacy worker.
+**Status:** Implemented and validated as the single-engine supervisor
+foundation. It does not replace the C scheduler, Rust FFI boundary, FastAPI
+backend, or legacy worker.
 
 ## Purpose
 
 `imgengine/rust/imgengine-supervisor` is a synchronous control-plane component
-that owns exactly one safe `imgengine::Engine`. It proves the lifecycle rules
-needed before scheduler migration or an Axum service is considered:
+that owns exactly one safe `imgengine::Engine`. It established lifecycle rules
+used by bounded admission and the transport-neutral request lifecycle. The
+narrow P5 Axum adapter consumes this boundary; neither component authorizes
+scheduler migration, broader API parity, or a production-readiness claim:
 
 - one engine and one in-flight operation per process;
 - isolated request directories created with Linux `/dev/urandom` names and
@@ -29,9 +32,11 @@ Dropping an accepted request handle does not cancel queued or active work. The
 worker completes accepted work during orderly shutdown; this preserves ABI
 v1's no-mid-operation-cancellation contract.
 
-The supervisor keeps source bytes and returned JPEG bytes in memory. Its CLI is
-a verification consumer only: it writes an explicit caller-owned output path;
-the production HTTP path must stream output rather than retain it.
+The supervisor keeps source bytes and returned JPEG bytes in memory. The P5
+HTTP path currently returns that completed in-memory JPEG; it has no output-byte
+ceiling and must not be described as streaming. Bounded output delivery and
+production limits remain separate work. Its CLI is a verification consumer only
+and writes an explicit caller-owned output path.
 
 ## Deadline Contract
 
@@ -43,10 +48,11 @@ hard wall-clock timeout outside the engine process.
 
 ## Non-Goals
 
-This proof intentionally does not add Tokio, Axum, a queue, Redis, PostgreSQL,
-or scheduler replacement. The bounded Rust channel is an admission boundary,
-not a replacement for the C scheduler. It does not make the opaque engine
-`Send` or `Sync`.
+This foundation introduced no external/distributed queue, Redis, PostgreSQL, or
+scheduler replacement. The narrow P5 adapter adds Tokio/Axum only as a
+transport around this contract. The bounded Rust channel is an admission
+boundary, not a replacement for the C scheduler. It does not make the opaque
+engine `Send` or `Sync`.
 The native C scheduler, arena, slab, SIMD, and codec layers remain unchanged.
 
 ## Verification

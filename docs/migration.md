@@ -4,7 +4,13 @@
 
 ## 1. Current Architecture and Problems
 
-Current production behavior is Nuxt -> FastAPI -> PostgreSQL + Redis/Celery -> Python worker -> C CLI, with local/S3 artifacts and 24-hour retention. It provides an asynchronous job API, but introduces durable state, shared browser service identity, multiple root-running services, a heavy optional observability stack, and cleanup gaps. The C core has strong test investment, but its installed ABI/FFI boundary and several concurrency/memory/architecture issues are not ready to be treated as a stable Rust library boundary.
+Current production behavior remains Nuxt -> FastAPI -> PostgreSQL + Redis/Celery
+-> Python worker -> C CLI, with local/S3 artifacts and 24-hour retention. The
+separate Rust P5 slice is implemented and Ubuntu-verified, but is not yet the
+production default or legacy replacement. It provides synchronous ephemeral
+JPEG/PNG-to-JPEG processing with bounded admission. The C core now has a sealed
+ABI v1 and safe Rust wrapper; its retained scheduler/execution architecture is
+not a reason to replace it in Rust.
 
 ## 2. Technology Decision
 
@@ -28,7 +34,15 @@ Current production behavior is Nuxt -> FastAPI -> PostgreSQL + Redis/Celery -> P
 
 ## 4. Data Lifecycle
 
-Each request receives a random `0700` directory beneath a configurable private temporary root. Upload, normalized input, output, and bounded diagnostics are created there with server-generated names. A guard deletes the directory after streaming, client disconnect, timeout, engine error, or panic. A startup sweeper deletes stale directories older than five minutes. No database record, object, output URL, image metadata, or thumbnail survives the request. Metrics and redacted logs may survive under their separate retention policy.
+Each request receives a random `0700` directory beneath a configurable private
+temporary root. The current P5 path keeps input and returned JPEG bytes in
+memory; it does not use client filenames or persist output. The workspace guard
+deletes its directory after completion, native failure, deadline, response
+abandonment, or shutdown drain, and startup sweeps stale directories older than
+five minutes. No database record, object, output URL, image metadata, or
+thumbnail survives the request. Metrics and redacted logs may survive under
+their separate retention policy. Output-byte and workspace-disk quotas remain
+unimplemented, and streaming remains deferred.
 
 ## 5. Observability
 
@@ -38,9 +52,18 @@ Emit one JSON record per lifecycle event with `request_id`, `trace_id`, route, r
 
 1. **Security and correctness:** fix and regress-test scheduler delivery, real decoded-dimension validation, AVX/XCR0 detection, arena overflow, slab ownership/ASAN behavior, sandbox ordering, and fuzz instrumentation.
 2. **Clean C ABI:** make installed headers self-contained; define visibility, symbol/version policy, ownership, error, lifecycle, and compatibility guarantees for `libimgengine`.
-3. **Rust FFI:** add a safe Rust wrapper over the stable C ABI with ownership-safe output types and malformed-input integration tests. ABI v1 has no mid-operation cancellation, so request-level deadlines remain outside the wrapper. Do not migrate the scheduler yet.
-4. **Move orchestration selectively:** the implemented Rust supervisor proof owns one safe engine, ephemeral workspace lifecycle, stale cleanup, deadline admission, bounded overload rejection, and redacted telemetry. Benchmark and prove safety before moving scheduler and then memory ownership from C to Rust. Keep C kernels as the correctness/performance baseline.
-5. **Rust SaaS backend:** introduce Axum/Tokio only after the native boundary is stable; reach contract parity before Nuxt cutover.
+3. **Rust FFI:** add a safe Rust wrapper over the stable C ABI with ownership-safe output types and malformed-input integration tests. ABI v1 has no mid-operation cancellation, so request-level deadlines remain outside the wrapper in the Rust lifecycle layer. Do not migrate the scheduler yet.
+4. **Move orchestration selectively:** the implemented Rust supervisor,
+   bounded admission/control, and transport-neutral request lifecycle own one
+   safe engine, ephemeral workspace lifecycle, stale cleanup, request/content
+   validation, deadline policy, bounded overload rejection, response
+   abandonment, error mapping, and redacted telemetry. Scheduler
+   characterization retains the C scheduler; reconsider it only with new
+   measured evidence and a separate decision. Keep C scheduling, kernels, and
+   memory ownership as the correctness/performance baseline.
+5. **Rust SaaS backend:** the narrow Axum/Tokio vertical slice is implemented
+   after native-boundary stabilization; reach contract parity and production
+   evidence before Nuxt cutover.
 6. **Remove obsolete infrastructure:** retire FastAPI, Python workers, Celery, Redis, and job-only PostgreSQL only after the Rust route has passed its rollback window.
 7. **Nuxt modernization:** preserve Vue while upgrading the UI to a supported Nuxt 4/5 TypeScript release after backend contract parity.
 8. **Benchmark every stage:** measure native and end-to-end latency, throughput, RSS, failure handling, and bounded concurrency to establish the real $5-VPS operating envelope.

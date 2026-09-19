@@ -1,8 +1,8 @@
 use crate::{ProcessReport, ResultClass, Supervisor, SupervisorError, SupervisorOptions};
 use std::fmt;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::mpsc::{self, Receiver, SyncSender, TrySendError};
-use std::sync::Arc;
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, SyncSender, TrySendError};
+use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -21,6 +21,8 @@ struct AdmissionMetrics {
     rejected_overload: AtomicU64,
     rejected_resource_limit: AtomicU64,
     deadline_exceeded: AtomicU64,
+    queued: AtomicU64,
+    max_queue_depth: AtomicU64,
 }
 
 impl AdmissionMetrics {
@@ -33,6 +35,8 @@ impl AdmissionMetrics {
             rejected_overload: self.rejected_overload.load(Ordering::Relaxed),
             rejected_resource_limit: self.rejected_resource_limit.load(Ordering::Relaxed),
             deadline_exceeded: self.deadline_exceeded.load(Ordering::Relaxed),
+            queue_depth: self.queued.load(Ordering::Relaxed),
+            max_queue_depth: self.max_queue_depth.load(Ordering::Relaxed),
         }
     }
 
@@ -50,14 +54,57 @@ impl AdmissionMetrics {
             }
         }
     }
+
+    fn reserve_queue_slot(&self) -> u64 {
+        self.queued.fetch_add(1, Ordering::Relaxed) + 1
+    }
+
+    fn record_accepted_queue_depth(&self, depth: u64) {
+        let mut previous = self.max_queue_depth.load(Ordering::Relaxed);
+        while depth > previous {
+            match self.max_queue_depth.compare_exchange_weak(
+                previous,
+                depth,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => break,
+                Err(observed) => previous = observed,
+            }
+        }
+    }
+
+    fn record_dequeue(&self) {
+        self.queued.fetch_sub(1, Ordering::Relaxed);
+    }
 }
 
 /// Immutable bounded-admission policy for one process-scoped supervisor.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AdmissionOptions {
     supervisor_options: SupervisorOptions,
     queue_capacity: usize,
     max_input_bytes: usize,
+    execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
+}
+
+impl fmt::Debug for AdmissionOptions {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AdmissionOptions")
+            .field("supervisor_options", &self.supervisor_options)
+            .field("queue_capacity", &self.queue_capacity)
+            .field("max_input_bytes", &self.max_input_bytes)
+            .field("has_execution_observer", &self.execution_observer.is_some())
+            .finish()
+    }
+}
+
+/// Controlled lifecycle observer invoked by the dedicated admission worker
+/// immediately before native processing. It cannot access image bytes, change
+/// scheduling, or cancel work. Production callers should leave it unset.
+pub trait AdmissionExecutionObserver: Send + Sync {
+    fn before_native_processing(&self);
 }
 
 impl AdmissionOptions {
@@ -74,7 +121,18 @@ impl AdmissionOptions {
             supervisor_options,
             queue_capacity,
             max_input_bytes,
+            execution_observer: None,
         })
+    }
+
+    /// Adds a controlled observer for lifecycle verification. It is not a
+    /// scheduler hook and must not be used to alter native execution policy.
+    pub fn with_execution_observer(
+        mut self,
+        execution_observer: Arc<dyn AdmissionExecutionObserver>,
+    ) -> Self {
+        self.execution_observer = Some(execution_observer);
+        self
     }
 }
 
@@ -119,6 +177,8 @@ pub struct AdmissionMetricsSnapshot {
     pub rejected_overload: u64,
     pub rejected_resource_limit: u64,
     pub deadline_exceeded: u64,
+    pub queue_depth: u64,
+    pub max_queue_depth: u64,
 }
 
 /// Handle returned after a request has been accepted into the bounded queue.
@@ -134,6 +194,20 @@ impl AdmissionRequest {
             .map_err(|_| AdmissionError::Unavailable)?
             .map_err(AdmissionError::Supervisor)
     }
+
+    /// Waits for one completion for at most `timeout` without consuming the
+    /// response receiver. This lets the transport-neutral lifecycle observe
+    /// response abandonment while native work remains owned by the worker.
+    pub(crate) fn wait_timeout(
+        &self,
+        timeout: Duration,
+    ) -> Result<Option<ProcessReport>, AdmissionError> {
+        match self.response.recv_timeout(timeout) {
+            Ok(result) => result.map(Some).map_err(AdmissionError::Supervisor),
+            Err(RecvTimeoutError::Timeout) => Ok(None),
+            Err(RecvTimeoutError::Disconnected) => Err(AdmissionError::Unavailable),
+        }
+    }
 }
 
 /// Thread-safe bounded admission handle for a single-engine worker thread.
@@ -143,10 +217,14 @@ impl AdmissionRequest {
 /// `overloaded` without retaining additional image bytes. Shutdown is orderly:
 /// accepted work completes first because ABI v1 has no mid-operation cancellation.
 pub struct AdmissionController {
-    sender: Option<SyncSender<QueuedRequest>>,
-    worker: Option<JoinHandle<()>>,
+    state: Mutex<AdmissionWorker>,
     metrics: Arc<AdmissionMetrics>,
     max_input_bytes: usize,
+}
+
+struct AdmissionWorker {
+    sender: Option<SyncSender<QueuedRequest>>,
+    worker: Option<JoinHandle<()>>,
 }
 
 impl AdmissionController {
@@ -157,15 +235,26 @@ impl AdmissionController {
         let metrics = Arc::new(AdmissionMetrics::default());
         let worker_metrics = Arc::clone(&metrics);
         let supervisor_options = options.supervisor_options;
+        let execution_observer = options.execution_observer;
         let worker = thread::Builder::new()
             .name("imgengine-supervisor".to_owned())
-            .spawn(move || worker_loop(receiver, ready_sender, worker_metrics, supervisor_options))
+            .spawn(move || {
+                worker_loop(
+                    receiver,
+                    ready_sender,
+                    worker_metrics,
+                    supervisor_options,
+                    execution_observer,
+                )
+            })
             .map_err(|_| AdmissionError::Unavailable)?;
 
         match ready_receiver.recv() {
             Ok(Ok(())) => Ok(Self {
-                sender: Some(sender),
-                worker: Some(worker),
+                state: Mutex::new(AdmissionWorker {
+                    sender: Some(sender),
+                    worker: Some(worker),
+                }),
                 metrics,
                 max_input_bytes: options.max_input_bytes,
             }),
@@ -193,25 +282,32 @@ impl AdmissionController {
             return Err(AdmissionError::ResourceLimit);
         }
 
-        let sender = self.sender.as_ref().ok_or(AdmissionError::Unavailable)?;
         let (response_sender, response) = mpsc::sync_channel(1);
         let request = QueuedRequest {
             input,
             deadline,
             response: response_sender,
         };
+        let state = self.state.lock().map_err(|_| AdmissionError::Unavailable)?;
+        let sender = state.sender.as_ref().ok_or(AdmissionError::Unavailable)?;
+        let queue_depth = self.metrics.reserve_queue_slot();
         match sender.try_send(request) {
             Ok(()) => {
+                self.metrics.record_accepted_queue_depth(queue_depth);
                 self.metrics.accepted.fetch_add(1, Ordering::Relaxed);
                 Ok(AdmissionRequest { response })
             }
             Err(TrySendError::Full(_)) => {
+                self.metrics.record_dequeue();
                 self.metrics
                     .rejected_overload
                     .fetch_add(1, Ordering::Relaxed);
                 Err(AdmissionError::Overloaded)
             }
-            Err(TrySendError::Disconnected(_)) => Err(AdmissionError::Unavailable),
+            Err(TrySendError::Disconnected(_)) => {
+                self.metrics.record_dequeue();
+                Err(AdmissionError::Unavailable)
+            }
         }
     }
 
@@ -220,14 +316,23 @@ impl AdmissionController {
         self.metrics.snapshot()
     }
 
+    /// Returns the maximum request body retained by this admission boundary.
+    pub fn max_input_bytes(&self) -> usize {
+        self.max_input_bytes
+    }
+
     /// Stops accepting new work and waits for accepted work to complete.
-    pub fn shutdown(mut self) -> Result<(), AdmissionError> {
+    pub fn shutdown(&self) -> Result<(), AdmissionError> {
         self.stop()
     }
 
-    fn stop(&mut self) -> Result<(), AdmissionError> {
-        self.sender.take();
-        if let Some(worker) = self.worker.take() {
+    fn stop(&self) -> Result<(), AdmissionError> {
+        let worker = {
+            let mut state = self.state.lock().map_err(|_| AdmissionError::Unavailable)?;
+            state.sender.take();
+            state.worker.take()
+        };
+        if let Some(worker) = worker {
             worker.join().map_err(|_| AdmissionError::Unavailable)?;
         }
         Ok(())
@@ -245,6 +350,7 @@ fn worker_loop(
     ready_sender: SyncSender<Result<(), SupervisorError>>,
     metrics: Arc<AdmissionMetrics>,
     options: SupervisorOptions,
+    execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
 ) {
     let mut supervisor = match Supervisor::new(options) {
         Ok(supervisor) => {
@@ -258,6 +364,10 @@ fn worker_loop(
     };
 
     for request in receiver {
+        metrics.record_dequeue();
+        if let Some(observer) = &execution_observer {
+            observer.before_native_processing();
+        }
         let result = supervisor.process(&request.input, request.deadline);
         metrics.record_completion(&result);
         let _ = request.response.send(result);
@@ -274,6 +384,8 @@ mod tests {
     use std::path::PathBuf;
     use std::sync::atomic::Ordering;
     use std::sync::{mpsc, Arc};
+    use std::thread;
+    use std::time::Duration;
 
     const PNG: &[u8] = &[
         0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
@@ -374,13 +486,79 @@ mod tests {
                 rejected_overload: 0,
                 rejected_resource_limit: 1,
                 deadline_exceeded: 0,
+                queue_depth: 0,
+                max_queue_depth: 1,
             }
         );
-        let controller = match Arc::try_unwrap(controller) {
-            Ok(controller) => controller,
-            Err(_) => panic!("single controller owner"),
-        };
         controller.shutdown().expect("shutdown controller");
+        let shutdown_error = match controller.submit(PNG.to_vec(), None) {
+            Err(error) => error,
+            Ok(_) => panic!("submission after shutdown must be rejected"),
+        };
+        assert_eq!(shutdown_error.class(), ResultClass::Unavailable);
+        drop(controller);
+        fs::remove_dir_all(root).expect("remove test root");
+    }
+
+    #[test]
+    fn dropped_response_handles_and_repeated_start_stop_cycles_are_safe() {
+        let _engine_lock = TEST_ENGINE_LOCK.lock().expect("lock test engine");
+
+        for cycle in 0..3 {
+            let root = test_root(&format!("cycle-{cycle}"));
+            let options = AdmissionOptions::new(SupervisorOptions::new(root.clone()), 2, 1024)
+                .expect("create options");
+            let controller = AdmissionController::start(options).expect("start controller");
+            drop(
+                controller
+                    .submit(PNG.to_vec(), None)
+                    .expect("submit request with dropped response"),
+            );
+            controller
+                .submit(PNG.to_vec(), None)
+                .expect("submit request with response")
+                .wait()
+                .expect("process request with response");
+            for _ in 0..20 {
+                if controller.metrics().completed == 2 {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(5));
+            }
+            assert_eq!(controller.metrics().completed, 2);
+            controller.shutdown().expect("shutdown controller");
+            assert!(fs::read_dir(&root)
+                .expect("list workspace root")
+                .next()
+                .is_none());
+            drop(controller);
+            fs::remove_dir_all(root).expect("remove test root");
+        }
+    }
+
+    #[test]
+    fn shutdown_drains_accepted_requests() {
+        let _engine_lock = TEST_ENGINE_LOCK.lock().expect("lock test engine");
+        let root = test_root("shutdown-drain");
+        let options = AdmissionOptions::new(SupervisorOptions::new(root.clone()), 2, 1024)
+            .expect("create options");
+        let controller = AdmissionController::start(options).expect("start controller");
+        let first = controller
+            .submit(PNG.to_vec(), None)
+            .expect("submit first request");
+        let second = controller
+            .submit(PNG.to_vec(), None)
+            .expect("submit second request");
+
+        controller.shutdown().expect("shutdown controller");
+        first.wait().expect("first accepted request completes");
+        second.wait().expect("second accepted request completes");
+        assert_eq!(controller.metrics().completed, 2);
+        assert!(fs::read_dir(&root)
+            .expect("list workspace root")
+            .next()
+            .is_none());
+        drop(controller);
         fs::remove_dir_all(root).expect("remove test root");
     }
 }
