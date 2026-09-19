@@ -4,15 +4,30 @@
 #include "memory/slab_internal.h"
 #include "memory/numa.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 
 img_slab_pool_t *img_slab_create(size_t total_size, size_t block_size) {
+    if (total_size == 0 || block_size == 0 || total_size > SIZE_MAX - 63u ||
+        block_size > SIZE_MAX - 63u)
+        return NULL;
+
     img_slab_pool_t *pool = malloc(sizeof(img_slab_pool_t));
     if (!pool)
         return NULL;
 
     block_size = img_align64(block_size);
     total_size = img_align64(total_size);
+    if (total_size < block_size) {
+        free(pool);
+        return NULL;
+    }
+
+    const size_t block_count = total_size / block_size;
+    if (block_count == 0) {
+        free(pool);
+        return NULL;
+    }
 
     int node = img_numa_get_node();
 
@@ -22,10 +37,23 @@ img_slab_pool_t *img_slab_create(size_t total_size, size_t block_size) {
         return NULL;
     }
 
+    pool->allocated = calloc(block_count, sizeof(*pool->allocated));
+    if (!pool->allocated) {
+        img_numa_free(pool->memory, total_size);
+        free(pool);
+        return NULL;
+    }
+    if (pthread_mutex_init(&pool->lock, NULL) != 0) {
+        free(pool->allocated);
+        img_numa_free(pool->memory, total_size);
+        free(pool);
+        return NULL;
+    }
+
     pool->numa_node = node;
     pool->total_size = total_size;
     pool->block_size = block_size;
-    pool->block_count = total_size / block_size;
+    pool->block_count = block_count;
     pool->free_list = NULL;
 
     uint8_t *ptr = (uint8_t *)pool->memory;

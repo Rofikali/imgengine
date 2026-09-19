@@ -9,6 +9,8 @@ void img_slab_destroy(img_slab_pool_t *pool) {
     if (!pool)
         return;
 
+    pthread_mutex_destroy(&pool->lock);
+    free(pool->allocated);
     img_numa_free(pool->memory, pool->total_size);
     free(pool);
 }

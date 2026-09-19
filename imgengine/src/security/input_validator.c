@@ -33,7 +33,8 @@ img_result_t img_security_validate_request(uint32_t w, uint32_t h, size_t file_s
     if (file_size == 0)
         return IMG_ERR_SECURITY;
 
-    if (pixels > file_size * MAX_RATIO)
+    uint64_t minimum_file_size = (pixels + MAX_RATIO - 1u) / MAX_RATIO;
+    if ((uint64_t)file_size < minimum_file_size)
         return IMG_ERR_SECURITY;
 
     // ================================

@@ -1,0 +1,10 @@
+if(NOT DEFINED SOURCE_SCRIPT OR NOT DEFINED NORMALIZED_SCRIPT)
+    message(FATAL_ERROR "SOURCE_SCRIPT and NORMALIZED_SCRIPT are required")
+endif()
+
+file(READ "${SOURCE_SCRIPT}" script_contents)
+string(REPLACE "\r\n" "\n" script_contents "${script_contents}")
+string(REPLACE "\r" "\n" script_contents "${script_contents}")
+get_filename_component(output_directory "${NORMALIZED_SCRIPT}" DIRECTORY)
+file(MAKE_DIRECTORY "${output_directory}")
+file(WRITE "${NORMALIZED_SCRIPT}" "${script_contents}")

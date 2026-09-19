@@ -42,6 +42,7 @@ make -j$(nproc)
 # Execute the benchmark
 
 ./bench_lat
+./bench_lat ../../photo.jpg
 
 ### 💡 Advanced tip (VERY useful)
 

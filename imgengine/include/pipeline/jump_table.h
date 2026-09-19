@@ -7,7 +7,7 @@
 #include "pipeline/kernel_adapter.h"
 #include "arch/cpu_caps.h"
 
-#define IMG_MAX_OPS 256
+#define IMG_MAX_OPS 4352
 
 /*
  * 🔥 HOT PATH TABLES (KERNEL ABI ONLY)

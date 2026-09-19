@@ -20,4 +20,6 @@ int img_encode_from_buffer_ex(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_d
 
 int img_encode_from_buffer(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data, size_t *out_size);
 
+void img_encoder_release_thread(void);
+
 #endif

@@ -1,73 +1,169 @@
-name: imgengine-ci
+name: imgengine-native-ci
 
 on:
   push:
-    branches: ["**"]  # This ensures 'with_claude_from_main' triggers it
+    branches: ["main"]
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
-  build-test:
+  native-build-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4   # 🔥 FIXED (no Node 20 warning)
-
-      # - name: Install deps
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y build-essential cmake python3 clang-format imagemagick libturbojpeg-dev curl
-      
-      - name: Install deps
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            python3 \
-            clang-format \
-            imagemagick \
-            libturbojpeg-dev \
-            libnuma-dev \
-            liburing-dev \
-            curl
-
-
-
-      - name: Annotate and Check Headers
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build python3 clang-format imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Configure native build
         run: |
-          # 1. Run the fixer first from the root
-          python3 imgengine/scripts/add_file_path_on_top.py
-          
-          # 2. Run the check (should pass now)
-          python3 imgengine/scripts/check_headers.py
-
-      - name: Build Engine
+          cmake -S imgengine -B imgengine/build/ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
+            -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build native targets
+        run: cmake --build imgengine/build/ci --parallel
+      - name: Configure portable scalar reference build
         run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake ..
-          make -j$(nproc)
+          cmake -S imgengine -B imgengine/build/portable-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF \
+            -DIMGENGINE_BENCH=OFF -DIMGENGINE_PORTABLE_BASELINE=ON \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build portable scalar reference targets
+        run: cmake --build imgengine/build/portable-ci --parallel
+      - name: Run portable scalar CTest suite
+        run: ctest --test-dir imgengine/build/portable-ci --output-on-failure
+      - name: Build benchmark targets
+        run: cmake -S imgengine -B imgengine/build/bench-ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=ON -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF && cmake --build imgengine/build/bench-ci --target bench_lat decoder_bench --parallel
+      - name: Run CTest
+        run: ctest --test-dir imgengine/build/ci --output-on-failure
+      - name: Run CLI smoke test
+        run: imgengine/build/ci/imgengine_cli --help
+      - name: Run format check
+        run: cmake --build imgengine/build/ci --target format-check
+      - name: Run progressive JPEG regression
+        run: cmake --build imgengine/build/ci --target regression_progressive
+      - name: Run layout geometry regression
+        run: cmake --build imgengine/build/ci --target regression_geometry
+      - name: Compare optimized and portable scalar output
+        run: bash imgengine/tests/regression/scalar_equivalence.sh imgengine/build/ci/imgengine_cli imgengine/build/portable-ci/imgengine_cli
+      - name: Run hostile input regression
+        run: cmake --build imgengine/build/ci --target regression_security
+      - name: Check public ABI
+        env:
+          IMGENGINE_BUILD_DIR: ${{ github.workspace }}/imgengine/build/ci
+        run: python3 imgengine/scripts/check_exported_symbols.py
 
-      - name: Run format-check
+  native-sanitizers:
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native dependencies
         run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake --build . --target format-check || (echo "format-check failed" && exit 1)
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Configure sanitizer build
+        run: |
+          cmake -S imgengine -B imgengine/build/sanitize-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIMGENGINE_SANITIZE=ON \
+            -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build sanitizer targets
+        run: cmake --build imgengine/build/sanitize-ci --parallel
+      - name: Run sanitizer CTest suite
+        run: ctest --test-dir imgengine/build/sanitize-ci --output-on-failure
+      - name: Run sanitizer progressive JPEG regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_progressive
+      - name: Run sanitizer layout geometry regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_geometry
+      - name: Run sanitizer hostile input regression
+        run: cmake --build imgengine/build/sanitize-ci --target regression_security
 
-      - name: Run progressive-JPEG regression
+  native-fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install fuzzing dependencies
         run: |
-          cd imgengine
-          mkdir -p build && cd build
-          cmake --build . --target regression_progressive || (echo "regression_progressive failed" && exit 1)
+          for attempt in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
+              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Configure libFuzzer target
+        run: |
+          CC=clang cmake -S imgengine -B imgengine/build/fuzz-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIMGENGINE_FUZZ=ON \
+            -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build libFuzzer targets
+        run: cmake --build imgengine/build/fuzz-ci --target fuzz_input_validator fuzz_decoder --parallel
+      - name: Run bounded input validator fuzzing
+        run: imgengine/build/fuzz-ci/fuzz_input_validator -max_total_time=30 -max_len=4096
+      - name: Run bounded JPEG and PNG decoder fuzzing
+        run: |
+          mkdir -p /tmp/imgengine-fuzz-corpus
+          cp imgengine/photo.jpg /tmp/imgengine-fuzz-corpus/seed.jpg
+          convert imgengine/photo.jpg -strip /tmp/imgengine-fuzz-corpus/seed.png
+          imgengine/build/fuzz-ci/fuzz_decoder /tmp/imgengine-fuzz-corpus -max_total_time=60 -max_len=8388608
 
-      - name: Run Tests
+  saas-integration:
+    runs-on: ubuntu-latest
+    env:
+      API_KEYS: integration-test-key
+      WEB_API_KEY: integration-test-key
+      INTERNAL_API_TOKEN: integration-internal-token
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start API, worker, Redis, and PostgreSQL
+        working-directory: imgengine-saas/infra
+        run: docker compose up --build -d api worker
+      - name: Submit JPEG and PNG fixtures and retrieve output
+        working-directory: imgengine-saas/infra
+        env:
+          API_URL: http://127.0.0.1:8000
+          API_KEY: integration-test-key
         run: |
-          if [ -f imgengine/tests/run_all.sh ]; then
-            cd imgengine
-            ./tests/run_all.sh
-          else
-            echo "No tests found"
-          fi
+          python3 - <<'PY'
+          import struct
+          import zlib
+          from pathlib import Path
+
+          def chunk(kind: bytes, value: bytes) -> bytes:
+              return struct.pack(">I", len(value)) + kind + value + struct.pack(">I", zlib.crc32(kind + value) & 0xFFFFFFFF)
+
+          fixture = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+          fixture += chunk(b"IDAT", zlib.compress(b"\x00\xff\x00\x00")) + chunk(b"IEND", b"")
+          Path("/tmp/fixture.png").write_bytes(fixture)
+          PY
+          bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg image/jpeg
+          bash ../scripts/integration_smoke.sh /tmp/fixture.png image/png
+      - name: Print service logs on failure
+        if: failure()
+        working-directory: imgengine-saas/infra
+        run: docker compose logs --no-color
+      - name: Stop integration stack
+        if: always()
+        working-directory: imgengine-saas/infra
+        run: docker compose down --volumes --remove-orphans

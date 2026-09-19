@@ -64,19 +64,33 @@ int img_io_uring_read_file(img_io_uring_t *u, const char *path, uint8_t **out_bu
 }
 
 int img_io_uring_write_file(img_io_uring_t *u, const char *path, const uint8_t *buf, size_t size) {
+    if (!u || !path || !buf || size == 0)
+        return -1;
+
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
         return -1;
 
     struct io_uring_sqe *sqe = io_uring_get_sqe(&u->ring);
+    if (!sqe) {
+        close(fd);
+        return -1;
+    }
     io_uring_prep_write(sqe, fd, buf, size, 0);
 
-    io_uring_submit(&u->ring);
+    if (io_uring_submit(&u->ring) < 0) {
+        close(fd);
+        return -1;
+    }
 
     struct io_uring_cqe *cqe;
-    io_uring_wait_cqe(&u->ring, &cqe);
+    if (io_uring_wait_cqe(&u->ring, &cqe) < 0) {
+        close(fd);
+        return -1;
+    }
 
-    if (cqe->res < 0) {
+    if (cqe->res != (int)size) {
+        io_uring_cqe_seen(&u->ring, cqe);
         close(fd);
         return -1;
     }

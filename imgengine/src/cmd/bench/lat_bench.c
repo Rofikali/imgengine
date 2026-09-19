@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,8 +27,11 @@
 #include "io/encoder/encoder_entry.h"
 #include "pipeline/job_presets.h"
 
-#define BENCH_ITERATIONS 1000
-#define BENCH_WARMUP 100
+static int g_bench_iterations = 1000;
+static int g_bench_warmup = 100;
+
+#define BENCH_ITERATIONS g_bench_iterations
+#define BENCH_WARMUP g_bench_warmup
 #define BENCH_SWEEP_ITERATIONS 100
 #define BENCH_SWEEP_WARMUP 20
 
@@ -123,6 +127,7 @@ static void print_stats(const char *label, const uint64_t *samples, size_t count
     printf("%s\n", label);
     printf("  avg:  %.3f ms (%" PRIu64 " ns)\n", stats.avg_ms, stats.avg_ns);
     printf("  p50:  %.3f ms (%" PRIu64 " ns)\n", stats.p50_ms, stats.p50_ns);
+    printf("  p95:  %.3f ms (%" PRIu64 " ns)\n", stats.p95_ms, stats.p95_ns);
     printf("  p99:  %.3f ms (%" PRIu64 " ns)\n", stats.p99_ms, stats.p99_ns);
     printf("  min:  %.3f ms (%" PRIu64 " ns)\n", stats.min_ms, stats.min_ns);
     printf("  max:  %.3f ms (%" PRIu64 " ns)\n", stats.max_ms, stats.max_ns);
@@ -685,6 +690,8 @@ int main(int argc, char **argv) {
         {"input-height", required_argument, 0, 2},
         {"input-stride", required_argument, 0, 3},
         {"encode-sweep", no_argument, 0, 4},
+        {"iterations", required_argument, 0, 5},
+        {"warmup", required_argument, 0, 6},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0},
     };
@@ -746,10 +753,25 @@ int main(int argc, char **argv) {
         case 4:
             run_encode_sweep = true;
             break;
+        case 5: {
+            uint32_t iterations = 0;
+            if (parse_u32_arg(optarg, &iterations, "iterations") != 0 || iterations == 0 ||
+                iterations > INT_MAX)
+                return 1;
+            g_bench_iterations = (int)iterations;
+            break;
+        }
+        case 6: {
+            uint32_t warmup = 0;
+            if (parse_u32_arg(optarg, &warmup, "warmup") != 0 || warmup > INT_MAX)
+                return 1;
+            g_bench_warmup = (int)warmup;
+            break;
+        }
         case 'h':
             printf("Usage: %s [--preset <name>] [--workers <n>] [--input-format encoded|raw-rgb24] "
                    "[--input-width <px>] [--input-height <px>] [--input-stride <bytes>] "
-                   "[--encode-sweep] [file]\n",
+                   "[--iterations <n>] [--warmup <n>] [--encode-sweep] [file]\n",
                    argv[0]);
             return 0;
         default:

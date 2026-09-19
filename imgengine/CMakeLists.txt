@@ -10,6 +10,10 @@ project(imgengine
     LANGUAGES C
 )
 
+include(CTest)
+include(GNUInstallDirs)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
 # ── Standards ──────────────────────────────────────────────
 set(CMAKE_C_STANDARD            11)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
@@ -18,7 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)   # for clangd / analyzer
 
 # ── Architecture detection ─────────────────────────────────
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
     set(IMGENGINE_ARCH      "x86_64")
     set(IMGENGINE_ARCH_DIR  "src/arch/x86_64")
     add_definitions(-DARCH_X86_64)
@@ -40,11 +44,30 @@ option(IMGENGINE_SANITIZE   "Enable ASAN + UBSAN"          OFF)
 option(IMGENGINE_LTO        "Enable link-time optimization" ON)
 option(IMGENGINE_SANDBOX    "Enable seccomp sandbox"        OFF)
 option(IMGENGINE_BENCH      "Build latency benchmark"       ON)
+option(IMGENGINE_PORTABLE_BASELINE "Build without optional SIMD instructions" OFF)
+option(IMGENGINE_FUZZ "Build libFuzzer security targets (Clang only)" OFF)
+option(IMGENGINE_COVERAGE "Build LLVM source-coverage instrumentation (Clang only)" OFF)
+
+set(IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS)
+set(IMGENGINE_INSTRUMENTATION_LINK_FLAGS)
+if(IMGENGINE_SANITIZE OR IMGENGINE_FUZZ)
+    list(APPEND IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+    list(APPEND IMGENGINE_INSTRUMENTATION_LINK_FLAGS -fsanitize=address,undefined)
+endif()
+if(IMGENGINE_COVERAGE)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "IMGENGINE_COVERAGE requires Clang/LLVM tools")
+    endif()
+    list(APPEND IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+    list(APPEND IMGENGINE_INSTRUMENTATION_LINK_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+endif()
 
 # ── Compiler flags ─────────────────────────────────────────
 set(IMGENGINE_COMMON_FLAGS
     -O3
-    -march=native
     -fno-plt
     -fstrict-aliasing
     -fstack-protector-strong
@@ -56,6 +79,16 @@ set(IMGENGINE_COMMON_FLAGS
     -Werror=implicit-function-declaration
     -Werror=incompatible-pointer-types
 )
+
+if(IMGENGINE_PORTABLE_BASELINE AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    list(APPEND IMGENGINE_COMMON_FLAGS -march=x86-64)
+else()
+    list(APPEND IMGENGINE_COMMON_FLAGS -march=native)
+endif()
+
+if(IMGENGINE_PORTABLE_BASELINE)
+    add_definitions(-DIMGENGINE_PORTABLE_BASELINE=1)
+endif()
 
 if(IMGENGINE_LTO)
     list(APPEND IMGENGINE_COMMON_FLAGS -flto -Werror)
@@ -75,6 +108,7 @@ if(IMGENGINE_SANDBOX)
     add_definitions(-DIMG_SANDBOX_ENABLED)
 endif()
 
+
 # ── Dependencies ───────────────────────────────────────────
 find_package(Threads REQUIRED)
 
@@ -85,25 +119,33 @@ find_library(TURBOJPEG_LIB  NAMES turbojpeg)
 if(NOT TURBOJPEG_LIB OR NOT TURBOJPEG_INCLUDE)
     message(STATUS "[IO] libturbojpeg not found — downloading and building from source...")
     
-    include(FetchContent)
-    FetchContent_Declare(
-      libjpeg-turbo
-      GIT_REPOSITORY https://github.com
-      GIT_TAG        3.0.2  # Use a stable version tag
+    include(ExternalProject)
+    set(TURBOJPEG_EXTERNAL_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/libjpeg-turbo-src")
+    set(TURBOJPEG_EXTERNAL_BINARY_DIR "${CMAKE_BINARY_DIR}/_deps/libjpeg-turbo-build")
+    set(TURBOJPEG_EXTERNAL_LIBRARY "${TURBOJPEG_EXTERNAL_BINARY_DIR}/libturbojpeg.a")
+    ExternalProject_Add(libjpeg-turbo-external
+        GIT_REPOSITORY https://github.com/libjpeg-turbo/libjpeg-turbo.git
+        GIT_TAG 3.0.2
+        SOURCE_DIR "${TURBOJPEG_EXTERNAL_SOURCE_DIR}"
+        BINARY_DIR "${TURBOJPEG_EXTERNAL_BINARY_DIR}"
+        CMAKE_ARGS
+            -DENABLE_SHARED=OFF
+            -DENABLE_STATIC=ON
+            -DWITH_SIMD=ON
+            -DWITH_JAVA=OFF
+            -DWITH_TESTS=OFF
+            -DWITH_TOOLS=OFF
+        BUILD_BYPRODUCTS "${TURBOJPEG_EXTERNAL_LIBRARY}"
+        INSTALL_COMMAND ""
     )
-    
-    # 2. Disable unnecessary parts of libjpeg-turbo to speed up your build
-    set(WITH_SIMD ON CACHE BOOL "Enable SIMD" FORCE)
-    set(ENABLE_STATIC ON CACHE BOOL "Build static" FORCE)
-    set(ENABLE_SHARED OFF CACHE BOOL "Build shared" FORCE)
-
-    FetchContent_MakeAvailable(libjpeg-turbo)
-
-    # 3. Set variables so the rest of your script works
-    # Note: libjpeg-turbo exports a target named 'turbojpeg-static' or 'turbojpeg'
-    set(TURBOJPEG_LIB turbojpeg-static)
-    # The include path is handled automatically by the target, but for your logic:
-    get_target_property(TURBOJPEG_INCLUDE turbojpeg-static INTERFACE_INCLUDE_DIRECTORIES)
+    add_library(turbojpeg_external STATIC IMPORTED GLOBAL)
+    set_target_properties(turbojpeg_external PROPERTIES
+        IMPORTED_LOCATION "${TURBOJPEG_EXTERNAL_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${TURBOJPEG_EXTERNAL_SOURCE_DIR};${TURBOJPEG_EXTERNAL_BINARY_DIR}"
+    )
+    add_dependencies(turbojpeg_external libjpeg-turbo-external)
+    set(TURBOJPEG_LIB turbojpeg_external)
+    set(TURBOJPEG_INCLUDE "${TURBOJPEG_EXTERNAL_SOURCE_DIR};${TURBOJPEG_EXTERNAL_BINARY_DIR}")
 else()
     message(STATUS "[IO] Found system turbojpeg: ${TURBOJPEG_LIB}")
 endif()
@@ -399,17 +441,24 @@ set(SOURCES_PLUGINS
 
 set(SOURCES_ARCH_X86
     src/arch/x86_64/avx2/blit_avx2.c
-    src/arch/x86_64/avx2/color_avx2.c
-    src/arch/x86_64/avx2/fused_resize_color_norm_avx2.c
-    src/arch/x86_64/avx2/resize_avx2.c
-    src/arch/x86_64/avx2/resize_fused_avx2.c
-    src/arch/x86_64/avx2/resize_h_avx2.c
-    src/arch/x86_64/avx2/resize_v_avx2.c
-    src/arch/x86_64/avx512/avx512.c
     src/arch/x86_64/scalar/color_scalar.c
     src/arch/x86_64/scalar/resize_scalar.c
     src/arch/x86_64/cpu_detect.c
 )
+
+if(IMGENGINE_PORTABLE_BASELINE)
+    list(APPEND SOURCES_ARCH_X86 src/arch/x86_64/scalar/simd_disabled_stubs.c)
+else()
+    list(APPEND SOURCES_ARCH_X86
+        src/arch/x86_64/avx2/color_avx2.c
+        src/arch/x86_64/avx2/fused_resize_color_norm_avx2.c
+        src/arch/x86_64/avx2/resize_avx2.c
+        src/arch/x86_64/avx2/resize_fused_avx2.c
+        src/arch/x86_64/avx2/resize_h_avx2.c
+        src/arch/x86_64/avx2/resize_v_avx2.c
+        src/arch/x86_64/avx512/avx512.c
+    )
+endif()
 
 set(SOURCES_THIRD_PARTY
     src/third_party/stb/stb_image_impl.c
@@ -434,10 +483,26 @@ set(IMGENGINE_LIB_SOURCES
 )
 
 # ── Shared library ─────────────────────────────────────────
-add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES})
+add_library(imgengine_internal STATIC ${IMGENGINE_LIB_SOURCES})
+target_include_directories(imgengine_internal PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(imgengine_internal PRIVATE ${IMGENGINE_COMMON_FLAGS} ${IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS})
+target_link_libraries(imgengine_internal PUBLIC ${TURBOJPEG_LIB} PRIVATE Threads::Threads)
+if(MATH_LIB)
+    target_link_libraries(imgengine_internal PRIVATE ${MATH_LIB})
+endif()
+if(NUMA_LIB)
+    target_link_libraries(imgengine_internal PRIVATE ${NUMA_LIB})
+endif()
+
+add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES} src/api/imgengine_v1.c)
+set_target_properties(imgengine PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 target_include_directories(imgengine PUBLIC ${IMGENGINE_INCLUDES})
-target_compile_options(imgengine PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_compile_options(imgengine PRIVATE ${IMGENGINE_COMMON_FLAGS} ${IMGENGINE_INSTRUMENTATION_COMPILE_FLAGS})
+target_link_options(imgengine PRIVATE ${IMGENGINE_INSTRUMENTATION_LINK_FLAGS})
+if(UNIX AND NOT APPLE)
+    target_link_options(imgengine PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/cmake/libimgengine.map")
+endif()
 
 target_link_libraries(imgengine
     PUBLIC  ${TURBOJPEG_LIB}
@@ -452,6 +517,7 @@ endif()
 if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
 endif()
+
 
 # ── Dynamic plugin (loadable) ──────────────────────────────
 add_library(plugin_resize SHARED src/plugins/plugin_resize.c)
@@ -489,7 +555,7 @@ add_executable(imgengine_cli
 )
 target_include_directories(imgengine_cli PRIVATE ${IMGENGINE_INCLUDES})
 target_compile_options(imgengine_cli PRIVATE ${IMGENGINE_COMMON_FLAGS})
-target_link_libraries(imgengine_cli PRIVATE imgengine)
+target_link_libraries(imgengine_cli PRIVATE imgengine_internal)
 if(URING_LIB)
     target_link_libraries(imgengine_cli PRIVATE ${URING_LIB})
 endif()
@@ -497,12 +563,56 @@ if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine_cli PRIVATE -fsanitize=address,undefined)
 endif()
 
+install(TARGETS imgengine imgengine_cli
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(TARGETS plugin_resize
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/imgengine/plugins
+    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/imgengine/plugins
+)
+install(DIRECTORY include/imgengine DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES packaging/README.txt DESTINATION .)
+
+# -- Stable public ABI consumer tests ---------------------------------------
+add_executable(test_abi_public_consumer tests/abi/test_public_consumer.c)
+target_include_directories(test_abi_public_consumer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_abi_public_consumer PRIVATE imgengine Threads::Threads)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_abi_public_consumer PRIVATE -fsanitize=address,undefined)
+endif()
+add_executable(test_abi_compatibility tests/abi/test_abi_compatibility.c)
+target_include_directories(test_abi_compatibility PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_abi_compatibility PRIVATE imgengine)
+add_executable(test_abi_real_image_consumer tests/abi/test_real_image_consumer.c)
+target_include_directories(test_abi_real_image_consumer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_abi_real_image_consumer PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_abi_compatibility PRIVATE -fsanitize=address,undefined)
+    target_link_libraries(test_abi_real_image_consumer PRIVATE -fsanitize=address,undefined)
+    set(IMGENGINE_ABI_EXTERNAL_SANITIZE_FLAGS "-fsanitize=address,undefined")
+else()
+    set(IMGENGINE_ABI_EXTERNAL_SANITIZE_FLAGS "")
+endif()
+if(BUILD_TESTING)
+    add_test(NAME abi_public_consumer COMMAND test_abi_public_consumer)
+    add_test(NAME abi_compatibility COMMAND test_abi_compatibility)
+    add_test(NAME abi_installed_consumer
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/abi/installed_consumer.sh
+                ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+                ${IMGENGINE_ABI_EXTERNAL_SANITIZE_FLAGS})
+    add_test(NAME abi_exports
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_exported_symbols.py
+                --library $<TARGET_FILE:imgengine>)
+endif()
+
 # ── Latency benchmark ──────────────────────────────────────
 if(IMGENGINE_BENCH)
     add_executable(bench_lat src/cmd/bench/lat_bench.c)
     target_include_directories(bench_lat PRIVATE ${IMGENGINE_INCLUDES})
     target_compile_options(bench_lat PRIVATE ${IMGENGINE_COMMON_FLAGS})
-    target_link_libraries(bench_lat PRIVATE imgengine)
+    target_link_libraries(bench_lat PRIVATE imgengine_internal)
     if(IMGENGINE_SANITIZE)
         target_link_libraries(bench_lat PRIVATE -fsanitize=address,undefined)
     endif()
@@ -510,7 +620,7 @@ if(IMGENGINE_BENCH)
     add_executable(decoder_bench src/cmd/bench/decoder_bench.c)
     target_include_directories(decoder_bench PRIVATE ${IMGENGINE_INCLUDES})
     target_compile_options(decoder_bench PRIVATE ${IMGENGINE_COMMON_FLAGS})
-    target_link_libraries(decoder_bench PRIVATE imgengine)
+    target_link_libraries(decoder_bench PRIVATE imgengine_internal)
     if(IMGENGINE_SANITIZE)
         target_link_libraries(decoder_bench PRIVATE -fsanitize=address,undefined)
     endif()
@@ -527,14 +637,95 @@ endif()
 add_executable(verify_generated_registration src/tests/verify_generated_registration.c)
 target_include_directories(verify_generated_registration PRIVATE ${IMGENGINE_INCLUDES})
 target_compile_options(verify_generated_registration PRIVATE ${IMGENGINE_COMMON_FLAGS})
-target_link_libraries(verify_generated_registration PRIVATE imgengine)
+target_link_libraries(verify_generated_registration PRIVATE imgengine_internal)
 if(IMGENGINE_SANITIZE)
     target_link_libraries(verify_generated_registration PRIVATE -fsanitize=address,undefined)
 endif()
+if(BUILD_TESTING)
+    add_test(NAME verify_generated_registration COMMAND verify_generated_registration)
+endif()
 
-# ── Regression test: progressive JPEG ────────────────────────
+add_executable(test_safety_boundaries src/tests/test_safety_boundaries.c)
+target_include_directories(test_safety_boundaries PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_safety_boundaries PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_safety_boundaries PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_safety_boundaries PRIVATE -fsanitize=address,undefined)
+endif()
+
+if(BUILD_TESTING)
+    add_test(NAME safety_boundaries COMMAND test_safety_boundaries)
+endif()
+
+add_executable(test_layout_properties src/tests/test_layout_properties.c)
+target_include_directories(test_layout_properties PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_layout_properties PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_layout_properties PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_layout_properties PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME layout_properties COMMAND test_layout_properties)
+endif()
+
+add_executable(test_resize_kernel_equivalence src/tests/test_resize_kernel_equivalence.c)
+target_include_directories(test_resize_kernel_equivalence PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_resize_kernel_equivalence PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_resize_kernel_equivalence PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_resize_kernel_equivalence PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME resize_kernel_equivalence COMMAND test_resize_kernel_equivalence)
+endif()
+
+if(IMGENGINE_SANDBOX)
+    add_executable(test_sandbox_lifecycle src/tests/test_sandbox_lifecycle.c)
+    target_include_directories(test_sandbox_lifecycle PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(test_sandbox_lifecycle PRIVATE ${IMGENGINE_COMMON_FLAGS})
+    target_link_libraries(test_sandbox_lifecycle PRIVATE imgengine_internal)
+    if(IMGENGINE_SANITIZE)
+        target_link_libraries(test_sandbox_lifecycle PRIVATE -fsanitize=address,undefined)
+    endif()
+    if(BUILD_TESTING)
+        add_test(NAME sandbox_lifecycle COMMAND test_sandbox_lifecycle)
+    endif()
+endif()
+
+if(IMGENGINE_FUZZ)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "IMGENGINE_FUZZ requires Clang/libFuzzer")
+    endif()
+    add_executable(fuzz_input_validator tests/fuzz/target_input_validator.c src/security/input_validator.c)
+    target_include_directories(fuzz_input_validator PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(fuzz_input_validator PRIVATE -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer)
+    target_link_options(fuzz_input_validator PRIVATE -fsanitize=fuzzer,address,undefined)
+
+    add_executable(fuzz_decoder tests/fuzz/target_decoder.c)
+    target_include_directories(fuzz_decoder PRIVATE ${IMGENGINE_INCLUDES})
+    target_compile_options(fuzz_decoder PRIVATE -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer)
+    target_link_libraries(fuzz_decoder PRIVATE imgengine_internal)
+    target_link_options(fuzz_decoder PRIVATE -fsanitize=fuzzer,address,undefined)
+endif()
+
+# ── Regression test: progressive and CMYK JPEG ───────────────
 add_custom_target(regression_progressive
-    COMMAND ${CMAKE_COMMAND} -E env BUILD_DIR=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/tests/regression/progressive_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/regression_tmp
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/progressive_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/progressive_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND ${CMAKE_COMMAND} -E env IMGENGINE_SOURCE_DIR=${CMAKE_SOURCE_DIR} bash ${CMAKE_BINARY_DIR}/regression_scripts/progressive_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/regression_tmp
+    DEPENDS imgengine_cli
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+add_custom_target(regression_geometry
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/geometry_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/geometry_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND bash ${CMAKE_BINARY_DIR}/regression_scripts/geometry_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/geometry_regression_tmp
+    DEPENDS imgengine_cli
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+add_custom_target(regression_security
+    COMMAND ${CMAKE_COMMAND} -DSOURCE_SCRIPT:FILEPATH=${CMAKE_SOURCE_DIR}/tests/regression/security_regression.sh -DNORMALIZED_SCRIPT:FILEPATH=${CMAKE_BINARY_DIR}/regression_scripts/security_regression.sh -P ${CMAKE_SOURCE_DIR}/tests/regression/normalize_script.cmake
+    COMMAND bash ${CMAKE_BINARY_DIR}/regression_scripts/security_regression.sh ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/security_regression_tmp
     DEPENDS imgengine_cli
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
@@ -549,6 +740,7 @@ message(STATUS " Sanitizers   : ${IMGENGINE_SANITIZE}")
 message(STATUS " LTO          : ${IMGENGINE_LTO}")
 message(STATUS " Sandbox      : ${IMGENGINE_SANDBOX}")
 message(STATUS " Bench        : ${IMGENGINE_BENCH}")
+message(STATUS " Portable     : ${IMGENGINE_PORTABLE_BASELINE}")
 message(STATUS "======================================")
 message(STATUS "")
 

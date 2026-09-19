@@ -2,6 +2,7 @@
 
 #define _GNU_SOURCE
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -19,6 +20,26 @@
 #include "api/v1/img_error.h"
 
 int is_pdf_output(const char *path);
+
+static int is_safe_trace_id(const char *value) {
+    size_t length = 0;
+
+    if (!value)
+        return 0;
+
+    for (; value[length] != '\0'; ++length) {
+        if (!isalnum((unsigned char)value[length]) && value[length] != '-' && value[length] != '_')
+            return 0;
+        if (length >= 64)
+            return 0;
+    }
+    return length > 0;
+}
+
+static void emit_trace_event(const char *trace_id, const char *event) {
+    if (is_safe_trace_id(trace_id))
+        fprintf(stderr, "imgengine_event=%s trace_id=%s\n", event, trace_id);
+}
 
 static img_result_t map_readonly_file(const char *path, const uint8_t **data, size_t *size) {
     if (!path || !data || !size)
@@ -81,6 +102,7 @@ static img_result_t write_buffer_blocking(const char *path, const uint8_t *buf, 
 
 int main(int argc, char **argv) {
     img_cli_options_t opts = {0};
+    const char *trace_id = getenv("IMGENGINE_TRACE_ID");
 
     int parse_rc = img_parse_args(argc, argv, &opts);
     if (parse_rc != 0) {
@@ -90,12 +112,14 @@ int main(int argc, char **argv) {
 
     img_engine_t *engine = img_api_init(opts.threads);
     if (!engine) {
+        emit_trace_event(trace_id, "engine_initialization_failed");
         fprintf(stderr, "engine init failed\n");
         return 1;
     }
 
     img_job_t job;
     if (img_build_job(engine, &opts, &job) != 0) {
+        emit_trace_event(trace_id, "job_build_failed");
         fprintf(stderr, "job build failed\n");
         img_api_shutdown(engine);
         return 1;
@@ -106,8 +130,7 @@ int main(int argc, char **argv) {
      * Used for async output write — zero blocking on the critical path.
      * Depth 64: supports up to 64 concurrent I/O ops (more than enough for CLI).
      */
-    img_io_uring_t uring;
-    int uring_ok = (img_io_uring_init(&uring, 64) == 0);
+    int uring_ok = 0;
 
     if (opts.verbose && !opts.quiet) {
         printf("imgengine | %ux%u grid | %.1fx%.1f cm | %u dpi | io_uring=%s\n", job.cols, job.rows,
@@ -117,6 +140,7 @@ int main(int argc, char **argv) {
     }
 
     img_result_t r;
+    emit_trace_event(trace_id, "engine_started");
 
     if (opts.input_format == IMG_CLI_INPUT_FORMAT_RAW_RGB24) {
         const uint8_t *raw_input = NULL;
@@ -136,14 +160,8 @@ int main(int argc, char **argv) {
                 r = img_api_run_job_rgb24_raw(engine, raw_input, raw_size, opts.input_width,
                                               opts.input_height, stride, &job, &out, &out_size);
 
-                if (r == IMG_SUCCESS) {
-                    if (uring_ok)
-                        r = (img_io_uring_write_file(&uring, opts.output_path, out, out_size) == 0)
-                                ? IMG_SUCCESS
-                                : IMG_ERR_IO;
-                    else
-                        r = write_buffer_blocking(opts.output_path, out, out_size);
-                }
+                if (r == IMG_SUCCESS)
+                    r = write_buffer_blocking(opts.output_path, out, out_size);
 
                 img_encoded_free(out);
             }
@@ -158,26 +176,21 @@ int main(int argc, char **argv) {
 
         r = img_api_run_job_raw(engine, opts.input_path, &job, &out, &out_size);
 
-        if (r == IMG_SUCCESS) {
-            if (uring_ok)
-                r = (img_io_uring_write_file(&uring, opts.output_path, out, out_size) == 0)
-                        ? IMG_SUCCESS
-                        : IMG_ERR_IO;
-            else
-                r = write_buffer_blocking(opts.output_path, out, out_size);
-        }
+        if (r == IMG_SUCCESS)
+            r = write_buffer_blocking(opts.output_path, out, out_size);
 
         img_encoded_free(out);
     }
 
-    if (r != IMG_SUCCESS)
+    if (r != IMG_SUCCESS) {
+        emit_trace_event(trace_id, "engine_failed");
         fprintf(stderr, "job failed: %s (%d)\n", img_result_name(r), r);
-    else if (!opts.quiet)
-        printf("done: %s\n", opts.output_path);
+    } else {
+        emit_trace_event(trace_id, "engine_completed");
+        if (!opts.quiet)
+            printf("done: %s\n", opts.output_path);
+    }
 
     img_api_shutdown(engine);
-    if (uring_ok)
-        img_io_uring_destroy(&uring);
-
     return (r == IMG_SUCCESS) ? 0 : 1;
 }

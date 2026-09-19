@@ -1,0 +1,50 @@
+name: imgengine-native-coverage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install LLVM and native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm
+      - name: Configure coverage build
+        run: |
+          CC=clang cmake -S imgengine -B imgengine/build/coverage -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug -DIMGENGINE_COVERAGE=ON \
+            -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+            -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
+      - name: Build and execute CTest
+        run: |
+          cmake --build imgengine/build/coverage --parallel
+          mkdir -p imgengine/build/coverage/profiles
+          LLVM_PROFILE_FILE="$GITHUB_WORKSPACE/imgengine/build/coverage/profiles/%m_%p.profraw" \
+            ctest --test-dir imgengine/build/coverage --output-on-failure
+      - name: Produce coverage report
+        run: |
+          llvm-profdata merge -sparse imgengine/build/coverage/profiles/*.profraw \
+            -o imgengine/build/coverage/imgengine.profdata
+          llvm-cov report imgengine/build/coverage/test_safety_boundaries \
+            -object imgengine/build/coverage/libimgengine.so \
+            -instr-profile=imgengine/build/coverage/imgengine.profdata \
+            > imgengine/build/coverage/coverage.txt
+          llvm-cov export imgengine/build/coverage/test_safety_boundaries \
+            -object imgengine/build/coverage/libimgengine.so \
+            -instr-profile=imgengine/build/coverage/imgengine.profdata -format=lcov \
+            > imgengine/build/coverage/coverage.lcov
+      - name: Upload coverage evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            imgengine/build/coverage/coverage.txt
+            imgengine/build/coverage/coverage.lcov
+            imgengine/build/coverage/imgengine.profdata
+          retention-days: 90

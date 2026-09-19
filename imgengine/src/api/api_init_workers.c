@@ -86,6 +86,7 @@ int img_api_init_boot_workers(uint32_t workers) {
         img_pin_thread_to_core(i);
 
         if (pthread_create(&w->thread, NULL, img_worker_loop, w) != 0) {
+            w->running = 0;
             /* stop already-started threads */
             for (uint32_t j = 0; j < i; j++) {
                 g_scheduler.workers[j].running = 0;

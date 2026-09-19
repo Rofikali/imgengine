@@ -13,9 +13,11 @@ img_result_t img_canvas_init(img_canvas_t *canvas, img_slab_pool_t *pool, const 
 
     canvas->page_w_px = pw;
     canvas->page_h_px = ph;
-    img_canvas_compute_geometry(canvas, job, pw, ph);
+    img_result_t r = img_canvas_compute_geometry(canvas, job, pw, ph);
+    if (r != IMG_SUCCESS)
+        return r;
 
-    img_result_t r = img_canvas_alloc_buffer(canvas, pool, pw, ph);
+    r = img_canvas_alloc_buffer(canvas, pool, pw, ph);
     if (r != IMG_SUCCESS)
         return r;
 

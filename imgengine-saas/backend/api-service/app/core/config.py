@@ -1,7 +1,68 @@
 # backend/core/config.py 
 
 import os
+from urllib.parse import urlsplit
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://imgengine:imgengine@db:5432/imgengine"
-)
+
+DEFAULT_DATABASE_URL = "postgresql://imgengine:imgengine@db:5432/imgengine"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+DEPLOYMENT_ENV = os.getenv("DEPLOYMENT_ENV", "development").lower()
+API_KEYS = frozenset(filter(None, os.getenv("API_KEYS", "test-key-123").split(",")))
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "local-development-token")
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(20 * 1024 * 1024)))
+STORAGE_ROOT = os.getenv("STORAGE_ROOT", "/data")
+STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
+S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+S3_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
+S3_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
+S3_BUCKET = os.getenv("S3_BUCKET", "imgengine")
+S3_REGION = os.getenv("S3_REGION", "us-east-1")
+S3_PRESIGN_TTL_SECONDS = int(os.getenv("S3_PRESIGN_TTL_SECONDS", "300"))
+UPLOAD_PREFIX = "uploads"
+OUTPUT_PREFIX = "outputs"
+LOG_DIR = os.getenv("LOG_DIR", "/data/logs")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_FILE_MAX_BYTES = int(os.getenv("LOG_FILE_MAX_BYTES", str(20 * 1024 * 1024)))
+LOG_FILE_BACKUP_COUNT = int(os.getenv("LOG_FILE_BACKUP_COUNT", "5"))
+SERVICE_NAME = os.getenv("SERVICE_NAME", "imgengine")
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_TASK_SOFT_TIME_LIMIT_SECONDS = int(os.getenv("CELERY_TASK_SOFT_TIME_LIMIT_SECONDS", "60"))
+CELERY_TASK_TIME_LIMIT_SECONDS = int(os.getenv("CELERY_TASK_TIME_LIMIT_SECONDS", "75"))
+CELERY_RESULT_EXPIRES_SECONDS = int(os.getenv("CELERY_RESULT_EXPIRES_SECONDS", "3600"))
+CELERY_VISIBILITY_TIMEOUT_SECONDS = int(os.getenv("CELERY_VISIBILITY_TIMEOUT_SECONDS", "3600"))
+JOB_RETENTION_HOURS = int(os.getenv("JOB_RETENTION_HOURS", "24"))
+RETENTION_CLEANUP_INTERVAL_SECONDS = int(os.getenv("RETENTION_CLEANUP_INTERVAL_SECONDS", "3600"))
+RETENTION_CLEANUP_BATCH_SIZE = int(os.getenv("RETENTION_CLEANUP_BATCH_SIZE", "100"))
+ENGINE_TIMEOUT_SECONDS = int(os.getenv("ENGINE_TIMEOUT_SECONDS", "30"))
+ENGINE_CPU_TIME_SECONDS = int(os.getenv("ENGINE_CPU_TIME_SECONDS", "25"))
+ENGINE_MEMORY_LIMIT_BYTES = int(os.getenv("ENGINE_MEMORY_LIMIT_BYTES", str(1024 * 1024 * 1024)))
+MAX_OUTPUT_BYTES = int(os.getenv("MAX_OUTPUT_BYTES", str(100 * 1024 * 1024)))
+MAX_JOB_LOG_CHARS = int(os.getenv("MAX_JOB_LOG_CHARS", "16000"))
+GENERATE_RATE_LIMIT = os.getenv("GENERATE_RATE_LIMIT", "30/minute")
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
+
+
+def validate_runtime_configuration() -> None:
+    if DEPLOYMENT_ENV != "production":
+        return
+
+    invalid = []
+    if not API_KEYS or "test-key-123" in API_KEYS:
+        invalid.append("API_KEYS")
+    if INTERNAL_API_TOKEN == "local-development-token" or len(INTERNAL_API_TOKEN) < 32:
+        invalid.append("INTERNAL_API_TOKEN")
+    database_password = urlsplit(DATABASE_URL).password
+    if DATABASE_URL == DEFAULT_DATABASE_URL or database_password in {None, "imgengine"}:
+        invalid.append("DATABASE_URL")
+    if not CORS_ORIGINS or "*" in CORS_ORIGINS or any("localhost" in origin for origin in CORS_ORIGINS):
+        invalid.append("CORS_ORIGINS")
+    if not (ENGINE_TIMEOUT_SECONDS < CELERY_TASK_SOFT_TIME_LIMIT_SECONDS < CELERY_TASK_TIME_LIMIT_SECONDS):
+        invalid.append("CELERY_TASK_*_TIME_LIMIT_SECONDS")
+    if invalid:
+        raise RuntimeError(f"Invalid production configuration: {', '.join(invalid)}")

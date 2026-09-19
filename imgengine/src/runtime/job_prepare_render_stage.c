@@ -35,7 +35,9 @@ img_result_t img_runtime_prepare_render_stage(img_engine_t *engine, img_ctx_t *c
     img_canvas_t probe = {0};
     probe.page_w_px = pw;
     probe.page_h_px = ph;
-    img_canvas_compute_geometry(&probe, job, pw, ph);
+    img_result_t r = img_canvas_compute_geometry(&probe, job, pw, ph);
+    if (r != IMG_SUCCESS)
+        return r;
 
     uint32_t render_sig =
         img_render_cache_signature(photo, job, probe.photo_w_px, probe.photo_h_px);
@@ -57,7 +59,7 @@ img_result_t img_runtime_prepare_render_stage(img_engine_t *engine, img_ctx_t *c
         img_arena_reset(*arena);
     }
 
-    img_result_t r = img_canvas_init(canvas, engine->global_pool, job);
+    r = img_canvas_init(canvas, engine->global_pool, job);
     if (r != IMG_SUCCESS)
         return r;
 
