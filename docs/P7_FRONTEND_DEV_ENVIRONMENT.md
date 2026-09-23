@@ -9,8 +9,8 @@ models the legacy FastAPI/Celery/Redis/Postgres path.
 
 **VERIFIED:** the evidence table records an Ubuntu 24.04 Docker Desktop run,
 including both retained-cache recreation and a fresh named-volume bootstrap.
-The rendered-request evidence exercises Nuxt's server proxy directly; the
-legacy browser job UI is intentionally outside P7.1.1.
+The rendered-request evidence exercises Nuxt's server proxy directly. P7.2.0
+now makes that same proxy the active browser render workflow.
 
 **DEFERRED:** this stack does not claim production deployment readiness,
 production capacity, frontend migration completion, a Nuxt upgrade, or legacy
@@ -149,6 +149,6 @@ Compose still requires the local ignored environment file before it can start.
   This environment neither changes nor upgrades them.
 - Docker development evidence is Linux integration evidence, not a production
   release claim.
-- `app.vue` still targets the legacy job/preset UI. P7.1.1 verifies the new
-  same-origin `/api/render` server proxy rather than claiming that the browser
-  UI has migrated to it; that migration remains later P7 work.
+- The active UI is intentionally limited to the current JPEG/PNG-to-JPEG
+  contract. Layout, PDF, durable jobs, image history, and storage remain
+  future capability-backed work.

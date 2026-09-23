@@ -1,123 +1,118 @@
 <script setup lang="ts">
-type Job = { job_id: string; status: string; output_url?: string | null; error?: string | null }
-type JobEvent = { timestamp: string; level: string; component: string; message: string; details?: string | null }
-type JobLogResponse = { logs: string; events: JobEvent[] }
-type Preset = { name: string; label: string; description: string }
+import { nextTick, ref } from 'vue'
+import { useRenderWorkflow } from '~/composables/useRenderWorkflow'
 
-const selectedFile = ref<File | null>(null)
-const job = ref<Job | null>(null)
-const error = ref('')
-const logs = ref('')
-const submitting = ref(false)
-const selectedPreset = ref('')
-const presets = ref<Preset[]>([])
-const layout = reactive({
-  width: 4.5, height: 3.5, dpi: 300, cols: 6, rows: 6,
-  gap: 15, padding: 20, border: 2, bleed: 0,
-  crop_mark: 15, crop_thickness: 2, crop_offset: 8,
-})
+const { selectedFile, status, failure, result, previewUrl, isSubmitting, select, submit, reset } = useRenderWorkflow()
+const fileInput = ref<HTMLInputElement | null>(null)
+const dragActive = ref(false)
+const formatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
+const selectedFileSize = computed(() => selectedFile.value
+  ? `${formatter.format(selectedFile.value.size / 1024)} KiB`
+  : '')
 
-const fields = [
-  ['width', 'Width (cm)', 0.1, 50, 0.1], ['height', 'Height (cm)', 0.1, 50, 0.1],
-  ['dpi', 'DPI', 72, 1200, 1], ['cols', 'Columns', 1, 20, 1], ['rows', 'Rows', 1, 20, 1],
-  ['gap', 'Gap (px)', 0, 500, 1], ['padding', 'Padding (px)', 0, 1000, 1], ['border', 'Border (px)', 0, 100, 1],
-  ['bleed', 'Bleed (px)', 0, 500, 1], ['crop_mark', 'Crop mark (px)', 0, 500, 1],
-  ['crop_thickness', 'Crop thickness (px)', 1, 100, 1], ['crop_offset', 'Crop offset (px)', 0, 500, 1],
-] as const
-
-onMounted(async () => {
-  const response = await $fetch<{ presets: Preset[] }>('/api/presets')
-  presets.value = response.presets
-})
-
-async function submit() {
-  if (!selectedFile.value) return
-  submitting.value = true
-  error.value = ''
-  logs.value = ''
-  const form = new FormData()
-  form.append('file', selectedFile.value)
-  if (selectedPreset.value) form.append('preset', selectedPreset.value)
-  for (const [key] of fields) form.append(key, String(layout[key]))
-  try {
-    job.value = await $fetch<Job>('/api/jobs', {
-      method: 'POST',
-      body: form,
-      headers: { 'Idempotency-Key': crypto.randomUUID() },
-    })
-    void pollStatus()
-  } catch (cause) {
-    error.value = cause instanceof Error ? cause.message : 'Unable to submit job'
-  } finally {
-    submitting.value = false
-  }
+function chooseFile() {
+  fileInput.value?.click()
 }
 
-async function pollStatus() {
-  while (job.value && !['completed', 'failed'].includes(job.value.status)) {
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    try {
-      job.value = await $fetch<Job>(`/api/jobs/${job.value.job_id}`)
-    } catch (cause) {
-      error.value = cause instanceof Error ? cause.message : 'Unable to retrieve job status'
-      return
-    }
-  }
-  if (job.value && ['completed', 'failed'].includes(job.value.status)) await loadLogs()
+function selectFromInput(event: Event) {
+  select((event.target as HTMLInputElement).files?.[0] ?? null)
 }
 
-async function loadLogs() {
-  if (!job.value) return
-  const response = await $fetch<JobLogResponse>(`/api/jobs/${job.value.job_id}/logs`)
-  const timeline = response.events.map(event =>
-    `[${event.timestamp}] ${event.level.toUpperCase()} ${event.component}: ${event.message}${event.details ? ` ${event.details}` : ''}`,
-  )
-  logs.value = [...timeline, response.logs].filter(Boolean).join('\n')
+function selectDroppedFile(event: DragEvent) {
+  dragActive.value = false
+  select(event.dataTransfer?.files?.[0] ?? null)
+}
+
+async function renderAnother() {
+  reset()
+  await nextTick()
+  fileInput.value?.focus()
 }
 </script>
 
 <template>
-  <main>
-    <section>
+  <main class="page-shell">
+    <section class="render-card" aria-labelledby="page-title">
       <p class="eyebrow">IMGENGINE</p>
-      <h1>Print-ready layouts, on demand.</h1>
-      <p class="intro">Configure the physical photo size and print-safe layout, then submit it as an asynchronous job.</p>
-      <form @submit.prevent="submit">
-        <label for="file">Source image</label>
-        <input id="file" accept="image/jpeg,image/png" type="file" required @change="selectedFile = ($event.target as HTMLInputElement).files?.[0] ?? null">
-        <label>
-          Print preset
-          <select v-model="selectedPreset">
-            <option value="">Custom layout</option>
-            <option v-for="preset in presets" :key="preset.name" :value="preset.name">{{ preset.label }}</option>
-          </select>
-        </label>
-        <p v-if="selectedPreset" class="intro">{{ presets.find(preset => preset.name === selectedPreset)?.description }}</p>
-        <div class="fields">
-          <label v-for="[key, label, min, max, step] in fields" :key="key">
-            {{ label }}
-            <input v-model.number="layout[key]" type="number" :min="min" :max="max" :step="step">
-          </label>
+      <h1 id="page-title">Render a JPEG or PNG image.</h1>
+      <p class="intro">Choose one image. IMGENGINE returns a completed JPEG without creating a stored job.</p>
+
+      <form v-if="status !== 'success'" class="render-form" @submit.prevent="submit">
+        <div
+          class="drop-zone"
+          :class="{ 'drop-zone--active': dragActive, 'drop-zone--selected': selectedFile }"
+          role="button"
+          tabindex="0"
+          aria-describedby="file-help"
+          @click="chooseFile"
+          @keydown.enter.prevent="chooseFile"
+          @keydown.space.prevent="chooseFile"
+          @dragenter.prevent="dragActive = true"
+          @dragover.prevent="dragActive = true"
+          @dragleave.prevent="dragActive = false"
+          @drop.prevent="selectDroppedFile"
+        >
+          <input
+            ref="fileInput"
+            class="visually-hidden"
+            type="file"
+            accept="image/jpeg,image/png"
+            aria-label="Choose a JPEG or PNG image"
+            @click.stop
+            @change="selectFromInput"
+          >
+          <strong>{{ selectedFile ? selectedFile.name : 'Drop an image here or choose a file' }}</strong>
+          <span v-if="selectedFile">{{ selectedFileSize }} selected</span>
+          <span v-else>JPEG or PNG, up to 1 MiB for the current service.</span>
         </div>
-        <button :disabled="!selectedFile || submitting">{{ submitting ? 'Submitting…' : 'Generate layout' }}</button>
+        <p id="file-help" class="help">File type and size checks help before upload; the server validates every image.</p>
+
+        <div v-if="selectedFile" class="selection-actions">
+          <button class="secondary" type="button" :disabled="isSubmitting" @click="renderAnother">Remove file</button>
+          <button class="primary" type="submit" :disabled="isSubmitting">
+            {{ isSubmitting ? 'Working…' : 'Render JPEG' }}
+          </button>
+        </div>
+        <button v-else class="primary" type="button" @click="chooseFile">Choose JPEG or PNG</button>
       </form>
-      <p v-if="error" class="error">{{ error }}</p>
-      <div v-if="job" class="job">
-        <strong>Job {{ job.job_id }}</strong>
-        <span>{{ job.status }}</span>
-        <p v-if="job.error" class="error">{{ job.error }}</p>
-        <a v-if="job.output_url" :href="`/api/jobs/${job.job_id}/output`">Download output</a>
-        <button v-if="['completed', 'failed'].includes(job.status)" type="button" @click="loadLogs">Show job logs</button>
-        <pre v-if="logs">{{ logs }}</pre>
-      </div>
+
+      <p v-if="status === 'uploading'" class="status" role="status" aria-live="polite">Uploading image…</p>
+      <p v-else-if="status === 'processing'" class="status" role="status" aria-live="polite">Processing image…</p>
+      <p v-if="failure" class="error" role="alert">{{ failure.message }}</p>
+
+      <section v-if="status === 'success' && result && previewUrl" class="result" aria-labelledby="result-title">
+        <p class="eyebrow">COMPLETE</p>
+        <h2 id="result-title">Rendering complete</h2>
+        <img :src="previewUrl" alt="Rendered JPEG preview">
+        <div class="selection-actions">
+          <a class="primary" :href="previewUrl" download="imgengine-render.jpg">Download JPEG</a>
+          <button class="secondary" type="button" @click="renderAnother">Render another image</button>
+        </div>
+      </section>
     </section>
   </main>
 </template>
 
 <style>
-:root { color: #eaf0ff; background: #09111f; font-family: Inter, ui-sans-serif, system-ui, sans-serif; } body { margin: 0; }
-main { min-height: 100vh; display: grid; place-items: center; padding: 2rem; } section { width: min(100%, 56rem); padding: 3rem; border: 1px solid #273752; border-radius: 1rem; background: #101c30; box-shadow: 0 2rem 6rem #0005; }
-.eyebrow { color: #76a7ff; font-weight: 700; letter-spacing: .14em; font-size: .75rem; } h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: .3rem 0; line-height: 1.05; }.intro { color: #b5c3dc; }
-form { display: grid; gap: .8rem; margin-top: 2rem; }.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .8rem; } label { display: grid; gap: .35rem; color: #c8d4ea; }
-input, select, button { box-sizing: border-box; font: inherit; padding: .75rem; border-radius: .5rem; } input, select { width: 100%; border: 1px solid #415577; background: #0a1425; color: inherit; }button { border: 0; background: #76a7ff; color: #07101e; cursor: pointer; font-weight: 700; }button:disabled { opacity: .5; cursor: not-allowed; }.job { display: grid; gap: .5rem; margin-top: 1.5rem; padding: 1rem; background: #0a1425; border-radius: .5rem; }.error { color: #ff9ba4; }.job a { color: #76a7ff; }
+:root { color: #eef4ff; background: #08111f; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+body { margin: 0; }
+button, input, a { font: inherit; }
+button, a { border-radius: .65rem; font-weight: 700; }
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible, .drop-zone:focus-visible { outline: 3px solid #b7d0ff; outline-offset: 3px; }
+.page-shell { box-sizing: border-box; min-height: 100vh; display: grid; place-items: center; padding: clamp(1rem, 4vw, 3rem); }
+.render-card { width: min(100%, 46rem); padding: clamp(1.5rem, 5vw, 3.5rem); border: 1px solid #2f4568; border-radius: 1.25rem; background: #101d31; box-shadow: 0 2rem 6rem #0008; }
+.eyebrow { margin: 0 0 .6rem; color: #89b6ff; font-size: .75rem; font-weight: 800; letter-spacing: .14em; }
+h1, h2 { margin: 0; line-height: 1.1; } h1 { font-size: clamp(2rem, 6vw, 3.8rem); } h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
+.intro, .help, .drop-zone span { color: #bdcae0; line-height: 1.55; }.intro { max-width: 40rem; margin: 1rem 0 0; }
+.render-form { display: grid; gap: 1rem; margin-top: 2rem; }
+.drop-zone { display: grid; gap: .5rem; min-height: 10rem; place-content: center; box-sizing: border-box; padding: 1.5rem; border: 1px dashed #6987b8; border-radius: .85rem; text-align: center; cursor: pointer; background: #0a1526; }
+.drop-zone--active, .drop-zone--selected { border-color: #99c0ff; background: #102442; }.drop-zone strong { overflow-wrap: anywhere; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.help { margin: 0; font-size: .9rem; }.selection-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .5rem; }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .65rem 1rem; border: 1px solid transparent; text-decoration: none; }
+.primary { background: #8bb8ff; color: #071323; }.secondary { border-color: #617da7; background: transparent; color: #edf4ff; }.primary:disabled, .secondary:disabled { opacity: .55; cursor: not-allowed; }
+.status, .error { margin: 1.25rem 0 0; padding: .9rem 1rem; border-radius: .65rem; }.status { background: #142944; color: #c7dcff; }.error { background: #3b1720; color: #ffd1d7; }
+.result { display: grid; gap: 1rem; margin-top: 2rem; }.result img { width: 100%; max-height: 30rem; object-fit: contain; border-radius: .85rem; background: #07101d; }
+@media (max-width: 32rem) { .selection-actions { display: grid; }.primary, .secondary { width: 100%; } }
 </style>

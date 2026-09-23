@@ -33,8 +33,6 @@ services:
     environment:
       IMGENGINE_API_BASE: http://rust-api:8000
       IMGENGINE_RENDER_API_KEY: ${IMGENGINE_DEV_API_KEY:?set a local development key in infra/p7-frontend-dev.env}
-      NUXT_API_BASE: http://rust-api:8000
-      NUXT_API_KEY: ${IMGENGINE_DEV_API_KEY:?set a local development key in infra/p7-frontend-dev.env}
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
