@@ -26,7 +26,7 @@ function safeProblem(value: unknown): RenderProblem | null {
   return candidate as RenderProblem
 }
 
-function invalidBrowserRequest() {
+function invalidBrowserRequest(): never {
   throw createError({
     statusCode: 400,
     statusMessage: 'Expected exactly one image file.',
@@ -40,7 +40,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, statusMessage: 'Rendering is unavailable.' })
   }
 
-  const incoming = await readFormData(event)
+  let incoming: FormData
+  try {
+    incoming = await readFormData(event)
+  } catch {
+    // H3 rejects an absent or malformed multipart body before entries can be
+    // inspected. Keep that public proxy failure within the Rust contract's
+    // safe invalid-request class rather than exposing an internal 500.
+    invalidBrowserRequest()
+  }
   const entries = [...incoming.entries()]
   if (entries.length !== 1 || entries[0][0] !== 'file' || typeof entries[0][1] === 'string') {
     invalidBrowserRequest()
