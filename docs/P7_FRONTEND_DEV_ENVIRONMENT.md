@@ -98,8 +98,9 @@ missing file (`400`), unsupported input (`415`), malformed image (`422`),
 oversized input (`413`), unauthenticated direct Rust request (`401`), Nuxt's
 Rust-unavailable path (`503`), and that the test key is absent from Nuxt's
 client bundle. The verifier also stops Rust and proves that an oversized
-multipart request remains a Nuxt-local `413`; the proxy does not buffer it and
-then turn it into an upstream-unavailable response. It never prints the key.
+multipart request is rejected by Nuxt with a safe local `413`, before upstream
+admission; it verifies the documented `resource_limit` classification without
+an H3 stack field. It never prints the key.
 
 Inside the Ubuntu frontend container, the authoritative frontend commands are:
 

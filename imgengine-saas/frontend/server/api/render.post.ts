@@ -1,4 +1,5 @@
 import type { RenderProblem } from '~/types/api'
+import type { H3Event } from 'h3'
 
 // Keep the active Nuxt ingress bounded at the documented provisional P5/P6
 // HTTP limit. The Rust service remains authoritative for all request policy.
@@ -32,20 +33,21 @@ function safeProblem(value: unknown): RenderProblem | null {
   return candidate as RenderProblem
 }
 
-function invalidBrowserRequest(): never {
-  throw createError({
-    statusCode: 400,
-    statusMessage: 'Expected exactly one image file.',
-    data: { code: 'invalid_request' },
-  })
-}
-
-function payloadTooLarge(): never {
-  throw createError({
-    statusCode: 413,
-    statusMessage: 'The image request exceeds the current size limit.',
-    data: { code: 'resource_limit' },
-  })
+function proxyProblem(
+  event: H3Event,
+  status: number,
+  code: RenderProblem['code'],
+  title: string,
+): RenderProblem {
+  setResponseStatus(event, status)
+  setResponseHeader(event, 'content-type', 'application/problem+json')
+  return {
+    type: `https://imgengine.example/problems/${code}`,
+    title,
+    status,
+    code,
+    request_id: `proxy-${crypto.randomUUID()}`,
+  }
 }
 
 /**
@@ -87,7 +89,7 @@ function installBoundedRequestBody(event: Parameters<typeof readFormData>[0]) {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   if (!config.imgengineRenderApiKey) {
-    throw createError({ statusCode: 503, statusMessage: 'Rendering is unavailable.' })
+    return proxyProblem(event, 503, 'unavailable', 'Rendering is unavailable')
   }
 
   let incoming: FormData
@@ -95,15 +97,17 @@ export default defineEventHandler(async (event) => {
     installBoundedRequestBody(event)
     incoming = await readFormData(event)
   } catch (cause) {
-    if (cause instanceof PayloadTooLargeError) payloadTooLarge()
+    if (cause instanceof PayloadTooLargeError) {
+      return proxyProblem(event, 413, 'resource_limit', 'Request exceeds the configured limit')
+    }
     // H3 rejects an absent or malformed multipart body before entries can be
     // inspected. Keep that public proxy failure within the Rust contract's
-    // safe invalid-request class rather than exposing an internal 500.
-    invalidBrowserRequest()
+    // safe invalid-request class rather than exposing an internal error.
+    return proxyProblem(event, 400, 'invalid_request', 'Invalid multipart request')
   }
   const entries = [...incoming.entries()]
   if (entries.length !== 1 || entries[0][0] !== 'file' || typeof entries[0][1] === 'string') {
-    invalidBrowserRequest()
+    return proxyProblem(event, 400, 'invalid_request', 'Expected exactly one image file')
   }
 
   const [_, file] = entries[0]
@@ -118,7 +122,7 @@ export default defineEventHandler(async (event) => {
       body,
     })
   } catch {
-    throw createError({ statusCode: 503, statusMessage: 'Rendering is unavailable.' })
+    return proxyProblem(event, 503, 'unavailable', 'Rendering is unavailable')
   }
 
   const requestId = response.headers.get('x-request-id')
@@ -136,5 +140,5 @@ export default defineEventHandler(async (event) => {
     return problem
   }
 
-  throw createError({ statusCode: 502, statusMessage: 'Rendering is unavailable.' })
+  return proxyProblem(event, 502, 'internal', 'Rendering is unavailable')
 })

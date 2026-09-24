@@ -30,9 +30,12 @@ try {
   try {
     Invoke-Compose @('exec', '-T', 'frontend', 'bash', '-lc', @'
 head -c 1100000 /dev/zero > /tmp/imgengine-p7-oversized
-status=$(curl --silent --output /dev/null --write-out "%{http_code}" -F file=@/tmp/imgengine-p7-oversized http://localhost:3000/api/render)
+status=$(curl --silent --output /tmp/imgengine-p7-problem --write-out "%{http_code}" -F file=@/tmp/imgengine-p7-oversized http://localhost:3000/api/render)
 rm -f /tmp/imgengine-p7-oversized
 test "$status" = 413
+grep -q '"code":"resource_limit"' /tmp/imgengine-p7-problem
+! grep -q '"stack"' /tmp/imgengine-p7-problem
+rm -f /tmp/imgengine-p7-problem
 '@)
     $status = & curl.exe --silent --output NUL --write-out '%{http_code}' `
       -F 'file=@imgengine/tests/fixtures/cc0_camera_landscape.jpg;type=image/jpeg' `
