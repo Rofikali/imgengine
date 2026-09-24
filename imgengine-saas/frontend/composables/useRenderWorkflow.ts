@@ -2,8 +2,12 @@ import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { ImgengineRenderError, useImgengineApi } from '~/composables/useImgengineApi'
 import type { RenderApiError, RenderSuccess } from '~/types/api'
 
-/** The current documented P5/P6 request cap. The Rust service remains authoritative. */
-export const CLIENT_RENDER_FILE_LIMIT_BYTES = 1_048_576
+/**
+ * Conservative UX cap below the documented 1 MiB multipart request limit.
+ * The difference reserves space for multipart framing; Rust remains
+ * authoritative and continues to classify an over-limit request as 413.
+ */
+export const CLIENT_RENDER_FILE_LIMIT_BYTES = 1_000_000
 
 export type RenderWorkflowStatus = 'idle' | 'ready' | 'uploading' | 'processing' | 'success' | 'error'
 
@@ -24,7 +28,7 @@ function validateFile(file: File | null): RenderWorkflowFailure | null {
     return clientFailure('This file type is not supported. Please choose a JPEG or PNG image.')
   }
   if (file.size > CLIENT_RENDER_FILE_LIMIT_BYTES) {
-    return clientFailure('The image is too large. Please choose a file under 1 MiB.')
+    return clientFailure('The image is too large. Please choose a file under about 1 MB.')
   }
   return null
 }
@@ -71,6 +75,9 @@ export function createRenderWorkflow(render: RenderExecutor) {
     try {
       const completed = await render(selectedFile.value!)
       releasePreview()
+      // The source File is no longer needed once the completed JPEG is held
+      // only by its temporary browser object URL.
+      selectedFile.value = null
       result.value = completed
       previewUrl.value = URL.createObjectURL(completed.jpeg)
       status.value = 'success'

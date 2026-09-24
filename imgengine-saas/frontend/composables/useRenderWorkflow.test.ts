@@ -23,7 +23,7 @@ describe('synchronous render workflow', () => {
     workflow.select(image('image/gif'))
     expect(workflow.failure.value?.message).toMatch(/not supported/)
     workflow.select(image('image/jpeg', CLIENT_RENDER_FILE_LIMIT_BYTES + 1))
-    expect(workflow.failure.value?.message).toMatch(/under 1 MiB/)
+    expect(workflow.failure.value?.message).toMatch(/under about 1 MB/)
     await workflow.submit()
     expect(render).not.toHaveBeenCalled()
   })
@@ -43,6 +43,7 @@ describe('synchronous render workflow', () => {
     complete({ jpeg: new Blob(['jpeg'], { type: 'image/jpeg' }), requestId: 'safe-request-id' })
     await submission
     expect(workflow.status.value).toBe('success')
+    expect(workflow.selectedFile.value).toBeNull()
     expect(workflow.previewUrl.value).toBe('blob:rendered')
     workflow.reset()
     expect(revoke).toHaveBeenCalledWith('blob:rendered')

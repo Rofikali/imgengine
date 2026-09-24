@@ -63,7 +63,7 @@ async function renderAnother() {
           >
           <strong>{{ selectedFile ? selectedFile.name : 'Drop an image here or choose a file' }}</strong>
           <span v-if="selectedFile">{{ selectedFileSize }} selected</span>
-          <span v-else>JPEG or PNG, up to 1 MiB for the current service.</span>
+          <span v-else>JPEG or PNG, up to about 1 MB for the current service.</span>
         </div>
         <p id="file-help" class="help">File type and size checks help before upload; the server validates every image.</p>
 
@@ -80,7 +80,7 @@ async function renderAnother() {
       <p v-else-if="status === 'processing'" class="status" role="status" aria-live="polite">Processing image…</p>
       <p v-if="failure" class="error" role="alert">{{ failure.message }}</p>
 
-      <section v-if="status === 'success' && result && previewUrl" class="result" aria-labelledby="result-title">
+      <section v-if="status === 'success' && result && previewUrl" class="result" aria-labelledby="result-title" role="status" aria-live="polite">
         <p class="eyebrow">COMPLETE</p>
         <h2 id="result-title">Rendering complete</h2>
         <img :src="previewUrl" alt="Rendered JPEG preview">
@@ -100,14 +100,14 @@ button, input, a { font: inherit; }
 button, a { border-radius: .65rem; font-weight: 700; }
 button { cursor: pointer; }
 button:focus-visible, a:focus-visible, .drop-zone:focus-visible { outline: 3px solid #b7d0ff; outline-offset: 3px; }
-.page-shell { box-sizing: border-box; min-height: 100vh; display: grid; place-items: center; padding: clamp(1rem, 4vw, 3rem); }
-.render-card { width: min(100%, 46rem); padding: clamp(1.5rem, 5vw, 3.5rem); border: 1px solid #2f4568; border-radius: 1.25rem; background: #101d31; box-shadow: 0 2rem 6rem #0008; }
+.page-shell { box-sizing: border-box; width: 100%; min-width: 0; min-height: 100vh; display: grid; place-items: center; padding: clamp(1rem, 4vw, 3rem); }
+.render-card { box-sizing: border-box; width: min(calc(100vw - 2rem), 46rem); min-width: 0; padding: clamp(1.5rem, 5vw, 3.5rem); border: 1px solid #2f4568; border-radius: 1.25rem; background: #101d31; box-shadow: 0 2rem 6rem #0008; }
 .eyebrow { margin: 0 0 .6rem; color: #89b6ff; font-size: .75rem; font-weight: 800; letter-spacing: .14em; }
 h1, h2 { margin: 0; line-height: 1.1; } h1 { font-size: clamp(2rem, 6vw, 3.8rem); } h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
 .intro, .help, .drop-zone span { color: #bdcae0; line-height: 1.55; }.intro { max-width: 40rem; margin: 1rem 0 0; }
 .render-form { display: grid; gap: 1rem; margin-top: 2rem; }
 .drop-zone { display: grid; gap: .5rem; min-height: 10rem; place-content: center; box-sizing: border-box; padding: 1.5rem; border: 1px dashed #6987b8; border-radius: .85rem; text-align: center; cursor: pointer; background: #0a1526; }
-.drop-zone--active, .drop-zone--selected { border-color: #99c0ff; background: #102442; }.drop-zone strong { overflow-wrap: anywhere; }
+.drop-zone--active, .drop-zone--selected { border-color: #99c0ff; background: #102442; }.drop-zone strong, .drop-zone span { overflow-wrap: anywhere; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .help { margin: 0; font-size: .9rem; }.selection-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .5rem; }
 .primary, .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .65rem 1rem; border: 1px solid transparent; text-decoration: none; }

@@ -24,6 +24,13 @@ curl --silent --show-error --fail http://127.0.0.1:3000/ >/dev/null
 "${compose[@]}" exec -T frontend bash /workspace/imgengine/infra/scripts/verify-p7-render-contract.sh
 
 "${compose[@]}" stop rust-api
+"${compose[@]}" exec -T frontend bash -lc '
+  head -c 1100000 /dev/zero > /tmp/imgengine-p7-oversized
+  status=$(curl --silent --output /dev/null --write-out "%{http_code}" \
+    -F file=@/tmp/imgengine-p7-oversized http://localhost:3000/api/render)
+  rm -f /tmp/imgengine-p7-oversized
+  [[ "$status" == 413 ]]
+'
 [[ $(curl --silent --output /dev/null --write-out '%{http_code}' \
   -F "file=@imgengine/tests/fixtures/cc0_camera_landscape.jpg;type=image/jpeg" \
   http://127.0.0.1:3000/api/render) == 503 ]]

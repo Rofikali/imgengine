@@ -1,5 +1,11 @@
 import type { RenderProblem } from '~/types/api'
 
+// Keep the active Nuxt ingress bounded at the documented provisional P5/P6
+// HTTP limit. The Rust service remains authoritative for all request policy.
+const MAX_PROXY_REQUEST_BYTES = 1_048_576
+
+class PayloadTooLargeError extends Error {}
+
 const problemCodes = new Set([
   'invalid_request',
   'authentication_failed',
@@ -34,6 +40,50 @@ function invalidBrowserRequest(): never {
   })
 }
 
+function payloadTooLarge(): never {
+  throw createError({
+    statusCode: 413,
+    statusMessage: 'The image request exceeds the current size limit.',
+    data: { code: 'resource_limit' },
+  })
+}
+
+/**
+ * H3's `readFormData` otherwise consumes the Node request directly without a
+ * byte ceiling. Install a bounded stream before parsing so a browser upload
+ * cannot be buffered beyond the same provisional limit used by Rust.
+ */
+function installBoundedRequestBody(event: Parameters<typeof readFormData>[0]) {
+  const contentLength = getHeader(event, 'content-length')
+  if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_PROXY_REQUEST_BYTES) {
+    throw new PayloadTooLargeError()
+  }
+
+  const request = event.node.req
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        let received = 0
+        for await (const chunk of request) {
+          const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk)
+          received += bytes.byteLength
+          if (received > MAX_PROXY_REQUEST_BYTES) {
+            throw new PayloadTooLargeError()
+          }
+          controller.enqueue(bytes)
+        }
+        controller.close()
+      } catch (cause) {
+        controller.error(cause)
+      }
+    },
+  })
+
+  // `_requestBody` is the H3 event seam consumed by `toWebRequest`, which is
+  // what `readFormData` uses. Do not read the original request a second time.
+  ;(event as typeof event & { _requestBody?: ReadableStream<Uint8Array> })._requestBody = stream
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   if (!config.imgengineRenderApiKey) {
@@ -42,8 +92,10 @@ export default defineEventHandler(async (event) => {
 
   let incoming: FormData
   try {
+    installBoundedRequestBody(event)
     incoming = await readFormData(event)
-  } catch {
+  } catch (cause) {
+    if (cause instanceof PayloadTooLargeError) payloadTooLarge()
     // H3 rejects an absent or malformed multipart body before entries can be
     // inspected. Keep that public proxy failure within the Rust contract's
     // safe invalid-request class rather than exposing an internal 500.
