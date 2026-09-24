@@ -4,6 +4,7 @@ import { useRenderWorkflow } from '~/composables/useRenderWorkflow'
 
 const { selectedFile, status, failure, result, previewUrl, isSubmitting, select, submit, reset } = useRenderWorkflow()
 const fileInput = ref<HTMLInputElement | null>(null)
+const dropZone = ref<HTMLLabelElement | null>(null)
 const dragActive = ref(false)
 const formatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
 const selectedFileSize = computed(() => selectedFile.value
@@ -26,7 +27,7 @@ function selectDroppedFile(event: DragEvent) {
 async function renderAnother() {
   reset()
   await nextTick()
-  fileInput.value?.focus()
+  dropZone.value?.focus()
 }
 </script>
 
@@ -38,13 +39,12 @@ async function renderAnother() {
       <p class="intro">Choose one image. IMGENGINE returns a completed JPEG without creating a stored job.</p>
 
       <form v-if="status !== 'success'" class="render-form" @submit.prevent="submit">
-        <div
+        <label
+          ref="dropZone"
           class="drop-zone"
           :class="{ 'drop-zone--active': dragActive, 'drop-zone--selected': selectedFile }"
-          role="button"
           tabindex="0"
           aria-describedby="file-help"
-          @click="chooseFile"
           @keydown.enter.prevent="chooseFile"
           @keydown.space.prevent="chooseFile"
           @dragenter.prevent="dragActive = true"
@@ -58,13 +58,12 @@ async function renderAnother() {
             type="file"
             accept="image/jpeg,image/png"
             aria-label="Choose a JPEG or PNG image"
-            @click.stop
             @change="selectFromInput"
           >
           <strong>{{ selectedFile ? selectedFile.name : 'Drop an image here or choose a file' }}</strong>
           <span v-if="selectedFile">{{ selectedFileSize }} selected</span>
           <span v-else>JPEG or PNG, up to about 1 MB for the current service.</span>
-        </div>
+        </label>
         <p id="file-help" class="help">File type and size checks help before upload; the server validates every image.</p>
 
         <div v-if="selectedFile" class="selection-actions">
