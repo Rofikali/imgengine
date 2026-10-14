@@ -1,0 +1,8 @@
+# Docker build context is imgengine/, not the repository root. Keep generated
+# native and Cargo artifacts out of verification-image context transfers.
+build-*
+target
+rust/**/target
+.cache
+*.profraw
+*.profdata

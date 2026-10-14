@@ -13,12 +13,21 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Release only a mapping returned by img_api_load_input(). Never pass borrowed bytes here. */
 img_result_t img_api_release_input(uint8_t *file_data, size_t file_size);
 
 img_result_t img_api_init_ctx(img_engine_t *engine, img_ctx_t *ctx);
 
+/* Legacy path: maps a file and transfers that mmap ownership to the caller. */
 img_result_t img_api_load_input(const char *input_path, uint8_t **file_data, size_t *file_size);
 
+/*
+ * Legacy mmap-consuming path. `*file_data` must originate from
+ * img_api_load_input(); this
+ * function releases that mapping on every decode
+ * result and clears the pointer. It is not a
+ * borrowed-input decoder.
+ */
 img_result_t img_api_decode_input(img_ctx_t *ctx, uint8_t **file_data, size_t file_size,
                                   img_buffer_t *photo);
 

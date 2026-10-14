@@ -9,6 +9,15 @@
 typedef struct img_ctx img_ctx_t;
 typedef struct img_buffer img_buffer_t;
 
+/*
+ * `input` is a borrowed, read-only byte span. The caller retains ownership
+ * and keeps it valid
+ * for the duration of this call. Decoder implementations
+ * MUST NOT free, munmap, retain, or
+ * otherwise release it. If a decoder needs
+ * compressed bytes after returning, it must first make
+ * an explicit copy.
+ */
 typedef img_result_t (*img_decode_fn)(img_ctx_t *ctx, const uint8_t *input, size_t size,
                                       img_buffer_t *out);
 

@@ -108,7 +108,6 @@ if(IMGENGINE_SANDBOX)
     add_definitions(-DIMG_SANDBOX_ENABLED)
 endif()
 
-
 # ── Dependencies ───────────────────────────────────────────
 find_package(Threads REQUIRED)
 
@@ -258,6 +257,7 @@ set(SOURCES_PIPELINE
     src/pipeline/layout_grid_alloc_cells.c
     src/pipeline/layout_grid_place_cells.c
     src/pipeline/layout_grid_prepare_scaled.c
+    src/pipeline/layout_render_private.c
     src/pipeline/layout_prepare_fill.c
     src/pipeline/layout_prepare_fill_commit.c
     src/pipeline/layout_prepare_fit.c
@@ -300,7 +300,7 @@ option(IMGENGINE_ENABLE_DSL_CODEGEN "Enable DSL -> C codegen for pipelines" ON)
 
 if(IMGENGINE_ENABLE_DSL_CODEGEN)
     # Auto-generate pipelines from DSL (creates src/pipeline/generated.c)
-    # corebases present in /include/pipeline/job_presets.h and job_templates.h 
+    # corebases present in /include/pipeline/job_presets.h and job_templates.h
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/src/pipeline/generated.c
         COMMENT "Generate pipeline source from DSL"
@@ -518,7 +518,6 @@ if(IMGENGINE_SANITIZE)
     target_link_libraries(imgengine PRIVATE -fsanitize=address,undefined)
 endif()
 
-
 # ── Dynamic plugin (loadable) ──────────────────────────────
 add_library(plugin_resize SHARED src/plugins/plugin_resize.c)
 target_include_directories(plugin_resize PRIVATE ${IMGENGINE_INCLUDES})
@@ -682,6 +681,65 @@ if(IMGENGINE_SANITIZE)
 endif()
 if(BUILD_TESTING)
     add_test(NAME resize_kernel_equivalence COMMAND test_resize_kernel_equivalence)
+endif()
+
+add_executable(test_layout_render_private src/tests/test_layout_render_private.c)
+target_include_directories(test_layout_render_private PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_layout_render_private PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_layout_render_private PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_layout_render_private PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME layout_render_private COMMAND test_layout_render_private)
+endif()
+
+add_executable(test_borrowed_input_ownership src/tests/test_borrowed_input_ownership.c)
+target_include_directories(test_borrowed_input_ownership PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_borrowed_input_ownership PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_borrowed_input_ownership PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_borrowed_input_ownership PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME borrowed_input_ownership COMMAND test_borrowed_input_ownership)
+endif()
+
+add_executable(test_scheduler_shutdown src/tests/test_scheduler_shutdown.c)
+target_include_directories(test_scheduler_shutdown PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_scheduler_shutdown PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_scheduler_shutdown PRIVATE imgengine_internal Threads::Threads)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_scheduler_shutdown PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME scheduler_shutdown COMMAND test_scheduler_shutdown)
+endif()
+
+add_executable(test_allocator_queue_ownership src/tests/test_allocator_queue_ownership.c)
+target_include_directories(test_allocator_queue_ownership PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_allocator_queue_ownership PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_allocator_queue_ownership PRIVATE imgengine_internal Threads::Threads)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_definitions(test_allocator_queue_ownership PRIVATE IMGENGINE_ALLOCATOR_FAILURE_TEST=1)
+    target_link_options(test_allocator_queue_ownership PRIVATE
+        -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=aligned_alloc)
+endif()
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_allocator_queue_ownership PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME allocator_queue_ownership COMMAND test_allocator_queue_ownership)
+endif()
+
+add_executable(test_abi_borrowed_input_ownership tests/abi/test_borrowed_input_ownership.c)
+target_include_directories(test_abi_borrowed_input_ownership PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_abi_borrowed_input_ownership PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_abi_borrowed_input_ownership PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME abi_borrowed_input_ownership COMMAND test_abi_borrowed_input_ownership)
 endif()
 
 if(IMGENGINE_SANDBOX)
