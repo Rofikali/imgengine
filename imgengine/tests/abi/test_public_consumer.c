@@ -1,7 +1,10 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <imgengine/api/v1/imgengine.h>
 
@@ -39,6 +42,56 @@ static void *run_process(void *argument) {
     return NULL;
 }
 
+static int malformed_input_is_silent(imgengine_engine_t *engine) {
+    static const uint8_t malformed[] =
+        "P75-redaction-probe /private/request/secret-image.jpg X-API-Key: not-a-real-secret";
+    FILE *capture = NULL;
+    int saved_stderr = -1;
+    int failed = 0;
+    char diagnostics[4096] = {0};
+
+    capture = tmpfile();
+    if (!capture || (saved_stderr = dup(STDERR_FILENO)) < 0) {
+        fprintf(stderr, "could not capture ABI diagnostics\n");
+        if (capture)
+            fclose(capture);
+        return 1;
+    }
+
+    fflush(stderr);
+    if (dup2(fileno(capture), STDERR_FILENO) < 0) {
+        fprintf(stderr, "could not redirect ABI diagnostics\n");
+        close(saved_stderr);
+        fclose(capture);
+        return 1;
+    }
+
+    for (unsigned int index = 0; index < 32u; index++) {
+        imgengine_output_t output = {(uint8_t *)"not-owned", 9};
+        if (imgengine_process_encoded_image_to_jpeg(engine, malformed, sizeof(malformed) - 1u,
+                                                    &output) != IMGENGINE_STATUS_INVALID_IMAGE ||
+            output.data != NULL || output.size != 0) {
+            failed = 1;
+        }
+        imgengine_output_release(&output);
+    }
+
+    fflush(stderr);
+    if (dup2(saved_stderr, STDERR_FILENO) < 0)
+        failed = 1;
+    close(saved_stderr);
+    rewind(capture);
+    const size_t bytes = fread(diagnostics, 1, sizeof(diagnostics) - 1u, capture);
+    const int read_failed = ferror(capture);
+    fclose(capture);
+
+    if (failed || read_failed || (bytes != 0 && strstr(diagnostics, "[API]") != NULL)) {
+        fprintf(stderr, "ABI processing emitted diagnostics for malformed input\n");
+        return 1;
+    }
+    return 0;
+}
+
 int main(void) {
     if (imgengine_abi_version() != IMGENGINE_ABI_VERSION) {
         fprintf(stderr, "unexpected ABI version\n");
@@ -71,12 +124,7 @@ int main(void) {
         return 1;
     }
 
-    imgengine_output_t output = {(uint8_t *)"not-owned", 9};
-    const uint8_t malformed[] = {0x00, 0xff, 0x01};
-    if (imgengine_process_encoded_image_to_jpeg(engine, malformed, sizeof(malformed), &output) !=
-            IMGENGINE_STATUS_INVALID_IMAGE ||
-        output.data != NULL || output.size != 0) {
-        fprintf(stderr, "malformed input contract failed\n");
+    if (malformed_input_is_silent(engine) != 0) {
         imgengine_engine_destroy(engine);
         return 1;
     }
