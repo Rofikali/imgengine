@@ -23,11 +23,11 @@
 #include "runtime/job_exec.h"
 #include "runtime/scheduler.h"
 #include "runtime/queue_mpmc.h"
+#include "pipeline/layout_render_private.h"
 #include "hot/pipeline_exec.h"
 #include "observability/binlog.h"
 #include <immintrin.h>
 
-extern img_mpmc_queue_t g_task_queue; /* defined in api/api_state.c */
 extern void img_binlog_set_cpu(uint32_t cpu);
 
 void *img_worker_loop(void *arg) {
@@ -35,7 +35,7 @@ void *img_worker_loop(void *arg) {
 
     img_binlog_set_cpu(w->id);
 
-    while (__builtin_expect(w->running, 1)) {
+    while (__builtin_expect(atomic_load_explicit(&w->running, memory_order_acquire), 1)) {
         img_task_t *task = NULL;
 
         /* 1. Own SPSC queue — zero contention */
@@ -45,25 +45,27 @@ void *img_worker_loop(void *arg) {
         if (!task && w->scheduler)
             task = (img_task_t *)img_mpmc_pop(&w->scheduler->global_queue);
 
-        if (!task)
-            task = (img_task_t *)img_mpmc_pop(&g_task_queue);
+        if (!task && w->scheduler && w->scheduler->external_queue)
+            task = (img_task_t *)img_mpmc_pop(w->scheduler->external_queue);
 
         /* 3. Work steal from other workers */
         if (!task && w->scheduler)
             task = img_scheduler_steal(w->scheduler, w->id);
 
         if (!task) {
+            if (w->scheduler && !img_scheduler_is_accepting(w->scheduler))
+                break;
             _mm_pause();
             continue;
         }
 
         if (__builtin_expect(!w->ctx, 0)) {
             task->status = IMG_ERR_INTERNAL;
-            task->state = IMG_TASK_DONE;
+            atomic_store_explicit(&task->state, IMG_TASK_DONE, memory_order_release);
             continue;
         }
 
-        task->state = IMG_TASK_RUNNING;
+        atomic_store_explicit(&task->state, IMG_TASK_RUNNING, memory_order_release);
 
         switch (task->kind) {
         case IMG_TASK_KIND_PIPELINE:
@@ -89,13 +91,19 @@ void *img_worker_loop(void *arg) {
             break;
         }
 
+        case IMG_TASK_KIND_LAYOUT_RENDER:
+            task->status = img_layout_render_v1_execute(task->payload.layout_render.state, w->ctx);
+            break;
+
         default:
             task->status = IMG_ERR_INTERNAL;
             break;
         }
 
-        task->state = IMG_TASK_DONE;
+        atomic_store_explicit(&task->state, IMG_TASK_DONE, memory_order_release);
     }
+
+    atomic_store_explicit(&w->running, false, memory_order_release);
 
     return NULL;
 }

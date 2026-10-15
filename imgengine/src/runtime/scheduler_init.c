@@ -15,19 +15,30 @@
 #include "runtime/scheduler.h"
 #include "runtime/worker.h"
 #include <stdlib.h>
+#include <string.h>
 
 int img_scheduler_init(img_scheduler_t *sched, uint32_t workers) {
     if (!sched || workers == 0)
         return -1;
 
+    memset(sched, 0, sizeof(*sched));
+    if (pthread_mutex_init(&sched->admission_lock, NULL) != 0)
+        return -1;
+    sched->lifecycle_initialized = 1;
+    atomic_init(&sched->accepting, true);
     sched->worker_count = workers;
     sched->workers = calloc(workers, sizeof(img_worker_t));
-    if (!sched->workers)
+    if (!sched->workers) {
+        pthread_mutex_destroy(&sched->admission_lock);
+        sched->lifecycle_initialized = 0;
         return -1;
+    }
 
     if (img_mpmc_init(&sched->global_queue, 1024) != 0) {
         free(sched->workers);
         sched->workers = NULL;
+        pthread_mutex_destroy(&sched->admission_lock);
+        sched->lifecycle_initialized = 0;
         return -1;
     }
 
@@ -44,8 +55,9 @@ int img_scheduler_init(img_scheduler_t *sched, uint32_t workers) {
     for (uint32_t i = 0; i < workers; i++) {
         sched->workers[i].id = i;
         sched->workers[i].scheduler = sched;
-        sched->workers[i].ctx = NULL;  /* set by caller before start */
-        sched->workers[i].running = 0; /* not running yet */
+        sched->workers[i].ctx = NULL;                   /* set by caller before start */
+        atomic_init(&sched->workers[i].running, false); /* not running yet */
+        sched->workers[i].thread_started = 0;
         sched->workers[i].queue = img_queue_create(10);
         if (!sched->workers[i].queue) {
             /* cleanup already created queues */
@@ -54,6 +66,8 @@ int img_scheduler_init(img_scheduler_t *sched, uint32_t workers) {
             img_mpmc_destroy(&sched->global_queue);
             free(sched->workers);
             sched->workers = NULL;
+            pthread_mutex_destroy(&sched->admission_lock);
+            sched->lifecycle_initialized = 0;
             return -1;
         }
     }

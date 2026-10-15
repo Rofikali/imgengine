@@ -25,19 +25,23 @@
 typedef struct img_buffer img_buffer_t;
 typedef struct img_pipeline_runtime img_pipeline_runtime_t;
 typedef struct img_engine img_engine_t;
+typedef struct img_layout_render_v1_state img_layout_render_v1_state_t;
 
 /*
  * Task state
  */
 typedef enum {
     IMG_TASK_READY = 0,
-    IMG_TASK_RUNNING = 1,
-    IMG_TASK_DONE = 2,
+    IMG_TASK_QUEUED = 1,
+    IMG_TASK_RUNNING = 2,
+    IMG_TASK_DONE = 3,
+    IMG_TASK_REJECTED = 4,
 } img_task_state_t;
 
 typedef enum {
     IMG_TASK_KIND_PIPELINE = 0,
     IMG_TASK_KIND_RENDER_STAGE = 1,
+    IMG_TASK_KIND_LAYOUT_RENDER = 2,
 } img_task_kind_t;
 
 typedef struct {
@@ -55,6 +59,10 @@ typedef struct {
     img_arena_t **arena;
 } img_render_task_payload_t;
 
+typedef struct {
+    img_layout_render_v1_state_t *state;
+} img_layout_render_task_payload_t;
+
 /*
  * img_task_t
  *
@@ -66,8 +74,8 @@ typedef struct {
  *   buffer   — image to process (slab-owned, zero-copy)
  *   pipeline — pre-compiled runtime (arena-owned, read-only in hot path)
  *   op_index — current op (for future partial execution / preemption)
- *   state    — task lifecycle state
- *   status   — result code written by worker on completion
+ *   state    — atomic lifecycle state, release-published after status
+ *   status   — result code written before terminal state publication
  *
  * OWNERSHIP:
  *   buffer   — returned to slab by caller after task->status written
@@ -75,13 +83,15 @@ typedef struct {
  */
 typedef struct __attribute__((aligned(64))) {
     img_task_kind_t kind;
-    img_task_state_t state;
+    /* Waiters acquire-load before reading status or releasing task storage. */
+    _Atomic img_task_state_t state;
     uint32_t op_index;
 
     int status;
     union {
         img_pipeline_task_payload_t pipeline;
         img_render_task_payload_t render;
+        img_layout_render_task_payload_t layout_render;
     } payload;
 
 } img_task_t;

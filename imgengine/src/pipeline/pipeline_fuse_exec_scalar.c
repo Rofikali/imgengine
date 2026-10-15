@@ -15,15 +15,22 @@ void fused_exec_scalar(img_ctx_t *ctx, img_buffer_t *buf) {
 
     for (uint32_t y = 0; y < h; y++) {
         uint8_t *row = buf->data + (size_t)y * buf->stride;
-        for (uint32_t x = 0; x < w * ch; x++) {
-            uint8_t px = row[x];
-            if (p->has_grayscale)
-                px = (uint8_t)((px * 77u) >> 8);
-            if (p->has_brightness) {
-                uint32_t tmp = (uint32_t)px + p->brightness_value;
-                px = (tmp > 255u) ? 255u : (uint8_t)tmp;
+        for (uint32_t x = 0; x < w; x++) {
+            uint8_t *pixel = row + x * ch;
+            if (p->has_grayscale) {
+                uint8_t gray = (uint8_t)(((uint32_t)pixel[0] * 77u + (uint32_t)pixel[1] * 150u +
+                                          (uint32_t)pixel[2] * 29u) >>
+                                         8);
+                pixel[0] = gray;
+                pixel[1] = gray;
+                pixel[2] = gray;
             }
-            row[x] = px;
+            if (p->has_brightness) {
+                for (uint32_t channel = 0; channel < ch; channel++) {
+                    uint32_t value = (uint32_t)pixel[channel] + p->brightness_value;
+                    pixel[channel] = value > 255u ? 255u : (uint8_t)value;
+                }
+            }
         }
     }
 }

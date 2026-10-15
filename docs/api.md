@@ -25,6 +25,26 @@ held in memory without a configured output-size ceiling, and workspace byte
 accounting is not implemented. See `API_CONTRACT_PARITY_GATE.md` for the
 authoritative P5/P6 evidence and limit inventory.
 
+### P7.1 frontend API boundary
+
+**Implemented + frontend-unit-tested:** the Nuxt browser boundary submits only
+the `file` multipart field to a same-origin `POST /api/render` proxy and
+receives the completed JPEG response. The Nuxt server proxy forwards that
+request to `POST /api/v1/render` and supplies `X-API-Key` from its private
+`IMGENGINE_RENDER_API_KEY` runtime configuration. The browser receives neither
+that credential nor `IMGENGINE_API_KEYS`.
+
+The typed client classifies only the documented problem status/code pairs:
+`400 invalid_request`, `401 authentication_failed`, `413 resource_limit`,
+`415 unsupported_media_type`, `422 invalid_image`, `429 overloaded`,
+`500 internal`, `503 unavailable`, and `504 deadline_exceeded`; a transport
+failure is distinct. It does not model jobs, polling, output URLs, layouts,
+presets, PDFs, idempotency, or client-side API keys.
+
+This is a controlled same-origin frontend boundary, not a production deployment
+or frontend migration-completion claim. The legacy API remains unchanged and
+supported until a separate migration and retirement decision.
+
 ## FUTURE / PLANNED API
 
 The following is a broader target, not implemented P5 behavior.

@@ -37,6 +37,7 @@ dist/
 .env
 .env.*
 !.env.example
+infra/p7-frontend-dev.env
 
 # === Databases & State ===
 *.sqlite3
