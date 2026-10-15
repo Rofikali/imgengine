@@ -19,7 +19,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "core/buffer.h"           /* full img_buffer_t definition — REQUIRED */
+#include "core/buffer.h" /* full img_buffer_t definition — REQUIRED */
+#include "arch/arch_interface.h"
 #include "pipeline/batch.h"        /* img_batch_t definition */
 #include "pipeline/fused_params.h" /* img_fused_params_t — brightness_value, new_w, new_h */
 #include "core/context_internal.h" /* img_ctx_t — required by kernel ABI */
