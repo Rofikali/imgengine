@@ -18,7 +18,8 @@ claim.
   - `2b213e0 fix(native): restore grayscale dispatch equivalence`
   - `f2ef76d fix(native): silence raw ABI diagnostics`
 - Review vehicle: GitHub pull request #6,
-  `codex/p7-5-grayscale-observability` into `main`.
+  `codex/p7-5-grayscale-observability` into `main`, merged normally as
+  `def28ea9972cd34efce2dea70a72271cbb758af3`.
 
 The semantic conflict resolution deliberately retains `main`'s current scalar
 and AVX2 grayscale implementation while retaining P7.5's independent,
@@ -54,12 +55,27 @@ Linux verification passed: /workspace/build-linux-verify
 
 ## Branch hygiene follow-up
 
-Remote branch deletion is intentionally deferred until PR #6 is merged and
-the post-merge audit confirms, for each candidate, that it is an ancestor of
-the resulting `main`, has no unique commits, has no open pull request, and is
-not needed by active recovery work or a local worktree. Local branches,
-worktrees, rescue evidence, and the dirty canonical checkout are out of scope
-for remote branch cleanup.
+After PR #6 merged, each candidate below was checked against the resulting
+`origin/main`: it was an ancestor, had zero unique commits, had no open pull
+request, and had no containing tag. The verified obsolete remote refs were
+then deleted. This does not delete their local branches or worktrees.
+
+| Deleted remote ref |
+| --- |
+| `chore/professional-repository-hardening` |
+| `codex/fix-cli-output-contract` |
+| `codex/fix-saas-candidate-fixtures` |
+| `codex/native-release-candidate` |
+| `codex/p7-5-grayscale-observability` |
+| `codex/p7-frontend-foundation-audit` |
+| `codex/p7-recovery-integration` |
+| `codex/rust-admission-control` |
+| `codex/rust-request-lifecycle` |
+| `codex/rust-supervisor-foundation` |
+| `codex/scheduler-characterization` |
+
+The protected rescue evidence and the dirty canonical checkout remain out of
+scope for this remote-ref cleanup.
 
 ## Status
 
