@@ -47,6 +47,11 @@ int img_api_init_boot_workers(uint32_t workers) {
         img_mpmc_destroy(&g_task_queue);
         return -1;
     }
+    if (img_scheduler_attach_external_queue(&g_scheduler, &g_task_queue) != 0) {
+        img_scheduler_destroy(&g_scheduler);
+        img_mpmc_destroy(&g_task_queue);
+        return -1;
+    }
 
     /*
      * STEP 3: Build one ctx per worker and assign to scheduler slots.
@@ -81,21 +86,23 @@ int img_api_init_boot_workers(uint32_t workers) {
      */
     for (uint32_t i = 0; i < workers; i++) {
         img_worker_t *w = &g_scheduler.workers[i];
-        w->running = 1;
+        atomic_store_explicit(&w->running, true, memory_order_release);
 
         img_pin_thread_to_core(i);
 
         if (pthread_create(&w->thread, NULL, img_worker_loop, w) != 0) {
-            w->running = 0;
+            atomic_store_explicit(&w->running, false, memory_order_release);
             /* stop already-started threads */
             for (uint32_t j = 0; j < i; j++) {
-                g_scheduler.workers[j].running = 0;
+                atomic_store_explicit(&g_scheduler.workers[j].running, false, memory_order_release);
                 pthread_join(g_scheduler.workers[j].thread, NULL);
+                g_scheduler.workers[j].thread_started = 0;
             }
             img_scheduler_destroy(&g_scheduler);
             img_mpmc_destroy(&g_task_queue);
             return -1;
         }
+        w->thread_started = 1;
     }
 
     g_engine.scheduler = &g_scheduler;

@@ -1,0 +1,50 @@
+name: imgengine-p7-dev
+
+services:
+  rust-api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.p7-frontend-dev
+    working_dir: /workspace/imgengine
+    command: ["bash", "infra/scripts/run-p7-rust-api.sh"]
+    environment:
+      IMGENGINE_API_BIND: 0.0.0.0:8000
+      IMGENGINE_API_KEYS: ${IMGENGINE_DEV_API_KEY:?set a local development key in infra/p7-frontend-dev.env}
+      IMGENGINE_WORKSPACE_ROOT: /tmp/imgengine-workspaces
+      CARGO_HOME: /usr/local/cargo
+      CARGO_TARGET_DIR: /workspace/cargo-target
+    volumes:
+      - ..:/workspace/imgengine
+      - p7-cargo-registry:/usr/local/cargo/registry
+      - p7-cargo-git:/usr/local/cargo/git
+      - p7-cargo-target:/workspace/cargo-target
+      - p7-native-build:/workspace/native-build
+    tmpfs:
+      - /tmp/imgengine-workspaces:mode=0700,size=64m
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.p7-frontend-dev
+    working_dir: /workspace/imgengine/imgengine-saas/frontend
+    command: ["bash", "../../infra/scripts/run-p7-nuxt.sh"]
+    depends_on:
+      - rust-api
+    environment:
+      IMGENGINE_API_BASE: http://rust-api:8000
+      IMGENGINE_RENDER_API_KEY: ${IMGENGINE_DEV_API_KEY:?set a local development key in infra/p7-frontend-dev.env}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ..:/workspace/imgengine
+      - p7-node-modules:/workspace/imgengine/imgengine-saas/frontend/node_modules
+
+volumes:
+  # Linux-only frontend dependencies. Source remains the bind mount above.
+  p7-node-modules:
+  # Cargo package sources and git dependencies survive container recreation.
+  p7-cargo-registry:
+  p7-cargo-git:
+  # Rust and CMake outputs are performance caches, never source or user data.
+  p7-cargo-target:
+  p7-native-build:

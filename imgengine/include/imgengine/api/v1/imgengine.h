@@ -52,6 +52,15 @@ IMGENGINE_API imgengine_status_t imgengine_engine_create(const imgengine_engine_
 IMGENGINE_API void imgengine_engine_destroy(imgengine_engine_t *engine);
 IMGENGINE_API imgengine_status_t imgengine_capability_supported(const char *identifier,
                                                                 uint32_t *out_supported);
+/*
+ * `input` is borrowed for this synchronous call. The caller retains ownership
+ * and must keep
+ * it valid until the function returns; libimgengine never frees,
+ * unmaps, retains, or modifies
+ * these compressed bytes. Returned output is
+ * owned by the caller and released with
+ * imgengine_output_release().
+ */
 IMGENGINE_API imgengine_status_t
 imgengine_process_encoded_image_to_jpeg(imgengine_engine_t *engine, const uint8_t *input,
                                         size_t input_size, imgengine_output_t *output);

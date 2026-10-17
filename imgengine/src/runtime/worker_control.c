@@ -3,10 +3,12 @@
 
 void img_worker_stop(img_worker_t *w) {
     if (w)
-        w->running = 0;
+        atomic_store_explicit(&w->running, false, memory_order_release);
 }
 
 void img_worker_join(img_worker_t *w) {
-    if (w)
+    if (w && w->thread_started) {
         pthread_join(w->thread, NULL);
+        w->thread_started = 0;
+    }
 }

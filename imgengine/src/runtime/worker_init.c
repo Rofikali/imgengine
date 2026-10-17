@@ -11,11 +11,12 @@ int img_worker_init(img_worker_t *w, uint32_t id, struct img_scheduler *schedule
         return -1;
 
     w->id = id;
-    w->running = 1;
+    atomic_store_explicit(&w->running, true, memory_order_release);
     w->scheduler = scheduler; /* set BEFORE pthread_create */
     w->ctx = ctx;             /* set BEFORE pthread_create */
 
-    w->queue = img_queue_create(10);
+    if (!w->queue)
+        w->queue = img_queue_create(10);
     if (!w->queue)
         return -1;
 
@@ -24,9 +25,11 @@ int img_worker_init(img_worker_t *w, uint32_t id, struct img_scheduler *schedule
     if (pthread_create(&w->thread, NULL, img_worker_loop, w) != 0) {
         img_queue_destroy(w->queue);
         w->queue = NULL;
-        w->running = 0;
+        atomic_store_explicit(&w->running, false, memory_order_release);
         return -1;
     }
+
+    w->thread_started = 1;
 
     return 0;
 }

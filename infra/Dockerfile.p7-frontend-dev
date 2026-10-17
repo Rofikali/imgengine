@@ -1,0 +1,33 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    CARGO_HOME=/usr/local/cargo \
+    CARGO_TARGET_DIR=/workspace/cargo-target
+
+# Node 24 matches the existing frontend Dockerfile. The remaining packages are
+# the already-established native verification dependencies plus tools used by
+# the P7 integration verifier; no runtime data service is installed.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        git \
+        gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        clang \
+        cmake \
+        file \
+        imagemagick \
+        libnuma-dev \
+        libturbojpeg0-dev \
+        liburing-dev \
+        ninja-build \
+        nodejs \
+        pkg-config \
+        rustc \
+        cargo \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace/imgengine

@@ -1,8 +1,12 @@
 # P7.0 Frontend Architecture Audit
 
-**Status:** AUDIT COMPLETE — implementation intentionally not started.
+**Status:** HISTORICAL AUDIT — its P7.2.0 active-flow recommendation is implemented and verified separately.
 
 **Base:** `main` after merged P6 request-lifecycle work.
+
+**Implementation note:** P7.2.0 implements the recommended active-flow
+migration: Nuxt now uses the verified synchronous render path. This document
+remains the historical audit of the legacy job/preset baseline.
 
 ## Executive finding
 
@@ -166,6 +170,10 @@ Do not implement as part of this frontend phase:
 
 ## Decision
 
-P7 should proceed as a **frontend foundation and contract-alignment phase**, not as a visual redesign of the legacy asynchronous job application.
+P7 proceeds as a **frontend foundation and contract-alignment phase**, not as
+a visual redesign of the legacy asynchronous job application. P7.2.0 replaces
+the active Nuxt job/preset workflow with the verified synchronous render path;
+the legacy backend remains independently supported until its own retirement
+decision.
 
 The existing backend contract is the source of truth for the first Rust-powered UI.

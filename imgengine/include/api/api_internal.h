@@ -28,6 +28,13 @@ void img_api_release_thread_ctx(void);
 img_result_t img_api_resolve_template_job(const img_engine_t *engine,
                                           img_job_template_t template_id, img_job_t *job_out);
 img_result_t img_api_prepare_decoder(img_engine_t *engine, img_prepared_decoder_t *state);
+/*
+ * `input` is borrowed only: this boundary never frees, unmaps, or retains the
+ * compressed
+ * bytes. The caller must retain them until this synchronous call
+ * returns; any queued native work
+ * receives the decoded slab-owned buffer.
+ */
 img_result_t img_api_decode_prepared(img_prepared_decoder_t *state, const uint8_t *input,
                                      size_t input_size, img_buffer_t *out_buf);
 void img_api_decoder_destroy(img_prepared_decoder_t *state);

@@ -11,6 +11,7 @@
 #define IMGENGINE_RUNTIME_WORKER_H
 
 #include <stdint.h>
+#include <stdatomic.h>
 #include <pthread.h>
 
 #include "runtime/queue_spsc.h"
@@ -28,7 +29,8 @@ typedef struct img_worker {
     struct img_ctx *ctx;
     img_render_cache_t render_cache;
 
-    volatile int running;
+    atomic_bool running;
+    int thread_started;
 
 } img_worker_t;
 
