@@ -1,19 +1,19 @@
 // ./src/plugins/plugin_grayscale.c
 
-#include "pipeline/plugin_abi.h"
-#include "core/opcodes.h"
 #include "arch/arch_interface.h"
+#include "core/opcodes.h"
+#include "pipeline/plugin_abi.h"
 
 #include <stddef.h>
 
-static void grayscale_exec(img_ctx_t *ctx, img_buffer_t *buf, void *) {
-    (void)ctx;
-
-    uint32_t n = buf->width * buf->height * buf->channels;
-    uint8_t *data = buf->data;
-
-    for (uint32_t i = 0; i < n; i++)
-        data[i] = (data[i] * 77) >> 8;
+/*
+ * A plugin may override the hardware-selected dispatch entry, but it must
+ * preserve OP_GRAYSCALE's RGB-luma contract. Keep the extension point while
+ * delegating to the canonical scalar implementation rather than applying a
+ * byte-wise transform.
+ */
+static void grayscale_exec(img_ctx_t *ctx, img_buffer_t *buf, void *params) {
+    img_arch_grayscale_scalar(ctx, buf, params);
 }
 
 static img_plugin_descriptor_t grayscale_plugin = {

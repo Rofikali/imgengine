@@ -28,18 +28,16 @@
             img_buffer_t *buf = batch->buffers[b];                                                 \
             if (__builtin_expect(!buf, 0))                                                         \
                 continue;                                                                          \
-            uint8_t *data = buf->data;                                                             \
-            uint32_t n = buf->width * buf->height * buf->channels;                                 \
-            for (uint32_t i = 0; i < n; i++) {                                                     \
-                uint8_t px = data[i];                                                              \
-                if (DO_GRAY) {                                                                     \
-                    px = (uint8_t)((px * 77u) >> 8);                                               \
+            if (DO_GRAY)                                                                           \
+                img_arch_grayscale_scalar(ctx, buf, NULL);                                         \
+            if (DO_BRIGHT) {                                                                       \
+                for (uint32_t y = 0; y < buf->height; y++) {                                       \
+                    uint8_t *row = buf->data + (size_t)y * buf->stride;                            \
+                    for (uint32_t x = 0; x < buf->width * buf->channels; x++) {                    \
+                        uint32_t tmp = (uint32_t)row[x] + p->brightness_value;                     \
+                        row[x] = (tmp > 255u) ? 255u : (uint8_t)tmp;                               \
+                    }                                                                              \
                 }                                                                                  \
-                if (DO_BRIGHT) {                                                                   \
-                    uint32_t tmp = (uint32_t)px + p->brightness_value;                             \
-                    px = (tmp > 255u) ? 255u : (uint8_t)tmp;                                       \
-                }                                                                                  \
-                data[i] = px;                                                                      \
             }                                                                                      \
             if (DO_RESIZE) {                                                                       \
                 buf->width = p->new_w;                                                             \

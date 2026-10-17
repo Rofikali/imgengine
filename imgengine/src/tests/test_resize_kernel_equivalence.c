@@ -3,12 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <poll.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include "arch/arch_interface.h"
 #include "arch/cpu_caps.h"
 #include "arch/resize_params.h"
 #include "core/context_internal.h"
+#include "core/opcodes.h"
 #include "pipeline/fused_params.h"
+#include "pipeline/jump_table.h"
+#include "pipeline/pipeline_compiled.h"
+#include "pipeline/pipeline_fuse_internal.h"
 #include "pipeline/pipeline_fuse_exec_internal.h"
+#include "pipeline/pipeline_types.h"
+#include "runtime/rpc_server_internal.h"
+#include "startup/engine_init_internal.h"
+
+void img_pipeline_execute_compiled_hot(img_ctx_t *ctx, const img_pipeline_compiled_t *pipe,
+                                       img_buffer_t *buf);
 
 static uint32_t next_value(uint32_t *state) {
     *state = *state * 1664525u + 1013904223u;
@@ -140,7 +154,213 @@ static int test_grayscale_oracle(void) {
     return 1;
 }
 
+static void dispatch_grayscale_reference(uint8_t *data, size_t size) {
+    for (size_t index = 0; index < size; index += 3u) {
+        uint8_t gray =
+            (uint8_t)((data[index] * 77u + data[index + 1u] * 150u + data[index + 2u] * 29u) >> 8u);
+        data[index] = gray;
+        data[index + 1u] = gray;
+        data[index + 2u] = gray;
+    }
+}
+
+static int write_all(int fd, const void *data, size_t size) {
+    const uint8_t *cursor = data;
+    while (size > 0u) {
+        ssize_t written = write(fd, cursor, size);
+        if (written <= 0)
+            return -1;
+        cursor += (size_t)written;
+        size -= (size_t)written;
+    }
+    return 0;
+}
+
+static int read_all(int fd, void *data, size_t size) {
+    uint8_t *cursor = data;
+    while (size > 0u) {
+        ssize_t received = read(fd, cursor, size);
+        if (received <= 0)
+            return -1;
+        cursor += (size_t)received;
+        size -= (size_t)received;
+    }
+    return 0;
+}
+
+static int test_registered_grayscale_dispatch(void) {
+    const uint8_t source[] = {255u, 0u, 0u, 0u, 255u, 0u, 0u, 0u, 255u, 7u, 19u, 251u};
+    uint8_t expected[sizeof(source)];
+    uint8_t direct[sizeof(source)];
+    uint8_t compiled_data[sizeof(source)];
+    img_buffer_t buffer = {
+        .data = direct,
+        .width = 4u,
+        .height = 1u,
+        .channels = 3u,
+        .stride = 12u,
+    };
+
+    memcpy(expected, source, sizeof(source));
+    dispatch_grayscale_reference(expected, sizeof(expected));
+
+    img_engine_init_compute(img_cpu_detect_caps());
+    img_kernel_fn hardware_grayscale = g_jump_table[OP_GRAYSCALE];
+    img_engine_init_plugins_and_io();
+    img_kernel_fn registered_grayscale = g_jump_table[OP_GRAYSCALE];
+    if (!hardware_grayscale || !registered_grayscale ||
+        hardware_grayscale == registered_grayscale) {
+        fprintf(stderr, "grayscale plugin registration did not override hardware dispatch\n");
+        return 1;
+    }
+
+    memcpy(direct, source, sizeof(source));
+    registered_grayscale(NULL, &buffer, NULL);
+    if (memcmp(direct, expected, sizeof(expected)) != 0) {
+        fprintf(stderr, "registered grayscale dispatch differs from RGB-luma oracle\n");
+        return 1;
+    }
+
+    img_pipeline_desc_t description = {0};
+    description.count = 1u;
+    description.ops[0].op_code = OP_GRAYSCALE;
+    img_pipeline_compiled_t compiled = {0};
+    if (img_pipeline_compile(&description, &compiled) != 0) {
+        fprintf(stderr, "could not compile grayscale pipeline after registration\n");
+        return 1;
+    }
+    memcpy(compiled_data, source, sizeof(source));
+    buffer.data = compiled_data;
+    img_pipeline_execute_compiled_hot(NULL, &compiled, &buffer);
+    if (memcmp(compiled_data, expected, sizeof(expected)) != 0) {
+        fprintf(stderr, "compiled grayscale pipeline differs from RGB-luma oracle\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+static int test_hardware_grayscale_dispatch(void) {
+    uint8_t actual[36];
+    uint8_t expected[sizeof(actual)];
+    img_buffer_t buffer = {
+        .data = actual,
+        .width = 12u,
+        .height = 1u,
+        .channels = 3u,
+        .stride = sizeof(actual),
+    };
+
+    for (size_t index = 0; index < sizeof(actual); index++)
+        actual[index] = (uint8_t)(index * 37u + 11u);
+    memcpy(expected, actual, sizeof(actual));
+    dispatch_grayscale_reference(expected, sizeof(expected));
+
+    img_engine_init_compute(img_cpu_detect_caps());
+    if (!g_jump_table[OP_GRAYSCALE]) {
+        fprintf(stderr, "hardware grayscale dispatch was not initialized\n");
+        return 1;
+    }
+    g_jump_table[OP_GRAYSCALE](NULL, &buffer, NULL);
+    if (memcmp(actual, expected, sizeof(actual)) != 0) {
+        fprintf(stderr, "hardware grayscale dispatch differs from RGB-luma oracle\n");
+        return 1;
+    }
+    return 0;
+}
+
+static int test_fused_grayscale_dispatch(void) {
+    const uint8_t source[] = {255u, 0u, 0u, 0u, 255u, 0u, 0u, 0u, 255u, 7u, 19u, 251u};
+    uint8_t single_data[sizeof(source)];
+    uint8_t batch_data[sizeof(source)];
+    uint8_t expected[sizeof(source)];
+    img_buffer_t single = {
+        .data = single_data, .width = 4u, .height = 1u, .channels = 3u, .stride = sizeof(source)};
+    img_buffer_t batch_buffer = single;
+    img_batch_t batch = {.buffers = {&batch_buffer}, .count = 1u};
+    img_pipeline_desc_t description = {0};
+    img_pipeline_fused_t fused = {0};
+    img_ctx_t context = {0};
+
+    description.count = 1u;
+    description.ops[0].op_code = OP_GRAYSCALE;
+    memcpy(expected, source, sizeof(source));
+    dispatch_grayscale_reference(expected, sizeof(expected));
+
+    if (img_pipeline_fuse(&description, &fused) != 0 || !fused.fn || !fused.fn_batch) {
+        fprintf(stderr, "could not build fused grayscale pipeline\n");
+        return 1;
+    }
+
+    memcpy(single_data, source, sizeof(source));
+    context.fused_params = &g_fused_params;
+    fused.fn(&context, &single);
+    if (memcmp(single_data, expected, sizeof(expected)) != 0) {
+        fprintf(stderr, "single fused grayscale differs from RGB-luma oracle\n");
+        return 1;
+    }
+
+    memcpy(batch_data, source, sizeof(source));
+    batch_buffer.data = batch_data;
+    img_pipeline_execute_fused_batch(&context, &fused, &batch);
+    if (memcmp(batch_data, expected, sizeof(expected)) != 0) {
+        fprintf(stderr, "batch fused grayscale differs from RGB-luma oracle\n");
+        return 1;
+    }
+    return 0;
+}
+
+static int test_rpc_grayscale_dispatch(void) {
+    const uint8_t source[] = {255u, 17u, 3u, 2u, 129u, 251u};
+    uint8_t expected[sizeof(source)];
+    uint8_t output[sizeof(source)];
+    int pair[2] = {-1, -1};
+    img_rpc_request_t request = {
+        .op_code = OP_GRAYSCALE,
+        .buffer =
+            {.width = 2u, .height = 1u, .channels = 3u, .stride = 6u, .data_size = sizeof(source)},
+    };
+    img_rpc_response_t response = {0};
+    img_ctx_t context = {0};
+
+    memcpy(expected, source, sizeof(source));
+    dispatch_grayscale_reference(expected, sizeof(expected));
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) != 0 ||
+        write_all(pair[0], &request, sizeof(request)) != 0 ||
+        write_all(pair[0], source, sizeof(source)) != 0 || shutdown(pair[0], SHUT_WR) != 0) {
+        fprintf(stderr, "could not set up grayscale RPC dispatch test\n");
+        if (pair[0] >= 0)
+            close(pair[0]);
+        if (pair[1] >= 0)
+            close(pair[1]);
+        return 1;
+    }
+
+    int server_result = img_rpc_server_process_client(&context, pair[1]);
+    pair[1] = -1;
+    struct pollfd ready = {.fd = pair[0], .events = POLLIN | POLLHUP};
+    if (poll(&ready, 1u, 1000) <= 0) {
+        fprintf(stderr, "RPC grayscale dispatch did not produce a response (server=%d)\n",
+                server_result);
+        close(pair[0]);
+        return 1;
+    }
+    int read_result =
+        read_all(pair[0], &response, sizeof(response)) || read_all(pair[0], output, sizeof(output));
+    close(pair[0]);
+    if (server_result != 0 || read_result != 0 || response.status != 0 ||
+        memcmp(output, expected, sizeof(expected)) != 0) {
+        fprintf(stderr, "RPC grayscale dispatch differs from RGB-luma oracle\n");
+        return 1;
+    }
+    return 0;
+}
+
 int main(void) {
+    if (test_hardware_grayscale_dispatch() != 0 || test_registered_grayscale_dispatch() != 0 ||
+        test_fused_grayscale_dispatch() != 0 || test_rpc_grayscale_dispatch() != 0)
+        return 1;
+
     if (!img_cpu_has_avx2(img_cpu_detect_caps())) {
         printf("[resize] AVX2 unavailable; kernel equivalence skipped\n");
         return 0;

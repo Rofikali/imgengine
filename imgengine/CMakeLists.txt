@@ -672,7 +672,14 @@ if(BUILD_TESTING)
     add_test(NAME layout_properties COMMAND test_layout_properties)
 endif()
 
-add_executable(test_resize_kernel_equivalence src/tests/test_resize_kernel_equivalence.c)
+# Link the built-in grayscale descriptor directly into this executable. Static
+# archives otherwise need not retain section-only plugin descriptors, whereas
+# the shared production library contains the descriptor. This lets the test
+# exercise the real registration scan and override sequence.
+add_executable(test_resize_kernel_equivalence
+    src/tests/test_resize_kernel_equivalence.c
+    src/plugins/plugin_grayscale.c
+)
 target_include_directories(test_resize_kernel_equivalence PRIVATE ${IMGENGINE_INCLUDES})
 target_compile_options(test_resize_kernel_equivalence PRIVATE ${IMGENGINE_COMMON_FLAGS})
 target_link_libraries(test_resize_kernel_equivalence PRIVATE imgengine_internal)
