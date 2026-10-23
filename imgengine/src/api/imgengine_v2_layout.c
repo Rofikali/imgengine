@@ -45,7 +45,7 @@ imgengine_status_t imgengine_layout_render_v2(imgengine_engine_t *engine,
         request->placement_count == 0 || request->expected_count != request->placement_count)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
 
-/* Enforce resource limits at the public ABI boundary before allocating
+    /* Enforce resource limits at the public ABI boundary before allocating
      * caller-controlled placement metadata or entering the native scheduler. */
     if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
