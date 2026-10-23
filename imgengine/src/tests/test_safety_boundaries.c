@@ -10,8 +10,7 @@
 #include "runtime/scheduler.h"
 #include "security/input_validator.h"
 
-img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size,
-                            img_buffer_t *out);
+img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out);
 
 static int expect_result(const char *name, img_result_t actual, img_result_t expected) {
     if (actual == expected)
@@ -61,8 +60,7 @@ static int test_stb_decode_preflight(void) {
     }
     img_ctx_t ctx = {.local_pool = pool};
     img_buffer_t output = {0};
-    const img_result_t actual =
-        img_decode_stb(&ctx, oversized_png, sizeof(oversized_png), &output);
+    const img_result_t actual = img_decode_stb(&ctx, oversized_png, sizeof(oversized_png), &output);
     img_slab_destroy(pool);
 
     if (actual != IMG_ERR_NOMEM || output.data != NULL) {
