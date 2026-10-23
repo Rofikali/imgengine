@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <imgengine/api/v1/imgengine.h>
+#include <imgengine/api/v2/layout.h>
 
 static const uint8_t k_png[] = {
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
@@ -34,6 +35,93 @@ static int process_valid_image(imgengine_engine_t *engine) {
     imgengine_output_release(&output);
     imgengine_output_release(&output);
     return output.data != NULL || output.size != 0;
+}
+
+static int layout_valid_image(imgengine_engine_t *engine) {
+    const imgengine_layout_rect_v2_t placement = {
+        .x = 1,
+        .y = 1,
+        .width = 4,
+        .height = 4,
+    };
+    const imgengine_layout_request_v2_t request = {
+        .struct_size = sizeof(request),
+        .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
+        .input = k_png,
+        .input_size = sizeof(k_png),
+        .canvas_width = 6,
+        .canvas_height = 6,
+        .background_r = 255,
+        .background_g = 255,
+        .background_b = 255,
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+    imgengine_layout_output_v2_t output = {0};
+    const imgengine_status_t status = imgengine_layout_render_v2(engine, &request, &output);
+    if (status != IMGENGINE_STATUS_OK || output.size < 2 || output.data[0] != 0xff ||
+        output.data[1] != 0xd8 || output.canvas_width != 6 || output.canvas_height != 6 ||
+        output.expected_count != 1 || output.planned_count != 1 || output.executed_count != 1) {
+        fprintf(stderr, "layout rendering failed: %s\n", imgengine_status_message(status));
+        imgengine_layout_output_release(&output);
+        return 1;
+    }
+    imgengine_layout_output_release(&output);
+    imgengine_layout_output_release(&output);
+    return output.data != NULL || output.size != 0;
+}
+
+static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
+    const imgengine_layout_rect_v2_t placement = {
+        .x = 0,
+        .y = 0,
+        .width = 1,
+        .height = 1,
+    };
+    imgengine_layout_output_v2_t output = {0};
+    imgengine_layout_request_v2_t request = {
+        .struct_size = sizeof(request),
+        .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
+        .input = k_png,
+        .input_size = sizeof(k_png),
+        .canvas_width = 4097,
+        .canvas_height = 1,
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+
+    /* Oversized dimension must be rejected before allocating or scheduling. */
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    /* Dimensions individually within bounds can still exceed the pixel budget. */
+    request.canvas_width = 2001;
+    request.canvas_height = 2000;
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    /* The quadratic overlap validator must never receive an unbounded list. */
+    imgengine_layout_rect_v2_t placements[65] = {{0}};
+    request.canvas_width = 65;
+    request.canvas_height = 1;
+    request.placements = placements;
+    request.placement_count = 65;
+    request.expected_count = 65;
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    return 0;
 }
 
 static void *run_process(void *argument) {
@@ -130,6 +218,12 @@ int main(void) {
     }
 
     if (process_valid_image(engine) != 0) {
+        imgengine_engine_destroy(engine);
+        return 1;
+    }
+
+    if (layout_valid_image(engine) != 0 || layout_resource_limits_are_enforced(engine) != 0) {
+        fprintf(stderr, "layout ABI-v2 resource-limit regression failed\n");
         imgengine_engine_destroy(engine);
         return 1;
     }

@@ -1,4 +1,6 @@
-use crate::{ProcessReport, ResultClass, Supervisor, SupervisorError, SupervisorOptions};
+use crate::{
+    LayoutPlan, ProcessReport, ResultClass, Supervisor, SupervisorError, SupervisorOptions,
+};
 use std::fmt;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, SyncSender, TrySendError};
@@ -9,7 +11,13 @@ use std::time::Duration;
 struct QueuedRequest {
     input: Vec<u8>,
     deadline: Option<Duration>,
+    operation: QueuedOperation,
     response: SyncSender<Result<ProcessReport, SupervisorError>>,
+}
+
+enum QueuedOperation {
+    EncodeJpeg,
+    Layout(LayoutPlan),
 }
 
 #[derive(Default)]
@@ -286,8 +294,41 @@ impl AdmissionController {
         let request = QueuedRequest {
             input,
             deadline,
+            operation: QueuedOperation::EncodeJpeg,
             response: response_sender,
         };
+        self.submit_queued(request, response)
+    }
+
+    /// Attempts to admit a typed native FIT-only layout request under the
+    /// existing bounded queue. It does not create another worker or scheduler.
+    pub fn submit_layout(
+        &self,
+        input: Vec<u8>,
+        plan: LayoutPlan,
+        deadline: Option<Duration>,
+    ) -> Result<AdmissionRequest, AdmissionError> {
+        if input.len() > self.max_input_bytes {
+            self.metrics
+                .rejected_resource_limit
+                .fetch_add(1, Ordering::Relaxed);
+            return Err(AdmissionError::ResourceLimit);
+        }
+        let (response_sender, response) = mpsc::sync_channel(1);
+        let request = QueuedRequest {
+            input,
+            deadline,
+            operation: QueuedOperation::Layout(plan),
+            response: response_sender,
+        };
+        self.submit_queued(request, response)
+    }
+
+    fn submit_queued(
+        &self,
+        request: QueuedRequest,
+        response: Receiver<Result<ProcessReport, SupervisorError>>,
+    ) -> Result<AdmissionRequest, AdmissionError> {
         let state = self.state.lock().map_err(|_| AdmissionError::Unavailable)?;
         let sender = state.sender.as_ref().ok_or(AdmissionError::Unavailable)?;
         let queue_depth = self.metrics.reserve_queue_slot();
@@ -368,7 +409,12 @@ fn worker_loop(
         if let Some(observer) = &execution_observer {
             observer.before_native_processing();
         }
-        let result = supervisor.process(&request.input, request.deadline);
+        let result = match request.operation {
+            QueuedOperation::EncodeJpeg => supervisor.process(&request.input, request.deadline),
+            QueuedOperation::Layout(plan) => {
+                supervisor.process_layout(&request.input, &plan, request.deadline)
+            }
+        };
         metrics.record_completion(&result);
         let _ = request.response.send(result);
     }
@@ -377,7 +423,8 @@ fn worker_loop(
 #[cfg(test)]
 mod tests {
     use super::{
-        AdmissionController, AdmissionError, AdmissionMetrics, AdmissionOptions, QueuedRequest,
+        AdmissionController, AdmissionError, AdmissionMetrics, AdmissionOptions, QueuedOperation,
+        QueuedRequest,
     };
     use crate::{ResultClass, SupervisorOptions, TEST_ENGINE_LOCK};
     use std::fs;
@@ -428,6 +475,7 @@ mod tests {
             .try_send(QueuedRequest {
                 input: vec![1],
                 deadline: None,
+                operation: QueuedOperation::EncodeJpeg,
                 response: first_response,
             })
             .expect("fill bounded queue");
@@ -435,6 +483,7 @@ mod tests {
         let second = QueuedRequest {
             input: vec![2],
             deadline: None,
+            operation: QueuedOperation::EncodeJpeg,
             response: second_response,
         };
         let error = match sender.try_send(second) {

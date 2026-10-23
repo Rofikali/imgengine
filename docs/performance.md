@@ -16,3 +16,8 @@ Every performance claim records hardware, OS/kernel, compiler, build flags, corp
 
 The Rust migration adds request-level metrics: upload bytes, decoded pixels, render duration, queue wait, end-to-end latency, output bytes, timeout count, rejection count, child exit class, and current permits. Benchmarks include normal photos, large valid images, malformed input, and concurrent load within the VPS resource envelope.
 
+The P8 constrained Docker run is a deliberately small characterization, not a
+capacity benchmark. Its request matrix, latency sample, cgroup limits, and
+measurement limitations are recorded in `P8_VPS_RESOURCE_AUDIT.md`; it must
+not be used as an SLA, production-throughput figure, or VPS-sizing result.
+

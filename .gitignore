@@ -38,6 +38,7 @@ dist/
 .env.*
 !.env.example
 infra/p7-frontend-dev.env
+p8-vps-*.json
 
 # === Databases & State ===
 *.sqlite3

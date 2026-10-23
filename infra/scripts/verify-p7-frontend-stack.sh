@@ -22,6 +22,7 @@ done
 curl --silent --show-error --fail http://127.0.0.1:3000/ >/dev/null
 
 "${compose[@]}" exec -T frontend bash /workspace/imgengine/infra/scripts/verify-p7-render-contract.sh
+"${compose[@]}" exec -T frontend bash /workspace/imgengine/infra/scripts/verify-p8-layout-contract.sh
 
 "${compose[@]}" stop rust-api
 "${compose[@]}" exec -T frontend bash -lc '

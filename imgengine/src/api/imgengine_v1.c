@@ -5,12 +5,7 @@
 
 #include "imgengine/api/v1/imgengine.h"
 
-#include "api/v1/img_api.h"
-
-struct imgengine_engine {
-    img_engine_t *native_engine;
-    pthread_mutex_t operation_lock;
-};
+#include "api/imgengine_engine_private.h"
 
 static pthread_mutex_t g_engine_scope_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool g_engine_active = false;

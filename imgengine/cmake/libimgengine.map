@@ -10,3 +10,9 @@ IMGENGINE_1.0 {
     local:
         *;
 };
+
+IMGENGINE_2.0 {
+    global:
+        imgengine_layout_render_v2;
+        imgengine_layout_output_release;
+} IMGENGINE_1.0;

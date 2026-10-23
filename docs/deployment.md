@@ -8,6 +8,12 @@ One Ubuntu VPS runs Caddy, Nuxt, and the Rust API via production Compose. Caddy 
 
 The production Compose file uses immutable image digests, named internal networks, non-root users, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, CPU/memory/pid limits, health checks, restart policies, a bounded tmpfs request workspace, and Docker secrets or root-owned host-mounted secret files. Development observability profiles, MinIO, Redis, PostgreSQL, ELK, and Jaeger are not part of this baseline.
 
+`docs/P8_VPS_RESOURCE_AUDIT.md` records a Docker Desktop constrained-container
+experiment for the P8 candidate. It is useful service-level evidence, but it
+does not validate a whole 1 GiB VPS: the measured API and frontend limits alone
+sum to 896 MiB and exclude the OS, Docker, Caddy, logs, and page cache. Do not
+derive deployment sizing or a production-ready claim from that experiment.
+
 ## Delivery and Rollback
 
 1. CI builds, tests, scans, generates an SBOM/provenance, and publishes immutable images.

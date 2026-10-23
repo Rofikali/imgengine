@@ -18,7 +18,9 @@ pub use request_lifecycle::{
     ResponseAbandonmentSignal, TransportStatus,
 };
 
-use imgengine::{Engine, EngineOptions, Error as EngineError};
+use imgengine::{
+    Engine, EngineOptions, Error as EngineError, LayoutOutput, LayoutRect, LayoutRequest,
+};
 use std::fmt;
 use std::fs;
 use std::io::{self, Read};
@@ -138,6 +140,102 @@ pub struct ProcessReport {
     pub input_size_bucket: &'static str,
     /// Coarse bucket intended for logs and metrics, not exact client metadata.
     pub output_size_bucket: &'static str,
+    /// Present only for the typed FIT-only layout operation.
+    pub layout: Option<LayoutExecution>,
+}
+
+/// Native plan accounting returned only after all placements completed.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct LayoutExecution {
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub expected_count: u32,
+    pub planned_count: u32,
+    pub executed_count: u32,
+}
+
+/// Server-generated FIT-only layout plan. Geometry is in pixels and all
+/// rectangles are non-overlapping and inside the declared canvas.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LayoutPlan {
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub placements: Vec<LayoutRect>,
+}
+
+impl LayoutPlan {
+    /// Computes deterministic row-major grid placement with checked arithmetic.
+    pub fn grid(
+        photo_width: u32,
+        photo_height: u32,
+        copies: u32,
+        columns: u32,
+        gap: u32,
+        margin: u32,
+    ) -> Result<Self, SupervisorError> {
+        if photo_width == 0 || photo_height == 0 || copies == 0 || columns == 0 {
+            return Err(SupervisorError::Engine(EngineError::InvalidArgument));
+        }
+        let rows = copies
+            .checked_add(columns - 1)
+            .and_then(|value| value.checked_div(columns))
+            .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?;
+        let horizontal_gaps = columns - 1;
+        let vertical_gaps = rows - 1;
+        let canvas_width = margin
+            .checked_mul(2)
+            .and_then(|value| value.checked_add(photo_width.checked_mul(columns)?))
+            .and_then(|value| value.checked_add(gap.checked_mul(horizontal_gaps)?))
+            .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?;
+        let canvas_height = margin
+            .checked_mul(2)
+            .and_then(|value| value.checked_add(photo_height.checked_mul(rows)?))
+            .and_then(|value| value.checked_add(gap.checked_mul(vertical_gaps)?))
+            .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?;
+        let mut placements = Vec::with_capacity(copies as usize);
+        for index in 0..copies {
+            let row = index / columns;
+            let column = index % columns;
+            let x = margin
+                .checked_add(
+                    column
+                        .checked_mul(photo_width)
+                        .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?,
+                )
+                .and_then(|value| value.checked_add(column.checked_mul(gap)?))
+                .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?;
+            let y = margin
+                .checked_add(
+                    row.checked_mul(photo_height)
+                        .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?,
+                )
+                .and_then(|value| value.checked_add(row.checked_mul(gap)?))
+                .ok_or(SupervisorError::Engine(EngineError::ResourceLimit))?;
+            placements.push(LayoutRect {
+                x,
+                y,
+                width: photo_width,
+                height: photo_height,
+            });
+        }
+        Ok(Self {
+            canvas_width,
+            canvas_height,
+            placements,
+        })
+    }
+
+    fn native_request(&self) -> Result<LayoutRequest, SupervisorError> {
+        let expected_count = u32::try_from(self.placements.len())
+            .map_err(|_| SupervisorError::Engine(EngineError::ResourceLimit))?;
+        Ok(LayoutRequest {
+            canvas_width: self.canvas_width,
+            canvas_height: self.canvas_height,
+            background: [255, 255, 255],
+            placements: self.placements.clone(),
+            expected_count,
+        })
+    }
 }
 
 impl ProcessReport {
@@ -222,6 +320,51 @@ impl Supervisor {
             output_size_bucket: size_bucket(output.len()),
             output,
             duration,
+            layout: None,
+        })
+    }
+
+    /// Runs the typed native FIT-only layout operation in an isolated workspace.
+    pub fn process_layout(
+        &mut self,
+        input: &[u8],
+        plan: &LayoutPlan,
+        deadline: Option<Duration>,
+    ) -> Result<ProcessReport, SupervisorError> {
+        if matches!(deadline, Some(limit) if limit.is_zero()) {
+            return Err(SupervisorError::DeadlineExceeded);
+        }
+        let started = Instant::now();
+        let mut workspace = self
+            .workspace_root
+            .create_request_workspace()
+            .map_err(SupervisorError::Workspace)?;
+        let request = plan.native_request()?;
+        let output = self
+            .engine
+            .render_layout_jpeg(input, &request)
+            .map_err(SupervisorError::Engine);
+        let duration = started.elapsed();
+        let cleanup = workspace.close();
+        if let Err(error) = cleanup {
+            return Err(SupervisorError::Workspace(error));
+        }
+        if matches!(deadline, Some(limit) if duration > limit) {
+            return Err(SupervisorError::DeadlineExceeded);
+        }
+        let output: LayoutOutput = output?;
+        Ok(ProcessReport {
+            input_size_bucket: size_bucket(input.len()),
+            output_size_bucket: size_bucket(output.jpeg.len()),
+            output: output.jpeg,
+            duration,
+            layout: Some(LayoutExecution {
+                canvas_width: output.canvas_width,
+                canvas_height: output.canvas_height,
+                expected_count: output.expected_count,
+                planned_count: output.planned_count,
+                executed_count: output.executed_count,
+            }),
         })
     }
 }
@@ -350,7 +493,9 @@ pub(crate) fn size_bucket(size: usize) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{size_bucket, ResultClass, Supervisor, SupervisorOptions, WorkspaceRoot};
+    use super::{
+        size_bucket, LayoutPlan, ResultClass, Supervisor, SupervisorOptions, WorkspaceRoot,
+    };
     use std::fs;
     use std::path::PathBuf;
     use std::thread;
@@ -441,6 +586,22 @@ mod tests {
         let report = supervisor.process(PNG, None).expect("encode PNG");
         assert_eq!(&report.output[..2], &[0xff, 0xd8]);
         assert_eq!(report.event().result, ResultClass::Success);
+        let plan = LayoutPlan::grid(12, 8, 2, 2, 2, 1).expect("checked layout plan");
+        assert_eq!((plan.canvas_width, plan.canvas_height), (28, 10));
+        let layout = supervisor
+            .process_layout(PNG, &plan, None)
+            .expect("render native layout");
+        assert_eq!(&layout.output[..2], &[0xff, 0xd8]);
+        assert_eq!(
+            layout.layout.expect("layout accounting"),
+            super::LayoutExecution {
+                canvas_width: 28,
+                canvas_height: 10,
+                expected_count: 2,
+                planned_count: 2,
+                executed_count: 2,
+            }
+        );
         assert!(fs::read_dir(&root)
             .expect("list workspace root")
             .next()

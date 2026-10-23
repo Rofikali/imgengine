@@ -5,5 +5,7 @@
   {"symbol":"imgengine_engine_destroy","abi":"IMGENGINE_1.0"},
   {"symbol":"imgengine_capability_supported","abi":"IMGENGINE_1.0"},
   {"symbol":"imgengine_process_encoded_image_to_jpeg","abi":"IMGENGINE_1.0"},
-  {"symbol":"imgengine_output_release","abi":"IMGENGINE_1.0"}
+  {"symbol":"imgengine_output_release","abi":"IMGENGINE_1.0"},
+  {"symbol":"imgengine_layout_render_v2","abi":"IMGENGINE_2.0"},
+  {"symbol":"imgengine_layout_output_release","abi":"IMGENGINE_2.0"}
 ]

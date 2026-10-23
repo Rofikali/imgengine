@@ -1,0 +1,97 @@
+# Standalone, production-style resource simulation for P8. It is intentionally
+# separate from the bind-mounted P7 development stack and from the authoritative
+# Ubuntu native verifier.
+name: imgengine-p8-vps-sim
+
+services:
+  rust-api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.p8-vps-runtime
+      target: runtime
+    image: imgengine-p8-vps-runtime:local
+    environment:
+      IMGENGINE_API_BIND: 0.0.0.0:8000
+      IMGENGINE_API_KEYS: ${IMGENGINE_VPS_SIM_API_KEY:?set only by the simulation harness}
+      IMGENGINE_WORKSPACE_ROOT: /tmp/imgengine-workspaces
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 640m
+    memswap_limit: 640m
+    cpus: "1.0"
+    pids_limit: 128
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+    tmpfs:
+      - /tmp/imgengine-workspaces:rw,nosuid,nodev,noexec,mode=0700,uid=10001,gid=10001,size=48m
+    stop_grace_period: 30s
+    healthcheck:
+      # No health route exists yet. This reaches the live Axum router without
+      # authentication and is intentionally documented as a reachability check.
+      test: ["CMD-SHELL", "test \"$$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/v1/render)\" = 405"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.p8-vps-runtime
+      target: frontend-runtime
+    image: imgengine-p8-vps-frontend:local
+    depends_on:
+      rust-api:
+        condition: service_healthy
+    environment:
+      IMGENGINE_API_BASE: http://rust-api:8000
+      IMGENGINE_RENDER_API_KEY: ${IMGENGINE_VPS_SIM_API_KEY:?set only by the simulation harness}
+      # Nuxt applies NUXT_* runtime-config overrides when the production server
+      # starts; the IMGENGINE_* names remain for the existing development path.
+      NUXT_IMGENGINE_API_BASE: http://rust-api:8000
+      NUXT_IMGENGINE_RENDER_API_KEY: ${IMGENGINE_VPS_SIM_API_KEY:?set only by the simulation harness}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.50"
+    pids_limit: 128
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=16m
+    ports:
+      - "127.0.0.1:3000:3000"
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/ >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  workload:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.p8-vps-runtime
+      target: workload
+    image: imgengine-p8-vps-workload:local
+    profiles: [workload]
+    environment:
+      P8_LAYOUT_URL: http://frontend:3000/api/layout-render
+    depends_on:
+      frontend:
+        condition: service_healthy
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.25"
+    pids_limit: 64
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=24m

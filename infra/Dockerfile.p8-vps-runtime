@@ -1,0 +1,50 @@
+# Build artifacts outside the constrained runtime containers. The runtime image
+# contains no source tree, compiler, Cargo cache, npm cache, bind mount, or key.
+# The existing P7 Ubuntu 24.04 development image supplies the already verified
+# native/Rust/Node toolchain. Reusing it makes a source/build measurement
+# independent of an intermittent package-mirror transfer; it is a build base,
+# not the runtime configuration under test.
+FROM imgengine-p7-dev-rust-api:latest AS build-base
+WORKDIR /src
+COPY . .
+
+FROM build-base AS native-build
+RUN cmake -S imgengine -B /build/native -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release -DIMGENGINE_BENCH=OFF -DIMGENGINE_LTO=OFF \
+    && cmake --build /build/native --target imgengine --parallel "$(nproc)"
+
+FROM native-build AS rust-build
+COPY .docker/.cargo/registry /usr/local/cargo/registry
+RUN CARGO_NET_OFFLINE=true LD_LIBRARY_PATH=/build/native RUSTFLAGS='-L native=/build/native' \
+    cargo build --release --manifest-path imgengine/rust/imgengine-api/Cargo.toml \
+      --bin imgengine-api-server
+
+FROM build-base AS frontend-build
+WORKDIR /src/imgengine-saas/frontend
+# Optional native packages must be installed in Linux. Host node_modules may
+# contain Windows bindings and is deliberately excluded from the build context.
+RUN npm ci && npm run build
+
+FROM imgengine-p7-dev-rust-api:latest AS runtime
+ENV LD_LIBRARY_PATH=/usr/local/lib
+RUN groupadd --gid 10001 imgengine \
+    && useradd --uid 10001 --gid imgengine --no-create-home --shell /usr/sbin/nologin imgengine
+COPY --from=native-build /build/native/libimgengine.so.1.0.0 /usr/local/lib/
+COPY --from=native-build /build/native/libimgengine.so.1 /usr/local/lib/
+COPY --from=native-build /build/native/libimgengine.so /usr/local/lib/
+COPY --from=rust-build /workspace/cargo-target/release/imgengine-api-server /usr/local/bin/
+RUN ldconfig
+USER 10001:10001
+EXPOSE 8000
+ENTRYPOINT ["/usr/local/bin/imgengine-api-server"]
+
+FROM runtime AS frontend-runtime
+COPY --from=frontend-build /src/imgengine-saas/frontend/.output /opt/imgengine/frontend/.output
+EXPOSE 3000
+ENTRYPOINT ["node", "/opt/imgengine/frontend/.output/server/index.mjs"]
+
+FROM imgengine-p7-dev-rust-api:latest AS workload
+COPY infra/scripts/run-p8-vps-workload.sh /usr/local/bin/run-p8-vps-workload
+COPY imgengine/tests/fixtures/cc0_camera_landscape.jpg /opt/imgengine-fixtures/cc0_camera_landscape.jpg
+RUN chmod 0555 /usr/local/bin/run-p8-vps-workload
+ENTRYPOINT ["/usr/local/bin/run-p8-vps-workload"]

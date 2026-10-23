@@ -39,4 +39,29 @@ describe('useImgengineApi', () => {
     await expect(useImgengineApi().render(new File(['image'], 'source.jpg', { type: 'image/jpeg' })))
       .rejects.toMatchObject({ detail: { kind: 'overloaded', status: 429 } })
   })
+
+  it('sends only the declared FIT-only layout fields and accepts native accounting', async () => {
+    const raw = vi.fn().mockResolvedValue({
+      status: 200,
+      _data: new Blob(['completed-jpeg'], { type: 'image/jpeg' }),
+      headers: new Headers({
+        'x-request-id': 'request-layout-123',
+        'x-imgengine-canvas-width': '28',
+        'x-imgengine-canvas-height': '10',
+        'x-imgengine-expected-count': '2',
+        'x-imgengine-planned-count': '2',
+        'x-imgengine-executed-count': '2',
+      }),
+    })
+    vi.stubGlobal('$fetch', { raw })
+
+    const result = await useImgengineApi().renderLayout(
+      new File(['image'], 'source.png', { type: 'image/png' }),
+      { width: '12', height: '8', unit: 'px', copies: '2', columns: '2', gap: '2', margin: '1', outputFormat: 'jpeg' },
+    )
+
+    expect(result).toMatchObject({ canvasWidth: 28, canvasHeight: 10, executedCount: 2 })
+    const fields = [...raw.mock.calls[0][1].body.entries()].map(([field]: [string]) => field)
+    expect(fields).toEqual(['file', 'width', 'height', 'unit', 'copies', 'columns', 'gap', 'margin', 'output_format'])
+  })
 })

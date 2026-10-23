@@ -1,6 +1,6 @@
 use crate::{
     size_bucket, AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionRequest,
-    ProcessReport, ResultClass,
+    LayoutExecution, LayoutPlan, ProcessReport, ResultClass,
 };
 use std::fmt;
 use std::fs;
@@ -232,6 +232,8 @@ pub struct ApplicationResponse {
     pub content_type: &'static str,
     pub body: Vec<u8>,
     pub event: RequestEvent,
+    /// Present only for completed typed layout rendering.
+    pub layout: Option<LayoutExecution>,
 }
 
 /// Redacted lifecycle counters that never contain request contents or client
@@ -346,6 +348,38 @@ impl RequestLifecycleService {
         let admission = self
             .admission
             .submit(request.body, self.policy.execution_timeout)
+            .map_err(|error| {
+                self.failure(
+                    request_id.clone(),
+                    RequestState::Rejected,
+                    Some(content_type),
+                    Some(input_size_bucket),
+                    ApplicationError::from_admission(error),
+                )
+            })?;
+        Ok(AdmittedRequest {
+            request_id,
+            content_type,
+            input_size_bucket,
+            admission: Some(admission),
+            metrics: Arc::clone(&self.metrics),
+            response_abandonment_observer: self.response_abandonment_observer.clone(),
+        })
+    }
+
+    /// Validates and transfers an owned image plus a server-generated layout
+    /// plan into the existing bounded admission queue.
+    pub fn admit_layout(
+        &self,
+        request: IncomingRequest,
+        plan: LayoutPlan,
+    ) -> Result<AdmittedRequest, ApplicationFailure> {
+        let request_id = self.request_id_or_unavailable()?;
+        let content_type = self.validate(&request, &request_id)?;
+        let input_size_bucket = size_bucket(request.body.len());
+        let admission = self
+            .admission
+            .submit_layout(request.body, plan, self.policy.execution_timeout)
             .map_err(|error| {
                 self.failure(
                     request_id.clone(),
@@ -523,6 +557,7 @@ impl AdmittedRequest {
             request_id: self.request_id.clone(),
             content_type: "image/jpeg",
             body: report.output,
+            layout: report.layout,
             event: RequestEvent {
                 request_id: self.request_id.clone(),
                 state: RequestState::Completed,
