@@ -1,10 +1,12 @@
 # IMGENGINE API Contract: Rust Target
 
 **Status:** P5 is implemented and verified in the Ubuntu 24.04 Docker gate.
+P8 adds a narrow, capability-backed FIT-only layout endpoint; its full
+Ubuntu-authoritative release evidence is required before a production claim.
 The broader `v1` target remains planned. The current `/api/generate`
 asynchronous contract remains supported until its announced retirement.
 
-## CURRENT P5 IMPLEMENTATION
+## CURRENT P5/P6 IMPLEMENTATION
 
 The only implemented P5 endpoint is `POST /api/v1/render`:
 
@@ -45,13 +47,49 @@ This is a controlled same-origin frontend boundary, not a production deployment
 or frontend migration-completion claim. The legacy API remains unchanged and
 supported until a separate migration and retirement decision.
 
+## CURRENT P8 FIT-ONLY LAYOUT CAPABILITY
+
+`POST /api/v1/layout-render` is an additive synchronous endpoint. It uses the
+same authentication, request lifecycle, bounded Rust admission, retained C
+scheduler, workspace cleanup, and JPEG response model as `/api/v1/render`.
+It accepts `multipart/form-data` with exactly these fields:
+
+- `file`: JPEG or PNG;
+- `width`, `height`, `gap`, and `margin`, in `unit` `px` or `mm`;
+- `dpi` only when `unit=mm` (decimal millimetres are converted using checked
+  half-up rounding);
+- `copies`, optional `columns` (one when omitted); and
+- `output_format=jpeg`.
+
+The implemented operation creates a custom white-background canvas, places the
+requested number of non-overlapping cells in deterministic row-major order,
+and renders every cell with **FIT** semantics only. The completed response is
+`image/jpeg`, has an attachment filename, and includes the native-confirmed
+canvas width/height and expected/planned/executed placement counts in
+`X-Imgengine-*` headers. The same-origin Nuxt route is
+`POST /api/layout-render`; it keeps `X-API-Key` in private server runtime
+configuration and forwards only the declared fields.
+
+P8 uses the current provisional 1 MiB input body limit, queue capacity 1, and
+10-second execution deadline. Its defensive integration limits are at most 64
+copies, 64 columns, a 4096-pixel canvas edge, and 4,000,000 canvas pixels.
+They are not production-capacity claims; output-size and workspace-byte limits
+remain unimplemented.
+
+The following are expressly **not** implemented by this endpoint: Fill/crop,
+presets, templates, paper sizes, PDF or PNG output, transparency/background
+selection, persistent jobs/output URLs, rate limiting, idempotency, and native
+mid-operation cancellation. Invalid fields map safely to `400`; unsupported
+image input remains `415`; malformed image data is `422`; layout/body resource
+limits are `413`; queue overload is `429`; and expiry is `504`.
+
 ## FUTURE / PLANNED API
 
 The following is a broader target, not implemented P5 behavior.
 
 | Endpoint | Behavior |
 | --- | --- |
-| `POST /api/v1/render` | Future capability-backed expansion may add layout fields, PDF, and producer-to-client streaming only after separate design and verification. |
+| `POST /api/v1/render` | Future capability-backed expansion may add PDF and producer-to-client streaming only after separate design and verification. |
 | `GET /healthz` | Planned liveness endpoint. |
 | `GET /readyz` | Planned readiness endpoint. |
 | `GET /metrics` | Planned private/authenticated metrics endpoint. |

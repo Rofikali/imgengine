@@ -27,7 +27,7 @@ def get_exported(libpath):
             continue
         # symbol name is typically last column
         name = parts[-1].split('@@', 1)[0]
-        if name == 'IMGENGINE_1.0':
+        if name.startswith('IMGENGINE_'):
             continue
         syms.add(name)
     return syms

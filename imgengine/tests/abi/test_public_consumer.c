@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <imgengine/api/v1/imgengine.h>
+#include <imgengine/api/v2/layout.h>
 
 static const uint8_t k_png[] = {
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
@@ -33,6 +34,41 @@ static int process_valid_image(imgengine_engine_t *engine) {
     }
     imgengine_output_release(&output);
     imgengine_output_release(&output);
+    return output.data != NULL || output.size != 0;
+}
+
+static int layout_valid_image(imgengine_engine_t *engine) {
+    const imgengine_layout_rect_v2_t placement = {
+        .x = 1,
+        .y = 1,
+        .width = 4,
+        .height = 4,
+    };
+    const imgengine_layout_request_v2_t request = {
+        .struct_size = sizeof(request),
+        .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
+        .input = k_png,
+        .input_size = sizeof(k_png),
+        .canvas_width = 6,
+        .canvas_height = 6,
+        .background_r = 255,
+        .background_g = 255,
+        .background_b = 255,
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+    imgengine_layout_output_v2_t output = {0};
+    const imgengine_status_t status = imgengine_layout_render_v2(engine, &request, &output);
+    if (status != IMGENGINE_STATUS_OK || output.size < 2 || output.data[0] != 0xff ||
+        output.data[1] != 0xd8 || output.canvas_width != 6 || output.canvas_height != 6 ||
+        output.expected_count != 1 || output.planned_count != 1 || output.executed_count != 1) {
+        fprintf(stderr, "layout rendering failed: %s\n", imgengine_status_message(status));
+        imgengine_layout_output_release(&output);
+        return 1;
+    }
+    imgengine_layout_output_release(&output);
+    imgengine_layout_output_release(&output);
     return output.data != NULL || output.size != 0;
 }
 
@@ -130,6 +166,11 @@ int main(void) {
     }
 
     if (process_valid_image(engine) != 0) {
+        imgengine_engine_destroy(engine);
+        return 1;
+    }
+
+    if (layout_valid_image(engine) != 0) {
         imgengine_engine_destroy(engine);
         return 1;
     }

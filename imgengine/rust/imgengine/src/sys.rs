@@ -16,6 +16,56 @@ pub struct Output {
     pub size: usize,
 }
 
+#[repr(C)]
+pub struct LayoutRectV2 {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
+}
+
+#[repr(C)]
+pub struct LayoutRequestV2 {
+    pub struct_size: u32,
+    pub version: u32,
+    pub input: *const u8,
+    pub input_size: usize,
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub background_r: u8,
+    pub background_g: u8,
+    pub background_b: u8,
+    pub reserved0: u8,
+    pub placements: *const LayoutRectV2,
+    pub placement_count: u32,
+    pub expected_count: u32,
+}
+
+#[repr(C)]
+pub struct LayoutOutputV2 {
+    pub data: *mut u8,
+    pub size: usize,
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub expected_count: u32,
+    pub planned_count: u32,
+    pub executed_count: u32,
+}
+
+impl Default for LayoutOutputV2 {
+    fn default() -> Self {
+        Self {
+            data: std::ptr::null_mut(),
+            size: 0,
+            canvas_width: 0,
+            canvas_height: 0,
+            expected_count: 0,
+            planned_count: 0,
+            executed_count: 0,
+        }
+    }
+}
+
 impl Default for Output {
     fn default() -> Self {
         Self {
@@ -46,6 +96,12 @@ extern "C" {
         output: *mut Output,
     ) -> u32;
     pub fn imgengine_output_release(output: *mut Output);
+    pub fn imgengine_layout_render_v2(
+        engine: *mut Engine,
+        request: *const LayoutRequestV2,
+        output: *mut LayoutOutputV2,
+    ) -> u32;
+    pub fn imgengine_layout_output_release(output: *mut LayoutOutputV2);
 }
 
 pub fn abi_version() -> u32 {
@@ -87,4 +143,23 @@ pub fn output_copy(output: &Output) -> Option<Vec<u8>> {
 
 pub fn output_release(output: &mut Output) {
     unsafe { imgengine_output_release(output) };
+}
+
+pub fn layout_render_v2(
+    engine: *mut Engine,
+    request: &LayoutRequestV2,
+    output: &mut LayoutOutputV2,
+) -> u32 {
+    unsafe { imgengine_layout_render_v2(engine, request, output) }
+}
+
+pub fn layout_output_copy(output: &LayoutOutputV2) -> Option<Vec<u8>> {
+    if output.data.is_null() || output.size == 0 {
+        return None;
+    }
+    Some(unsafe { std::slice::from_raw_parts(output.data, output.size) }.to_vec())
+}
+
+pub fn layout_output_release(output: &mut LayoutOutputV2) {
+    unsafe { imgengine_layout_output_release(output) };
 }

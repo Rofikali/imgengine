@@ -13,7 +13,7 @@ use axum::routing::post;
 use axum::{Json, Router};
 use imgengine_supervisor::{
     AdmissionController, AdmissionExecutionObserver, AdmissionMetricsSnapshot, AdmissionOptions,
-    AdmittedWaitOutcome, ApplicationError, ApplicationFailure, IncomingRequest,
+    AdmittedWaitOutcome, ApplicationError, ApplicationFailure, IncomingRequest, LayoutPlan,
     LifecycleMetricsSnapshot, RequestLifecycleService, RequestPolicy, ResponseAbandonmentObserver,
     ResponseAbandonmentSignal, SupervisorOptions,
 };
@@ -32,6 +32,10 @@ pub const DEFAULT_MAX_REQUEST_BYTES: usize = 1_048_576;
 pub const DEFAULT_EXECUTION_TIMEOUT: Duration = Duration::from_secs(10);
 /// Environment variable holding active server-side API keys.
 pub const API_KEYS_ENV: &str = "IMGENGINE_API_KEYS";
+const LAYOUT_MAX_COPIES: u32 = 64;
+const LAYOUT_MAX_COLUMNS: u32 = 64;
+const LAYOUT_MAX_DIMENSION: u32 = 4096;
+const LAYOUT_MAX_PIXELS: u64 = 4_000_000;
 
 static TRANSPORT_REQUEST_SEQUENCE: AtomicU64 = AtomicU64::new(1);
 
@@ -174,6 +178,15 @@ impl ApiState {
     ) -> Option<Result<imgengine_supervisor::AdmittedRequest, ApplicationFailure>> {
         self.runtime
             .admit_if_running(|| self.lifecycle.admit(request))
+    }
+
+    fn admit_layout_if_running(
+        &self,
+        request: IncomingRequest,
+        plan: LayoutPlan,
+    ) -> Option<Result<imgengine_supervisor::AdmittedRequest, ApplicationFailure>> {
+        self.runtime
+            .admit_if_running(|| self.lifecycle.admit_layout(request, plan))
     }
 }
 
@@ -358,14 +371,352 @@ impl ApiServer {
     }
 }
 
-/// Builds only the P5 route. Legacy routes are deliberately absent.
+/// Builds the verified render route and the additive FIT-only layout route.
+/// Legacy routes remain deliberately absent.
 pub fn router(state: ApiState) -> Router {
     Router::new()
         .route("/api/v1/render", post(render))
+        .route("/api/v1/layout-render", post(layout_render))
         .layer(axum::extract::DefaultBodyLimit::max(
             state.max_request_bytes,
         ))
         .with_state(state)
+}
+
+async fn layout_render(State(state): State<ApiState>, request: Request) -> Response {
+    let fallback_request_id = next_transport_request_id();
+    if !authorized(request.headers(), &state.api_keys) {
+        return problem(
+            StatusCode::UNAUTHORIZED,
+            "authentication_failed",
+            "Authentication failed",
+            fallback_request_id,
+        );
+    }
+    if !state.is_accepting() {
+        return unavailable_problem(fallback_request_id);
+    }
+    let mut multipart = match Multipart::from_request(request, &state).await {
+        Ok(multipart) => multipart,
+        Err(rejection) => {
+            return multipart_rejection_problem(
+                rejection.into_response().status(),
+                fallback_request_id,
+            )
+        }
+    };
+    let mut file = None;
+    let mut values = std::collections::BTreeMap::new();
+    loop {
+        let field = match multipart.next_field().await {
+            Ok(Some(field)) => field,
+            Ok(None) => break,
+            Err(error) => return multipart_problem(error, fallback_request_id),
+        };
+        let Some(name) = field.name().map(str::to_owned) else {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Invalid multipart request",
+                fallback_request_id,
+            );
+        };
+        if name == "file" {
+            if file.is_some() {
+                return problem(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_request",
+                    "Expected one image file",
+                    fallback_request_id,
+                );
+            }
+            let content_type = field.content_type().map(ToString::to_string);
+            let bytes = match field.bytes().await {
+                Ok(bytes) => bytes,
+                Err(error) => return multipart_problem(error, fallback_request_id),
+            };
+            file = Some((content_type, bytes.to_vec()));
+        } else if matches!(
+            name.as_str(),
+            "width"
+                | "height"
+                | "unit"
+                | "dpi"
+                | "copies"
+                | "columns"
+                | "gap"
+                | "margin"
+                | "output_format"
+        ) {
+            if values.contains_key(&name) {
+                return problem(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_request",
+                    "Duplicate layout field",
+                    fallback_request_id,
+                );
+            }
+            let value = match field.text().await {
+                Ok(value) if value.len() <= 64 => value,
+                _ => {
+                    return problem(
+                        StatusCode::BAD_REQUEST,
+                        "invalid_request",
+                        "Invalid layout field",
+                        fallback_request_id,
+                    )
+                }
+            };
+            values.insert(name, value);
+        } else {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Unsupported layout field",
+                fallback_request_id,
+            );
+        }
+    }
+    let Some((content_type, body)) = file else {
+        return problem(
+            StatusCode::BAD_REQUEST,
+            "invalid_request",
+            "Expected one image file",
+            fallback_request_id,
+        );
+    };
+    let plan = match parse_layout_plan(&values) {
+        Ok(plan) => plan,
+        Err(LayoutInputError::ResourceLimit) => {
+            return problem(
+                StatusCode::PAYLOAD_TOO_LARGE,
+                "resource_limit",
+                "Layout exceeds the provisional limit",
+                fallback_request_id,
+            )
+        }
+        Err(LayoutInputError::Invalid) => {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Invalid layout request",
+                fallback_request_id,
+            )
+        }
+    };
+    let accepted =
+        match state.admit_layout_if_running(IncomingRequest::new(content_type, body), plan) {
+            Some(Ok(accepted)) => accepted,
+            Some(Err(failure)) => return lifecycle_problem(failure),
+            None => return unavailable_problem(fallback_request_id),
+        };
+    let abandonment_signal = ResponseAbandonmentSignal::new();
+    let mut abandonment_guard = TransportAbandonmentGuard::new(abandonment_signal.clone());
+    let result =
+        match tokio::task::spawn_blocking(move || accepted.wait_or_abandon(&abandonment_signal))
+            .await
+        {
+            Ok(result) => result,
+            Err(_) => {
+                return problem(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "internal",
+                    "Internal processing failure",
+                    fallback_request_id,
+                )
+            }
+        };
+    match result {
+        AdmittedWaitOutcome::Completed(Ok(response)) => {
+            abandonment_guard.disarm();
+            let layout = response_layout_headers(&response);
+            let length = response.body.len();
+            let mut http_response = Response::new(Body::from(response.body));
+            *http_response.status_mut() = StatusCode::OK;
+            let headers = http_response.headers_mut();
+            headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("image/jpeg"));
+            headers.insert(
+                header::CONTENT_LENGTH,
+                HeaderValue::from_str(&length.to_string()).expect("decimal content length"),
+            );
+            headers.insert(
+                header::CONTENT_DISPOSITION,
+                HeaderValue::from_static("attachment; filename=imgengine-layout.jpg"),
+            );
+            headers.insert(
+                "x-request-id",
+                HeaderValue::from_str(response.request_id.as_str())
+                    .expect("lifecycle request IDs are header-safe"),
+            );
+            for (name, value) in layout {
+                headers.insert(
+                    name,
+                    HeaderValue::from_str(&value).expect("layout accounting is decimal"),
+                );
+            }
+            http_response
+        }
+        AdmittedWaitOutcome::Completed(Err(failure)) => {
+            abandonment_guard.disarm();
+            lifecycle_problem(failure)
+        }
+        AdmittedWaitOutcome::ResponseAbandoned(_) => problem(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "internal",
+            "Internal processing failure",
+            fallback_request_id,
+        ),
+    }
+}
+
+fn multipart_rejection_problem(status: StatusCode, request_id: String) -> Response {
+    if status == StatusCode::PAYLOAD_TOO_LARGE {
+        problem(
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "resource_limit",
+            "Request exceeds the configured limit",
+            request_id,
+        )
+    } else {
+        problem(
+            StatusCode::BAD_REQUEST,
+            "invalid_request",
+            "Invalid multipart request",
+            request_id,
+        )
+    }
+}
+
+fn response_layout_headers(
+    response: &imgengine_supervisor::ApplicationResponse,
+) -> Vec<(axum::http::header::HeaderName, String)> {
+    let Some(layout) = response.layout else {
+        return Vec::new();
+    };
+    [
+        ("x-imgengine-canvas-width", layout.canvas_width),
+        ("x-imgengine-canvas-height", layout.canvas_height),
+        ("x-imgengine-expected-count", layout.expected_count),
+        ("x-imgengine-planned-count", layout.planned_count),
+        ("x-imgengine-executed-count", layout.executed_count),
+    ]
+    .into_iter()
+    .map(|(name, value)| {
+        (
+            axum::http::header::HeaderName::from_static(name),
+            value.to_string(),
+        )
+    })
+    .collect()
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum LayoutInputError {
+    Invalid,
+    ResourceLimit,
+}
+
+fn parse_layout_plan(
+    values: &std::collections::BTreeMap<String, String>,
+) -> Result<LayoutPlan, LayoutInputError> {
+    let required = |name: &str| {
+        values
+            .get(name)
+            .map(String::as_str)
+            .ok_or(LayoutInputError::Invalid)
+    };
+    let unit = required("unit")?;
+    let dpi = match unit {
+        "px" => None,
+        "mm" => Some(parse_u32(required("dpi")?)?),
+        _ => return Err(LayoutInputError::Invalid),
+    };
+    let convert = |name: &str| -> Result<u32, LayoutInputError> {
+        let value = required(name)?;
+        match dpi {
+            None => parse_u32(value),
+            Some(dpi) => millimetres_to_pixels(value, dpi),
+        }
+    };
+    let width = convert("width")?;
+    let height = convert("height")?;
+    let gap = convert("gap")?;
+    let margin = convert("margin")?;
+    let copies = parse_u32(required("copies")?)?;
+    let columns = values
+        .get("columns")
+        .map(String::as_str)
+        .map(parse_u32)
+        .transpose()?
+        .unwrap_or(1);
+    if required("output_format")? != "jpeg"
+        || width == 0
+        || height == 0
+        || copies == 0
+        || columns == 0
+    {
+        return Err(LayoutInputError::Invalid);
+    }
+    if width > LAYOUT_MAX_DIMENSION
+        || height > LAYOUT_MAX_DIMENSION
+        || copies > LAYOUT_MAX_COPIES
+        || columns > LAYOUT_MAX_COLUMNS
+    {
+        return Err(LayoutInputError::ResourceLimit);
+    }
+    let plan = LayoutPlan::grid(width, height, copies, columns, gap, margin)
+        .map_err(|_| LayoutInputError::ResourceLimit)?;
+    if plan.canvas_width > LAYOUT_MAX_DIMENSION
+        || plan.canvas_height > LAYOUT_MAX_DIMENSION
+        || u64::from(plan.canvas_width) * u64::from(plan.canvas_height) > LAYOUT_MAX_PIXELS
+    {
+        return Err(LayoutInputError::ResourceLimit);
+    }
+    Ok(plan)
+}
+
+fn parse_u32(value: &str) -> Result<u32, LayoutInputError> {
+    if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err(LayoutInputError::Invalid);
+    }
+    value.parse().map_err(|_| LayoutInputError::ResourceLimit)
+}
+
+fn millimetres_to_pixels(value: &str, dpi: u32) -> Result<u32, LayoutInputError> {
+    if dpi == 0 {
+        return Err(LayoutInputError::Invalid);
+    }
+    let (whole, fraction) = value.split_once('.').unwrap_or((value, ""));
+    if whole.is_empty()
+        || !whole.bytes().all(|byte| byte.is_ascii_digit())
+        || fraction.len() > 3
+        || !fraction.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        return Err(LayoutInputError::Invalid);
+    }
+    let whole: u64 = whole.parse().map_err(|_| LayoutInputError::ResourceLimit)?;
+    let fraction_digits = fraction.len();
+    let fraction: u64 = if fraction.is_empty() {
+        0
+    } else {
+        fraction.parse().map_err(|_| LayoutInputError::Invalid)?
+    };
+    let scale = match fraction_digits {
+        0 => 1_000_000,
+        1 => 100_000,
+        2 => 10_000,
+        3 => 1_000,
+        _ => unreachable!(),
+    };
+    let micrometres = whole
+        .checked_mul(1_000_000)
+        .and_then(|value| value.checked_add(fraction.checked_mul(scale)?))
+        .ok_or(LayoutInputError::ResourceLimit)?;
+    let numerator = micrometres
+        .checked_mul(u64::from(dpi))
+        .and_then(|value| value.checked_add(12_700_000))
+        .ok_or(LayoutInputError::ResourceLimit)?;
+    u32::try_from(numerator / 25_400_000).map_err(|_| LayoutInputError::ResourceLimit)
 }
 
 async fn render(State(state): State<ApiState>, request: Request) -> Response {
@@ -852,10 +1203,14 @@ mod tests {
     }
 
     fn request(parts: &[(&str, &str, &[u8])], key: Option<&str>) -> Request<Body> {
+        request_to("/api/v1/render", parts, key)
+    }
+
+    fn request_to(uri: &str, parts: &[(&str, &str, &[u8])], key: Option<&str>) -> Request<Body> {
         let (content_type, body) = multipart_body(parts);
         let mut builder = Request::builder()
             .method("POST")
-            .uri("/api/v1/render")
+            .uri(uri)
             .header(header::CONTENT_TYPE, content_type);
         if let Some(key) = key {
             builder = builder.header("x-api-key", key);
@@ -1070,6 +1425,79 @@ mod tests {
             .next()
             .is_none());
         fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
+    async fn layout_render_uses_the_same_authenticated_lifecycle_and_returns_actual_plan() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let (app, root) = app("layout", "test-key");
+        for (content_type, input) in [("image/jpeg", REAL_JPEG), ("image/png", REAL_PNG)] {
+            let response = app
+                .clone()
+                .oneshot(request_to(
+                    "/api/v1/layout-render",
+                    &[
+                        ("file", content_type, input),
+                        ("width", "text/plain", b"12"),
+                        ("height", "text/plain", b"8"),
+                        ("unit", "text/plain", b"px"),
+                        ("copies", "text/plain", b"2"),
+                        ("columns", "text/plain", b"2"),
+                        ("gap", "text/plain", b"2"),
+                        ("margin", "text/plain", b"1"),
+                        ("output_format", "text/plain", b"jpeg"),
+                    ],
+                    Some("test-key"),
+                ))
+                .await
+                .expect("response");
+            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(response.headers()[header::CONTENT_TYPE], "image/jpeg");
+            assert_eq!(response.headers()["x-imgengine-canvas-width"], "28");
+            assert_eq!(response.headers()["x-imgengine-canvas-height"], "10");
+            assert_eq!(response.headers()["x-imgengine-expected-count"], "2");
+            assert_eq!(response.headers()["x-imgengine-planned-count"], "2");
+            assert_eq!(response.headers()["x-imgengine-executed-count"], "2");
+            assert_eq!(
+                response.headers()[header::CONTENT_DISPOSITION],
+                "attachment; filename=imgengine-layout.jpg"
+            );
+            let output = response_bytes(response).await;
+            let mut decoder = jpeg_decoder::Decoder::new(output.as_slice());
+            decoder.decode().expect("decode layout JPEG");
+            let info = decoder.info().expect("decoded layout metadata");
+            assert_eq!((info.width, info.height), (28, 10));
+        }
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[test]
+    fn layout_parser_preserves_exact_mm_rounding_and_rejects_unsupported_output() {
+        let values = std::collections::BTreeMap::from([
+            ("width".to_owned(), "25.4".to_owned()),
+            ("height".to_owned(), "12.7".to_owned()),
+            ("unit".to_owned(), "mm".to_owned()),
+            ("dpi".to_owned(), "100".to_owned()),
+            ("copies".to_owned(), "1".to_owned()),
+            ("gap".to_owned(), "0".to_owned()),
+            ("margin".to_owned(), "0".to_owned()),
+            ("output_format".to_owned(), "jpeg".to_owned()),
+        ]);
+        let plan = super::parse_layout_plan(&values).expect("plan");
+        assert_eq!((plan.canvas_width, plan.canvas_height), (100, 50));
+        let mut unsupported = values;
+        unsupported.insert("output_format".to_owned(), "png".to_owned());
+        assert_eq!(
+            super::parse_layout_plan(&unsupported),
+            Err(super::LayoutInputError::Invalid)
+        );
     }
 
     #[tokio::test]

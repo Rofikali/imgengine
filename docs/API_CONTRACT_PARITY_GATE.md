@@ -209,7 +209,7 @@ configured key set nor the reason for failure. API keys, raw authentication
 headers, and derived credential values are never logged, traced, returned, or
 stored.
 
-### First capability
+### P5/P6 first capability
 
 The first HTTP exposure is `POST /api/v1/render`, accepting multipart field
 `file` only. It supports JPEG and PNG input and returns a completed JPEG
@@ -222,13 +222,30 @@ the broader planned API exists. The endpoint adapts the existing
 JPEG/PNG-to-JPEG lifecycle and ABI path; it does not implement a layout, preset,
 PDF, job, polling, or durable-artifact capability.
 
+### P8 additive FIT-only layout capability
+
+`POST /api/v1/layout-render` is a separate, additive capability rather than a
+change to the P5 file-only endpoint. It accepts an authenticated multipart
+JPEG/PNG `file` together with the documented dimensions, unit/DPI, copies,
+optional columns, gap, margin, and `output_format=jpeg` fields. It uses the
+existing Rust lifecycle and bounded admission before invoking the retained C
+scheduler through an additive `IMGENGINE_2.0` native layout interface. ABI v1
+and `/api/v1/render` remain unchanged.
+
+The implemented semantics are custom canvas, white background, deterministic
+row-major grid, and FIT-only placement. JPEG is the only output. Fill/crop,
+presets, paper sizes, PDF/PNG output, durable jobs, and persistent artifacts
+remain deferred. Final release evidence for this P8 addition is separate from
+the already-verified P5/P6 slice; it must not be read as a production claim.
+
 ### Deferred capabilities
 
-Layout fields, presets, PDF output, and broader output capabilities remain
-planned roadmap items. The older broad target in `docs/api.md` is retained as
-a future target; it does not describe the first Axum slice. HTTP must expose a
-capability only after the corresponding engine, ABI, and lifecycle behavior is
-implemented and verified.
+Presets, PDF output, Fill/crop behavior, paper sizes, and broader output
+capabilities remain planned roadmap items. The older broad target in
+`docs/api.md` is retained as a future target; it does not describe the narrow
+implemented P5/P6/P8 capabilities. HTTP must expose a capability only after
+the corresponding engine, ABI, and lifecycle behavior is implemented and
+verified.
 
 ### Rate limiting and admission
 

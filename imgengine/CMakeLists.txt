@@ -494,7 +494,7 @@ if(NUMA_LIB)
     target_link_libraries(imgengine_internal PRIVATE ${NUMA_LIB})
 endif()
 
-add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES} src/api/imgengine_v1.c)
+add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES} src/api/imgengine_v1.c src/api/imgengine_v2_layout.c)
 set_target_properties(imgengine PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 target_include_directories(imgengine PUBLIC ${IMGENGINE_INCLUDES})

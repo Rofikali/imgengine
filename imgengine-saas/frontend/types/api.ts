@@ -22,6 +22,29 @@ export interface RenderSuccess {
   requestId: string | null
 }
 
+export type LayoutUnit = 'px' | 'mm'
+
+/** Exact fields accepted by the additive FIT-only layout endpoint. */
+export interface LayoutRenderInput {
+  width: string
+  height: string
+  unit: LayoutUnit
+  dpi?: string
+  copies: string
+  columns?: string
+  gap: string
+  margin: string
+  outputFormat: 'jpeg'
+}
+
+export interface LayoutRenderSuccess extends RenderSuccess {
+  canvasWidth: number
+  canvasHeight: number
+  expectedCount: number
+  plannedCount: number
+  executedCount: number
+}
+
 export interface RenderOptions {
   signal?: AbortSignal
 }

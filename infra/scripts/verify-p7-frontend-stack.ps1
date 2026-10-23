@@ -10,7 +10,12 @@ if (-not (Test-Path -LiteralPath $EnvironmentFile)) {
 }
 
 $compose = @('compose', '--env-file', $EnvironmentFile, '-f', $composeFile)
-function Invoke-Compose([string[]]$Arguments) { & docker @compose @Arguments }
+function Invoke-Compose([string[]]$Arguments) {
+  & docker @compose @Arguments
+  if ($LASTEXITCODE -ne 0) {
+    throw "docker compose $($Arguments -join ' ') failed with exit code $LASTEXITCODE."
+  }
+}
 
 try {
   Invoke-Compose @('up', '--build', '-d')
@@ -25,18 +30,12 @@ try {
   if (-not $ready) { throw 'Nuxt did not become reachable on http://127.0.0.1:3000.' }
 
   Invoke-Compose @('exec', '-T', 'frontend', 'bash', '/workspace/imgengine/infra/scripts/verify-p7-render-contract.sh')
+  Invoke-Compose @('exec', '-T', 'frontend', 'bash', '/workspace/imgengine/infra/scripts/verify-p8-layout-contract.sh')
 
   Invoke-Compose @('stop', 'rust-api')
   try {
-    Invoke-Compose @('exec', '-T', 'frontend', 'bash', '-lc', @'
-head -c 1100000 /dev/zero > /tmp/imgengine-p7-oversized
-status=$(curl --silent --output /tmp/imgengine-p7-problem --write-out "%{http_code}" -F file=@/tmp/imgengine-p7-oversized http://localhost:3000/api/render)
-rm -f /tmp/imgengine-p7-oversized
-test "$status" = 413
-grep -q '"code":"resource_limit"' /tmp/imgengine-p7-problem
-! grep -q '"stack"' /tmp/imgengine-p7-problem
-rm -f /tmp/imgengine-p7-problem
-'@)
+    $oversizeCheck = 'head -c 1100000 /dev/zero > /tmp/imgengine-p7-oversized; status=$(curl --silent --output /tmp/imgengine-p7-problem --write-out "%{http_code}" -F file=@/tmp/imgengine-p7-oversized http://localhost:3000/api/render); rm -f /tmp/imgengine-p7-oversized; test "$status" = 413; grep -q ''"code":"resource_limit"'' /tmp/imgengine-p7-problem; ! grep -q ''"stack"'' /tmp/imgengine-p7-problem; rm -f /tmp/imgengine-p7-problem'
+    Invoke-Compose @('exec', '-T', 'frontend', 'bash', '-lc', $oversizeCheck)
     $status = & curl.exe --silent --output NUL --write-out '%{http_code}' `
       -F 'file=@imgengine/tests/fixtures/cc0_camera_landscape.jpg;type=image/jpeg' `
       http://127.0.0.1:3000/api/render
