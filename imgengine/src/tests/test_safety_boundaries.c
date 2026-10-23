@@ -10,6 +10,8 @@
 #include "runtime/scheduler.h"
 #include "security/input_validator.h"
 
+img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out);
+
 static int expect_result(const char *name, img_result_t actual, img_result_t expected) {
     if (actual == expected)
         return 0;
