@@ -72,6 +72,58 @@ static int layout_valid_image(imgengine_engine_t *engine) {
     return output.data != NULL || output.size != 0;
 }
 
+static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
+    const imgengine_layout_rect_v2_t placement = {
+        .x = 0, .y = 0, .width = 1, .height = 1,
+    };
+    imgengine_layout_output_v2_t output = {0};
+    imgengine_layout_request_v2_t request = {
+        .struct_size = sizeof(request),
+        .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
+        .input = k_png,
+        .input_size = sizeof(k_png),
+        .canvas_width = 4097,
+        .canvas_height = 1,
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+
+    /* Oversized dimension must be rejected before allocating or scheduling. */
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) !=
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    /* Dimensions individually within bounds can still exceed the pixel budget. */
+    request.canvas_width = 2001;
+    request.canvas_height = 2000;
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) !=
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    /* The quadratic overlap validator must never receive an unbounded list. */
+    imgengine_layout_rect_v2_t placements[65] = {{0}};
+    request.canvas_width = 65;
+    request.canvas_height = 1;
+    request.placements = placements;
+    request.placement_count = 65;
+    request.expected_count = 65;
+    output.data = (uint8_t *)"sentinel";
+    output.size = 99;
+    if (imgengine_layout_render_v2(engine, &request, &output) !=
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        output.data != NULL || output.size != 0)
+        return 1;
+
+    return 0;
+}
+
 static void *run_process(void *argument) {
     process_thread_t *thread = argument;
     thread->failed = process_valid_image(thread->engine);
@@ -170,7 +222,9 @@ int main(void) {
         return 1;
     }
 
-    if (layout_valid_image(engine) != 0) {
+    if (layout_valid_image(engine) != 0 ||
+        layout_resource_limits_are_enforced(engine) != 0) {
+        fprintf(stderr, "layout ABI-v2 resource-limit regression failed\\n");
         imgengine_engine_destroy(engine);
         return 1;
     }
