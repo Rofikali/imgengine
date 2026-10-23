@@ -1,8 +1,17 @@
 .git
 **/build
+**/build-*
+**/target
 **/.venv
 **/__pycache__
 **/node_modules
 **/.nuxt
 **/.output
 data
+.docker
+!.docker/
+!.docker/.cargo/
+!.docker/.cargo/registry/
+!.docker/.cargo/registry/**
+*.log
+p8-vps-*.json
