@@ -43,8 +43,8 @@ img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, im
         return IMG_ERR_NOMEM;
 
     int decoded_width = 0, decoded_height = 0, decoded_channels = 0;
-    uint8_t *decoded =
-        stbi_load_from_memory(data, (int)size, &decoded_width, &decoded_height, &decoded_channels, 3);
+    uint8_t *decoded = stbi_load_from_memory(data, (int)size, &decoded_width, &decoded_height,
+                                             &decoded_channels, 3);
 
     if (!decoded)
         return IMG_ERR_FORMAT;
