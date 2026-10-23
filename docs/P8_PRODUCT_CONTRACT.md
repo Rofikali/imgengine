@@ -65,6 +65,11 @@ All conversion, grid, coordinate, count, byte-estimate, and canvas arithmetic
 uses checked integer arithmetic before native work or allocation. A conversion
 that rounds a required positive photo dimension to zero is invalid.
 
+The same maximum canvas edge, canvas-pixel budget, and placement-count ceiling
+are also enforced by the public native ABI before placement allocation and
+again inside the private renderer. Rust-side limits remain defense in depth,
+not the sole protection for native callers.
+
 ## Rendering semantics
 
 P8 implements only the frozen private `layout.render.v1` FIT behavior:
