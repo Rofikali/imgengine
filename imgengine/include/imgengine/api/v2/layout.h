@@ -16,6 +16,11 @@ extern "C" {
 
 #define IMGENGINE_LAYOUT_RENDER_V2_VERSION 1u
 
+/* Native ABI-v2 safety envelope; HTTP callers must enforce the same limits. */
+#define IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS 64u
+#define IMGENGINE_LAYOUT_V2_MAX_DIMENSION 4096u
+#define IMGENGINE_LAYOUT_V2_MAX_CANVAS_PIXELS 4000000u
+
 typedef struct imgengine_layout_rect_v2 {
     uint32_t x;
     uint32_t y;
