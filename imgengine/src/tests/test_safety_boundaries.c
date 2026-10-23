@@ -1,16 +1,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "core/result.h"
-#include "core/context_internal.h"
 #include "core/buffer.h"
+#include "core/context_internal.h"
+#include "core/result.h"
 #include "memory/arena.h"
 #include "memory/slab.h"
 #include "runtime/queue_mpmc.h"
 #include "runtime/scheduler.h"
 #include "security/input_validator.h"
 
-img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out);
+img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size,
+                            img_buffer_t *out);
 
 static int expect_result(const char *name, img_result_t actual, img_result_t expected) {
     if (actual == expected)
@@ -55,7 +56,7 @@ static int test_stb_decode_preflight(void) {
 
     img_slab_pool_t *pool = img_slab_create(1024, 256);
     if (!pool) {
-        fprintf(stderr, "could not create tiny slab for decoder preflight test\\n");
+        fprintf(stderr, "could not create tiny slab for decoder preflight test\n");
         return 1;
     }
     img_ctx_t ctx = {.local_pool = pool};
@@ -65,7 +66,7 @@ static int test_stb_decode_preflight(void) {
     img_slab_destroy(pool);
 
     if (actual != IMG_ERR_NOMEM || output.data != NULL) {
-        fprintf(stderr, "STB decoder did not reject oversized output before decode\\n");
+        fprintf(stderr, "STB decoder did not reject oversized output before decode\n");
         return 1;
     }
     return 0;
@@ -162,8 +163,7 @@ static int test_scheduler_overflow_queue(void) {
 
 int main(void) {
     int failures = test_input_validation() + test_stb_decode_preflight() + test_slab_lifecycle() +
-                   test_arena_boundaries() +
-                   test_scheduler_overflow_queue();
+                   test_arena_boundaries() + test_scheduler_overflow_queue();
     if (failures != 0)
         return 1;
     printf("[safety] input and slab boundary tests passed\n");
