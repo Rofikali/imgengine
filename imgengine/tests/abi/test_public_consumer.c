@@ -74,7 +74,10 @@ static int layout_valid_image(imgengine_engine_t *engine) {
 
 static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     const imgengine_layout_rect_v2_t placement = {
-        .x = 0, .y = 0, .width = 1, .height = 1,
+        .x = 0,
+        .y = 0,
+        .width = 1,
+        .height = 1,
     };
     imgengine_layout_output_v2_t output = {0};
     imgengine_layout_request_v2_t request = {
@@ -92,8 +95,7 @@ static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     /* Oversized dimension must be rejected before allocating or scheduling. */
     output.data = (uint8_t *)"sentinel";
     output.size = 99;
-    if (imgengine_layout_render_v2(engine, &request, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
         output.data != NULL || output.size != 0)
         return 1;
 
@@ -102,8 +104,7 @@ static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     request.canvas_height = 2000;
     output.data = (uint8_t *)"sentinel";
     output.size = 99;
-    if (imgengine_layout_render_v2(engine, &request, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
         output.data != NULL || output.size != 0)
         return 1;
 
@@ -116,8 +117,7 @@ static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     request.expected_count = 65;
     output.data = (uint8_t *)"sentinel";
     output.size = 99;
-    if (imgengine_layout_render_v2(engine, &request, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+    if (imgengine_layout_render_v2(engine, &request, &output) != IMGENGINE_STATUS_RESOURCE_LIMIT ||
         output.data != NULL || output.size != 0)
         return 1;
 
@@ -222,9 +222,8 @@ int main(void) {
         return 1;
     }
 
-    if (layout_valid_image(engine) != 0 ||
-        layout_resource_limits_are_enforced(engine) != 0) {
-        fprintf(stderr, "layout ABI-v2 resource-limit regression failed\\n");
+    if (layout_valid_image(engine) != 0 || layout_resource_limits_are_enforced(engine) != 0) {
+        fprintf(stderr, "layout ABI-v2 resource-limit regression failed\n");
         imgengine_engine_destroy(engine);
         return 1;
     }
