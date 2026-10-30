@@ -213,6 +213,63 @@ impl Engine {
         }
         output.copy_to_owned()
     }
+
+    pub fn render_layout_jpeg_bounded(
+        &mut self,
+        input: &[u8],
+        request: &LayoutRequest,
+        max_output_bytes: usize,
+    ) -> Result<LayoutOutput, Error> {
+        if max_output_bytes == 0 {
+            return Err(Error::InvalidArgument);
+        }
+        let placement_count =
+            u32::try_from(request.placements.len()).map_err(|_| Error::ResourceLimit)?;
+        if input.is_empty()
+            || request.canvas_width == 0
+            || request.canvas_height == 0
+            || placement_count == 0
+            || request.expected_count != placement_count
+        {
+            return Err(Error::InvalidArgument);
+        }
+        let placements: Vec<sys::LayoutRectV2> = request
+            .placements
+            .iter()
+            .map(|rect| sys::LayoutRectV2 {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+            })
+            .collect();
+        let native = sys::LayoutRequestV2 {
+            struct_size: std::mem::size_of::<sys::LayoutRequestV2>() as u32,
+            version: 1,
+            input: input.as_ptr(),
+            input_size: input.len(),
+            canvas_width: request.canvas_width,
+            canvas_height: request.canvas_height,
+            background_r: request.background[0],
+            background_g: request.background[1],
+            background_b: request.background[2],
+            reserved0: 0,
+            placements: placements.as_ptr(),
+            placement_count,
+            expected_count: request.expected_count,
+        };
+        let mut output = NativeLayoutOutput::default();
+        let status = sys::layout_render_v2_bounded(
+            self.raw.as_ptr(),
+            &native,
+            max_output_bytes,
+            &mut output.raw,
+        );
+        if status != sys::STATUS_OK {
+            return Err(Error::from_status(status));
+        }
+        output.copy_to_owned()
+    }
 }
 
 impl Drop for Engine {

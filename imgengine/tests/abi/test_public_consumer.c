@@ -72,6 +72,58 @@ static int layout_valid_image(imgengine_engine_t *engine) {
     return output.data != NULL || output.size != 0;
 }
 
+static int layout_output_is_empty(const imgengine_layout_output_v2_t *output) {
+    return !output->data && output->size == 0 && output->canvas_width == 0 &&
+           output->canvas_height == 0 && output->expected_count == 0 &&
+           output->planned_count == 0 && output->executed_count == 0;
+}
+
+static int layout_bounded_output_contract(imgengine_engine_t *engine) {
+    static const uint8_t malformed[] = {0x00, 0x01, 0x02, 0x03};
+    const imgengine_layout_rect_v2_t placement = {.x = 0, .y = 0, .width = 6, .height = 6};
+    const imgengine_layout_request_v2_t request = {
+        .struct_size = sizeof(request),
+        .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
+        .input = k_png,
+        .input_size = sizeof(k_png),
+        .canvas_width = 6,
+        .canvas_height = 6,
+        .background_r = 255,
+        .background_g = 255,
+        .background_b = 255,
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+    imgengine_layout_output_v2_t output = {(uint8_t *)"not-owned", 9, 1, 1, 1, 1, 1};
+    if (imgengine_layout_render_v2_bounded(engine, &request, 0, &output) !=
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !layout_output_is_empty(&output))
+        return 1;
+    output = (imgengine_layout_output_v2_t){(uint8_t *)"not-owned", 9, 1, 1, 1, 1, 1};
+    if (imgengine_layout_render_v2_bounded(engine, &request, 1, &output) !=
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        !layout_output_is_empty(&output))
+        return 1;
+    imgengine_layout_request_v2_t malformed_request = request;
+    malformed_request.input = malformed;
+    malformed_request.input_size = sizeof(malformed);
+    output = (imgengine_layout_output_v2_t){(uint8_t *)"not-owned", 9, 1, 1, 1, 1, 1};
+    if (imgengine_layout_render_v2_bounded(engine, &malformed_request, 16u * 1024u * 1024u,
+                                           &output) != IMGENGINE_STATUS_INVALID_IMAGE ||
+        !layout_output_is_empty(&output))
+        return 1;
+    if (imgengine_layout_render_v2_bounded(engine, &request, 16u * 1024u * 1024u, &output) !=
+            IMGENGINE_STATUS_OK ||
+        !output.data || output.size == 0 || output.size >= 16u * 1024u * 1024u ||
+        output.data[0] != 0xff || output.data[1] != 0xd8) {
+        imgengine_layout_output_release(&output);
+        return 1;
+    }
+    imgengine_layout_output_release(&output);
+    return !layout_output_is_empty(&output);
+}
+
 static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     const imgengine_layout_rect_v2_t placement = {
         .x = 0,
@@ -81,12 +133,12 @@ static int layout_resource_limits_are_enforced(imgengine_engine_t *engine) {
     };
     imgengine_layout_output_v2_t output = {0};
     imgengine_layout_request_v2_t request = {
+        .canvas_width = 4097,
+        .canvas_height = 1,
         .struct_size = sizeof(request),
         .version = IMGENGINE_LAYOUT_RENDER_V2_VERSION,
         .input = k_png,
         .input_size = sizeof(k_png),
-        .canvas_width = 4097,
-        .canvas_height = 1,
         .placements = &placement,
         .placement_count = 1,
         .expected_count = 1,
@@ -224,6 +276,11 @@ int main(void) {
 
     if (layout_valid_image(engine) != 0 || layout_resource_limits_are_enforced(engine) != 0) {
         fprintf(stderr, "layout ABI-v2 resource-limit regression failed\n");
+        imgengine_engine_destroy(engine);
+        return 1;
+    }
+    if (layout_bounded_output_contract(engine) != 0) {
+        fprintf(stderr, "bounded layout output contract failed\n");
         imgengine_engine_destroy(engine);
         return 1;
     }

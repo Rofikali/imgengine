@@ -102,10 +102,14 @@ checked facts would exceed the first-release envelope:
 | execution deadline | existing provisional 10 seconds | Reuses P6 semantics; native work is not cancelled |
 
 These are first-release safety bounds, not production capacity claims. Native
-decoder dimension/pixel guards remain authoritative for hostile inputs. P8
-does not claim a pre-encode JPEG-output byte ceiling; output is validated as a
-JPEG and bounded indirectly by the checked canvas policy. A separate measured
-output-memory policy is required before production readiness.
+decoder dimension/pixel guards remain authoritative for hostile inputs. P9.3
+adds a provisional 16 MiB server-owned FIT-layout JPEG destination budget
+(`IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES` may provide a validated deployment
+override). Native code compares TurboJPEG's conservative `tjBufSize()` bound
+before allocating its destination; insufficient budget maps to `413
+resource_limit` and returns no partial JPEG. This is not a complete memory
+policy: decoded/canvas/intermediate allocations, the Rust output copy, and
+aggregate workspace bytes still require measured production limits.
 
 ## Error mapping
 

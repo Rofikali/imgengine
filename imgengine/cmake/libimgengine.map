@@ -16,3 +16,8 @@ IMGENGINE_2.0 {
         imgengine_layout_render_v2;
         imgengine_layout_output_release;
 } IMGENGINE_1.0;
+
+IMGENGINE_2.1 {
+    global:
+        imgengine_layout_render_v2_bounded;
+} IMGENGINE_2.0;

@@ -30,6 +30,19 @@ scheduler, allocator, or renderer implementation type.
 | `imgengine_layout_render_v2` |
 | `imgengine_layout_output_release` |
 
+## ABI v2.1 â€” bounded layout output capability
+
+`imgengine_layout_render_v2_bounded` is the sole additive `IMGENGINE_2.1`
+symbol. It leaves ABI v1 and the existing unbounded v2 operation unchanged.
+The caller supplies a server-owned worst-case JPEG destination budget; a budget
+below TurboJPEG's conservative destination bound returns the existing stable
+`IMGENGINE_STATUS_RESOURCE_LIMIT` with an empty output. On success the output
+uses the existing `imgengine_layout_output_release()` ownership contract.
+
+| Symbol |
+|---|
+| `imgengine_layout_render_v2_bounded` |
+
 Internal scheduler, allocator, codec, SIMD, logging, and legacy API symbols
 remain deliberately hidden. The checker treats only `IMGENGINE_*` version-node
 labels as metadata and compares every function/data export against the manifest.

@@ -30,8 +30,15 @@ use tokio::sync::{watch, Mutex as AsyncMutex, Notify};
 pub const DEFAULT_MAX_REQUEST_BYTES: usize = 1_048_576;
 /// Provisional integration deadline, evaluated by the existing lifecycle.
 pub const DEFAULT_EXECUTION_TIMEOUT: Duration = Duration::from_secs(10);
+/// Provisional server-owned FIT-layout encoded-output budget.
+///
+/// This caps the conservative native JPEG destination allocation only; it is
+/// not a complete per-request memory limit or a production capacity claim.
+pub const DEFAULT_LAYOUT_MAX_OUTPUT_BYTES: usize = 16 * 1024 * 1024;
 /// Environment variable holding active server-side API keys.
 pub const API_KEYS_ENV: &str = "IMGENGINE_API_KEYS";
+/// Optional server-side override for the FIT-layout JPEG destination budget.
+pub const LAYOUT_MAX_OUTPUT_BYTES_ENV: &str = "IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES";
 const LAYOUT_MAX_COPIES: u32 = 64;
 const LAYOUT_MAX_COLUMNS: u32 = 64;
 const LAYOUT_MAX_DIMENSION: u32 = 4096;
@@ -56,13 +63,20 @@ pub struct ApiConfig {
     max_request_bytes: usize,
     queue_capacity: usize,
     execution_timeout: Option<Duration>,
+    layout_max_output_bytes: usize,
 }
 
 impl ApiConfig {
     /// Loads API keys from process configuration and fails closed on bad input.
     pub fn from_env(workspace_root: impl Into<PathBuf>) -> Result<Self, ConfigError> {
         let value = env::var(API_KEYS_ENV).map_err(|_| ConfigError::MissingApiKeys)?;
-        Self::new(value, workspace_root)
+        let mut config = Self::new(value, workspace_root)?;
+        if let Some(value) = env::var_os(LAYOUT_MAX_OUTPUT_BYTES_ENV) {
+            let value = value.to_str().ok_or(ConfigError::InvalidLimits)?;
+            let limit = value.parse().map_err(|_| ConfigError::InvalidLimits)?;
+            config = config.with_layout_max_output_bytes(limit)?;
+        }
+        Ok(config)
     }
 
     /// Creates configuration from an explicit value, primarily for controlled tests.
@@ -77,6 +91,7 @@ impl ApiConfig {
             max_request_bytes: DEFAULT_MAX_REQUEST_BYTES,
             queue_capacity: 1,
             execution_timeout: Some(DEFAULT_EXECUTION_TIMEOUT),
+            layout_max_output_bytes: DEFAULT_LAYOUT_MAX_OUTPUT_BYTES,
         })
     }
 
@@ -96,6 +111,19 @@ impl ApiConfig {
         self.max_request_bytes = max_request_bytes;
         self.queue_capacity = queue_capacity;
         self.execution_timeout = execution_timeout;
+        Ok(self)
+    }
+
+    /// Sets the server-owned native JPEG destination budget for FIT layouts.
+    /// This value is never derived from client multipart fields.
+    pub fn with_layout_max_output_bytes(
+        mut self,
+        layout_max_output_bytes: usize,
+    ) -> Result<Self, ConfigError> {
+        if layout_max_output_bytes == 0 || layout_max_output_bytes > i32::MAX as usize {
+            return Err(ConfigError::InvalidLimits);
+        }
+        self.layout_max_output_bytes = layout_max_output_bytes;
         Ok(self)
     }
 }
@@ -126,7 +154,8 @@ impl ApiState {
         response_abandonment_observer: Option<Arc<dyn ResponseAbandonmentObserver>>,
         execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
     ) -> Result<Self, ConfigError> {
-        let supervisor = SupervisorOptions::new(config.workspace_root);
+        let supervisor = SupervisorOptions::new(config.workspace_root)
+            .layout_max_output_bytes(config.layout_max_output_bytes);
         let mut admission =
             AdmissionOptions::new(supervisor, config.queue_capacity, config.max_request_bytes)
                 .map_err(|_| ConfigError::InvalidLimits)?;
@@ -1196,6 +1225,10 @@ mod tests {
     fn app(label: &str, keys: &str) -> (axum::Router, PathBuf) {
         let root = root(label);
         let config = ApiConfig::new(keys, root.clone()).expect("valid test configuration");
+        app_with_config(config, root)
+    }
+
+    fn app_with_config(config: ApiConfig, root: PathBuf) -> (axum::Router, PathBuf) {
         (
             router(ApiState::start(config).expect("start API state")),
             root,
@@ -1367,6 +1400,18 @@ mod tests {
             super::parse_api_keys(" ").unwrap_err(),
             ConfigError::InvalidApiKeys
         );
+        let config =
+            ApiConfig::new("test-key", root("output-budget")).expect("valid test configuration");
+        assert_eq!(
+            config.clone().with_layout_max_output_bytes(0).unwrap_err(),
+            ConfigError::InvalidLimits
+        );
+        assert_eq!(
+            config
+                .with_layout_max_output_bytes(i32::MAX as usize + 1)
+                .unwrap_err(),
+            ConfigError::InvalidLimits
+        );
     }
 
     #[tokio::test]
@@ -1470,6 +1515,47 @@ mod tests {
             let info = decoder.info().expect("decoded layout metadata");
             assert_eq!((info.width, info.height), (28, 10));
         }
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
+    async fn layout_output_budget_is_server_owned_and_maps_to_resource_limit() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let root = root("layout-output-budget");
+        let config = ApiConfig::new("test-key", root.clone())
+            .expect("valid configuration")
+            .with_layout_max_output_bytes(1)
+            .expect("valid bounded-output configuration");
+        let (app, root) = app_with_config(config, root);
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v1/layout-render",
+                &[
+                    ("file", "image/png", REAL_PNG),
+                    ("width", "text/plain", b"12"),
+                    ("height", "text/plain", b"8"),
+                    ("unit", "text/plain", b"px"),
+                    ("copies", "text/plain", b"1"),
+                    ("columns", "text/plain", b"1"),
+                    ("gap", "text/plain", b"0"),
+                    ("margin", "text/plain", b"0"),
+                    ("output_format", "text/plain", b"jpeg"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let body = String::from_utf8(response_bytes(response).await).expect("problem JSON");
+        assert!(body.contains("resource_limit"));
         drop(app);
         assert!(fs::read_dir(&root)
             .expect("read workspace root")

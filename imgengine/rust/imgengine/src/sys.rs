@@ -101,6 +101,12 @@ extern "C" {
         request: *const LayoutRequestV2,
         output: *mut LayoutOutputV2,
     ) -> u32;
+    pub fn imgengine_layout_render_v2_bounded(
+        engine: *mut Engine,
+        request: *const LayoutRequestV2,
+        max_output_bytes: usize,
+        output: *mut LayoutOutputV2,
+    ) -> u32;
     pub fn imgengine_layout_output_release(output: *mut LayoutOutputV2);
 }
 
@@ -151,6 +157,15 @@ pub fn layout_render_v2(
     output: &mut LayoutOutputV2,
 ) -> u32 {
     unsafe { imgengine_layout_render_v2(engine, request, output) }
+}
+
+pub fn layout_render_v2_bounded(
+    engine: *mut Engine,
+    request: &LayoutRequestV2,
+    max_output_bytes: usize,
+    output: &mut LayoutOutputV2,
+) -> u32 {
+    unsafe { imgengine_layout_render_v2_bounded(engine, request, max_output_bytes, output) }
 }
 
 pub fn layout_output_copy(output: &LayoutOutputV2) -> Option<Vec<u8>> {
