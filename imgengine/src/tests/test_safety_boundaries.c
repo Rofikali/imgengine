@@ -1,12 +1,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "core/buffer.h"
+#include "core/context_internal.h"
 #include "core/result.h"
 #include "memory/arena.h"
 #include "memory/slab.h"
 #include "runtime/queue_mpmc.h"
 #include "runtime/scheduler.h"
 #include "security/input_validator.h"
+
+img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out);
 
 static int expect_result(const char *name, img_result_t actual, img_result_t expected) {
     if (actual == expected)
@@ -33,6 +37,37 @@ static int test_input_validation(void) {
     failures += expect_result("large file arithmetic",
                               img_security_validate_request(1, 1, SIZE_MAX), IMG_SUCCESS);
     return failures;
+}
+
+static int test_stb_decode_preflight(void) {
+    /* The fixture is a valid 1x1 PNG. Change only its IHDR dimensions: stb's
+     * info pass reads these dimensions before attempting to decode the pixels.
+     * A 100x100 RGB result cannot fit the deliberately tiny 256-byte slab. */
+    uint8_t oversized_png[] = {
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
+        0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00,
+        0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x44, 0x41, 0x54, 0x08,
+        0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0xf0, 0x1f, 0x00, 0x05, 0x00, 0x01, 0xff, 0x89, 0x99,
+        0x3d, 0x1d, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+    };
+    oversized_png[19] = 100;
+    oversized_png[23] = 100;
+
+    img_slab_pool_t *pool = img_slab_create(1024, 256);
+    if (!pool) {
+        fprintf(stderr, "could not create tiny slab for decoder preflight test\n");
+        return 1;
+    }
+    img_ctx_t ctx = {.local_pool = pool};
+    img_buffer_t output = {0};
+    const img_result_t actual = img_decode_stb(&ctx, oversized_png, sizeof(oversized_png), &output);
+    img_slab_destroy(pool);
+
+    if (actual != IMG_ERR_NOMEM || output.data != NULL) {
+        fprintf(stderr, "STB decoder did not reject oversized output before decode\n");
+        return 1;
+    }
+    return 0;
 }
 
 static int test_slab_lifecycle(void) {
@@ -125,8 +160,8 @@ static int test_scheduler_overflow_queue(void) {
 }
 
 int main(void) {
-    int failures = test_input_validation() + test_slab_lifecycle() + test_arena_boundaries() +
-                   test_scheduler_overflow_queue();
+    int failures = test_input_validation() + test_stb_decode_preflight() + test_slab_lifecycle() +
+                   test_arena_boundaries() + test_scheduler_overflow_queue();
     if (failures != 0)
         return 1;
     printf("[safety] input and slab boundary tests passed\n");

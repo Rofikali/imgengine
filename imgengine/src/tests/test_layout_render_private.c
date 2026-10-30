@@ -435,8 +435,10 @@ static int test_partial_execution_has_no_output(img_engine_t *engine) {
         return 0;
     const img_result_t status = img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result);
     tjFree(jpeg);
-    const int passed = status != IMG_SUCCESS && result.jpeg_data == NULL && result.jpeg_size == 0 &&
-                       result.planned_count == 1 && result.executed_count == 0;
+    /* Resource policy rejects this canvas before planning or scheduler admission. */
+    const int passed = status == IMG_ERR_SECURITY && result.jpeg_data == NULL &&
+                       result.jpeg_size == 0 && result.expected_count == 0 &&
+                       result.planned_count == 0 && result.executed_count == 0;
     img_layout_render_v1_result_release(&result);
     return passed;
 }

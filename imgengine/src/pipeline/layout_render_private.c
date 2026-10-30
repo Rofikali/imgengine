@@ -1,5 +1,6 @@
 #include "pipeline/layout_render_private.h"
 
+#include "imgengine/api/v2/layout.h"
 #include "api/api_internal.h"
 #include "api/v1/img_api.h"
 #include "io/io_vtable.h"
@@ -56,6 +57,15 @@ img_layout_render_validate_request(const img_layout_render_v1_request_t *request
         request->canvas_width == 0 || request->canvas_height == 0 ||
         request->placement_count == 0 || request->expected_count != request->placement_count ||
         !request->placements)
+        return IMG_ERR_SECURITY;
+
+    /* Defense in depth: the private renderer must not rely on its HTTP caller
+     * to bound canvas memory or the quadratic rectangle-overlap validation. */
+    if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
+        request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
+        request->canvas_height > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
+        (uint64_t)request->canvas_width * (uint64_t)request->canvas_height >
+            IMGENGINE_LAYOUT_V2_MAX_CANVAS_PIXELS)
         return IMG_ERR_SECURITY;
 
     size_t row_bytes = 0;
