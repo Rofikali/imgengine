@@ -15,16 +15,28 @@ The product is deliberately a single-purpose tool. It is not a general-purpose i
 
 ## 2. Frozen MVP decisions
 
-These decisions are normative for MVP 1.0.
+### 2.1 Explicitly confirmed by the product owner
+
+These three decisions are fixed and must not be changed by implementation convenience.
 
 | Decision | Contract |
 |---|---|
 | Copy overflow | **One sheet only.** Never create another sheet, silently reduce copies, or silently omit copies. Reject an infeasible request and report maximum capacity. |
 | Measurement unit | **Millimetres (mm) only** in customer-facing dimension controls. Pixels are an internal rendering unit, not a customer measurement mode. |
-| Aspect ratio | **Crop-to-fill.** Preserve proportions, crop excess image area, and never stretch or distort the source. Use a deterministic centred crop in MVP 1.0. |
+| Aspect ratio | **Crop-to-fill.** Preserve proportions, crop excess image area, and never stretch or distort the source. |
+
+### 2.2 Proposed MVP defaults to review before implementation
+
+These choices keep the first release narrow and align with the current API capability. They are explicit proposals, not additional decisions the product owner has already confirmed.
+
+| Proposed default | Contract |
+|---|---|
 | Source images | Exactly one JPEG or PNG per render. |
 | Sheet dimensions | Customer-entered custom width and height. Do not force A4/A5 or a fixed paper catalogue. |
 | Output | One complete JPEG sheet download. Do not advertise PDF or PNG output in MVP 1.0. |
+| Crop anchor | Deterministic centred crop; no manual crop handles or crop-anchor control in the first release. |
+| Grid | Regular row-major grid, automatically calculated from the physical sheet capacity; no freeform placement. |
+| DPI | Explicit positive DPI in the request; proposed editable UI default is 300 DPI. |
 | Persistence | Uploads and generated output are ephemeral. No permanent server-side image or output storage. |
 
 A user chooses a custom sheet ratio by entering its width and height. There is no automatic paper-size substitution.
