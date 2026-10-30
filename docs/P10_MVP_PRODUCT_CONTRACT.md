@@ -123,7 +123,7 @@ The output canvas is the complete customer-requested sheet size, not a smaller c
 
 The occupied grid dimensions are:
 
-    GridWidth = C_max*P_w + (C_max-1)*G_x
+    GridWidth = Columns_used*P_w + (Columns_used-1)*G_x
     GridHeight = Rows_used*P_h + (Rows_used-1)*G_y
 
 The implementation must prove that the grid plus its centred offset remains within the sheet and preserves at least the requested outer margin.
