@@ -19,12 +19,15 @@ The only implemented P5 endpoint is `POST /api/v1/render`:
   and `429 overloaded` for bounded-admission rejection; and
 - safe, redacted HTTP error mapping and verified real JPEG/PNG processing.
 
-The provisional 1 MiB input limit, queue capacity 1, and 10-second
-post-dequeue execution deadline are integration values, not production capacity
-commitments. Queue wait, upload, and response delivery are outside that
-deadline; native work is never cancelled by expiry. Output bytes are currently
-held in memory without a configured output-size ceiling, and workspace byte
-accounting is not implemented. See `API_CONTRACT_PARITY_GATE.md` for the
+The provisional 1 MiB input limit, queue capacity 1, 10-second post-dequeue
+execution deadline, and 16 MiB FIT-layout JPEG destination budget are
+integration values, not production capacity commitments. Queue wait, upload,
+and response delivery are outside that deadline; native work is never
+cancelled by expiry. The layout output budget is server-owned (optionally
+configured through `IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES`) and is enforced before
+the native JPEG destination allocation using a conservative TurboJPEG bound.
+It does not bound decoded/canvas/intermediate memory, the Rust response copy,
+or aggregate workspace bytes. See `API_CONTRACT_PARITY_GATE.md` for the
 authoritative P5/P6 evidence and limit inventory.
 
 ### P7.1 frontend API boundary
@@ -70,11 +73,13 @@ canvas width/height and expected/planned/executed placement counts in
 `POST /api/layout-render`; it keeps `X-API-Key` in private server runtime
 configuration and forwards only the declared fields.
 
-P8 uses the current provisional 1 MiB input body limit, queue capacity 1, and
-10-second execution deadline. Its defensive integration limits are at most 64
-copies, 64 columns, a 4096-pixel canvas edge, and 4,000,000 canvas pixels.
-They are not production-capacity claims; output-size and workspace-byte limits
-remain unimplemented.
+P8 uses the current provisional 1 MiB input body limit, queue capacity 1,
+10-second execution deadline, and 16 MiB server-owned layout JPEG destination
+budget. Its defensive integration limits are at most 64 copies, 64 columns, a
+4096-pixel canvas edge, and 4,000,000 canvas pixels. A JPEG whose final byte
+count would fit can still be rejected when TurboJPEG's conservative destination
+bound exceeds the configured budget. These are not production-capacity claims:
+aggregate output memory and workspace-byte limits remain unimplemented.
 
 The following are expressly **not** implemented by this endpoint: Fill/crop,
 presets, templates, paper sizes, PDF or PNG output, transparency/background

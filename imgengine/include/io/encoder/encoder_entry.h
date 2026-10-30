@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "core/result.h"
 
 typedef struct img_ctx img_ctx_t;
 typedef struct img_buffer img_buffer_t;
@@ -19,6 +20,11 @@ int img_encode_from_buffer_ex(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_d
                               size_t *out_size, int quality, int subsamp);
 
 int img_encode_from_buffer(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data, size_t *out_size);
+
+/* Bounded destination contract: max_output_bytes is a server-owned hard cap.
+ * The conservative TurboJPEG destination bound is checked before encoding. */
+img_result_t img_encode_from_buffer_bounded(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data,
+                                            size_t *out_size, size_t max_output_bytes);
 
 void img_encoder_release_thread(void);
 

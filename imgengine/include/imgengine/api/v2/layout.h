@@ -58,6 +58,11 @@ typedef struct imgengine_layout_output_v2 {
 IMGENGINE_API imgengine_status_t
 imgengine_layout_render_v2(imgengine_engine_t *engine, const imgengine_layout_request_v2_t *request,
                            imgengine_layout_output_v2_t *output);
+/* The caller supplies a server-owned worst-case JPEG destination budget. On
+ * RESOURCE_LIMIT or any other failure, output is zeroed and owns no bytes. */
+IMGENGINE_API imgengine_status_t imgengine_layout_render_v2_bounded(
+    imgengine_engine_t *engine, const imgengine_layout_request_v2_t *request,
+    size_t max_output_bytes, imgengine_layout_output_v2_t *output);
 IMGENGINE_API void imgengine_layout_output_release(imgengine_layout_output_v2_t *output);
 
 #ifdef __cplusplus

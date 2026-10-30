@@ -39,6 +39,7 @@ typedef struct {
     const img_layout_render_rect_t *placements;
     uint32_t placement_count;
     uint32_t expected_count;
+    size_t max_output_bytes; /* zero preserves existing unbounded behavior */
     img_layout_render_v1_canvas_observer_t canvas_observer;
     void *canvas_observer_context;
 } img_layout_render_v1_request_t;

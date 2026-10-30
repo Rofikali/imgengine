@@ -104,6 +104,7 @@ pub struct SupervisorOptions {
     workspace_root: PathBuf,
     stale_after: Duration,
     engine_options: EngineOptions,
+    layout_max_output_bytes: usize,
 }
 
 impl SupervisorOptions {
@@ -113,6 +114,7 @@ impl SupervisorOptions {
             workspace_root: workspace_root.into(),
             stale_after: DEFAULT_STALE_AFTER,
             engine_options: EngineOptions::default(),
+            layout_max_output_bytes: 16 * 1024 * 1024,
         }
     }
 
@@ -125,6 +127,13 @@ impl SupervisorOptions {
     /// Sets validated native engine options.
     pub fn engine_options(mut self, engine_options: EngineOptions) -> Self {
         self.engine_options = engine_options;
+        self
+    }
+
+    /// Sets the server-owned encoded-JPEG budget for the FIT-only layout path.
+    /// A zero value is rejected by the native bounded API before processing.
+    pub fn layout_max_output_bytes(mut self, layout_max_output_bytes: usize) -> Self {
+        self.layout_max_output_bytes = layout_max_output_bytes;
         self
     }
 }
@@ -266,6 +275,7 @@ pub struct ProcessEvent {
 pub struct Supervisor {
     engine: Engine,
     workspace_root: WorkspaceRoot,
+    layout_max_output_bytes: usize,
 }
 
 impl Supervisor {
@@ -278,6 +288,7 @@ impl Supervisor {
         Ok(Self {
             engine,
             workspace_root,
+            layout_max_output_bytes: options.layout_max_output_bytes,
         })
     }
 
@@ -342,7 +353,7 @@ impl Supervisor {
         let request = plan.native_request()?;
         let output = self
             .engine
-            .render_layout_jpeg(input, &request)
+            .render_layout_jpeg_bounded(input, &request, self.layout_max_output_bytes)
             .map_err(SupervisorError::Engine);
         let duration = started.elapsed();
         let cleanup = workspace.close();

@@ -3,6 +3,7 @@
 #include "api/api_internal.h"
 #include "api/v1/img_api.h"
 #include "io/io_vtable.h"
+#include "io/encoder/encoder_entry.h"
 #include "memory/slab.h"
 #include "pipeline/canvas_internal.h"
 #include "pipeline/layout_resize_internal.h"
@@ -232,8 +233,12 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
         result = IMG_ERR_INTERNAL;
         goto cleanup;
     }
-    result = (img_result_t)g_io_vtable.encode(ctx, &canvas.buf, &state->result.jpeg_data,
-                                              &state->result.jpeg_size);
+    result = state->request.max_output_bytes
+                 ? img_encode_from_buffer_bounded(ctx, &canvas.buf, &state->result.jpeg_data,
+                                                  &state->result.jpeg_size,
+                                                  state->request.max_output_bytes)
+                 : (img_result_t)g_io_vtable.encode(ctx, &canvas.buf, &state->result.jpeg_data,
+                                                    &state->result.jpeg_size);
     if (result != IMG_SUCCESS || !state->result.jpeg_data || state->result.jpeg_size == 0) {
         img_encoded_free(state->result.jpeg_data);
         state->result.jpeg_data = NULL;

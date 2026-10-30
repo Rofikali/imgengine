@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,9 +34,10 @@ void imgengine_layout_output_release(imgengine_layout_output_v2_t *output) {
     memset(output, 0, sizeof(*output));
 }
 
-imgengine_status_t imgengine_layout_render_v2(imgengine_engine_t *engine,
-                                              const imgengine_layout_request_v2_t *request,
-                                              imgengine_layout_output_v2_t *output) {
+static imgengine_status_t
+imgengine_layout_render_v2_impl(imgengine_engine_t *engine,
+                                const imgengine_layout_request_v2_t *request,
+                                size_t max_output_bytes, imgengine_layout_output_v2_t *output) {
     if (!output)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
     memset(output, 0, sizeof(*output));
@@ -68,6 +70,7 @@ imgengine_status_t imgengine_layout_render_v2(imgengine_engine_t *engine,
         .placements = placements,
         .placement_count = request->placement_count,
         .expected_count = request->expected_count,
+        .max_output_bytes = max_output_bytes,
     };
     img_layout_render_v1_result_t result = {0};
 
@@ -98,4 +101,20 @@ imgengine_status_t imgengine_layout_render_v2(imgengine_engine_t *engine,
     result.jpeg_data = NULL;
     result.jpeg_size = 0;
     return IMGENGINE_STATUS_OK;
+}
+
+imgengine_status_t imgengine_layout_render_v2(imgengine_engine_t *engine,
+                                              const imgengine_layout_request_v2_t *request,
+                                              imgengine_layout_output_v2_t *output) {
+    return imgengine_layout_render_v2_impl(engine, request, 0, output);
+}
+
+imgengine_status_t imgengine_layout_render_v2_bounded(imgengine_engine_t *engine,
+                                                      const imgengine_layout_request_v2_t *request,
+                                                      size_t max_output_bytes,
+                                                      imgengine_layout_output_v2_t *output) {
+    if (!max_output_bytes || max_output_bytes > INT_MAX)
+        return output ? (memset(output, 0, sizeof(*output)), IMGENGINE_STATUS_INVALID_ARGUMENT)
+                      : IMGENGINE_STATUS_INVALID_ARGUMENT;
+    return imgengine_layout_render_v2_impl(engine, request, max_output_bytes, output);
 }

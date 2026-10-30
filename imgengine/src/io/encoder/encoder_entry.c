@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <turbojpeg.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "core/buffer.h"
 
@@ -79,4 +80,42 @@ int img_encode_from_buffer_ex(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_d
 int img_encode_from_buffer(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data,
                            size_t *out_size) {
     return img_encode_from_buffer_ex(ctx, buf, out_data, out_size, 85, TJSAMP_444);
+}
+
+img_result_t img_encode_from_buffer_bounded(img_ctx_t *ctx, img_buffer_t *buf, uint8_t **out_data,
+                                            size_t *out_size, size_t max_output_bytes) {
+    if (!out_data || !out_size)
+        return IMG_ERR_SECURITY;
+    *out_data = NULL;
+    *out_size = 0;
+    if (!ctx || !buf || !buf->data || !buf->width || !buf->height || buf->width > INT_MAX ||
+        buf->height > INT_MAX || buf->stride > INT_MAX || !max_output_bytes ||
+        max_output_bytes > INT_MAX)
+        return IMG_ERR_SECURITY;
+    const unsigned long bound = tjBufSize((int)buf->width, (int)buf->height, TJSAMP_444);
+    if (!bound || bound > max_output_bytes || bound > INT_MAX)
+        return IMG_ERR_SECURITY;
+    /* NOREALLOC permits a caller-owned malloc destination. This deliberately
+     * matches img_encoded_free(), which owns all layout result releases. */
+    unsigned char *jpeg = malloc((size_t)bound);
+    if (!jpeg)
+        return IMG_ERR_NOMEM;
+    tjhandle tj = img_get_thread_encoder();
+    if (!tj) {
+        free(jpeg);
+        return IMG_ERR_NOMEM;
+    }
+    unsigned long actual = bound;
+    if (tjCompress2(tj, buf->data, buf->width, buf->stride, buf->height, TJPF_RGB, &jpeg, &actual,
+                    TJSAMP_444, 85, TJFLAG_FASTDCT | TJFLAG_NOREALLOC) != 0) {
+        free(jpeg);
+        return IMG_ERR_IO;
+    }
+    if (!actual || actual > bound || actual > max_output_bytes) {
+        free(jpeg);
+        return IMG_ERR_IO;
+    }
+    *out_data = jpeg;
+    *out_size = actual;
+    return IMG_SUCCESS;
 }
