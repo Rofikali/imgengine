@@ -3,7 +3,7 @@
 **Status:** Product contract draft for review  
 **Scope:** First usable browser-based custom photo-sheet generator
 
-> P8 defines the first implemented FIT-only API slice. P9.3 adds a bounded JPEG destination allocation to that existing path. This P10 contract defines the intended customer-facing MVP and includes crop-to-fill behavior that is not yet implemented by the P8 FIT-only path. This document is a target contract, not evidence that the complete MVP exists or is production-ready.
+> P8 defines the first implemented FIT-only API slice. P9.3 PR #9 proposes a bounded JPEG destination allocation for that existing path. This P10 contract defines the intended customer-facing MVP and includes crop-to-fill behavior that is not yet implemented by the P8 FIT-only path. This document is a target contract, not evidence that the complete MVP exists or is production-ready.
 
 ## 1. Product statement
 
@@ -206,9 +206,9 @@ These exclusions protect the first release from becoming a broad editor before t
 
 ## 11. Existing technical limits versus product promises
 
-P8/P9.3 currently document provisional integration controls including a 1 MiB request/input ceiling, one active worker plus a bounded queue, a 10-second execution deadline, a 4,000,000-pixel canvas ceiling, a 64-copy/64-column limit, and a provisional 16 MiB conservative FIT-layout JPEG destination allocation.
+P8 documents provisional integration controls including a 1 MiB request/input ceiling, one active worker plus a bounded queue, a 10-second execution deadline, a 4,000,000-pixel canvas ceiling, and a 64-copy/64-column limit. P9.3 PR #9 proposes an additional provisional 16 MiB conservative FIT-layout JPEG destination allocation.
 
-These are implementation guardrails, not yet validated customer capacity or production promises. The 16 MiB P9.3 cap applies to the existing FIT-only native layout path. It does not prove a whole-request memory bound and does not automatically establish safe limits for the future crop-to-fill path. Reassess limits with representative crop workloads, decoded-source memory, intermediate buffers, Rust copies, response buffering, concurrency, and actual target-VPS measurements before release.
+These are implementation guardrails, not yet validated customer capacity or production promises. The proposed 16 MiB P9.3 cap applies to the existing FIT-only native layout path if PR #9 is merged. It does not prove a whole-request memory bound and does not automatically establish safe limits for the future crop-to-fill path. Reassess limits with representative crop workloads, decoded-source memory, intermediate buffers, Rust copies, response buffering, concurrency, and actual target-VPS measurements before release.
 
 Do not increase limits merely to make a demo pass.
 
