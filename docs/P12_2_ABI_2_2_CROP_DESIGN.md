@@ -2,7 +2,7 @@
 
 ## Status
 
-**Design decision / implementation gate.** This document freezes the proposed public C boundary for P12's physical-sheet renderer. It does not claim that the ABI, native renderer, Rust wrapper, or HTTP route has been implemented.
+**Design decision / implementation gate.** This document freezes the proposed public C boundary for P12's physical-sheet renderer. PR #17 integrates centered crop-fill into a private native renderer mode, but the public ABI 2.2, safe Rust wrapper, and HTTP route are not implemented.
 
 This is an additive ABI 2.2 capability. Existing ABI v1, layout ABI 2.0, and bounded-layout ABI 2.1 remain unchanged.
 
@@ -164,7 +164,7 @@ Status mapping should match the established ABI status model: invalid arguments/
 
 ### P12 sheet resource envelope
 
-The P12 sheet operation uses a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
+The private centered-fill renderer mode introduced in PR #17 now enforces a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. The public ABI 2.2 wrapper must preserve this policy when it is added. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
 
 ## 7. Crop semantics at the C boundary
 

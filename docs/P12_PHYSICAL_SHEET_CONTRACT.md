@@ -2,7 +2,7 @@
 
 ## Status
 
-**Decision record / implementation gate.** This document defines the next product capability on top of P11. It does not claim that the endpoint, crop renderer, frontend, or native ABI extension is implemented.
+**Decision record / implementation gate.** This document defines the next product capability on top of P11. PR #17 integrates a private native centered crop-fill renderer mode, but the public ABI 2.2, P12 planner/API route, and frontend flow are not implemented.
 
 P12 is intentionally separate from P11. P11 remains a pure, deterministic Rust geometry planner. This contract is based on the existing P8 product contract, P9.3 bounded-output design, the current HTTP adapter, and the public C ABI version map.
 
@@ -60,7 +60,7 @@ The request is one source image and one output sheet. There is no multi-image in
 8. Use checked arithmetic before allocation or native work.
 9. Apply the P12 sheet envelope: at most 64 placements, maximum canvas dimension 4096 px, and maximum canvas area 10,000,000 pixels. This permits A4 at 300 DPI (2480 × 3508 = 8,699,840 pixels). The existing P8 FIT ABI retains its independent 4,000,000-pixel ceiling and must not change. Each cell and every placement must also be within the canvas and non-overlapping.
 
-The P11 planner currently accepts pixel dimensions and returns placements under the limits implemented in P11. The 10,000,000-pixel P12 sheet envelope is a product/ABI design requirement, not yet implemented in the planner or renderer. When implemented, it must be scoped to P12 and must not change the existing P8 FIT native path's 4,000,000-pixel ceiling. P12's API adapter is responsible for parsing and converting physical units before calling the planner.
+The P11 planner currently accepts pixel dimensions and returns placements under the limits implemented in P11. PR #17 now enforces the 10,000,000-pixel ceiling inside the private native centered-fill renderer mode; the P11 planner, public ABI 2.2 wrapper, and HTTP route still do not expose that envelope. This mode remains inaccessible to external callers until the additive public ABI lands. The ceiling is a geometry admission limit, not proof of peak RSS: A4 native integration and memory verification remain release gates. The existing P8 FIT native path retains its independent 4,000,000-pixel ceiling. P12's API adapter is responsible for parsing and converting physical units before calling the planner.
 
 ## Image fitting decision: centered crop-to-fill
 
