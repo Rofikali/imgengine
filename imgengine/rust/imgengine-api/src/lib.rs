@@ -1848,6 +1848,56 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn physical_sheet_route_renders_a4_300_dpi_with_centered_fill() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let (app, root) = app("physical-sheet", "test-key");
+        let response = app
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &[
+                    ("file", "image/jpeg", REAL_JPEG),
+                    ("sheet_width_mm", "text/plain", b"210"),
+                    ("sheet_height_mm", "text/plain", b"297"),
+                    ("photo_width_mm", "text/plain", b"35"),
+                    ("photo_height_mm", "text/plain", b"45"),
+                    ("dpi", "text/plain", b"300"),
+                    ("copies", "text/plain", b"8"),
+                    ("margin_mm", "text/plain", b"10"),
+                    ("gap_x_mm", "text/plain", b"2"),
+                    ("gap_y_mm", "text/plain", b"2"),
+                    ("output_format", "text/plain", b"jpeg"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], "image/jpeg");
+        assert_eq!(response.headers()["x-imgengine-canvas-width"], "2480");
+        assert_eq!(response.headers()["x-imgengine-canvas-height"], "3508");
+        assert_eq!(response.headers()["x-imgengine-expected-count"], "8");
+        assert_eq!(response.headers()["x-imgengine-planned-count"], "8");
+        assert_eq!(response.headers()["x-imgengine-executed-count"], "8");
+        assert_eq!(
+            response.headers()[header::CONTENT_DISPOSITION],
+            "attachment; filename=imgengine-sheet.jpg"
+        );
+        let output = response_bytes(response).await;
+        let mut decoder = jpeg_decoder::Decoder::new(output.as_slice());
+        decoder.decode().expect("decode A4 sheet JPEG");
+        let info = decoder.info().expect("decoded sheet metadata");
+        assert_eq!((info.width, info.height), (2480, 3508));
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
     async fn layout_output_budget_is_server_owned_and_maps_to_resource_limit() {
         let _engine = ENGINE_LOCK
             .lock()
@@ -1907,6 +1957,32 @@ mod tests {
         assert_eq!(
             super::parse_layout_plan(&unsupported),
             Err(super::LayoutInputError::Invalid)
+        );
+    }
+
+    #[test]
+    fn physical_sheet_parser_converts_mm_and_preserves_exact_copy_count() {
+        let values = std::collections::BTreeMap::from([
+            ("sheet_width_mm".to_owned(), "210".to_owned()),
+            ("sheet_height_mm".to_owned(), "297".to_owned()),
+            ("photo_width_mm".to_owned(), "35".to_owned()),
+            ("photo_height_mm".to_owned(), "45".to_owned()),
+            ("dpi".to_owned(), "300".to_owned()),
+            ("copies".to_owned(), "8".to_owned()),
+            ("margin_mm".to_owned(), "10".to_owned()),
+            ("gap_x_mm".to_owned(), "2".to_owned()),
+            ("gap_y_mm".to_owned(), "2".to_owned()),
+            ("output_format".to_owned(), "jpeg".to_owned()),
+        ]);
+        let plan = super::parse_sheet_plan(&values).expect("A4 physical sheet plan");
+        assert_eq!((plan.canvas_width, plan.canvas_height), (2480, 3508));
+        assert_eq!(plan.placements.len(), 8);
+
+        let mut overflow = values;
+        overflow.insert("copies".to_owned(), "64".to_owned());
+        assert_eq!(
+            super::parse_sheet_plan(&overflow),
+            Err(super::SheetInputError::DoesNotFit)
         );
     }
 
