@@ -57,7 +57,7 @@ RUN apt-get update \
         ca-certificates \
         curl \
         libnuma1 \
-        libturbojpeg0 \
+        libturbojpeg \
         liburing2 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 10001 imgengine \
