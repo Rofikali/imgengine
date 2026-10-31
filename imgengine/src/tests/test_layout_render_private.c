@@ -9,6 +9,7 @@
 #include "api/v1/img_api.h"
 #include "memory/slab.h"
 #include "pipeline/layout_render_private.h"
+#include "pipeline/layout_crop_geometry.h"
 #include "pipeline/layout_resize_internal.h"
 #include "runtime/job_exec.h"
 
@@ -156,11 +157,40 @@ static void observe_renderer_canvas(const img_buffer_t *canvas, uint32_t expecte
         fprintf(stderr, "renderer RGB oracle mismatch: %s\n", observation->name);
 }
 
+static int reference_crop(const img_buffer_t *source, const img_layout_render_rect_t *rect,
+                          img_layout_crop_rect_t *crop) {
+    if (!source || !rect || !crop || source->width == 0 || source->height == 0 ||
+        rect->width == 0 || rect->height == 0)
+        return 0;
+    const uint64_t source_cross = (uint64_t)source->width * rect->height;
+    const uint64_t target_cross = (uint64_t)rect->width * source->height;
+    uint32_t width = source->width;
+    uint32_t height = source->height;
+    if (source_cross > target_cross) {
+        const uint64_t retained = (uint64_t)source->height * rect->width / rect->height;
+        if (retained == 0 || retained > source->width)
+            return 0;
+        width = (uint32_t)retained;
+    } else if (source_cross < target_cross) {
+        const uint64_t retained = (uint64_t)source->width * rect->height / rect->width;
+        if (retained == 0 || retained > source->height)
+            return 0;
+        height = (uint32_t)retained;
+    }
+    *crop = (img_layout_crop_rect_t){
+        .x = (source->width - width) / 2u,
+        .y = (source->height - height) / 2u,
+        .width = width,
+        .height = height,
+    };
+    return 1;
+}
+
 static int reference_render_case(img_engine_t *engine, const char *name,
                                  const uint8_t *encoded_source, size_t encoded_source_size,
                                  uint32_t canvas_width, uint32_t canvas_height,
                                  const img_layout_render_rect_t *placements, uint32_t count,
-                                 const uint8_t background[3]) {
+                                 const uint8_t background[3], uint32_t crop_mode) {
     const size_t canvas_bytes = (size_t)canvas_width * canvas_height * 3u;
     uint8_t *reference = malloc(canvas_bytes);
     img_prepared_decoder_t decoder = {0};
@@ -190,8 +220,29 @@ static int reference_render_case(img_engine_t *engine, const char *name,
     }
     for (uint32_t index = 0; index < count; index++) {
         uint32_t fitted_width = 0, fitted_height = 0, destination_x = 0, destination_y = 0;
-        if (!reference_fit(source.width, source.height, &placements[index], &fitted_width,
-                           &fitted_height, &destination_x, &destination_y)) {
+        img_buffer_t cropped_source = {0};
+        const img_buffer_t *resize_source = &source;
+        if (crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) {
+            img_layout_crop_rect_t crop = {0};
+            if (!reference_crop(&source, &placements[index], &crop)) {
+                img_runtime_release_raw_buffer(engine, &source);
+                img_api_decoder_destroy(&decoder);
+                free(reference);
+                return 0;
+            }
+            cropped_source = source;
+            cropped_source.data = source.data + (size_t)crop.y * source.stride +
+                                  (size_t)crop.x * source.channels;
+            cropped_source.owner_pool = NULL;
+            cropped_source.width = crop.width;
+            cropped_source.height = crop.height;
+            resize_source = &cropped_source;
+            fitted_width = placements[index].width;
+            fitted_height = placements[index].height;
+            destination_x = placements[index].x;
+            destination_y = placements[index].y;
+        } else if (!reference_fit(source.width, source.height, &placements[index], &fitted_width,
+                                  &fitted_height, &destination_x, &destination_y)) {
             img_runtime_release_raw_buffer(engine, &source);
             img_api_decoder_destroy(&decoder);
             free(reference);
@@ -205,7 +256,7 @@ static int reference_render_case(img_engine_t *engine, const char *name,
             free(reference);
             return 0;
         }
-        reference_resize_rgb(&source, scaled_reference, fitted_width, fitted_height);
+        reference_resize_rgb(resize_source, scaled_reference, fitted_width, fitted_height);
         for (uint32_t y = 0; y < fitted_height; y++) {
             memcpy(reference + ((size_t)(destination_y + y) * canvas_width + destination_x) * 3u,
                    scaled_reference + (size_t)y * fitted_width * 3u, (size_t)fitted_width * 3u);
@@ -214,6 +265,7 @@ static int reference_render_case(img_engine_t *engine, const char *name,
     }
     const img_layout_render_v1_request_t request = {
         .version = IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION,
+        .crop_mode = crop_mode,
         .canvas_width = canvas_width,
         .canvas_height = canvas_height,
         .background_r = background[0],
@@ -262,15 +314,28 @@ static int test_scalar_rgb_oracle(img_engine_t *engine) {
                           make_jpeg_rgb(tall_pixels, 2, 4, &tall_jpeg, &tall_jpeg_size);
     const int passed = generated &&
                        reference_render_case(engine, "horizontal-letterbox", wide_jpeg,
-                                             wide_jpeg_size, 7, 7, one, 1, background) &&
+                                             wide_jpeg_size, 7, 7, one, 1, background,
+                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
                        reference_render_case(engine, "vertical-letterbox", tall_jpeg,
-                                             tall_jpeg_size, 7, 7, one, 1, background) &&
+                                             tall_jpeg_size, 7, 7, one, 1, background,
+                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
                        reference_render_case(engine, "exact-aspect", wide_jpeg, wide_jpeg_size, 6,
-                                             3, exact, 1, background) &&
+                                             3, exact, 1, background, IMG_LAYOUT_RENDER_CROP_FIT) &&
                        reference_render_case(engine, "multiple-placements", wide_jpeg,
-                                             wide_jpeg_size, 8, 5, multiple, 2, background) &&
+                                             wide_jpeg_size, 8, 5, multiple, 2, background,
+                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
                        reference_render_case(engine, "png-decode-render", k_png_fixture,
-                                             sizeof(k_png_fixture), 5, 4, png_one, 1, background);
+                                             sizeof(k_png_fixture), 5, 4, png_one, 1, background,
+                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
+                       reference_render_case(engine, "centered-fill-wide-to-square", wide_jpeg,
+                                             wide_jpeg_size, 7, 7, one, 1, background,
+                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
+                       reference_render_case(engine, "centered-fill-tall-to-square", tall_jpeg,
+                                             tall_jpeg_size, 7, 7, one, 1, background,
+                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
+                       reference_render_case(engine, "centered-fill-multiple", wide_jpeg,
+                                             wide_jpeg_size, 8, 5, multiple, 2, background,
+                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL);
     tjFree(wide_jpeg);
     tjFree(tall_jpeg);
     return passed;
@@ -408,6 +473,14 @@ static int test_rejections(img_engine_t *engine) {
         return 0;
     }
     request.placements = &overlapping[0];
+    request.crop_mode = UINT32_MAX;
+    if (img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result) != IMG_ERR_SECURITY ||
+        result.jpeg_data != NULL) {
+        fprintf(stderr, "unknown crop mode was accepted\n");
+        tjFree(jpeg);
+        return 0;
+    }
+    request.crop_mode = IMG_LAYOUT_RENDER_CROP_FIT;
     if (img_layout_render_v1(engine, (const uint8_t *)"bad", 3, &request, &result) == IMG_SUCCESS ||
         result.jpeg_data != NULL) {
         fprintf(stderr, "malformed input was accepted\n");
@@ -416,6 +489,42 @@ static int test_rejections(img_engine_t *engine) {
     }
     tjFree(jpeg);
     return 1;
+}
+
+static int test_p12_canvas_limit_is_separate_from_p8_fit(img_engine_t *engine) {
+    uint8_t *jpeg = NULL;
+    size_t jpeg_size = 0;
+    const img_layout_render_rect_t rect = {.x = 0, .y = 0, .width = 1, .height = 1};
+    img_layout_render_v1_request_t request = {
+        .version = IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION,
+        .crop_mode = IMG_LAYOUT_RENDER_CROP_FIT,
+        .canvas_width = 2048,
+        .canvas_height = 2048,
+        .placements = &rect,
+        .placement_count = 1,
+        .expected_count = 1,
+    };
+    img_layout_render_v1_result_t result = {0};
+    if (!make_jpeg(&jpeg, &jpeg_size))
+        return 0;
+
+    const img_result_t fit_status =
+        img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result);
+    if (fit_status != IMG_ERR_SECURITY || result.jpeg_data != NULL) {
+        fprintf(stderr, "P8 FIT limit changed unexpectedly\n");
+        tjFree(jpeg);
+        img_layout_render_v1_result_release(&result);
+        return 0;
+    }
+
+    request.crop_mode = IMG_LAYOUT_RENDER_CROP_CENTERED_FILL;
+    const img_result_t fill_status =
+        img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result);
+    tjFree(jpeg);
+    const int passed = fill_status == IMG_SUCCESS &&
+                       assert_jpeg_result(engine, &result, 2048, 2048);
+    img_layout_render_v1_result_release(&result);
+    return passed;
 }
 
 static int test_partial_execution_has_no_output(img_engine_t *engine) {
@@ -451,7 +560,9 @@ int main(void) {
     }
     const int passed = test_reference_geometry() && test_scalar_rgb_oracle(engine) &&
                        test_jpeg_and_completion(engine) && test_png(engine) &&
-                       test_rejections(engine) && test_partial_execution_has_no_output(engine);
+                       test_rejections(engine) &&
+                       test_p12_canvas_limit_is_separate_from_p8_fit(engine) &&
+                       test_partial_execution_has_no_output(engine);
     img_api_shutdown(engine);
     if (!passed) {
         fprintf(stderr, "private layout render test failed\n");

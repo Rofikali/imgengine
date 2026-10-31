@@ -71,6 +71,7 @@ imgengine_layout_render_v2_impl(imgengine_engine_t *engine,
     }
     img_layout_render_v1_request_t private_request = {
         .version = IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION,
+        .crop_mode = IMG_LAYOUT_RENDER_CROP_FIT,
         .canvas_width = request->canvas_width,
         .canvas_height = request->canvas_height,
         .background_r = request->background_r,

@@ -12,6 +12,12 @@ typedef struct img_ctx img_ctx_t;
 
 #define IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION 1u
 
+/* Private renderer modes. Zero remains the frozen P8 FIT behavior. */
+#define IMG_LAYOUT_RENDER_CROP_FIT 0u
+#define IMG_LAYOUT_RENDER_CROP_CENTERED_FILL 1u
+#define IMG_LAYOUT_RENDER_FIT_MAX_CANVAS_PIXELS 4000000u
+#define IMG_LAYOUT_RENDER_CENTERED_FILL_MAX_CANVAS_PIXELS 10000000u
+
 typedef struct {
     uint32_t x;
     uint32_t y;
@@ -31,6 +37,7 @@ typedef void (*img_layout_render_v1_canvas_observer_t)(const img_buffer_t *canva
 
 typedef struct {
     uint32_t version;
+    uint32_t crop_mode;
     uint32_t canvas_width;
     uint32_t canvas_height;
     uint8_t background_r;
