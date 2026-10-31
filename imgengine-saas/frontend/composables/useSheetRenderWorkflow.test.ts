@@ -116,7 +116,7 @@ describe('P12 physical-sheet workflow', () => {
     const workflow = createSheetRenderWorkflow(render)
     workflow.select(image())
     await workflow.submit()
-    expect(render).toHaveBeenCalledWith(expect.any(File), input)
+    expect(render).toHaveBeenCalledWith(expect.any(File), input, expect.objectContaining({ signal: expect.any(AbortSignal) }))
   })
   it('aborts in-flight rendering and ignores a late completion after reset', async () => {
     let complete!: (value: {
