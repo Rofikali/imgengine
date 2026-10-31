@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "core/buffer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +27,17 @@ typedef struct img_layout_crop_rect {
  */
 int img_layout_centered_crop(uint32_t source_width, uint32_t source_height, uint32_t target_width,
                              uint32_t target_height, img_layout_crop_rect_t *output);
+
+/*
+ * Builds a read-only-by-contract, non-owning view over a validated crop.
+ * The view preserves the source stride and channels and has owner_pool == NULL.
+ * Its data remains valid only while source remains alive and unchanged.
+ *
+ * Never pass this view to an ownership/release function or img_buf_hdr().
+ * Returns 1 on success and clears output on failure.
+ */
+int img_layout_crop_borrowed_view(const img_buffer_t *source, const img_layout_crop_rect_t *crop,
+                                  img_buffer_t *output);
 
 #ifdef __cplusplus
 }
