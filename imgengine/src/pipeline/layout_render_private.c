@@ -70,8 +70,7 @@ img_layout_render_validate_request(const img_layout_render_v1_request_t *request
         request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         request->canvas_height > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
-        (uint64_t)request->canvas_width * (uint64_t)request->canvas_height >
-            canvas_pixel_limit)
+        (uint64_t)request->canvas_width * (uint64_t)request->canvas_height > canvas_pixel_limit)
         return IMG_ERR_SECURITY;
 
     size_t row_bytes = 0;
@@ -222,8 +221,8 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
 
         if (state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) {
             img_layout_crop_rect_t crop = {0};
-            if (!img_layout_centered_crop(state->source.width, state->source.height,
-                                          rect->width, rect->height, &crop) ||
+            if (!img_layout_centered_crop(state->source.width, state->source.height, rect->width,
+                                          rect->height, &crop) ||
                 !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
                 result = IMG_ERR_SECURITY;
                 goto cleanup;
@@ -235,8 +234,7 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
             destination_y = rect->y;
         } else {
             result = img_layout_render_fit_geometry(&state->source, rect, &fitted_width,
-                                                    &fitted_height, &destination_x,
-                                                    &destination_y);
+                                                    &fitted_height, &destination_x, &destination_y);
             if (result != IMG_SUCCESS)
                 goto cleanup;
         }
