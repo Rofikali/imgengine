@@ -1,6 +1,6 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { ImgengineRenderError, useImgengineApi } from '~/composables/useImgengineApi'
-import type { RenderApiError, SheetRenderInput, SheetRenderSuccess } from '~/types/api'
+import type { RenderApiError, RenderOptions, SheetRenderInput, SheetRenderSuccess } from '~/types/api'
 import { CLIENT_RENDER_FILE_LIMIT_BYTES } from '~/composables/useRenderWorkflow'
 
 export type SheetWorkflowStatus = 'idle' | 'ready' | 'uploading' | 'processing' | 'success' | 'error'
@@ -19,7 +19,7 @@ function validateFile(file: File | null): SheetWorkflowFailure | null {
 
 /** Ephemeral UI state for the server-planned P12 physical-sheet workflow. */
 export function createSheetRenderWorkflow(
-  renderSheet: (file: File, input: SheetRenderInput) => Promise<SheetRenderSuccess>,
+  renderSheet: (file: File, input: SheetRenderInput, options?: RenderOptions) => Promise<SheetRenderSuccess>,
 ) {
   const selectedFile = ref<File | null>(null)
   const status = ref<SheetWorkflowStatus>('idle')
@@ -39,6 +39,13 @@ export function createSheetRenderWorkflow(
     outputFormat: 'jpeg',
   })
   const isSubmitting = computed(() => status.value === 'uploading' || status.value === 'processing')
+  let activeController: AbortController | null = null
+
+  function cancelActive() {
+    const controller = activeController
+    activeController = null
+    controller?.abort()
+  }
 
   function releasePreview() {
     if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
@@ -46,6 +53,7 @@ export function createSheetRenderWorkflow(
   }
 
   function select(file: File | null) {
+    cancelActive()
     releasePreview()
     result.value = null
     selectedFile.value = file
@@ -62,26 +70,34 @@ export function createSheetRenderWorkflow(
       return
     }
     failure.value = null
+    const controller = new AbortController()
+    activeController = controller
     status.value = 'uploading'
     await nextTick()
+    if (activeController !== controller || controller.signal.aborted) return
     status.value = 'processing'
     try {
-      const completed = await renderSheet(selectedFile.value!, sheet.value)
+      const completed = await renderSheet(selectedFile.value!, sheet.value, { signal: controller.signal })
+      if (activeController !== controller || controller.signal.aborted) return
       releasePreview()
       selectedFile.value = null
       result.value = completed
       previewUrl.value = URL.createObjectURL(completed.jpeg)
       status.value = 'success'
     } catch (cause) {
+      if (activeController !== controller || controller.signal.aborted) return
       result.value = null
       failure.value = cause instanceof ImgengineRenderError
         ? { message: cause.detail.message, detail: cause.detail }
         : { message: 'The connection to the rendering service was interrupted.', detail: null }
       status.value = 'error'
+    } finally {
+      if (activeController === controller) activeController = null
     }
   }
 
   function reset() {
+    cancelActive()
     releasePreview()
     selectedFile.value = null
     result.value = null
