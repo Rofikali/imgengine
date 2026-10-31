@@ -22,7 +22,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
-COPY imgengine ./imgengine
+COPY . ./imgengine
 
 RUN cmake -S /src/imgengine -B /build/native -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
