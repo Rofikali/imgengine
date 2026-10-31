@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useLayoutRenderWorkflow } from '~/composables/useLayoutRenderWorkflow'
 
 const { selectedFile, status, failure, result, previewUrl, isSubmitting, layout, select, submit, reset } = useLayoutRenderWorkflow()
