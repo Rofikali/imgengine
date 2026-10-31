@@ -1,10 +1,11 @@
 # IMGENGINE API Contract: Rust Target
 
-**Status:** P5 is implemented and verified in the Ubuntu 24.04 Docker gate.
-P8 adds a narrow, capability-backed FIT-only layout endpoint; its full
-Ubuntu-authoritative release evidence is required before a production claim.
-The broader `v1` target remains planned. The current `/api/generate`
-asynchronous contract remains supported until its announced retirement.
+**Status:** P5, P8, and P12 synchronous Rust capabilities are implemented and
+covered by the Ubuntu 24.04 CI/Docker gates. P12 adds a separate physical-sheet
+contract; it does not change P8 FIT semantics. Production capacity, peak-RSS,
+concurrency, canary, and legacy-retirement evidence remain release gates. The
+current `/api/generate` asynchronous contract remains supported until its
+announced retirement.
 
 ## CURRENT P5/P6 IMPLEMENTATION
 
@@ -81,12 +82,61 @@ count would fit can still be rejected when TurboJPEG's conservative destination
 bound exceeds the configured budget. These are not production-capacity claims:
 aggregate output memory and workspace-byte limits remain unimplemented.
 
-The following are expressly **not** implemented by this endpoint: Fill/crop,
+The following are expressly **not** implemented by the P8 endpoint: Fill/crop,
 presets, templates, paper sizes, PDF or PNG output, transparency/background
 selection, persistent jobs/output URLs, rate limiting, idempotency, and native
 mid-operation cancellation. Invalid fields map safely to `400`; unsupported
 image input remains `415`; malformed image data is `422`; layout/body resource
-limits are `413`; queue overload is `429`; and expiry is `504`.
+limits are `413`; queue overload is `429`; and expiry is `504`. Physical-
+sheet centered-fill is implemented separately by P12 below.
+
+## CURRENT P12 PHYSICAL-SHEET CAPABILITY
+
+`POST /api/v2/sheet-render` is an additive physical-sheet endpoint. It uses the
+same authenticated Rust request lifecycle, bounded admission path, existing C
+scheduler, ephemeral workspace policy, and JPEG response model. The browser
+uses the same-origin Nuxt proxy `POST /api/sheet-render`; the server proxy
+supplies the private `X-API-Key` and never exposes the backend credential to
+the browser.
+
+The Rust endpoint accepts multipart fields:
+
+- `file`: one JPEG or PNG image;
+- `sheet_width_mm`, `sheet_height_mm`: physical sheet dimensions;
+- `photo_width_mm`, `photo_height_mm`: physical photo-cell dimensions;
+- `dpi`: optional, defaults to 300; accepted range is 1 through 1200;
+- `copies`: exact requested copy count;
+- `margin_mm`, `gap_x_mm`, `gap_y_mm`: physical spacing; and
+- `output_format=jpeg`: the only output format in this slice.
+
+Millimetre fields accept decimal values with up to three fractional digits.
+The server converts physical dimensions to pixels using checked arithmetic and
+half-up rounding. It owns the placement plan and derives a centered crop-to-fill
+from the decoded source image for every photo cell. Placement order is
+deterministic and row-major. The server never silently reduces the requested
+copy count: if the exact count does not fit, it returns `422 does_not_fit`.
+
+A successful response is `image/jpeg` and includes a request ID plus native-
+confirmed canvas width/height and expected/planned/executed counts in
+`X-Imgengine-*` headers. The UI displays those server-confirmed values; it
+does not calculate crop coordinates, placements, or resource budgets.
+
+P12 currently has a 1 MiB multipart input limit, queue capacity 1, a 10-second
+post-dequeue execution deadline, a 10,000,000-pixel canvas ceiling, and a
+server-owned 64 MiB JPEG destination budget (configurable with
+`IMGENGINE_SHEET_MAX_OUTPUT_BYTES`). The canvas edge is bounded at 4096 pixels
+and the placement count at the native layout maximum. These are provisional
+integration limits, not a production capacity claim. The JPEG destination
+budget does not bound decoded-source, canvas, intermediate, Rust/Node response
+copies, aggregate process RSS, or concurrent workspace memory. Peak RSS and
+load/concurrency measurements in the final container remain mandatory before
+public rollout.
+
+The P12 response-abandonment behavior does not promise native mid-operation
+cancellation. The current native ABI completes or fails admitted work; a
+browser abort only stops waiting for the response. Persistent jobs, output
+URLs, PDF/PNG output, presets, idempotency, and production rate limiting remain
+out of scope.
 
 ## FUTURE / PLANNED API
 
@@ -95,8 +145,8 @@ The following is a broader target, not implemented P5 behavior.
 | Endpoint | Behavior |
 | --- | --- |
 | `POST /api/v1/render` | Future capability-backed expansion may add PDF and producer-to-client streaming only after separate design and verification. |
-| `GET /healthz` | Planned liveness endpoint. |
-| `GET /readyz` | Planned readiness endpoint. |
+| `GET /healthz` | Implemented public liveness endpoint. |
+| `GET /readyz` | Implemented public readiness endpoint; returns unavailable while draining. |
 | `GET /metrics` | Planned private/authenticated metrics endpoint. |
 
 Active-window `Idempotency-Key`, `X-Trace-Id`, generated download filenames,
