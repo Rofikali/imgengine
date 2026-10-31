@@ -293,3 +293,42 @@ The next source-level audit should proceed in this order:
 **Current recommendation: continue development; do not declare production-ready or publicly launch paid workloads yet.**
 
 The architecture is directionally strong. The next best move is not adding infrastructure or rewriting the scheduler. It is closing the P11/P12 correctness gate, proving end-to-end resource limits and isolation, reconciling documentation, resolving licensing, and validating customer economics with measured data.
+
+
+## 14. Additional source-level inspection (first pass)
+
+This section was added after inspecting selected live C, Rust and Nuxt source files on `main`. It is still a targeted review, not a complete line-by-line audit.
+
+### Confirmed implementation facts
+
+- The Rust API's configured API keys are compared using a dedicated constant-time byte comparison helper. The current mechanism is a static server-side key list, not tenant identity, per-user sessions or a complete key lifecycle.
+- The Axum API applies a 1 MiB request limit, a queue capacity of one waiting request, and a provisional 10-second deadline. The multipart file is collected into memory; the layout path then owns a byte vector.
+- The FIT layout route calls the bounded native output method with a server-owned budget. The public C ABI also continues to expose an unbounded `imgengine_layout_render_v2` symbol. Untrusted/native external callers must use the bounded symbol; the unbounded entrypoint should be documented as trusted-only or deprecated under a compatible policy.
+- The C public layout ABI validates canvas edge/area, placement count and reserved fields, copies the bounded placement array, serializes use of the opaque engine lock, and checks that expected/planned/executed counts agree before transferring output ownership.
+- The private C renderer checks nonzero rectangles, overflow-safe right/bottom edges, canvas containment and pairwise overlap before rendering.
+- The Rust supervisor creates private `0700` request workspaces and removes them on normal completion and Drop. Stale cleanup is performed at startup. This is useful process-lifetime cleanup, not proof of cleanup after SIGKILL, power loss or host failure.
+- The Nuxt proxy limits incoming request bytes, rejects unknown/duplicate multipart fields and keeps the API key in private runtime configuration. It buffers the upstream JPEG with `response.arrayBuffer()`; the Rust API also returns a complete in-memory response body. This is bounded by the current FIT output policy, but it is not streaming.
+- The C engine startup allocates a fixed 512 MiB slab region via the NUMA allocator (or aligned allocation fallback). This is a reservation/allocation fact; actual resident memory and cgroup charging must be measured on the target VPS.
+- The decoder-facing wrapper `img_api_decode_prepared` delegates to the registered decoder vtable. The standalone `img_security_validate_request` helper has a 16,384 × 16,384 pixel ceiling and a 4 GiB RGBA estimate, but this audit has not yet established its call reachability from every decoder path. Trace and test this before relying on it as a security gate.
+
+### New high-priority findings
+
+| ID | Priority | Finding | Required action |
+|---|---|---|---|
+| SEC-13 | P0/P1 integration blocker | `IMGENGINE_SANDBOX` defaults OFF. When enabled, seccomp uses `SECCOMP_FILTER_FLAG_TSYNC`, which synchronizes the filter across the process thread group. The allowlist does not include the socket/bind/listen/accept/epoll syscall family required by the Axum server. The API runtime starts the native engine before binding its listener. | Do not enable this build flag in the in-process Axum server without a dedicated integration test. Decide whether the sandbox is a whole-process policy or move native decoding into a separate restricted child process. Add an end-to-end test that starts the API with the intended sandbox configuration and serves a real request. |
+| SEC-14 | P1 capacity/security | Native startup allocates a fixed 512 MiB slab region. On a small VPS this may consume a material fraction of the container/host memory budget, even before request-specific decoded images and output buffers. | Measure RSS, virtual size, cgroup memory.current/peak, NUMA allocation behavior and OOM headroom on the actual VPS. Make pool sizing a validated server/native configuration if measurements justify it; do not blindly shrink it without allocator tests. |
+| SEC-15 | P1 decoder boundary | A 16K × 16K image represents 268,435,456 pixels; an RGBA estimate is 1 GiB, while the validator's stated hard ceiling is 4 GiB. Its invocation path has not yet been proven for all decoders. | Establish a much tighter product-specific pixel/RSS envelope, trace the validator into every decoder entry, and add decompression-bomb tests with the actual TurboJPEG/PNG paths and the 1 MiB API limit. |
+| SEC-16 | P1 ABI safety | The public ABI retains an unbounded layout render symbol alongside the bounded variant. | Make bounded processing the only supported route for untrusted inputs. Explicitly mark/document unbounded use as trusted-only and add external consumer tests that prove the HTTP path cannot call it accidentally. |
+| SEC-17 | P2 memory/latency | Both Rust API and Nuxt proxy materialize complete request/response bodies in memory; there is no end-to-end streaming path. | Keep strict body/output/concurrency ceilings for MVP. Consider streaming only with backpressure, disconnect, error and cleanup semantics designed and measured; do not add streaming as a superficial refactor. |
+
+### Sandbox reasoning and limitation
+
+The sandbox lifecycle verifier configures a separate CMake build with `IMGENGINE_SANDBOX=ON` and runs a dedicated C sandbox lifecycle test. The normal build defaults the option to OFF. That test is not equivalent to proving that an Axum HTTP process can start, bind, accept connections and shut down under the same TSYNC filter. This integration must be resolved before describing the Rust API deployment as sandboxed.
+
+### Immediate source-review order
+
+1. Reproduce the sandbox/API interaction in an isolated Ubuntu 24.04 Docker test; do not change the production default during diagnosis.
+2. Trace every decoder implementation and prove width/height/pixel validation occurs before large allocations.
+3. Measure the 512 MiB slab's actual memory behavior under the target cgroup limits.
+4. Inspect the exact bounded JPEG allocator path and document the unbounded ABI method's supported trust model.
+5. Add an end-to-end memory budget covering Nuxt, Axum, native pool, decoded source, canvas, encoder output, response copies and concurrent requests.
