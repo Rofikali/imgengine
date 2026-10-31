@@ -2,7 +2,7 @@
 
 ## Status
 
-**Decision record / implementation gate.** This document defines the next product capability on top of P11. PR #17 integrates a private native centered crop-fill renderer mode, but the public ABI 2.2, P12 planner/API route, and frontend flow are not implemented.
+**Implementation status.** PR #17 integrates the private native centered crop-fill renderer mode, and PR #18 adds its additive public C ABI 2.2 wrapper and C consumer tests. The P11 planner's P12 resource policy, safe Rust wrapper, supervisor/lifecycle operation, HTTP route, and frontend flow remain to be implemented.
 
 P12 is intentionally separate from P11. P11 remains a pure, deterministic Rust geometry planner. This contract is based on the existing P8 product contract, P9.3 bounded-output design, the current HTTP adapter, and the public C ABI version map.
 
@@ -60,7 +60,7 @@ The request is one source image and one output sheet. There is no multi-image in
 8. Use checked arithmetic before allocation or native work.
 9. Apply the P12 sheet envelope: at most 64 placements, maximum canvas dimension 4096 px, and maximum canvas area 10,000,000 pixels. This permits A4 at 300 DPI (2480 × 3508 = 8,699,840 pixels). The existing P8 FIT ABI retains its independent 4,000,000-pixel ceiling and must not change. Each cell and every placement must also be within the canvas and non-overlapping.
 
-The P11 planner currently accepts pixel dimensions and returns placements under the limits implemented in P11. PR #17 now enforces the 10,000,000-pixel ceiling inside the private native centered-fill renderer mode; the P11 planner, public ABI 2.2 wrapper, and HTTP route still do not expose that envelope. This mode remains inaccessible to external callers until the additive public ABI lands. The ceiling is a geometry admission limit, not proof of peak RSS: A4 native integration and memory verification remain release gates. The existing P8 FIT native path retains its independent 4,000,000-pixel ceiling. P12's API adapter is responsible for parsing and converting physical units before calling the planner.
+The P11 planner currently accepts pixel dimensions and returns placements under the limits implemented in P11. PR #17 enforces the 10,000,000-pixel ceiling in the private native centered-fill renderer, and PR #18 exposes it through the additive bounded ABI 2.2 symbol. The P11 planner, safe Rust wrapper, supervisor/lifecycle operation, and HTTP route still do not expose the complete P12 workflow. The ABI consumer test now renders A4 at 300 DPI; the ceiling remains a geometry admission limit, not proof of peak RSS, so peak-memory measurement remains a release gate. The existing P8 FIT native path retains its independent 4,000,000-pixel ceiling. P12's API adapter is responsible for parsing and converting physical units before calling the planner.
 
 ## Image fitting decision: centered crop-to-fill
 
@@ -91,7 +91,7 @@ This avoids trusting browser metadata, avoids a second full decode, and keeps ho
 
 ## Native ABI compatibility
 
-The current symbol-version map already contains `IMGENGINE_1.0`, `IMGENGINE_2.0`, and `IMGENGINE_2.1`. ABI 2.1 adds the bounded JPEG output symbol. The current public ABI-v2 layout request is FIT-oriented and carries canvas dimensions plus placement rectangles; it has no crop rectangle or crop mode.
+The symbol-version map contains `IMGENGINE_1.0`, `IMGENGINE_2.0`, `IMGENGINE_2.1`, and the additive `IMGENGINE_2.2` sheet symbol. ABI 2.1 adds bounded FIT-layout output; ABI 2.2 adds bounded centered-fill sheet rendering. The current public ABI-v2 layout request is FIT-oriented and carries canvas dimensions plus placement rectangles; it has no crop rectangle or crop mode.
 
 Therefore:
 
@@ -101,7 +101,7 @@ Therefore:
 - any native crop capability must be additive, with a new size/versioned request contract and a new symbol-version node after inspection of the ABI compatibility tests and export checker;
 - keep existing ABI v1, 2.0, and 2.1 consumers working unchanged.
 
-The exact ABI 2.2 struct and symbol names are deliberately not frozen by this product contract. They require a separate ABI design review covering struct-size evolution, reserved fields, crop rectangle validation, output ownership, error mapping, and symbol-export tests.
+The exact ABI 2.2 struct and symbol are frozen in [P12.2 ABI design](P12_2_ABI_2_2_CROP_DESIGN.md) and implemented in PR #18. The safe Rust wrapper and transport integration remain separate work.
 
 ## Resource, lifecycle, and security rules
 
@@ -153,12 +153,12 @@ The existing 16 MiB bounded-output default is a provisional encoded-destination 
 2. Audit the frontend's current request schema and preview implementation.
 3. Source-dimension handoff is decided: C reuses the single decoded source and computes crop geometry internally.
 4. Freeze the additive ABI 2.2 request, symbol, output ownership, and validation contract in [P12.2 ABI design](P12_2_ABI_2_2_CROP_DESIGN.md).
-5. Implement the pure Rust API adapter and tests.
-6. Implement the additive C crop capability and independent boundary tests.
-7. Integrate the new route through the existing supervisor and lifecycle.
-8. Integrate the frontend only after request and preview contracts are stable.
-9. Run the existing Docker Ubuntu 24.04 verification gate plus new integration, sanitizer, fuzz, and ABI tests.
-10. Review the resulting PR and CI before merge. A green CI run is evidence for the tested revision, not a production-readiness claim.
+5. Implement the native ABI 2.2 wrapper, symbol version, export manifest, and public-consumer tests (PR #18).
+6. Add the safe Rust FFI wrapper and P12 planner policy while preserving P11's existing 4 MP default.
+7. Integrate sheet plans through the existing supervisor, bounded admission queue, and request lifecycle.
+8. Add the `/api/v2/sheet-render` transport route with a strict multipart allowlist and server-owned output cap.
+9. Integrate the frontend only after request and preview contracts are stable.
+10. Run the existing Docker Ubuntu 24.04 verification gate plus new A4 memory, integration, sanitizer, fuzz, and ABI tests. Review the exact CI revision before merge; green CI is not by itself a production-readiness claim.
 
 ## Explicit non-goals
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-**Design decision / implementation gate.** This document freezes the proposed public C boundary for P12's physical-sheet renderer. PR #17 integrates centered crop-fill into a private native renderer mode, but the public ABI 2.2, safe Rust wrapper, and HTTP route are not implemented.
+**Design and implementation status.** PR #17 integrates centered crop-fill into the private native renderer. PR #18 implements the public ABI 2.2 C header/wrapper, ELF symbol version, exact export-manifest entry, LP64 layout assertions, public-consumer rejection tests, and an A4 render smoke test. The safe Rust wrapper and HTTP route are not implemented yet.
 
 This is an additive ABI 2.2 capability. Existing ABI v1, layout ABI 2.0, and bounded-layout ABI 2.1 remain unchanged.
 
@@ -27,7 +27,7 @@ This is an additive ABI 2.2 capability. Existing ABI v1, layout ABI 2.0, and bou
 
 ## 2. Public header and symbol
 
-Add a self-contained public header:
+The public header added in PR #18 is:
 
 ```text
 include/imgengine/api/v2/sheet.h
@@ -56,7 +56,7 @@ The name deliberately distinguishes this new crop-to-fill sheet operation from t
 
 ## 3. Request data contract
 
-The proposed public declaration is:
+The public declaration implemented in PR #18 is:
 
 ```c
 #define IMGENGINE_SHEET_RENDER_V1_VERSION 1u
@@ -164,7 +164,7 @@ Status mapping should match the established ABI status model: invalid arguments/
 
 ### P12 sheet resource envelope
 
-The private centered-fill renderer mode introduced in PR #17 now enforces a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. The public ABI 2.2 wrapper must preserve this policy when it is added. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
+The private centered-fill renderer mode introduced in PR #17 and the public ABI 2.2 wrapper added in PR #18 enforce a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
 
 ## 7. Crop semantics at the C boundary
 
@@ -185,7 +185,7 @@ The C implementation must have its own tests. Rust's P11 helper is a determinist
 
 ## 8. ELF symbol versioning and export manifest
 
-Append a version node to `imgengine/cmake/libimgengine.map`:
+PR #18 appends this version node to `imgengine/cmake/libimgengine.map`:
 
 ```text
 IMGENGINE_2.2 {
@@ -194,7 +194,7 @@ IMGENGINE_2.2 {
 } IMGENGINE_2.1;
 ```
 
-Add exactly this symbol to `imgengine/abi/exported_symbols.json` with ABI label `IMGENGINE_2.2`.
+PR #18 adds exactly this symbol to `imgengine/abi/exported_symbols.json` with ABI label `IMGENGINE_2.2`. The export checker now verifies symbol-version labels as well as the exact symbol set.
 
 Do not alter the existing 1.0, 2.0, or 2.1 symbol entries. The export checker must continue to enforce an exact set: no missing symbols and no accidental exports.
 
@@ -252,11 +252,12 @@ Test square/equal-aspect, wide-to-tall, tall-to-wide, portrait, landscape, odd e
 ## 11. Implementation sequence
 
 1. Review this ABI design against the public header, wrapper, map, manifest, and current native renderer.
-2. Add header, C ABI wrapper, map node, export manifest entry, Rust FFI representation, and layout assertions without changing the renderer.
-3. Add negative public-consumer tests for all request validation and output ownership rules.
-4. Add an isolated C crop-geometry helper with parity tests against the P11 reference vectors.
-5. Integrate crop-to-fill into the native layout renderer while retaining the single decode and borrowed-source lifetime.
-6. Add safe Rust wrapper and API-level integration.
-7. Run all Docker verification gates; inspect exact revision CI and review the ABI diff before removing Draft status.
+2. Implement the private native crop-fill path and independent C geometry tests (PR #17).
+3. Add the public ABI 2.2 header, bounded C wrapper, linker version node, export manifest, and public-consumer tests (PR #18).
+4. Add the safe Rust FFI representation and ownership wrapper, including Rust/C layout parity assertions.
+5. Add P12 planner policy using a 10 MP limit without changing P11's 4 MP `solve` behavior.
+6. Integrate the new typed operation through supervisor admission and request lifecycle.
+7. Add API parsing, route tests, and end-to-end A4 memory measurements.
+8. Run all Docker verification gates; inspect exact revision CI and review the ABI diff before removing Draft status.
 
 No implementation step should begin by changing the existing ABI-v2 request or the existing FIT renderer.

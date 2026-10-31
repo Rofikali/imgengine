@@ -49,23 +49,30 @@ imgengine_status_t imgengine_sheet_render_v1_bounded(
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
     memset(output, 0, sizeof(*output));
 
-    if (!engine || !request || request->struct_size < sizeof(*request) ||
-        request->version != IMGENGINE_SHEET_RENDER_V1_VERSION ||
-        !imgengine_sheet_reserved_fields_are_zero(request) ||
-        request->crop_mode != IMGENGINE_SHEET_CROP_CENTERED_FILL || !request->input ||
-        request->input_size == 0 || !request->placements || request->placement_count == 0 ||
-        request->expected_count != request->placement_count || request->canvas_width == 0 ||
-        request->canvas_height == 0 || max_output_bytes == 0 || max_output_bytes > INT_MAX) {
+    if (!engine || !request)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
-    }
-
-    if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
+    if (request->struct_size < sizeof(*request) ||
+        request->version != IMGENGINE_SHEET_RENDER_V1_VERSION)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    if (!imgengine_sheet_reserved_fields_are_zero(request))
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    if (!request->input || request->input_size == 0 || !request->placements ||
+        request->placement_count == 0)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    if (request->crop_mode != IMGENGINE_SHEET_CROP_CENTERED_FILL)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    if (request->expected_count != request->placement_count)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS)
+        return IMGENGINE_STATUS_RESOURCE_LIMIT;
+    if (request->canvas_width == 0 || request->canvas_height == 0 ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         request->canvas_height > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         (uint64_t)request->canvas_width * (uint64_t)request->canvas_height >
-            IMGENGINE_SHEET_V1_MAX_CANVAS_PIXELS) {
+            IMGENGINE_SHEET_V1_MAX_CANVAS_PIXELS)
         return IMGENGINE_STATUS_RESOURCE_LIMIT;
-    }
+    if (max_output_bytes == 0 || max_output_bytes > INT_MAX)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
 
 #if SIZE_MAX <= UINT32_MAX
     if (request->placement_count > SIZE_MAX / sizeof(img_layout_render_rect_t))

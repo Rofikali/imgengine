@@ -123,11 +123,41 @@ static int test_request_rejections(imgengine_engine_t *engine) {
         expect_status(engine, &request, (size_t)INT_MAX + 1u, IMGENGINE_STATUS_INVALID_ARGUMENT))
         return 1;
 
-    imgengine_layout_rect_v2_t placements[65] = {{0}};
-    request.placements = placements;
-    request.placement_count = 65;
-    request.expected_count = 65;
+    request = valid_request(&placement, 6, 6);
+    request.input = NULL;
+    if (expect_status(engine, &request, 16u * 1024u * 1024u, IMGENGINE_STATUS_INVALID_ARGUMENT))
+        return 1;
+    request = valid_request(&placement, 6, 6);
+    request.input_size = 0;
+    if (expect_status(engine, &request, 16u * 1024u * 1024u, IMGENGINE_STATUS_INVALID_ARGUMENT))
+        return 1;
+    request = valid_request(&placement, 6, 6);
+    request.placements = NULL;
+    if (expect_status(engine, &request, 16u * 1024u * 1024u, IMGENGINE_STATUS_INVALID_ARGUMENT))
+        return 1;
+    request = valid_request(&placement, 6, 6);
+    request.placement_count = 0;
+    request.expected_count = 0;
+    if (expect_status(engine, &request, 16u * 1024u * 1024u, IMGENGINE_STATUS_INVALID_ARGUMENT))
+        return 1;
+    request = valid_request(&placement, 6, 6);
+    request.canvas_width = 0;
     if (expect_status(engine, &request, 16u * 1024u * 1024u, IMGENGINE_STATUS_RESOURCE_LIMIT))
+        return 1;
+
+    struct extended_sheet_request {
+        imgengine_sheet_request_v1_t request;
+        uint64_t future_fields[2];
+    } extended = {0};
+    extended.request = valid_request(&placement, 6, 6);
+    extended.request.struct_size = sizeof(extended);
+    imgengine_layout_output_v2_t extended_output = {0};
+    const imgengine_status_t extended_status =
+        imgengine_sheet_render_v1_bounded(engine, &extended.request, 16u * 1024u * 1024u,
+                                          &extended_output);
+    const int extended_failed = extended_status != IMGENGINE_STATUS_OK || !extended_output.data;
+    imgengine_layout_output_release(&extended_output);
+    if (extended_failed || !output_is_empty(&extended_output))
         return 1;
 
     static const uint8_t malformed[] = {0x00, 0x01, 0x02, 0x03};

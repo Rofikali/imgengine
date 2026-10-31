@@ -46,3 +46,19 @@ uses the existing `imgengine_layout_output_release()` ownership contract.
 Internal scheduler, allocator, codec, SIMD, logging, and legacy API symbols
 remain deliberately hidden. The checker treats only `IMGENGINE_*` version-node
 labels as metadata and compares every function/data export against the manifest.
+
+
+## ABI v2.2 — bounded physical-sheet render capability
+
+`imgengine_sheet_render_v1_bounded` is the sole additive `IMGENGINE_2.2`
+symbol. It accepts a separately size/versioned sheet request, derives centered
+crop geometry from the decoded source in C, and uses the existing v2 output
+structure/release function. It does not change the FIT-only v2.0/v2.1 request
+or their 4 MP resource limit.
+
+| Symbol |
+|---|
+| `imgengine_sheet_render_v1_bounded` |
+
+The export checker now validates both the exact exported symbol set and each
+symbol's ELF version label against this manifest.
