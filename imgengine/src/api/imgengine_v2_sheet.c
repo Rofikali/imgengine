@@ -25,19 +25,19 @@ static imgengine_status_t imgengine_sheet_map_result(img_result_t result) {
     }
 }
 
-imgengine_status_t imgengine_sheet_render_v1_bounded(
-    imgengine_engine_t *engine, const imgengine_sheet_request_v1_t *request,
-    size_t max_output_bytes, imgengine_layout_output_v2_t *output) {
+imgengine_status_t imgengine_sheet_render_v1_bounded(imgengine_engine_t *engine,
+                                                     const imgengine_sheet_request_v1_t *request,
+                                                     size_t max_output_bytes,
+                                                     imgengine_layout_output_v2_t *output) {
     if (!output)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
     memset(output, 0, sizeof(*output));
 
     if (!engine || !engine->native_engine || !request ||
         request->struct_size < sizeof(imgengine_sheet_request_v1_t) ||
-        request->version != IMGENGINE_SHEET_RENDER_V1_VERSION ||
-        request->reserved0 != 0 || !request->input || request->input_size == 0 ||
-        !request->placements || request->placement_count == 0 ||
-        request->expected_count != request->placement_count ||
+        request->version != IMGENGINE_SHEET_RENDER_V1_VERSION || request->reserved0 != 0 ||
+        !request->input || request->input_size == 0 || !request->placements ||
+        request->placement_count == 0 || request->expected_count != request->placement_count ||
         request->crop_mode != IMGENGINE_SHEET_CROP_CENTERED_FILL)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
 
@@ -58,8 +58,7 @@ imgengine_status_t imgengine_sheet_render_v1_bounded(
     if (max_output_bytes == 0 || max_output_bytes > INT_MAX)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
 
-    img_layout_render_rect_t *placements =
-        calloc(request->placement_count, sizeof(*placements));
+    img_layout_render_rect_t *placements = calloc(request->placement_count, sizeof(*placements));
     if (!placements)
         return IMGENGINE_STATUS_OUT_OF_MEMORY;
 
