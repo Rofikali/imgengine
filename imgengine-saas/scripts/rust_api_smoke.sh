@@ -99,4 +99,21 @@ curl --fail --silent --show-error -D "$work_dir/sheet.headers" \
   "$api_url/api/v2/sheet-render" -o "$work_dir/sheet.jpg"
 check_jpeg sheet 2480 3508 8
 
-echo "Rust API smoke passed: P5 render, P8 FIT layout, P12 A4 physical sheet"
+rejected_status="$(curl --silent --show-error --output "$work_dir/does-not-fit.json" --write-out '%{http_code}' \
+  -H "X-API-Key: $api_key" \
+  -F "file=@$fixture;type=image/jpeg" \
+  -F "sheet_width_mm=210" -F "sheet_height_mm=297" \
+  -F "photo_width_mm=35" -F "photo_height_mm=45" -F "dpi=300" \
+  -F "copies=26" -F "margin_mm=10" -F "gap_x_mm=2" -F "gap_y_mm=2" \
+  -F "output_format=jpeg" \
+  "$api_url/api/v2/sheet-render")"
+[[ "$rejected_status" == "422" ]] || { echo "Expected P12 capacity rejection (422), got $rejected_status" >&2; cat "$work_dir/does-not-fit.json" >&2; exit 1; }
+python3 - "$work_dir/does-not-fit.json" <<'PY'
+import json, sys
+problem = json.load(open(sys.argv[1], encoding="utf-8"))
+assert problem.get("status") == 422, problem
+assert problem.get("code") == "does_not_fit", problem
+assert problem.get("request_id"), problem
+PY
+
+echo "Rust API smoke passed: P5 render, P8 FIT layout, P12 A4 sheet and exact-copy rejection"
