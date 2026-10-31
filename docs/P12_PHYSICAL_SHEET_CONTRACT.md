@@ -75,16 +75,19 @@ The new P12 operation uses centered crop-to-fill:
 
 P11's `centered_crop` function defines the integer crop geometry and its odd-excess-pixel convention. The native implementation must independently validate all crop coordinates and bounds. A Rust-generated crop rectangle is untrusted input at the C ABI boundary.
 
-### Source-dimension handoff is an implementation gate
+### Source dimensions and crop ownership: selected design
 
-The current render path decodes the source inside native rendering. P12 must not guess source dimensions or trust dimensions supplied by the browser.
+The current native render path already decodes the encoded source once into a validated `img_buffer_t` before scheduling the layout task. That decoded buffer carries authoritative width, height, stride, and pixel data into the renderer.
 
-Before implementation is approved, choose and test one safe handoff:
+P12 will keep that single-decode path:
 
-- a bounded native image-inspection capability that returns validated decoded dimensions to Rust, followed by a separately validated render call; or
-- a single native render operation that performs the crop calculation itself from decoded dimensions, with parity tests proving it matches P11's `centered_crop` reference algorithm.
+- Rust sends the explicit crop mode `CENTERED_FILL` in a new additive native request contract; it does not send source dimensions or a client-derived crop rectangle.
+- C computes the crop rectangle from the already-decoded source dimensions and the target cell dimensions, using checked integer cross-products and the same floor/centering convention as P11's `centered_crop`.
+- C applies the crop as a validated source view or equivalent bounded operation before resizing to the exact photo-cell dimensions. The implementation must prove that any borrowed view respects source stride and lifetime and is never released as an owned buffer.
+- The C tests compare native crop geometry against P11's reference cases, including odd excess pixels, portrait/landscape transitions, and extreme dimensions.
+- The Rust helper remains the pure deterministic reference used for planner-level tests and cross-layer parity; it is not treated as a security boundary.
 
-Do not introduce a second full image decode merely for convenience without measuring its CPU and memory cost. Do not accept browser-supplied source dimensions as authoritative. The selected design must keep hostile-image dimension and pixel limits enforced before large allocation.
+This avoids trusting browser metadata, avoids a second full decode, and keeps hostile-image dimension/pixel validation in the existing native decode path. The ABI design must still specify how the crop mode is represented and reject unknown values.
 
 ## Native ABI compatibility
 
