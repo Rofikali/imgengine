@@ -2,7 +2,7 @@
 
 ## Status
 
-**Decision record / implementation gate.** This document defines the next product capability on top of P11. It does not claim that the endpoint, crop renderer, frontend, or native ABI extension is implemented.
+**Implementation status (draft PR #16).** The native ABI 2.2 renderer, centered-fill crop path, P12-only 10 MP limit, safe Rust FFI, bounded supervisor operation, and Axum `POST /api/v2/sheet-render` route are implemented on `feat/p12-native-abi22`. CI is being run on the exact branch head. The Nuxt frontend, measured peak-RSS/concurrency gate, deployment verification, and production release remain open.
 
 P12 is intentionally separate from P11. P11 remains a pure, deterministic Rust geometry planner. This contract is based on the existing P8 product contract, P9.3 bounded-output design, the current HTTP adapter, and the public C ABI version map.
 
@@ -26,22 +26,22 @@ POST /api/v2/sheet-render
 Content-Type: multipart/form-data
 ```
 
-This route name is a P12 proposal, not an existing route.
+This route is implemented in draft PR #16; it is not available from `main` until the stacked implementation PR is merged.
 
 ### Request fields
 
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `file` | JPEG or PNG bytes | One source photograph |
-| `sheet_width_mm` | finite positive decimal | Physical width of the complete output sheet |
-| `sheet_height_mm` | finite positive decimal | Physical height of the complete output sheet |
-| `photo_width_mm` | finite positive decimal | Physical width of each photo cell |
-| `photo_height_mm` | finite positive decimal | Physical height of each photo cell |
-| `dpi` | bounded positive integer | Output raster resolution; default 300 for this MVP |
+| `sheet_width_mm` | finite positive decimal (up to 3 fractional digits) | Physical width of the complete output sheet |
+| `sheet_height_mm` | finite positive decimal (up to 3 fractional digits) | Physical height of the complete output sheet |
+| `photo_width_mm` | finite positive decimal (up to 3 fractional digits) | Physical width of each photo cell |
+| `photo_height_mm` | finite positive decimal (up to 3 fractional digits) | Physical height of each photo cell |
+| `dpi` | integer 1..=1200 | Output raster resolution; default 300 for this MVP |
 | `copies` | integer 1..=64 | Exact number of requested photo placements |
-| `margin_mm` | finite non-negative decimal | Equal outer margin on all four sides |
-| `gap_x_mm` | finite non-negative decimal | Horizontal gap between columns |
-| `gap_y_mm` | finite non-negative decimal | Vertical gap between rows |
+| `margin_mm` | finite non-negative decimal (up to 3 fractional digits) | Equal outer margin on all four sides |
+| `gap_x_mm` | finite non-negative decimal (up to 3 fractional digits) | Horizontal gap between columns |
+| `gap_y_mm` | finite non-negative decimal (up to 3 fractional digits) | Vertical gap between rows |
 | `output_format` | literal `jpeg` | The only P12 output format |
 
 Unknown and duplicate multipart fields are rejected. No client field may select a filesystem path, output budget, native resource limit, crop rectangle, or server configuration.
@@ -60,7 +60,7 @@ The request is one source image and one output sheet. There is no multi-image in
 8. Use checked arithmetic before allocation or native work.
 9. Apply the P12 sheet envelope: at most 64 placements, maximum canvas dimension 4096 px, and maximum canvas area 10,000,000 pixels. This permits A4 at 300 DPI (2480 × 3508 = 8,699,840 pixels). The existing P8 FIT ABI retains its independent 4,000,000-pixel ceiling and must not change. Each cell and every placement must also be within the canvas and non-overlapping.
 
-The P11 planner currently accepts pixel dimensions and returns placements under the limits implemented in P11. The 10,000,000-pixel P12 sheet envelope is a product/ABI design requirement, not yet implemented in the planner or renderer. When implemented, it must be scoped to P12 and must not change the existing P8 FIT native path's 4,000,000-pixel ceiling. P12's API adapter is responsible for parsing and converting physical units before calling the planner.
+The P11 planner now applies the 10,000,000-pixel P12 sheet envelope. The native ABI independently enforces the same limit. The P8 FIT native path and its Rust adapter retain their separate 4,000,000-pixel ceiling. The P12 API adapter parses physical units and converts them to pixels before invoking the planner.
 
 ## Image fitting decision: centered crop-to-fill
 
@@ -101,7 +101,7 @@ Therefore:
 - any native crop capability must be additive, with a new size/versioned request contract and a new symbol-version node after inspection of the ABI compatibility tests and export checker;
 - keep existing ABI v1, 2.0, and 2.1 consumers working unchanged.
 
-The exact ABI 2.2 struct and symbol names are deliberately not frozen by this product contract. They require a separate ABI design review covering struct-size evolution, reserved fields, crop rectangle validation, output ownership, error mapping, and symbol-export tests.
+The additive ABI 2.2 contract is implemented as `imgengine_sheet_request_v1_t` and `imgengine_sheet_render_v1_bounded` in `imgengine/api/v2/sheet.h`. The request is size/versioned, reserved fields must be zero, the crop mode is explicit, the output budget is mandatory, and the existing v2 layout output/rectangle types are reused. Export and public-consumer tests are part of PR #16.
 
 ## Resource, lifecycle, and security rules
 
