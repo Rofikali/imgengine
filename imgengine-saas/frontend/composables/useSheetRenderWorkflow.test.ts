@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { CLIENT_RENDER_FILE_LIMIT_BYTES } from './useRenderWorkflow'
 import { createSheetRenderWorkflow } from './useSheetRenderWorkflow'
 import { ImgengineRenderError } from './useImgengineApi'
+import type { SheetRenderInput } from '~/types/api'
 
 function image(type = 'image/jpeg', size = 5) {
   return new File([new Uint8Array(size)], 'source-image', { type })
@@ -129,7 +130,7 @@ describe('P12 physical-sheet workflow', () => {
       executedCount: number
     }) => void
     let signal: AbortSignal | undefined
-    const render = vi.fn((_file: File, _input: typeof input, options?: { signal?: AbortSignal }) =>
+    const render = vi.fn((_file: File, _input: SheetRenderInput, options?: { signal?: AbortSignal }) =>
       new Promise<{
         jpeg: Blob
         requestId: string | null
