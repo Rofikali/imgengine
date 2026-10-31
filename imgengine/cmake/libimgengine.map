@@ -21,3 +21,8 @@ IMGENGINE_2.1 {
     global:
         imgengine_layout_render_v2_bounded;
 } IMGENGINE_2.0;
+
+IMGENGINE_2.2 {
+    global:
+        imgengine_sheet_render_v1_bounded;
+} IMGENGINE_2.1;
