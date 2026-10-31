@@ -28,6 +28,59 @@ static int expect_invalid(const char *name, uint32_t sw, uint32_t sh, uint32_t t
     return 1;
 }
 
+static int expect_borrowed_view(void) {
+    /* Three RGB rows, each with five padding bytes after the 4-pixel payload. */
+    uint8_t pixels[3u * 17u];
+    for (size_t i = 0; i < sizeof(pixels); i++)
+        pixels[i] = (uint8_t)i;
+
+    img_buffer_t source = {
+        .data = pixels,
+        .owner_pool = (img_slab_pool_t *)(uintptr_t)1u,
+        .width = 4,
+        .height = 3,
+        .channels = 3,
+        .stride = 17,
+    };
+    img_layout_crop_rect_t crop = {.x = 1, .y = 1, .width = 2, .height = 2};
+    img_buffer_t view = {0};
+
+    if (!img_layout_crop_borrowed_view(&source, &crop, &view)) {
+        fprintf(stderr, "padded-stride crop view was rejected\n");
+        return 0;
+    }
+
+    if (view.data != pixels + 20u || view.owner_pool != NULL || view.width != 2 ||
+        view.height != 2 || view.channels != 3 || view.stride != 17) {
+        fprintf(stderr, "crop view did not preserve pointer, non-ownership, dimensions, or stride\n");
+        return 0;
+    }
+
+    /* A borrowed view must not change the source's metadata or pixel bytes. */
+    if (source.data != pixels || source.owner_pool == NULL || pixels[20] != view.data[0]) {
+        fprintf(stderr, "crop view modified or detached the source\n");
+        return 0;
+    }
+    return 1;
+}
+
+static int expect_invalid_view(const char *name, const img_buffer_t *source,
+                               const img_layout_crop_rect_t *crop) {
+    img_buffer_t output = {.data = (uint8_t *)(uintptr_t)1u,
+                           .owner_pool = (img_slab_pool_t *)(uintptr_t)1u,
+                           .width = 1,
+                           .height = 1,
+                           .channels = 1,
+                           .stride = 1};
+    if (img_layout_crop_borrowed_view(source, crop, &output) || output.data != NULL ||
+        output.owner_pool != NULL || output.width != 0 || output.height != 0 ||
+        output.channels != 0 || output.stride != 0) {
+        fprintf(stderr, "%s: invalid crop view accepted or output not cleared\n", name);
+        return 0;
+    }
+    return 1;
+}
+
 int main(void) {
     int passed = 1;
 
@@ -64,8 +117,31 @@ int main(void) {
         passed = 0;
     }
 
+    uint8_t backing[3u * 17u];
+    img_buffer_t source = {.data = backing, .owner_pool = NULL, .width = 4, .height = 3,
+                           .channels = 3, .stride = 17};
+    img_layout_crop_rect_t valid_crop = {.x = 1, .y = 1, .width = 2, .height = 2};
+    passed &= expect_borrowed_view();
+    passed &= expect_invalid_view("null source", NULL, &valid_crop);
+    passed &= expect_invalid_view("null data", &(img_buffer_t){.data = NULL, .width = 4, .height = 3,
+                                                               .channels = 3, .stride = 17},
+                                  &valid_crop);
+    passed &= expect_invalid_view("short stride", &(img_buffer_t){.data = backing, .width = 4,
+                                                                  .height = 3, .channels = 3,
+                                                                  .stride = 11},
+                                  &valid_crop);
+    passed &= expect_invalid_view("crop outside source", &source,
+                                  &(img_layout_crop_rect_t){.x = 3, .y = 1, .width = 2, .height = 1});
+    passed &= expect_invalid_view("zero crop", &source,
+                                  &(img_layout_crop_rect_t){.x = 0, .y = 0, .width = 0, .height = 1});
+    passed &= expect_invalid_view("null crop", &source, NULL);
+    passed &= expect_invalid_view("zero channels",
+                                  &(img_buffer_t){.data = backing, .width = 4, .height = 3,
+                                                  .channels = 0, .stride = 17},
+                                  &valid_crop);
+
     if (!passed)
         return 1;
-    puts("[crop] native centered crop geometry passed");
+    puts("[crop] native centered crop geometry and borrowed view passed");
     return 0;
 }
