@@ -17,6 +17,12 @@ in Compose for legacy job flows. They are not dependencies of the Rust API
 container. This is a side-by-side migration, not a deletion or replacement of
 legacy services.
 
+The legacy API's host port 8000 is bound to loopback only; legacy workers
+continue to reach it over the private Compose network. Do not publish either
+API port directly to the public internet. Put the Nuxt web service behind a
+TLS-terminating reverse proxy/firewall before any public rollout, and replace
+all example credentials first.
+
 The Nuxt server proxies the P5, P8, and P12 browser requests to
 `http://rust-api:8000` using the private runtime overrides
 `NUXT_IMGENGINE_API_BASE` and `NUXT_IMGENGINE_RENDER_API_KEY`. The browser never receives the backend API key.
@@ -80,6 +86,11 @@ bash imgengine-saas/scripts/rust_api_smoke.sh imgengine/photo.jpg
 The smoke script checks liveness/readiness and sends real HTTP requests through
 P5, P8, and P12. The P12 check renders A4 at 300 DPI and verifies the server's
 canvas dimensions and exact copy accounting in the response headers and JPEG.
+
+The release-candidate workflow starts Nuxt as well as Rust and legacy
+dependencies, then exercises P12 through the same-origin Nuxt proxy, including
+exact-copy capacity rejection. Normal PR CI also runs this proxy smoke in
+isolated production containers.
 
 The Nuxt app can then be started with the Compose stack:
 
