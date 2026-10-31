@@ -9,7 +9,7 @@ use axum::extract::multipart::MultipartError;
 use axum::extract::{FromRequest, Multipart, Request, State};
 use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use imgengine_supervisor::{
     AdmissionController, AdmissionExecutionObserver, AdmissionMetricsSnapshot, AdmissionOptions,
@@ -438,6 +438,8 @@ impl ApiServer {
 /// additive P12 physical-sheet route. Legacy routes remain deliberately absent.
 pub fn router(state: ApiState) -> Router {
     Router::new()
+        .route("/healthz", get(healthz))
+        .route("/readyz", get(readyz))
         .route("/api/v1/render", post(render))
         .route("/api/v1/layout-render", post(layout_render))
         .route("/api/v2/sheet-render", post(sheet_render))
@@ -445,6 +447,20 @@ pub fn router(state: ApiState) -> Router {
             state.max_request_bytes,
         ))
         .with_state(state)
+}
+
+/// Liveness endpoint: the process and Axum listener are responding.
+async fn healthz() -> StatusCode {
+    StatusCode::OK
+}
+
+/// Readiness endpoint: refuse new traffic while the runtime is draining.
+async fn readyz(State(state): State<ApiState>) -> StatusCode {
+    if state.is_accepting() {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    }
 }
 
 async fn sheet_render(State(state): State<ApiState>, request: Request) -> Response {
@@ -1844,6 +1860,23 @@ mod tests {
             .expect("read workspace root")
             .next()
             .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
+    async fn health_and_readiness_endpoints_are_public_and_report_running_state() {
+        let (app, root) = app("health", "test-key");
+        let health = app
+            .clone()
+            .oneshot(Request::builder().uri("/healthz").body(Body::empty()).unwrap())
+            .await
+            .expect("health response");
+        assert_eq!(health.status(), StatusCode::OK);
+        let ready = app
+            .oneshot(Request::builder().uri("/readyz").body(Body::empty()).unwrap())
+            .await
+            .expect("readiness response");
+        assert_eq!(ready.status(), StatusCode::OK);
         fs::remove_dir_all(root).expect("remove root");
     }
 
