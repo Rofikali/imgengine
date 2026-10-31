@@ -15,10 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run Rust supervisor tests
-        run: cargo test --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml
       - name: Install native dependencies
         run: |
           for attempt in 1 2 3; do
@@ -36,6 +32,13 @@ jobs:
             -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
       - name: Build native targets
         run: cmake --build imgengine/build/ci --parallel
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run Rust supervisor tests
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/imgengine/build/ci
+          RUSTFLAGS: -L native=${{ github.workspace }}/imgengine/build/ci
+        run: cargo test --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml
       - name: Configure portable scalar reference build
         run: |
           cmake -S imgengine -B imgengine/build/portable-ci -G Ninja \
@@ -157,8 +160,8 @@ jobs:
           def chunk(kind: bytes, value: bytes) -> bytes:
               return struct.pack(">I", len(value)) + kind + value + struct.pack(">I", zlib.crc32(kind + value) & 0xFFFFFFFF)
 
-          fixture = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
-          fixture += chunk(b"IDAT", zlib.compress(b"\x00\xff\x00\x00")) + chunk(b"IEND", b"")
+          fixture = b"\\x89PNG\\r\\n\\x1a\\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+          fixture += chunk(b"IDAT", zlib.compress(b"\\x00\\xff\\x00\\x00")) + chunk(b"IEND", b"")
           Path("/tmp/fixture.png").write_bytes(fixture)
           PY
           bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg image/jpeg
