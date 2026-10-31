@@ -119,7 +119,7 @@ describe('P12 physical-sheet workflow', () => {
     await workflow.submit()
     expect(render).toHaveBeenCalledWith(expect.any(File), input, expect.objectContaining({ signal: expect.any(AbortSignal) }))
   })
-  it('aborts in-flight rendering and ignores a late completion after reset', async () => {
+  it('aborts the browser request and ignores a late server response after reset', async () => {
     let complete!: (value: {
       jpeg: Blob
       requestId: string | null
