@@ -69,9 +69,9 @@ int img_layout_crop_borrowed_view(const img_buffer_t *source, const img_layout_c
     memset(output, 0, sizeof(*output));
 
     if (!source || !source->data || !crop || source->width == 0 || source->height == 0 ||
-        source->channels == 0 || crop->width == 0 || crop->height == 0 ||
-        crop->x > source->width || crop->y > source->height ||
-        crop->width > source->width - crop->x || crop->height > source->height - crop->y)
+        source->channels == 0 || crop->width == 0 || crop->height == 0 || crop->x > source->width ||
+        crop->y > source->height || crop->width > source->width - crop->x ||
+        crop->height > source->height - crop->y)
         return 0;
 
     size_t source_row_bytes = 0;
@@ -93,8 +93,7 @@ int img_layout_crop_borrowed_view(const img_buffer_t *source, const img_layout_c
         !img_layout_crop_mul_size((size_t)crop->x, (size_t)source->channels, &x_offset) ||
         !img_layout_crop_mul_size((size_t)crop->y, (size_t)source->stride, &y_offset) ||
         !img_layout_crop_add_size(y_offset, x_offset, &data_offset) ||
-        !img_layout_crop_mul_size((size_t)crop->width, (size_t)source->channels,
-                                  &crop_row_bytes) ||
+        !img_layout_crop_mul_size((size_t)crop->width, (size_t)source->channels, &crop_row_bytes) ||
         !img_layout_crop_mul_size((size_t)(crop->height - 1u), (size_t)source->stride,
                                   &crop_prefix_bytes) ||
         !img_layout_crop_add_size(crop_prefix_bytes, crop_row_bytes, &crop_span_bytes) ||
