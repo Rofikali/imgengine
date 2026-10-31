@@ -9,6 +9,7 @@
 #include "api/v1/img_api.h"
 #include "memory/slab.h"
 #include "pipeline/layout_render_private.h"
+#include "pipeline/layout_crop_geometry.h"
 #include "pipeline/layout_resize_internal.h"
 #include "runtime/job_exec.h"
 
@@ -276,6 +277,87 @@ static int test_scalar_rgb_oracle(img_engine_t *engine) {
     return passed;
 }
 
+static int test_centered_fill_crop(img_engine_t *engine) {
+    static const uint8_t pixels[] = {
+        10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120,
+        130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
+    };
+    const uint8_t background[] = {17, 31, 47};
+    const img_layout_render_rect_t placement = {.x = 1, .y = 1, .width = 5, .height = 5};
+    uint8_t *jpeg = NULL;
+    size_t jpeg_size = 0;
+    uint8_t *reference = calloc(7u * 7u, 3u);
+    uint8_t *scaled_reference = calloc(5u * 5u, 3u);
+    img_prepared_decoder_t decoder = {0};
+    img_buffer_t source = {0};
+    img_buffer_t cropped = {0};
+    img_layout_render_v1_result_t result = {0};
+    canvas_observation_t observation = {.name = "centered-fill-crop",
+                                        .expected = reference,
+                                        .expected_size = 7u * 7u * 3u,
+                                        .width = 7,
+                                        .height = 7,
+                                        .count = 1};
+    int passed = 0;
+
+    if (!reference || !scaled_reference ||
+        !make_jpeg_rgb(pixels, 4, 2, &jpeg, &jpeg_size))
+        goto done;
+
+    for (size_t index = 0; index < observation.expected_size; index += 3u) {
+        reference[index] = background[0];
+        reference[index + 1u] = background[1];
+        reference[index + 2u] = background[2];
+    }
+    if (img_api_prepare_decoder(engine, &decoder) != IMG_SUCCESS ||
+        img_api_decode_prepared(&decoder, jpeg, jpeg_size, &source) != IMG_SUCCESS)
+        goto done;
+
+    img_layout_crop_rect_t crop = {0};
+    if (!img_layout_centered_crop(source.width, source.height, placement.width, placement.height,
+                                  &crop) ||
+        !img_layout_crop_borrowed_view(&source, &crop, &cropped) ||
+        cropped.owner_pool != NULL || cropped.stride != source.stride ||
+        cropped.width != 2 || cropped.height != 2)
+        goto done;
+
+    reference_resize_rgb(&cropped, scaled_reference, placement.width, placement.height);
+    for (uint32_t y = 0; y < placement.height; y++) {
+        memcpy(reference + ((size_t)(placement.y + y) * 7u + placement.x) * 3u,
+               scaled_reference + (size_t)y * placement.width * 3u,
+               (size_t)placement.width * 3u);
+    }
+
+    const img_layout_render_v1_request_t request = {
+        .version = IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION,
+        .canvas_width = 7,
+        .canvas_height = 7,
+        .background_r = background[0],
+        .background_g = background[1],
+        .background_b = background[2],
+        .placements = &placement,
+        .placement_count = 1,
+        .expected_count = 1,
+        .crop_mode = IMG_LAYOUT_RENDER_CROP_CENTERED_FILL,
+        .canvas_observer = observe_renderer_canvas,
+        .canvas_observer_context = &observation,
+    };
+    passed = img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result) == IMG_SUCCESS &&
+             observation.observed && observation.passed &&
+             result.executed_count == 1;
+
+done:
+    img_layout_render_v1_result_release(&result);
+    img_runtime_release_raw_buffer(engine, &source);
+    img_api_decoder_destroy(&decoder);
+    tjFree(jpeg);
+    free(scaled_reference);
+    free(reference);
+    if (!passed)
+        fprintf(stderr, "centered-fill renderer integration failed\n");
+    return passed;
+}
+
 static int assert_jpeg_result(img_engine_t *engine, img_layout_render_v1_result_t *result,
                               uint32_t expected_width, uint32_t expected_height) {
     img_prepared_decoder_t decoder;
@@ -450,7 +532,7 @@ int main(void) {
         return 1;
     }
     const int passed = test_reference_geometry() && test_scalar_rgb_oracle(engine) &&
-                       test_jpeg_and_completion(engine) && test_png(engine) &&
+                       test_centered_fill_crop(engine) && test_jpeg_and_completion(engine) && test_png(engine) &&
                        test_rejections(engine) && test_partial_execution_has_no_output(engine);
     img_api_shutdown(engine);
     if (!passed) {
