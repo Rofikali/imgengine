@@ -26,7 +26,7 @@ pub fn mm_to_px(mm: f64, dpi: u32) -> Result<u32, GeometryError> {
     if dpi == 0 {
         return Err(GeometryError::InvalidDpi);
     }
-    let pixels = (mm * f64::from(dpi) / 25.4).floor() + 0.5;
+    let pixels = (mm * f64::from(dpi) / 25.4 + 0.5).floor();
     if !pixels.is_finite() || pixels < 1.0 || pixels > f64::from(u32::MAX) {
         return Err(GeometryError::ArithmeticOverflow);
     }
@@ -41,7 +41,7 @@ pub fn mm_spacing_to_px(mm: f64, dpi: u32) -> Result<u32, GeometryError> {
     if dpi == 0 {
         return Err(GeometryError::InvalidDpi);
     }
-    let pixels = (mm * f64::from(dpi) / 25.4).floor() + 0.5;
+    let pixels = (mm * f64::from(dpi) / 25.4 + 0.5).floor();
     if !pixels.is_finite() || pixels < 0.0 || pixels > f64::from(u32::MAX) {
         return Err(GeometryError::ArithmeticOverflow);
     }
@@ -271,7 +271,9 @@ mod tests {
         assert_eq!(mm_to_px(35.0, 300), Ok(413));
         assert_eq!(mm_to_px(45.0, 300), Ok(531));
         assert_eq!(mm_spacing_to_px(0.0, 300), Ok(0));
-        assert_eq!(mm_to_px(0.04233333333333333, 300), Ok(1));
+        assert_eq!(mm_to_px(0.04233333333333333, 300), Ok(1)); // exact 0.5 rounds up
+        assert_eq!(mm_to_px(0.12699999999999997, 300), Ok(1)); // just below 1.5 rounds down
+        assert_eq!(mm_to_px(0.127, 300), Ok(2));
         assert_eq!(mm_to_px(f64::NAN, 300), Err(GeometryError::InvalidDimension));
         assert_eq!(mm_to_px(1.0, 0), Err(GeometryError::InvalidDpi));
     }
