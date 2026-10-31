@@ -152,7 +152,7 @@ The public wrapper should follow this order. No caller-controlled allocation or 
 6. Validate `crop_mode == CENTERED_FILL`; reject zero and all unknown enum values.
 7. Validate `expected_count == placement_count`.
 8. Validate `placement_count <= 64` before copying the array.
-9. Validate non-zero canvas dimensions, each dimension <= 4096, and checked canvas area <= 4,000,000 pixels.
+9. Validate non-zero canvas dimensions, each dimension <= 4096, and checked canvas area <= 10,000,000 pixels.
 10. Validate output cap is in the supported range.
 11. Copy the now-bounded placement array into native-owned metadata.
 12. Validate every rectangle has non-zero width/height, checked right/bottom bounds within the canvas, and no overlap. Keep the existing placement validation policy; do not rely only on Rust.
@@ -161,6 +161,10 @@ The public wrapper should follow this order. No caller-controlled allocation or 
 15. Validate final counts and output postconditions before transferring ownership to the caller.
 
 Status mapping should match the established ABI status model: invalid arguments/enums/structure contract -> `INVALID_ARGUMENT`; hostile or malformed encoded image -> `INVALID_IMAGE`; dimensions/counts/geometry/output cap -> `RESOURCE_LIMIT`; allocation failure -> `OUT_OF_MEMORY`; unexpected native failure -> `INTERNAL_ERROR`.
+
+### P12 sheet resource envelope
+
+The P12 sheet operation uses a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
 
 ## 7. Crop semantics at the C boundary
 
