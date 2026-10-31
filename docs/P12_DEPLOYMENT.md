@@ -21,6 +21,11 @@ The Nuxt server proxies the P5, P8, and P12 browser requests to
 `http://rust-api:8000` using the private runtime overrides
 `NUXT_IMGENGINE_API_BASE` and `NUXT_IMGENGINE_RENDER_API_KEY`. The browser never receives the backend API key.
 
+The P12 UI aborts its browser-side fetch when the sheet panel is reset or
+unmounted and ignores stale responses. This is response abandonment, not a
+guarantee that already-admitted native C work stops mid-operation; the current
+ABI does not provide mid-operation native cancellation.
+
 ## Container properties
 
 The Rust API image is built on Ubuntu 24.04 and contains:
