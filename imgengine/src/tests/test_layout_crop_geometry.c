@@ -10,7 +10,7 @@ static int expect_crop(const char *name, uint32_t sw, uint32_t sh, uint32_t tw, 
     if (!img_layout_centered_crop(sw, sh, tw, th, &actual) || actual.x != expected.x ||
         actual.y != expected.y || actual.width != expected.width ||
         actual.height != expected.height) {
-        fprintf(stderr, "%s: got {%u,%u,%u,%u}, expected {%u,%u,%u,%u}\\n", name, actual.x, actual.y,
+        fprintf(stderr, "%s: got {%u,%u,%u,%u}, expected {%u,%u,%u,%u}\n", name, actual.x, actual.y,
                 actual.width, actual.height, expected.x, expected.y, expected.width,
                 expected.height);
         return 0;
@@ -22,7 +22,7 @@ static int expect_invalid(const char *name, uint32_t sw, uint32_t sh, uint32_t t
     img_layout_crop_rect_t actual = {1, 2, 3, 4};
     if (img_layout_centered_crop(sw, sh, tw, th, &actual) || actual.x != 0 || actual.y != 0 ||
         actual.width != 0 || actual.height != 0) {
-        fprintf(stderr, "%s: invalid geometry was accepted or output was not cleared\\n", name);
+        fprintf(stderr, "%s: invalid geometry was accepted or output was not cleared\n", name);
         return 0;
     }
     return 1;
@@ -60,7 +60,7 @@ int main(void) {
     if (!img_layout_centered_crop(10, 10, 1, 1, NULL)) {
         puts("[crop] null output rejected");
     } else {
-        fprintf(stderr, "null output was accepted\\n");
+        fprintf(stderr, "null output was accepted\n");
         passed = 0;
     }
 
