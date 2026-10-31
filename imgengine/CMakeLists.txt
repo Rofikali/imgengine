@@ -258,6 +258,7 @@ set(SOURCES_PIPELINE
     src/pipeline/layout_grid_place_cells.c
     src/pipeline/layout_grid_prepare_scaled.c
     src/pipeline/layout_render_private.c
+    src/pipeline/layout_crop_geometry.c
     src/pipeline/layout_prepare_fill.c
     src/pipeline/layout_prepare_fill_commit.c
     src/pipeline/layout_prepare_fit.c
@@ -699,6 +700,17 @@ if(IMGENGINE_SANITIZE)
 endif()
 if(BUILD_TESTING)
     add_test(NAME layout_render_private COMMAND test_layout_render_private)
+endif()
+
+add_executable(test_layout_crop_geometry src/tests/test_layout_crop_geometry.c)
+target_include_directories(test_layout_crop_geometry PRIVATE ${IMGENGINE_INCLUDES})
+target_compile_options(test_layout_crop_geometry PRIVATE ${IMGENGINE_COMMON_FLAGS})
+target_link_libraries(test_layout_crop_geometry PRIVATE imgengine_internal)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_layout_crop_geometry PRIVATE -fsanitize=address,undefined)
+endif()
+if(BUILD_TESTING)
+    add_test(NAME layout_crop_geometry COMMAND test_layout_crop_geometry)
 endif()
 
 add_executable(test_bounded_encoder src/tests/test_bounded_encoder.c)
