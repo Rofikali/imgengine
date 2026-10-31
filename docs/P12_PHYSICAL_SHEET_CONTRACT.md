@@ -58,9 +58,9 @@ The request is one source image and one output sheet. There is no multi-image in
 6. Keep each photo cell at its exact resolved pixel dimensions.
 7. The planner must reject if the exact requested copy count cannot fit. It must never reduce copies, shrink cells, change sheet dimensions, or create another page.
 8. Use checked arithmetic before allocation or native work.
-9. Apply the established native envelope: at most 64 placements, maximum canvas dimension 4096 px, and maximum canvas area 4,000,000 pixels. Each cell and every placement must also be within the canvas and non-overlapping.
+9. Apply the P12 sheet envelope: at most 64 placements, maximum canvas dimension 4096 px, and maximum canvas area 10,000,000 pixels. This permits A4 at 300 DPI (2480 × 3508 = 8,699,840 pixels). The existing P8 FIT ABI retains its independent 4,000,000-pixel ceiling and must not change. Each cell and every placement must also be within the canvas and non-overlapping.
 
-The P11 planner currently accepts pixel dimensions and returns placements. P12's API adapter is responsible for parsing and converting physical units before calling it.
+The P11 planner currently accepts pixel dimensions and returns placements. Its P12-specific sheet budget is 10,000,000 pixels; the old P8 FIT native path remains capped at 4,000,000 pixels. P12's API adapter is responsible for parsing and converting physical units before calling it.
 
 ## Image fitting decision: centered crop-to-fill
 
