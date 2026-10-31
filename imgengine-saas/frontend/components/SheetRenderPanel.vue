@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useSheetRenderWorkflow } from '~/composables/useSheetRenderWorkflow'
 
 const { selectedFile, status, failure, result, previewUrl, isSubmitting, sheet, select, submit, reset } = useSheetRenderWorkflow()
