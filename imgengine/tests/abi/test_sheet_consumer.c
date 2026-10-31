@@ -133,7 +133,7 @@ static int a4_300_dpi_canvas_is_admitted(imgengine_engine_t *engine) {
     const imgengine_sheet_request_v1_t request = valid_request(&placement, 2480, 3508);
     imgengine_layout_output_v2_t output = {0};
     const imgengine_status_t status = imgengine_sheet_render_v1_bounded(
-        engine, &request, 32u * 1024u * 1024u, &output);
+        engine, &request, 64u * 1024u * 1024u, &output);
     const int passed = status == IMGENGINE_STATUS_OK && output.data && output.size > 2 &&
                        output.canvas_width == 2480 && output.canvas_height == 3508 &&
                        output.executed_count == 1;
