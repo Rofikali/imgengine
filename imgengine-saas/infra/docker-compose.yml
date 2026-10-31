@@ -137,8 +137,10 @@ services:
     image: ${IMGENGINE_WEB_IMAGE:-imgengine/web:dev}
     build: ../frontend
     restart: unless-stopped
+    # Public traffic must enter through a host TLS reverse proxy.
+    # Keep Nuxt reachable on the host loopback interface only.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       api:
         condition: service_started
