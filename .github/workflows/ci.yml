@@ -202,8 +202,15 @@ jobs:
     name: Rust API container verification
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      API_KEYS: integration-test-key
+      WEB_API_KEY: integration-test-key
+      INTERNAL_API_TOKEN: integration-internal-token
     steps:
       - uses: actions/checkout@v4
+      - name: Validate complete Compose configuration
+        working-directory: imgengine-saas/infra
+        run: docker compose config > /tmp/imgengine-compose.rendered.yaml
       - name: Build production Rust API image
         run: docker build --file imgengine/rust/Dockerfile --tag imgengine-rust-api:ci .
       - name: Start isolated Rust API container
