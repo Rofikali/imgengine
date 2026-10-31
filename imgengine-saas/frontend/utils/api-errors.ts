@@ -2,6 +2,7 @@ import type { RenderApiError, RenderErrorKind, RenderProblem, RenderProblemCode 
 
 const problemKinds: Readonly<Record<RenderProblemCode, RenderErrorKind>> = {
   invalid_request: 'invalid_request',
+  does_not_fit: 'does_not_fit',
   authentication_failed: 'authentication_failed',
   resource_limit: 'request_too_large',
   unsupported_media_type: 'unsupported_media_type',
@@ -14,6 +15,7 @@ const problemKinds: Readonly<Record<RenderProblemCode, RenderErrorKind>> = {
 
 const messages: Readonly<Record<RenderErrorKind, string>> = {
   invalid_request: 'The image request is invalid. Choose one JPEG or PNG file and try again.',
+  does_not_fit: 'The requested number of copies does not fit on this sheet. Reduce the copies or adjust the sheet settings.',
   authentication_failed: 'The rendering service could not authenticate this request.',
   request_too_large: 'The selected image exceeds the current request size limit.',
   unsupported_media_type: 'Only JPEG and PNG images are supported.',
