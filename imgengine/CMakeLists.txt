@@ -495,7 +495,7 @@ if(NUMA_LIB)
     target_link_libraries(imgengine_internal PRIVATE ${NUMA_LIB})
 endif()
 
-add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES} src/api/imgengine_v1.c src/api/imgengine_v2_layout.c)
+add_library(imgengine SHARED ${IMGENGINE_LIB_SOURCES} src/api/imgengine_v1.c src/api/imgengine_v2_layout.c src/api/imgengine_v2_sheet.c)
 set_target_properties(imgengine PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 target_include_directories(imgengine PUBLIC ${IMGENGINE_INCLUDES})
@@ -576,6 +576,13 @@ install(DIRECTORY include/imgengine DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES packaging/README.txt DESTINATION .)
 
 # -- Stable public ABI consumer tests ---------------------------------------
+add_executable(test_abi_sheet_consumer tests/abi/test_sheet_consumer.c)
+target_include_directories(test_abi_sheet_consumer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(test_abi_sheet_consumer PRIVATE imgengine)
+if(IMGENGINE_SANITIZE)
+    target_link_libraries(test_abi_sheet_consumer PRIVATE -fsanitize=address,undefined)
+endif()
+
 add_executable(test_abi_public_consumer tests/abi/test_public_consumer.c)
 target_include_directories(test_abi_public_consumer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(test_abi_public_consumer PRIVATE imgengine Threads::Threads)
@@ -596,6 +603,7 @@ else()
     set(IMGENGINE_ABI_EXTERNAL_SANITIZE_FLAGS "")
 endif()
 if(BUILD_TESTING)
+    add_test(NAME abi_sheet_consumer COMMAND test_abi_sheet_consumer)
     add_test(NAME abi_public_consumer COMMAND test_abi_public_consumer)
     add_test(NAME abi_compatibility COMMAND test_abi_compatibility)
     add_test(NAME abi_installed_consumer
