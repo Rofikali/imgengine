@@ -17,8 +17,7 @@ _Static_assert(offsetof(imgengine_sheet_request_v1_t, crop_mode) == 36,
                "sheet crop_mode offset changed on LP64");
 _Static_assert(offsetof(imgengine_sheet_request_v1_t, placements) == 56,
                "sheet placements offset changed on LP64");
-_Static_assert(sizeof(imgengine_sheet_request_v1_t) == 72,
-               "sheet request size changed on LP64");
+_Static_assert(sizeof(imgengine_sheet_request_v1_t) == 72, "sheet request size changed on LP64");
 
 static const uint8_t k_png[] = {
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
@@ -35,7 +34,7 @@ static int output_is_empty(const imgengine_layout_output_v2_t *output) {
 }
 
 static imgengine_sheet_request_v1_t valid_request(const imgengine_layout_rect_v2_t *placement,
-                                                   uint32_t width, uint32_t height) {
+                                                  uint32_t width, uint32_t height) {
     imgengine_sheet_request_v1_t request = {
         .struct_size = sizeof(request),
         .version = IMGENGINE_SHEET_RENDER_V1_VERSION,
@@ -58,13 +57,12 @@ static int valid_sheet_render(imgengine_engine_t *engine) {
     const imgengine_layout_rect_v2_t placement = {.x = 2, .y = 2, .width = 4, .height = 4};
     const imgengine_sheet_request_v1_t request = valid_request(&placement, 8, 8);
     imgengine_layout_output_v2_t output = {0};
-    const imgengine_status_t status = imgengine_sheet_render_v1_bounded(
-        engine, &request, 16u * 1024u * 1024u, &output);
-    const int passed = status == IMGENGINE_STATUS_OK && output.data && output.size > 2 &&
-                       output.data[0] == 0xff && output.data[1] == 0xd8 &&
-                       output.canvas_width == 8 && output.canvas_height == 8 &&
-                       output.expected_count == 1 && output.planned_count == 1 &&
-                       output.executed_count == 1;
+    const imgengine_status_t status =
+        imgengine_sheet_render_v1_bounded(engine, &request, 16u * 1024u * 1024u, &output);
+    const int passed =
+        status == IMGENGINE_STATUS_OK && output.data && output.size > 2 && output.data[0] == 0xff &&
+        output.data[1] == 0xd8 && output.canvas_width == 8 && output.canvas_height == 8 &&
+        output.expected_count == 1 && output.planned_count == 1 && output.executed_count == 1;
     if (!passed)
         fprintf(stderr, "valid sheet render failed: %s\n", imgengine_status_message(status));
     imgengine_layout_output_release(&output);
@@ -78,50 +76,59 @@ static int rejected_requests_are_zeroed(imgengine_engine_t *engine) {
 
     request.crop_mode = 0;
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 8, 8);
     request.reserved0 = 1;
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 8, 8);
     request.reserved1[2] = 1;
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 8, 8);
     request.struct_size = sizeof(request) - 1u;
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 8, 8);
     request.expected_count = 2;
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 8, 8);
     if (imgengine_sheet_render_v1_bounded(engine, &request, 0, &output) !=
-            IMGENGINE_STATUS_INVALID_ARGUMENT || !output_is_empty(&output))
+            IMGENGINE_STATUS_INVALID_ARGUMENT ||
+        !output_is_empty(&output))
         return 0;
 
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT || !output_is_empty(&output))
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 4097, 8);
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT || !output_is_empty(&output))
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        !output_is_empty(&output))
         return 0;
 
     request = valid_request(&placement, 4096, 2442);
     if (imgengine_sheet_render_v1_bounded(engine, &request, 1024, &output) !=
-            IMGENGINE_STATUS_RESOURCE_LIMIT || !output_is_empty(&output))
+            IMGENGINE_STATUS_RESOURCE_LIMIT ||
+        !output_is_empty(&output))
         return 0;
 
     return 1;
@@ -132,8 +139,8 @@ static int a4_300_dpi_canvas_is_admitted(imgengine_engine_t *engine) {
     const imgengine_layout_rect_v2_t placement = {.x = 100, .y = 100, .width = 4, .height = 4};
     const imgengine_sheet_request_v1_t request = valid_request(&placement, 2480, 3508);
     imgengine_layout_output_v2_t output = {0};
-    const imgengine_status_t status = imgengine_sheet_render_v1_bounded(
-        engine, &request, 64u * 1024u * 1024u, &output);
+    const imgengine_status_t status =
+        imgengine_sheet_render_v1_bounded(engine, &request, 64u * 1024u * 1024u, &output);
     const int passed = status == IMGENGINE_STATUS_OK && output.data && output.size > 2 &&
                        output.canvas_width == 2480 && output.canvas_height == 3508 &&
                        output.executed_count == 1;
