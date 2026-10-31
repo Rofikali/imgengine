@@ -214,6 +214,12 @@ jobs:
       - name: Validate complete Compose configuration
         working-directory: imgengine-saas/infra
         run: docker compose config > /tmp/imgengine-compose.rendered.yaml
+      - name: Test Compose loopback policy
+        run: python3 -m unittest discover -s imgengine-saas/scripts -p 'test_check_compose_loopback_bindings.py'
+      - name: Enforce loopback-only bindings for every Compose profile
+        run: |
+          docker compose --profile s3 --profile observability --file imgengine-saas/infra/docker-compose.yml config --format json > /tmp/imgengine-compose.rendered.json
+          python3 imgengine-saas/scripts/check_compose_loopback_bindings.py /tmp/imgengine-compose.rendered.json
       - name: Create isolated integration network
         run: docker network create imgengine-ci
       - name: Build production Rust API image
