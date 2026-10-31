@@ -44,7 +44,6 @@ typedef struct imgengine_sheet_request_v1 {
     uint32_t expected_count;
 } imgengine_sheet_request_v1_t;
 
-
 /*
  * ABI 2.3 crop-aware request. The normalized rectangle uses the fixed scale
  * 1,000,000 and is applied to every placement. C validates it against decoded
