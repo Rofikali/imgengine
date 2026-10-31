@@ -35,7 +35,7 @@ jobs:
         run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" build api worker web rust-api
       - name: Start verified runtime services
         working-directory: imgengine-saas/infra
-        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" up -d api worker rust-api
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" up -d api worker rust-api web
       - name: Exercise JPEG and PNG request paths
         working-directory: imgengine-saas/infra
         env:
@@ -61,6 +61,10 @@ jobs:
           API_URL: http://127.0.0.1:8001
           API_KEY: release-candidate-key
         run: bash ../scripts/rust_api_smoke.sh ../../imgengine/photo.jpg
+      - name: Exercise browser-facing P12 Nuxt proxy
+        env:
+          FRONTEND_URL: http://127.0.0.1:3000
+        run: bash imgengine-saas/scripts/frontend_proxy_smoke.sh imgengine/photo.jpg
       - name: Record candidate image identities
         if: always()
         run: |
