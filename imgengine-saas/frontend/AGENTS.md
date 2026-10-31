@@ -8,19 +8,27 @@ The frontend is the presentation and client-experience layer of IMGENGINE. It mu
 
 ## 2. Current Backend Boundary
 
-The currently implemented Rust HTTP capability is:
+The implemented Rust HTTP capabilities are:
 
 ```
 POST /api/v1/render
-multipart/form-data
-field: file
-input: JPEG or PNG
-output: completed JPEG
-authentication: X-API-Key
-mode: synchronous + ephemeral
+multipart/form-data: file
+JPEG/PNG -> completed JPEG
+
+POST /api/v1/layout-render
+multipart/form-data: file, width, height, unit, dpi?, copies, columns?, gap, margin, output_format
+FIT-only grid -> completed JPEG + native plan accounting
+
+POST /api/v2/sheet-render
+multipart/form-data: file, sheet_width_mm, sheet_height_mm,
+  photo_width_mm, photo_height_mm, dpi?, copies, margin_mm,
+  gap_x_mm, gap_y_mm, output_format
+physical sheet + centered crop-to-fill -> completed JPEG + native plan accounting
 ```
 
-The current P5/P6 backend is deliberately narrower than the legacy FastAPI API.
+All three routes require server-side `X-API-Key` authentication and run synchronously through the Rust request lifecycle and bounded admission path. They are ephemeral; the API does not create durable jobs or output URLs.
+
+The P12 sheet contract defaults to 300 DPI, accepts DPI 1..=1200, accepts millimetre decimals up to three fractional digits, and rejects a request when the exact requested copy count cannot fit. JPEG is the only output format in this slice.
 
 Do not assume the following exist in the Rust API unless a later contract explicitly implements them:
 
@@ -28,7 +36,6 @@ Do not assume the following exist in the Rust API unless a later contract explic
 - durable job IDs
 - `/api/jobs`
 - `/api/presets`
-- layout fields
 - PDF output
 - durable output URLs
 - job logs
@@ -216,8 +223,6 @@ C scheduler + native engine
 
 The frontend must not recreate any lower-layer state machine.
 
-## 15. P7 Principle
+## 15. P12 Principle
 
-P7 is frontend foundation work, not an excuse to expand backend scope.
-
-First establish a clean, typed, accessible, responsive frontend foundation against the verified Rust API. Add broader product capabilities only after the corresponding backend/ABI/native capability exists and is verified.
+The P12 physical-sheet UI is an adapter to the verified ABI 2.2/Rust contract. It may collect physical dimensions and copy count, but it must never calculate authoritative placement, crop coordinates, resource budgets, or success counts in the browser. Display server-confirmed canvas dimensions and execution counts. Keep the P8 FIT mode distinct from the P12 centered-fill mode.
