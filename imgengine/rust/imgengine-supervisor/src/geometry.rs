@@ -86,7 +86,7 @@ pub struct MvpLayoutPlan {
 impl MvpLayoutPlan {
     const MAX_COPIES: u32 = 64;
     const MAX_DIMENSION: u32 = 4096;
-    const MAX_CANVAS_PIXELS: u64 = 4_000_000;
+    const MAX_CANVAS_PIXELS: u64 = 10_000_000;
 
     /// Calculates maximum physical capacity and rejects copy overflow.
     ///
@@ -290,6 +290,37 @@ mod tests {
         assert_eq!((partial.columns_used, partial.rows_used), (4, 2));
         assert_eq!(partial.placements[4].x, 85);
         assert_eq!(partial.placements[4].y, 355);
+    }
+
+    #[test]
+    fn a4_300_dpi_sheet_is_admitted_under_the_separate_p12_budget() {
+        let plan = MvpLayoutPlan::solve(MvpLayoutInput {
+            sheet_width: 2480,
+            sheet_height: 3508,
+            photo_width: 413,
+            photo_height: 531,
+            copies: 8,
+            margin: 118,
+            gap_x: 24,
+            gap_y: 24,
+        })
+        .expect("A4 at 300 DPI fits the P12 10 MP geometry budget");
+        assert_eq!((plan.sheet_width, plan.sheet_height), (2480, 3508));
+        assert_eq!(plan.placements.len(), 8);
+
+        let mut at_limit = MvpLayoutInput {
+            sheet_width: 4096,
+            sheet_height: 2441,
+            photo_width: 1,
+            photo_height: 1,
+            copies: 1,
+            margin: 0,
+            gap_x: 0,
+            gap_y: 0,
+        };
+        assert!(MvpLayoutPlan::solve(at_limit).is_ok());
+        at_limit.sheet_height = 2442;
+        assert_eq!(MvpLayoutPlan::solve(at_limit), Err(GeometryError::ResourceLimit));
     }
 
     #[test]

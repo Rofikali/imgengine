@@ -42,6 +42,28 @@ pub struct LayoutRequestV2 {
 }
 
 #[repr(C)]
+pub struct SheetRequestV1 {
+    pub struct_size: u32,
+    pub version: u32,
+    pub input: *const u8,
+    pub input_size: usize,
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub background_r: u8,
+    pub background_g: u8,
+    pub background_b: u8,
+    pub reserved0: u8,
+    pub crop_mode: u32,
+    pub reserved1: [u32; 4],
+    pub placements: *const LayoutRectV2,
+    pub placement_count: u32,
+    pub expected_count: u32,
+}
+
+#[cfg(target_pointer_width = "64")]
+const _: [(); 72] = [(); std::mem::size_of::<SheetRequestV1>()];
+
+#[repr(C)]
 pub struct LayoutOutputV2 {
     pub data: *mut u8,
     pub size: usize,
@@ -108,6 +130,12 @@ extern "C" {
         output: *mut LayoutOutputV2,
     ) -> u32;
     pub fn imgengine_layout_output_release(output: *mut LayoutOutputV2);
+    pub fn imgengine_sheet_render_v1_bounded(
+        engine: *mut Engine,
+        request: *const SheetRequestV1,
+        max_output_bytes: usize,
+        output: *mut LayoutOutputV2,
+    ) -> u32;
 }
 
 pub fn abi_version() -> u32 {
@@ -166,6 +194,15 @@ pub fn layout_render_v2_bounded(
     output: &mut LayoutOutputV2,
 ) -> u32 {
     unsafe { imgengine_layout_render_v2_bounded(engine, request, max_output_bytes, output) }
+}
+
+pub fn sheet_render_v1_bounded(
+    engine: *mut Engine,
+    request: &SheetRequestV1,
+    max_output_bytes: usize,
+    output: &mut LayoutOutputV2,
+) -> u32 {
+    unsafe { imgengine_sheet_render_v1_bounded(engine, request, max_output_bytes, output) }
 }
 
 pub fn layout_output_copy(output: &LayoutOutputV2) -> Option<Vec<u8>> {

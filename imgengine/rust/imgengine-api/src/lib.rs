@@ -13,8 +13,9 @@ use axum::routing::post;
 use axum::{Json, Router};
 use imgengine_supervisor::{
     AdmissionController, AdmissionExecutionObserver, AdmissionMetricsSnapshot, AdmissionOptions,
-    AdmittedWaitOutcome, ApplicationError, ApplicationFailure, IncomingRequest, LayoutPlan,
-    LifecycleMetricsSnapshot, RequestLifecycleService, RequestPolicy, ResponseAbandonmentObserver,
+    AdmittedWaitOutcome, ApplicationError, ApplicationFailure, GeometryError, IncomingRequest,
+    LayoutPlan, LifecycleMetricsSnapshot, MvpLayoutInput, MvpLayoutPlan, RequestLifecycleService,
+    RequestPolicy, ResponseAbandonmentObserver, SheetPlan, mm_spacing_to_px, mm_to_px,
     ResponseAbandonmentSignal, SupervisorOptions,
 };
 use std::env;
@@ -35,10 +36,14 @@ pub const DEFAULT_EXECUTION_TIMEOUT: Duration = Duration::from_secs(10);
 /// This caps the conservative native JPEG destination allocation only; it is
 /// not a complete per-request memory limit or a production capacity claim.
 pub const DEFAULT_LAYOUT_MAX_OUTPUT_BYTES: usize = 16 * 1024 * 1024;
+/// Provisional P12 physical-sheet JPEG destination allocation budget.
+pub const DEFAULT_SHEET_MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
 /// Environment variable holding active server-side API keys.
 pub const API_KEYS_ENV: &str = "IMGENGINE_API_KEYS";
 /// Optional server-side override for the FIT-layout JPEG destination budget.
 pub const LAYOUT_MAX_OUTPUT_BYTES_ENV: &str = "IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES";
+/// Optional server-side override for the P12 sheet JPEG destination budget.
+pub const SHEET_MAX_OUTPUT_BYTES_ENV: &str = "IMGENGINE_SHEET_MAX_OUTPUT_BYTES";
 const LAYOUT_MAX_COPIES: u32 = 64;
 const LAYOUT_MAX_COLUMNS: u32 = 64;
 const LAYOUT_MAX_DIMENSION: u32 = 4096;
@@ -64,6 +69,7 @@ pub struct ApiConfig {
     queue_capacity: usize,
     execution_timeout: Option<Duration>,
     layout_max_output_bytes: usize,
+    sheet_max_output_bytes: usize,
 }
 
 impl ApiConfig {
@@ -75,6 +81,11 @@ impl ApiConfig {
             let value = value.to_str().ok_or(ConfigError::InvalidLimits)?;
             let limit = value.parse().map_err(|_| ConfigError::InvalidLimits)?;
             config = config.with_layout_max_output_bytes(limit)?;
+        }
+        if let Some(value) = env::var_os(SHEET_MAX_OUTPUT_BYTES_ENV) {
+            let value = value.to_str().ok_or(ConfigError::InvalidLimits)?;
+            let limit = value.parse().map_err(|_| ConfigError::InvalidLimits)?;
+            config = config.with_sheet_max_output_bytes(limit)?;
         }
         Ok(config)
     }
@@ -92,6 +103,7 @@ impl ApiConfig {
             queue_capacity: 1,
             execution_timeout: Some(DEFAULT_EXECUTION_TIMEOUT),
             layout_max_output_bytes: DEFAULT_LAYOUT_MAX_OUTPUT_BYTES,
+            sheet_max_output_bytes: DEFAULT_SHEET_MAX_OUTPUT_BYTES,
         })
     }
 
@@ -126,6 +138,18 @@ impl ApiConfig {
         self.layout_max_output_bytes = layout_max_output_bytes;
         Ok(self)
     }
+
+    /// Sets the server-owned P12 sheet JPEG destination budget.
+    pub fn with_sheet_max_output_bytes(
+        mut self,
+        sheet_max_output_bytes: usize,
+    ) -> Result<Self, ConfigError> {
+        if sheet_max_output_bytes == 0 || sheet_max_output_bytes > i32::MAX as usize {
+            return Err(ConfigError::InvalidLimits);
+        }
+        self.sheet_max_output_bytes = sheet_max_output_bytes;
+        Ok(self)
+    }
 }
 
 /// Running API state. Dropping it drains the existing admission worker.
@@ -155,7 +179,8 @@ impl ApiState {
         execution_observer: Option<Arc<dyn AdmissionExecutionObserver>>,
     ) -> Result<Self, ConfigError> {
         let supervisor = SupervisorOptions::new(config.workspace_root)
-            .layout_max_output_bytes(config.layout_max_output_bytes);
+            .layout_max_output_bytes(config.layout_max_output_bytes)
+            .sheet_max_output_bytes(config.sheet_max_output_bytes);
         let mut admission =
             AdmissionOptions::new(supervisor, config.queue_capacity, config.max_request_bytes)
                 .map_err(|_| ConfigError::InvalidLimits)?;
@@ -216,6 +241,15 @@ impl ApiState {
     ) -> Option<Result<imgengine_supervisor::AdmittedRequest, ApplicationFailure>> {
         self.runtime
             .admit_if_running(|| self.lifecycle.admit_layout(request, plan))
+    }
+
+    fn admit_sheet_if_running(
+        &self,
+        request: IncomingRequest,
+        plan: SheetPlan,
+    ) -> Option<Result<imgengine_supervisor::AdmittedRequest, ApplicationFailure>> {
+        self.runtime
+            .admit_if_running(|| self.lifecycle.admit_sheet(request, plan))
     }
 }
 
@@ -400,16 +434,214 @@ impl ApiServer {
     }
 }
 
-/// Builds the verified render route and the additive FIT-only layout route.
-/// Legacy routes remain deliberately absent.
+/// Builds the verified render route, the frozen P8 FIT route, and the
+/// additive P12 physical-sheet route. Legacy routes remain deliberately absent.
 pub fn router(state: ApiState) -> Router {
     Router::new()
         .route("/api/v1/render", post(render))
         .route("/api/v1/layout-render", post(layout_render))
+        .route("/api/v2/sheet-render", post(sheet_render))
         .layer(axum::extract::DefaultBodyLimit::max(
             state.max_request_bytes,
         ))
         .with_state(state)
+}
+
+async fn sheet_render(State(state): State<ApiState>, request: Request) -> Response {
+    let fallback_request_id = next_transport_request_id();
+    if !authorized(request.headers(), &state.api_keys) {
+        return problem(
+            StatusCode::UNAUTHORIZED,
+            "authentication_failed",
+            "Authentication failed",
+            fallback_request_id,
+        );
+    }
+    if !state.is_accepting() {
+        return unavailable_problem(fallback_request_id);
+    }
+    let mut multipart = match Multipart::from_request(request, &state).await {
+        Ok(multipart) => multipart,
+        Err(rejection) => {
+            return multipart_rejection_problem(
+                rejection.into_response().status(),
+                fallback_request_id,
+            )
+        }
+    };
+    let mut file = None;
+    let mut values = std::collections::BTreeMap::new();
+    loop {
+        let field = match multipart.next_field().await {
+            Ok(Some(field)) => field,
+            Ok(None) => break,
+            Err(error) => return multipart_problem(error, fallback_request_id),
+        };
+        let Some(name) = field.name().map(str::to_owned) else {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Invalid multipart request",
+                fallback_request_id,
+            );
+        };
+        if name == "file" {
+            if file.is_some() {
+                return problem(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_request",
+                    "Expected one image file",
+                    fallback_request_id,
+                );
+            }
+            let content_type = field.content_type().map(ToString::to_string);
+            let bytes = match field.bytes().await {
+                Ok(bytes) => bytes,
+                Err(error) => return multipart_problem(error, fallback_request_id),
+            };
+            file = Some((content_type, bytes.to_vec()));
+        } else if matches!(
+            name.as_str(),
+            "sheet_width_mm"
+                | "sheet_height_mm"
+                | "photo_width_mm"
+                | "photo_height_mm"
+                | "dpi"
+                | "copies"
+                | "margin_mm"
+                | "gap_x_mm"
+                | "gap_y_mm"
+                | "output_format"
+        ) {
+            if values.contains_key(&name) {
+                return problem(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_request",
+                    "Duplicate sheet field",
+                    fallback_request_id,
+                );
+            }
+            let value = match field.text().await {
+                Ok(value) if value.len() <= 64 => value,
+                _ => {
+                    return problem(
+                        StatusCode::BAD_REQUEST,
+                        "invalid_request",
+                        "Invalid sheet field",
+                        fallback_request_id,
+                    )
+                }
+            };
+            values.insert(name, value);
+        } else {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Unsupported sheet field",
+                fallback_request_id,
+            );
+        }
+    }
+    let Some((content_type, body)) = file else {
+        return problem(
+            StatusCode::BAD_REQUEST,
+            "invalid_request",
+            "Expected one image file",
+            fallback_request_id,
+        );
+    };
+    let plan = match parse_sheet_plan(&values) {
+        Ok(plan) => plan,
+        Err(SheetInputError::ResourceLimit) => {
+            return problem(
+                StatusCode::PAYLOAD_TOO_LARGE,
+                "resource_limit",
+                "Sheet exceeds the provisional resource limit",
+                fallback_request_id,
+            )
+        }
+        Err(SheetInputError::DoesNotFit) => {
+            return problem(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "does_not_fit",
+                "The requested copies do not fit on the sheet",
+                fallback_request_id,
+            )
+        }
+        Err(SheetInputError::Invalid) => {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Invalid physical-sheet request",
+                fallback_request_id,
+            )
+        }
+    };
+    let accepted = match state.admit_sheet_if_running(
+        IncomingRequest::new(content_type, body),
+        plan,
+    ) {
+        Some(Ok(accepted)) => accepted,
+        Some(Err(failure)) => return lifecycle_problem(failure),
+        None => return unavailable_problem(fallback_request_id),
+    };
+    let abandonment_signal = ResponseAbandonmentSignal::new();
+    let mut abandonment_guard = TransportAbandonmentGuard::new(abandonment_signal.clone());
+    let result =
+        match tokio::task::spawn_blocking(move || accepted.wait_or_abandon(&abandonment_signal))
+            .await
+        {
+            Ok(result) => result,
+            Err(_) => {
+                return problem(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "internal",
+                    "Internal processing failure",
+                    fallback_request_id,
+                )
+            }
+        };
+    match result {
+        AdmittedWaitOutcome::Completed(Ok(response)) => {
+            abandonment_guard.disarm();
+            let layout = response_layout_headers(&response);
+            let length = response.body.len();
+            let mut http_response = Response::new(Body::from(response.body));
+            *http_response.status_mut() = StatusCode::OK;
+            let headers = http_response.headers_mut();
+            headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("image/jpeg"));
+            headers.insert(
+                header::CONTENT_LENGTH,
+                HeaderValue::from_str(&length.to_string()).expect("decimal content length"),
+            );
+            headers.insert(
+                header::CONTENT_DISPOSITION,
+                HeaderValue::from_static("attachment; filename=imgengine-sheet.jpg"),
+            );
+            headers.insert(
+                "x-request-id",
+                HeaderValue::from_str(response.request_id.as_str())
+                    .expect("lifecycle request IDs are header-safe"),
+            );
+            for (name, value) in layout {
+                headers.insert(
+                    name,
+                    HeaderValue::from_str(&value).expect("sheet accounting is decimal"),
+                );
+            }
+            http_response
+        }
+        AdmittedWaitOutcome::Completed(Err(failure)) => {
+            abandonment_guard.disarm();
+            lifecycle_problem(failure)
+        }
+        AdmittedWaitOutcome::ResponseAbandoned(_) => problem(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "internal",
+            "Internal processing failure",
+            fallback_request_id,
+        ),
+    }
 }
 
 async fn layout_render(State(state): State<ApiState>, request: Request) -> Response {
@@ -702,6 +934,98 @@ fn parse_layout_plan(
         return Err(LayoutInputError::ResourceLimit);
     }
     Ok(plan)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum SheetInputError {
+    Invalid,
+    ResourceLimit,
+    DoesNotFit,
+}
+
+fn parse_sheet_plan(
+    values: &std::collections::BTreeMap<String, String>,
+) -> Result<SheetPlan, SheetInputError> {
+    let required = |name: &str| {
+        values
+            .get(name)
+            .map(String::as_str)
+            .ok_or(SheetInputError::Invalid)
+    };
+    if required("output_format")? != "jpeg" {
+        return Err(SheetInputError::Invalid);
+    }
+    let dpi = values
+        .get("dpi")
+        .map(String::as_str)
+        .map(parse_u32)
+        .transpose()
+        .map_err(map_layout_error)?
+        .unwrap_or(300);
+    if !(1..=1200).contains(&dpi) {
+        return Err(SheetInputError::ResourceLimit);
+    }
+
+    let positive_mm = |name: &str| -> Result<u32, SheetInputError> {
+        let value = parse_sheet_decimal(required(name)?, false)?;
+        mm_to_px(value, dpi).map_err(map_geometry_error)
+    };
+    let spacing_mm = |name: &str| -> Result<u32, SheetInputError> {
+        let value = parse_sheet_decimal(required(name)?, true)?;
+        mm_spacing_to_px(value, dpi).map_err(map_geometry_error)
+    };
+
+    let input = MvpLayoutInput {
+        sheet_width: positive_mm("sheet_width_mm")?,
+        sheet_height: positive_mm("sheet_height_mm")?,
+        photo_width: positive_mm("photo_width_mm")?,
+        photo_height: positive_mm("photo_height_mm")?,
+        copies: parse_u32(required("copies")?).map_err(map_layout_error)?,
+        margin: spacing_mm("margin_mm")?,
+        gap_x: spacing_mm("gap_x_mm")?,
+        gap_y: spacing_mm("gap_y_mm")?,
+    };
+    let plan = MvpLayoutPlan::solve(input).map_err(|error| match error {
+        GeometryError::DoesNotFit => SheetInputError::DoesNotFit,
+        GeometryError::ResourceLimit | GeometryError::ArithmeticOverflow => {
+            SheetInputError::ResourceLimit
+        }
+        _ => SheetInputError::Invalid,
+    })?;
+    Ok(SheetPlan::from(&plan))
+}
+
+fn parse_sheet_decimal(value: &str, allow_zero: bool) -> Result<f64, SheetInputError> {
+    let (whole, fraction) = value.split_once('.').unwrap_or((value, ""));
+    if whole.is_empty()
+        || !whole.bytes().all(|byte| byte.is_ascii_digit())
+        || fraction.len() > 3
+        || !fraction.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        return Err(SheetInputError::Invalid);
+    }
+    let parsed = value.parse::<f64>().map_err(|_| SheetInputError::Invalid)?;
+    if !parsed.is_finite() || parsed < 0.0 || (!allow_zero && parsed == 0.0) {
+        return Err(SheetInputError::Invalid);
+    }
+    Ok(parsed)
+}
+
+fn map_layout_error(error: LayoutInputError) -> SheetInputError {
+    match error {
+        LayoutInputError::Invalid => SheetInputError::Invalid,
+        LayoutInputError::ResourceLimit => SheetInputError::ResourceLimit,
+    }
+}
+
+fn map_geometry_error(error: GeometryError) -> SheetInputError {
+    match error {
+        GeometryError::ResourceLimit | GeometryError::ArithmeticOverflow => {
+            SheetInputError::ResourceLimit
+        }
+        GeometryError::DoesNotFit => SheetInputError::DoesNotFit,
+        _ => SheetInputError::Invalid,
+    }
 }
 
 fn parse_u32(value: &str) -> Result<u32, LayoutInputError> {
@@ -1524,6 +1848,57 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn physical_sheet_route_renders_a4_300_dpi_with_centered_fill() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let (app, root) = app("physical-sheet", "test-key");
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &[
+                    ("file", "image/jpeg", REAL_JPEG),
+                    ("sheet_width_mm", "text/plain", b"210"),
+                    ("sheet_height_mm", "text/plain", b"297"),
+                    ("photo_width_mm", "text/plain", b"35"),
+                    ("photo_height_mm", "text/plain", b"45"),
+                    ("dpi", "text/plain", b"300"),
+                    ("copies", "text/plain", b"8"),
+                    ("margin_mm", "text/plain", b"10"),
+                    ("gap_x_mm", "text/plain", b"2"),
+                    ("gap_y_mm", "text/plain", b"2"),
+                    ("output_format", "text/plain", b"jpeg"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], "image/jpeg");
+        assert_eq!(response.headers()["x-imgengine-canvas-width"], "2480");
+        assert_eq!(response.headers()["x-imgengine-canvas-height"], "3508");
+        assert_eq!(response.headers()["x-imgengine-expected-count"], "8");
+        assert_eq!(response.headers()["x-imgengine-planned-count"], "8");
+        assert_eq!(response.headers()["x-imgengine-executed-count"], "8");
+        assert_eq!(
+            response.headers()[header::CONTENT_DISPOSITION],
+            "attachment; filename=imgengine-sheet.jpg"
+        );
+        let output = response_bytes(response).await;
+        let mut decoder = jpeg_decoder::Decoder::new(output.as_slice());
+        decoder.decode().expect("decode A4 sheet JPEG");
+        let info = decoder.info().expect("decoded sheet metadata");
+        assert_eq!((info.width, info.height), (2480, 3508));
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
     async fn layout_output_budget_is_server_owned_and_maps_to_resource_limit() {
         let _engine = ENGINE_LOCK
             .lock()
@@ -1583,6 +1958,75 @@ mod tests {
         assert_eq!(
             super::parse_layout_plan(&unsupported),
             Err(super::LayoutInputError::Invalid)
+        );
+    }
+
+    #[tokio::test]
+    async fn sheet_output_budget_is_server_owned_and_bounded() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let root = root("sheet-output-budget");
+        let config = ApiConfig::new("test-key", root.clone())
+            .expect("valid configuration")
+            .with_sheet_max_output_bytes(1)
+            .expect("valid bounded-output configuration");
+        let (app, root) = app_with_config(config, root);
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &[
+                    ("file", "image/png", REAL_PNG),
+                    ("sheet_width_mm", "text/plain", b"10"),
+                    ("sheet_height_mm", "text/plain", b"10"),
+                    ("photo_width_mm", "text/plain", b"2"),
+                    ("photo_height_mm", "text/plain", b"2"),
+                    ("dpi", "text/plain", b"100"),
+                    ("copies", "text/plain", b"1"),
+                    ("margin_mm", "text/plain", b"0"),
+                    ("gap_x_mm", "text/plain", b"0"),
+                    ("gap_y_mm", "text/plain", b"0"),
+                    ("output_format", "text/plain", b"jpeg"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let body = String::from_utf8(response_bytes(response).await).expect("problem JSON");
+        assert!(body.contains("resource_limit"));
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[test]
+    fn physical_sheet_parser_converts_mm_and_preserves_exact_copy_count() {
+        let values = std::collections::BTreeMap::from([
+            ("sheet_width_mm".to_owned(), "210".to_owned()),
+            ("sheet_height_mm".to_owned(), "297".to_owned()),
+            ("photo_width_mm".to_owned(), "35".to_owned()),
+            ("photo_height_mm".to_owned(), "45".to_owned()),
+            ("dpi".to_owned(), "300".to_owned()),
+            ("copies".to_owned(), "8".to_owned()),
+            ("margin_mm".to_owned(), "10".to_owned()),
+            ("gap_x_mm".to_owned(), "2".to_owned()),
+            ("gap_y_mm".to_owned(), "2".to_owned()),
+            ("output_format".to_owned(), "jpeg".to_owned()),
+        ]);
+        let plan = super::parse_sheet_plan(&values).expect("A4 physical sheet plan");
+        assert_eq!((plan.canvas_width, plan.canvas_height), (2480, 3508));
+        assert_eq!(plan.placements.len(), 8);
+
+        let mut overflow = values;
+        overflow.insert("copies".to_owned(), "64".to_owned());
+        assert_eq!(
+            super::parse_sheet_plan(&overflow),
+            Err(super::SheetInputError::DoesNotFit)
         );
     }
 
