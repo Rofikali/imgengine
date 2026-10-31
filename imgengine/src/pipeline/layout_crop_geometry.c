@@ -3,9 +3,8 @@
 #include <stddef.h>
 #include <string.h>
 
-int img_layout_centered_crop(uint32_t source_width, uint32_t source_height,
-                             uint32_t target_width, uint32_t target_height,
-                             img_layout_crop_rect_t *output) {
+int img_layout_centered_crop(uint32_t source_width, uint32_t source_height, uint32_t target_width,
+                             uint32_t target_height, img_layout_crop_rect_t *output) {
     if (!output)
         return 0;
     memset(output, 0, sizeof(*output));
