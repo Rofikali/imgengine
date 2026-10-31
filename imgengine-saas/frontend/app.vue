@@ -27,6 +27,7 @@ function selectDroppedFile(event: DragEvent) {
 
 async function renderAnother() {
   reset()
+  if (fileInput.value) fileInput.value.value = ''
   await nextTick()
   dropZone.value?.focus()
 }
