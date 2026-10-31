@@ -17,11 +17,16 @@ in Compose for legacy job flows. They are not dependencies of the Rust API
 container. This is a side-by-side migration, not a deletion or replacement of
 legacy services.
 
-The legacy API's host port 8000 is bound to loopback only; legacy workers
-continue to reach it over the private Compose network. Do not publish either
-API port directly to the public internet. Put the Nuxt web service behind a
-TLS-terminating reverse proxy/firewall before any public rollout, and replace
-all example credentials first.
+The legacy API (host port 8000), Rust API (host port 8001), and Nuxt web
+(host port 3000) are all bound to `127.0.0.1` by Compose. Legacy workers and
+the Nuxt server continue to reach their dependencies over the private Compose
+network. Do not publish these ports directly to the public internet. Put a
+TLS-terminating reverse proxy/firewall in front of Nuxt before any public
+rollout, and replace all example credentials first.
+
+CI renders the complete Compose configuration and runs
+`imgengine-saas/scripts/check_compose_loopback_bindings.py` to fail if any of
+these three host bindings become public or change to an unexpected port.
 
 The Nuxt server proxies the P5, P8, and P12 browser requests to
 `http://rust-api:8000` using the private runtime overrides
