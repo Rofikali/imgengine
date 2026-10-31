@@ -279,7 +279,7 @@ static int test_scalar_rgb_oracle(img_engine_t *engine) {
 
 static int test_centered_fill_crop(img_engine_t *engine) {
     static const uint8_t pixels[] = {
-        10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120,
+        10,  20,  30,  40,  50,  60,  70,  80,  90,  100, 110, 120,
         130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
     };
     const uint8_t background[] = {17, 31, 47};
@@ -300,8 +300,7 @@ static int test_centered_fill_crop(img_engine_t *engine) {
                                         .count = 1};
     int passed = 0;
 
-    if (!reference || !scaled_reference ||
-        !make_jpeg_rgb(pixels, 4, 2, &jpeg, &jpeg_size))
+    if (!reference || !scaled_reference || !make_jpeg_rgb(pixels, 4, 2, &jpeg, &jpeg_size))
         goto done;
 
     for (size_t index = 0; index < observation.expected_size; index += 3u) {
@@ -316,16 +315,14 @@ static int test_centered_fill_crop(img_engine_t *engine) {
     img_layout_crop_rect_t crop = {0};
     if (!img_layout_centered_crop(source.width, source.height, placement.width, placement.height,
                                   &crop) ||
-        !img_layout_crop_borrowed_view(&source, &crop, &cropped) ||
-        cropped.owner_pool != NULL || cropped.stride != source.stride ||
-        cropped.width != 2 || cropped.height != 2)
+        !img_layout_crop_borrowed_view(&source, &crop, &cropped) || cropped.owner_pool != NULL ||
+        cropped.stride != source.stride || cropped.width != 2 || cropped.height != 2)
         goto done;
 
     reference_resize_rgb(&cropped, scaled_reference, placement.width, placement.height);
     for (uint32_t y = 0; y < placement.height; y++) {
         memcpy(reference + ((size_t)(placement.y + y) * 7u + placement.x) * 3u,
-               scaled_reference + (size_t)y * placement.width * 3u,
-               (size_t)placement.width * 3u);
+               scaled_reference + (size_t)y * placement.width * 3u, (size_t)placement.width * 3u);
     }
 
     const img_layout_render_v1_request_t request = {
@@ -343,8 +340,7 @@ static int test_centered_fill_crop(img_engine_t *engine) {
         .canvas_observer_context = &observation,
     };
     passed = img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result) == IMG_SUCCESS &&
-             observation.observed && observation.passed &&
-             result.executed_count == 1;
+             observation.observed && observation.passed && result.executed_count == 1;
 
 done:
     img_layout_render_v1_result_release(&result);
@@ -532,8 +528,9 @@ int main(void) {
         return 1;
     }
     const int passed = test_reference_geometry() && test_scalar_rgb_oracle(engine) &&
-                       test_centered_fill_crop(engine) && test_jpeg_and_completion(engine) && test_png(engine) &&
-                       test_rejections(engine) && test_partial_execution_has_no_output(engine);
+                       test_centered_fill_crop(engine) && test_jpeg_and_completion(engine) &&
+                       test_png(engine) && test_rejections(engine) &&
+                       test_partial_execution_has_no_output(engine);
     img_api_shutdown(engine);
     if (!passed) {
         fprintf(stderr, "private layout render test failed\n");
