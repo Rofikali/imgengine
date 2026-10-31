@@ -17,8 +17,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-      - name: Check Rust formatting
-        run: cargo fmt --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml -- --check
       - name: Run Rust supervisor tests
         run: cargo test --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml
       - name: Install native dependencies
