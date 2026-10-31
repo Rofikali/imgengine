@@ -1865,6 +1865,9 @@ mod tests {
 
     #[tokio::test]
     async fn health_and_readiness_endpoints_are_public_and_report_running_state() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let (app, root) = app("health", "test-key");
         let health = app
             .clone()
