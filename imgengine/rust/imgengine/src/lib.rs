@@ -243,16 +243,19 @@ impl Engine {
         if input.is_empty()
             || request.canvas_width == 0
             || request.canvas_height == 0
-            || request.canvas_width > 4096
-            || request.canvas_height > 4096
-            || canvas_pixels > 10_000_000
             || placement_count == 0
-            || placement_count > 64
             || request.expected_count != placement_count
             || max_output_bytes == 0
-            || max_output_bytes > i32::MAX as usize
         {
             return Err(Error::InvalidArgument);
+        }
+        if request.canvas_width > 4096
+            || request.canvas_height > 4096
+            || canvas_pixels > 10_000_000
+            || placement_count > 64
+            || max_output_bytes > i32::MAX as usize
+        {
+            return Err(Error::ResourceLimit);
         }
 
         let placements: Vec<sys::LayoutRectV2> = request
