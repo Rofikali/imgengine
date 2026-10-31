@@ -20,6 +20,7 @@ jobs:
       WEB_API_KEY: release-candidate-key
       INTERNAL_API_TOKEN: release-candidate-internal-token
       IMGENGINE_API_IMAGE: imgengine-candidate/api:${{ github.sha }}
+      IMGENGINE_RUST_API_IMAGE: imgengine-candidate/rust-api:${{ github.sha }}
       IMGENGINE_WORKER_IMAGE: imgengine-candidate/worker:${{ github.sha }}
       IMGENGINE_WEB_IMAGE: imgengine-candidate/web:${{ github.sha }}
     steps:
@@ -31,10 +32,10 @@ jobs:
           docker compose --project-name "imgengine-rc-${{ github.run_id }}" config > ../../artifacts/saas-release-candidate/compose.rendered.yaml
       - name: Build candidate images
         working-directory: imgengine-saas/infra
-        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" build api worker web
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" build api worker web rust-api
       - name: Start verified runtime services
         working-directory: imgengine-saas/infra
-        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" up -d api worker
+        run: docker compose --project-name "imgengine-rc-${{ github.run_id }}" up -d api worker rust-api
       - name: Exercise JPEG and PNG request paths
         working-directory: imgengine-saas/infra
         env:
@@ -55,6 +56,11 @@ jobs:
           PY
           bash ../scripts/integration_smoke.sh ../../imgengine/photo.jpg image/jpeg
           bash ../scripts/integration_smoke.sh /tmp/release-candidate.png image/png
+      - name: Exercise Rust P5, P8, and P12 endpoints
+        env:
+          API_URL: http://127.0.0.1:8001
+          API_KEY: release-candidate-key
+        run: bash ../scripts/rust_api_smoke.sh ../../imgengine/photo.jpg
       - name: Record candidate image identities
         if: always()
         run: |
