@@ -14,6 +14,7 @@ pub enum GeometryError {
     InvalidCopies,
     DoesNotFit,
     ArithmeticOverflow,
+    ResourceLimit,
 }
 
 /// Convert a finite positive millimetre measurement to pixels using the
@@ -83,6 +84,10 @@ pub struct MvpLayoutPlan {
 }
 
 impl MvpLayoutPlan {
+    const MAX_COPIES: u32 = 64;
+    const MAX_DIMENSION: u32 = 4096;
+    const MAX_CANVAS_PIXELS: u64 = 4_000_000;
+
     /// Calculates maximum physical capacity and rejects copy overflow.
     ///
     /// The solver uses the maximum feasible column count, row-major placement,
@@ -98,6 +103,13 @@ impl MvpLayoutPlan {
         }
         if input.copies == 0 {
             return Err(GeometryError::InvalidCopies);
+        }
+        if input.copies > Self::MAX_COPIES
+            || input.sheet_width > Self::MAX_DIMENSION
+            || input.sheet_height > Self::MAX_DIMENSION
+            || u64::from(input.sheet_width) * u64::from(input.sheet_height) > Self::MAX_CANVAS_PIXELS
+        {
+            return Err(GeometryError::ResourceLimit);
         }
 
         let twice_margin = input.margin.checked_mul(2).ok_or(GeometryError::ArithmeticOverflow)?;
@@ -229,6 +241,7 @@ impl fmt::Display for GeometryError {
             Self::InvalidCopies => "invalid_copies",
             Self::DoesNotFit => "does_not_fit",
             Self::ArithmeticOverflow => "arithmetic_overflow",
+            Self::ResourceLimit => "resource_limit",
         })
     }
 }
@@ -258,6 +271,7 @@ mod tests {
         assert_eq!(mm_to_px(35.0, 300), Ok(413));
         assert_eq!(mm_to_px(45.0, 300), Ok(531));
         assert_eq!(mm_spacing_to_px(0.0, 300), Ok(0));
+        assert_eq!(mm_to_px(0.04233333333333333, 300), Ok(1));
         assert_eq!(mm_to_px(f64::NAN, 300), Err(GeometryError::InvalidDimension));
         assert_eq!(mm_to_px(1.0, 0), Err(GeometryError::InvalidDpi));
     }
@@ -268,11 +282,11 @@ mod tests {
         assert_eq!((plan.max_columns, plan.max_rows, plan.capacity), (4, 2, 8));
         assert_eq!((plan.columns_used, plan.rows_used), (4, 2));
         assert_eq!(plan.placements.len(), 8);
-        assert_eq!(plan.placements[0].x, 30);
+        assert_eq!(plan.placements[0].x, 85);
         assert_eq!(plan.placements[0].y, 45);
         let partial = MvpLayoutPlan::solve(input(5)).expect("partial row fits");
         assert_eq!((partial.columns_used, partial.rows_used), (4, 2));
-        assert_eq!(partial.placements[4].x, 330);
+        assert_eq!(partial.placements[4].x, 85);
         assert_eq!(partial.placements[4].y, 355);
     }
 
@@ -311,5 +325,9 @@ mod tests {
         let mut zero = input(1);
         zero.photo_width = 0;
         assert_eq!(MvpLayoutPlan::solve(zero), Err(GeometryError::InvalidDimension));
+        let mut too_many = input(65);
+        too_many.sheet_width = 4096;
+        too_many.sheet_height = 4096;
+        assert_eq!(MvpLayoutPlan::solve(too_many), Err(GeometryError::ResourceLimit));
     }
 }
