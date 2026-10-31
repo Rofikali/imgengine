@@ -105,7 +105,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = new FormData()
-  body.append('file', file)
+  // Do not propagate a user's local filename to the rendering service.
+  body.append('file', file, 'upload')
   for (const name of [
     'sheet_width_mm', 'sheet_height_mm', 'photo_width_mm', 'photo_height_mm',
     'dpi', 'copies', 'margin_mm', 'gap_x_mm', 'gap_y_mm', 'output_format',
