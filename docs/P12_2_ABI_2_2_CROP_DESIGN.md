@@ -138,7 +138,7 @@ The output cap is a required argument to `imgengine_sheet_render_v1_bounded`, no
 - On cap exhaustion, return `IMGENGINE_STATUS_RESOURCE_LIMIT` with an all-zero output.
 - The cap is server-owned. It must never be populated from multipart input or browser state.
 
-The current provisional 16 MiB cap is an encoded destination limit only. It does not prove an aggregate request-memory, decoder-memory, or process-RSS bound.
+The P12 provisional 32 MiB cap is an encoded destination-allocation bound. It admits the A4 300-DPI worst-case TurboJPEG destination bound (2480 × 3508 RGB); it does not prove an aggregate request-memory, decoder-memory, or process-RSS bound. Keep the existing P8 FIT default at 16 MiB.
 
 ## 6. Native validation order
 
