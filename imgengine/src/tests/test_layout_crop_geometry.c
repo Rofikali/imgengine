@@ -52,7 +52,8 @@ static int expect_borrowed_view(void) {
 
     if (view.data != pixels + 20u || view.owner_pool != NULL || view.width != 2 ||
         view.height != 2 || view.channels != 3 || view.stride != 17) {
-        fprintf(stderr, "crop view did not preserve pointer, non-ownership, dimensions, or stride\n");
+        fprintf(stderr,
+                "crop view did not preserve pointer, non-ownership, dimensions, or stride\n");
         return 0;
     }
 
@@ -118,27 +119,29 @@ int main(void) {
     }
 
     uint8_t backing[3u * 17u];
-    img_buffer_t source = {.data = backing, .owner_pool = NULL, .width = 4, .height = 3,
-                           .channels = 3, .stride = 17};
+    img_buffer_t source = {
+        .data = backing, .owner_pool = NULL, .width = 4, .height = 3, .channels = 3, .stride = 17};
     img_layout_crop_rect_t valid_crop = {.x = 1, .y = 1, .width = 2, .height = 2};
     passed &= expect_borrowed_view();
     passed &= expect_invalid_view("null source", NULL, &valid_crop);
-    passed &= expect_invalid_view("null data", &(img_buffer_t){.data = NULL, .width = 4, .height = 3,
-                                                               .channels = 3, .stride = 17},
-                                  &valid_crop);
-    passed &= expect_invalid_view("short stride", &(img_buffer_t){.data = backing, .width = 4,
-                                                                  .height = 3, .channels = 3,
-                                                                  .stride = 11},
-                                  &valid_crop);
-    passed &= expect_invalid_view("crop outside source", &source,
-                                  &(img_layout_crop_rect_t){.x = 3, .y = 1, .width = 2, .height = 1});
-    passed &= expect_invalid_view("zero crop", &source,
-                                  &(img_layout_crop_rect_t){.x = 0, .y = 0, .width = 0, .height = 1});
+    passed &= expect_invalid_view(
+        "null data",
+        &(img_buffer_t){.data = NULL, .width = 4, .height = 3, .channels = 3, .stride = 17},
+        &valid_crop);
+    passed &= expect_invalid_view(
+        "short stride",
+        &(img_buffer_t){.data = backing, .width = 4, .height = 3, .channels = 3, .stride = 11},
+        &valid_crop);
+    passed &=
+        expect_invalid_view("crop outside source", &source,
+                            &(img_layout_crop_rect_t){.x = 3, .y = 1, .width = 2, .height = 1});
+    passed &= expect_invalid_view(
+        "zero crop", &source, &(img_layout_crop_rect_t){.x = 0, .y = 0, .width = 0, .height = 1});
     passed &= expect_invalid_view("null crop", &source, NULL);
-    passed &= expect_invalid_view("zero channels",
-                                  &(img_buffer_t){.data = backing, .width = 4, .height = 3,
-                                                  .channels = 0, .stride = 17},
-                                  &valid_crop);
+    passed &= expect_invalid_view(
+        "zero channels",
+        &(img_buffer_t){.data = backing, .width = 4, .height = 3, .channels = 0, .stride = 17},
+        &valid_crop);
 
     if (!passed)
         return 1;
