@@ -66,10 +66,9 @@ img_layout_render_validate_request(const img_layout_render_v1_request_t *request
         request->crop_mode != IMG_LAYOUT_RENDER_CROP_CENTERED_FILL)
         return IMG_ERR_SECURITY;
 
-    const uint64_t max_canvas_pixels =
-        request->crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL
-            ? IMG_LAYOUT_RENDER_CENTERED_FILL_MAX_CANVAS_PIXELS
-            : IMG_LAYOUT_RENDER_FIT_MAX_CANVAS_PIXELS;
+    const uint64_t max_canvas_pixels = request->crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL
+                                           ? IMG_LAYOUT_RENDER_CENTERED_FILL_MAX_CANVAS_PIXELS
+                                           : IMG_LAYOUT_RENDER_FIT_MAX_CANVAS_PIXELS;
     if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         request->canvas_height > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||

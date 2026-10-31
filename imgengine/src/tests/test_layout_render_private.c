@@ -231,8 +231,8 @@ static int reference_render_case(img_engine_t *engine, const char *name,
                 return 0;
             }
             cropped_source = source;
-            cropped_source.data = source.data + (size_t)crop.y * source.stride +
-                                  (size_t)crop.x * source.channels;
+            cropped_source.data =
+                source.data + (size_t)crop.y * source.stride + (size_t)crop.x * source.channels;
             cropped_source.owner_pool = NULL;
             cropped_source.width = crop.width;
             cropped_source.height = crop.height;
@@ -312,30 +312,24 @@ static int test_scalar_rgb_oracle(img_engine_t *engine) {
     };
     const int generated = make_jpeg_rgb(wide_pixels, 4, 2, &wide_jpeg, &wide_jpeg_size) &&
                           make_jpeg_rgb(tall_pixels, 2, 4, &tall_jpeg, &tall_jpeg_size);
-    const int passed = generated &&
-                       reference_render_case(engine, "horizontal-letterbox", wide_jpeg,
-                                             wide_jpeg_size, 7, 7, one, 1, background,
-                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
-                       reference_render_case(engine, "vertical-letterbox", tall_jpeg,
-                                             tall_jpeg_size, 7, 7, one, 1, background,
-                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
-                       reference_render_case(engine, "exact-aspect", wide_jpeg, wide_jpeg_size, 6,
-                                             3, exact, 1, background, IMG_LAYOUT_RENDER_CROP_FIT) &&
-                       reference_render_case(engine, "multiple-placements", wide_jpeg,
-                                             wide_jpeg_size, 8, 5, multiple, 2, background,
-                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
-                       reference_render_case(engine, "png-decode-render", k_png_fixture,
-                                             sizeof(k_png_fixture), 5, 4, png_one, 1, background,
-                                             IMG_LAYOUT_RENDER_CROP_FIT) &&
-                       reference_render_case(engine, "centered-fill-wide-to-square", wide_jpeg,
-                                             wide_jpeg_size, 7, 7, one, 1, background,
-                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
-                       reference_render_case(engine, "centered-fill-tall-to-square", tall_jpeg,
-                                             tall_jpeg_size, 7, 7, one, 1, background,
-                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
-                       reference_render_case(engine, "centered-fill-multiple", wide_jpeg,
-                                             wide_jpeg_size, 8, 5, multiple, 2, background,
-                                             IMG_LAYOUT_RENDER_CROP_CENTERED_FILL);
+    const int passed =
+        generated &&
+        reference_render_case(engine, "horizontal-letterbox", wide_jpeg, wide_jpeg_size, 7, 7, one,
+                              1, background, IMG_LAYOUT_RENDER_CROP_FIT) &&
+        reference_render_case(engine, "vertical-letterbox", tall_jpeg, tall_jpeg_size, 7, 7, one, 1,
+                              background, IMG_LAYOUT_RENDER_CROP_FIT) &&
+        reference_render_case(engine, "exact-aspect", wide_jpeg, wide_jpeg_size, 6, 3, exact, 1,
+                              background, IMG_LAYOUT_RENDER_CROP_FIT) &&
+        reference_render_case(engine, "multiple-placements", wide_jpeg, wide_jpeg_size, 8, 5,
+                              multiple, 2, background, IMG_LAYOUT_RENDER_CROP_FIT) &&
+        reference_render_case(engine, "png-decode-render", k_png_fixture, sizeof(k_png_fixture), 5,
+                              4, png_one, 1, background, IMG_LAYOUT_RENDER_CROP_FIT) &&
+        reference_render_case(engine, "centered-fill-wide-to-square", wide_jpeg, wide_jpeg_size, 7,
+                              7, one, 1, background, IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
+        reference_render_case(engine, "centered-fill-tall-to-square", tall_jpeg, tall_jpeg_size, 7,
+                              7, one, 1, background, IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) &&
+        reference_render_case(engine, "centered-fill-multiple", wide_jpeg, wide_jpeg_size, 8, 5,
+                              multiple, 2, background, IMG_LAYOUT_RENDER_CROP_CENTERED_FILL);
     tjFree(wide_jpeg);
     tjFree(tall_jpeg);
     return passed;
@@ -521,8 +515,8 @@ static int test_p12_canvas_limit_is_separate_from_p8_fit(img_engine_t *engine) {
     const img_result_t fill_status =
         img_layout_render_v1(engine, jpeg, jpeg_size, &request, &result);
     tjFree(jpeg);
-    const int passed = fill_status == IMG_SUCCESS &&
-                       assert_jpeg_result(engine, &result, 2048, 2048);
+    const int passed =
+        fill_status == IMG_SUCCESS && assert_jpeg_result(engine, &result, 2048, 2048);
     img_layout_render_v1_result_release(&result);
     return passed;
 }
