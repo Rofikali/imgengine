@@ -1854,6 +1854,7 @@ mod tests {
             .unwrap_or_else(|poison| poison.into_inner());
         let (app, root) = app("physical-sheet", "test-key");
         let response = app
+            .clone()
             .oneshot(request_to(
                 "/api/v2/sheet-render",
                 &[
@@ -1972,6 +1973,7 @@ mod tests {
             .expect("valid bounded-output configuration");
         let (app, root) = app_with_config(config, root);
         let response = app
+            .clone()
             .oneshot(request_to(
                 "/api/v2/sheet-render",
                 &[
