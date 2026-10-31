@@ -86,7 +86,9 @@ pub struct MvpLayoutPlan {
 impl MvpLayoutPlan {
     const MAX_COPIES: u32 = 64;
     const MAX_DIMENSION: u32 = 4096;
-    const MAX_CANVAS_PIXELS: u64 = 4_000_000;
+    // P12 sheet policy: enough for A4 at 300 DPI (8,699,840 px).
+    // The existing P8/P8.1 FIT ABI retains its independent 4 MP ceiling.
+    const MAX_CANVAS_PIXELS: u64 = 10_000_000;
 
     /// Calculates maximum physical capacity and rejects copy overflow.
     ///
@@ -307,6 +309,28 @@ mod tests {
         let last = plan.placements[2];
         assert!(last.x + last.width <= plan.sheet_width - 20);
         assert!(last.y + last.height <= plan.sheet_height - 20);
+    }
+
+
+    #[test]
+    fn a4_at_300_dpi_is_within_the_p12_sheet_budget() {
+        let width = mm_to_px(210.0, 300).expect("A4 width");
+        let height = mm_to_px(297.0, 300).expect("A4 height");
+        assert_eq!((width, height), (2480, 3508));
+        assert_eq!(u64::from(width) * u64::from(height), 8_699_840);
+
+        let plan = MvpLayoutPlan::solve(MvpLayoutInput {
+            sheet_width: width,
+            sheet_height: height,
+            photo_width: 413,
+            photo_height: 531,
+            copies: 4,
+            margin: 0,
+            gap_x: 0,
+            gap_y: 0,
+        }).expect("A4 300 DPI plan");
+        assert_eq!((plan.sheet_width, plan.sheet_height), (2480, 3508));
+        assert_eq!(plan.placements.len(), 4);
     }
 
     #[test]
