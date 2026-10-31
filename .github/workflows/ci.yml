@@ -32,6 +32,13 @@ jobs:
             -DIMGENGINE_BENCH=OFF -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
       - name: Build native targets
         run: cmake --build imgengine/build/ci --parallel
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run Rust supervisor tests
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/imgengine/build/ci
+          RUSTFLAGS: -L native=${{ github.workspace }}/imgengine/build/ci
+        run: cargo test --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml
       - name: Configure portable scalar reference build
         run: |
           cmake -S imgengine -B imgengine/build/portable-ci -G Ninja \
@@ -167,3 +174,21 @@ jobs:
         if: always()
         working-directory: imgengine-saas/infra
         run: docker compose down --volumes --remove-orphans
+  docker-linux-verification:
+    name: Ubuntu 24.04 Docker verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the repository verification image
+        run: docker build --file imgengine/Dockerfile.verify --tag imgengine-verify:ci imgengine
+      - name: Run native, Rust, sanitizer, sandbox, and fuzz gates inside Docker
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace/imgengine \
+            --env IMGENGINE_VERIFY_BUILD_ROOT=/tmp/imgengine-verify-build \
+            --env CARGO_TARGET_DIR=/tmp/imgengine-cargo-target \
+            --env IMGENGINE_FUZZ_RUNS=5000 \
+            imgengine-verify:ci \
+            bash scripts/verify_linux.sh

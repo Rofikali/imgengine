@@ -5,7 +5,10 @@
 //! cannot cancel an operation already executing in ABI v1.
 
 mod admission;
+mod geometry;
 mod request_lifecycle;
+
+pub use geometry::{centered_crop, mm_spacing_to_px, mm_to_px, CropRect, GeometryError, MvpLayoutInput, MvpLayoutPlan, Placement};
 
 pub use admission::{
     AdmissionController, AdmissionError, AdmissionExecutionObserver, AdmissionMetricsSnapshot,
