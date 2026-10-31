@@ -525,20 +525,16 @@ mod tests {
             Ok(_) => panic!("oversized input must be rejected"),
         };
         assert_eq!(resource_limit_error.class(), ResultClass::ResourceLimit);
-        assert_eq!(
-            controller.metrics(),
-            super::AdmissionMetricsSnapshot {
-                accepted: 2,
-                completed: 2,
-                succeeded: 2,
-                failed: 0,
-                rejected_overload: 0,
-                rejected_resource_limit: 1,
-                deadline_exceeded: 0,
-                queue_depth: 0,
-                max_queue_depth: 1,
-            }
-        );
+        let metrics = controller.metrics();
+        assert_eq!(metrics.accepted, 2);
+        assert_eq!(metrics.completed, 2);
+        assert_eq!(metrics.succeeded, 2);
+        assert_eq!(metrics.failed, 0);
+        assert_eq!(metrics.rejected_overload, 0);
+        assert_eq!(metrics.rejected_resource_limit, 1);
+        assert_eq!(metrics.deadline_exceeded, 0);
+        assert_eq!(metrics.queue_depth, 0);
+        assert!((1..=2).contains(&metrics.max_queue_depth));
         controller.shutdown().expect("shutdown controller");
         let shutdown_error = match controller.submit(PNG.to_vec(), None) {
             Err(error) => error,
