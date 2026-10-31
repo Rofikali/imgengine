@@ -214,6 +214,10 @@ jobs:
       - name: Validate complete Compose configuration
         working-directory: imgengine-saas/infra
         run: docker compose config > /tmp/imgengine-compose.rendered.yaml
+      - name: Enforce loopback-only host bindings for API and Nuxt
+        run: |
+          docker compose --file imgengine-saas/infra/docker-compose.yml config --format json > /tmp/imgengine-compose.rendered.json
+          python3 imgengine-saas/scripts/check_compose_loopback_bindings.py /tmp/imgengine-compose.rendered.json
       - name: Create isolated integration network
         run: docker network create imgengine-ci
       - name: Build production Rust API image
