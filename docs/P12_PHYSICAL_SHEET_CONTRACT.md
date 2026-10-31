@@ -113,7 +113,7 @@ The exact ABI 2.2 struct and symbol names are deliberately not frozen by this pr
 - No user filename, path, image bytes, credential, or raw codec diagnostic is written to logs.
 - Temporary image data is removed through the existing lifecycle on success, error, timeout, or response abandonment.
 
-The existing 16 MiB bounded-output default is a provisional encoded-destination limit, not a complete per-request RSS or aggregate concurrency limit. P12 must not describe it as such.
+The existing P8 FIT 16 MiB bounded-output default remains unchanged. P12 uses a separate provisional 32 MiB encoded-destination allocation budget so A4 at 300 DPI can pass TurboJPEG's worst-case destination-bound check. Neither value is a complete per-request RSS or aggregate concurrency limit.
 
 ## Required test gates
 
