@@ -82,7 +82,6 @@ static int expect_invalid_view(const char *name, const img_buffer_t *source,
     return 1;
 }
 
-
 static int expect_normalized_crop(const char *name, uint32_t sw, uint32_t sh, uint32_t tw,
                                   uint32_t th, img_layout_normalized_crop_t input,
                                   img_layout_crop_rect_t expected) {
@@ -90,20 +89,19 @@ static int expect_normalized_crop(const char *name, uint32_t sw, uint32_t sh, ui
     if (!img_layout_normalized_crop_to_pixels(sw, sh, tw, th, &input, &actual) ||
         actual.x != expected.x || actual.y != expected.y || actual.width != expected.width ||
         actual.height != expected.height) {
-        fprintf(stderr, "%s: normalized crop got {%u,%u,%u,%u}, expected {%u,%u,%u,%u}\\n",
-                name, actual.x, actual.y, actual.width, actual.height, expected.x, expected.y,
+        fprintf(stderr, "%s: normalized crop got {%u,%u,%u,%u}, expected {%u,%u,%u,%u}\\n", name,
+                actual.x, actual.y, actual.width, actual.height, expected.x, expected.y,
                 expected.width, expected.height);
         return 0;
     }
     return 1;
 }
 
-static int expect_invalid_normalized_crop(const char *name, uint32_t sw, uint32_t sh,
-                                          uint32_t tw, uint32_t th,
-                                          const img_layout_normalized_crop_t *input) {
+static int expect_invalid_normalized_crop(const char *name, uint32_t sw, uint32_t sh, uint32_t tw,
+                                          uint32_t th, const img_layout_normalized_crop_t *input) {
     img_layout_crop_rect_t actual = {1, 2, 3, 4};
-    if (img_layout_normalized_crop_to_pixels(sw, sh, tw, th, input, &actual) ||
-        actual.x != 0 || actual.y != 0 || actual.width != 0 || actual.height != 0) {
+    if (img_layout_normalized_crop_to_pixels(sw, sh, tw, th, input, &actual) || actual.x != 0 ||
+        actual.y != 0 || actual.width != 0 || actual.height != 0) {
         fprintf(stderr, "%s: invalid normalized crop accepted or output not cleared\\n", name);
         return 0;
     }
@@ -123,19 +121,15 @@ static int test_normalized_crop(void) {
     passed &= expect_normalized_crop("full 2:1", 400, 200, 2, 1,
                                      (img_layout_normalized_crop_t){0, 0, s, s},
                                      (img_layout_crop_rect_t){0, 0, 400, 200});
+    passed &= expect_invalid_normalized_crop("aspect mismatch", 400, 200, 1, 1,
+                                             &(img_layout_normalized_crop_t){0, 0, s, s});
     passed &= expect_invalid_normalized_crop(
-        "aspect mismatch", 400, 200, 1, 1,
-        &(img_layout_normalized_crop_t){0, 0, s, s});
-    passed &= expect_invalid_normalized_crop(
-        "out of bounds", 400, 200, 1, 1,
-        &(img_layout_normalized_crop_t){s / 2, 0, s / 2 + 1, s});
-    passed &= expect_invalid_normalized_crop(
-        "zero extent", 400, 200, 1, 1,
-        &(img_layout_normalized_crop_t){0, 0, 0, s});
+        "out of bounds", 400, 200, 1, 1, &(img_layout_normalized_crop_t){s / 2, 0, s / 2 + 1, s});
+    passed &= expect_invalid_normalized_crop("zero extent", 400, 200, 1, 1,
+                                             &(img_layout_normalized_crop_t){0, 0, 0, s});
     passed &= expect_invalid_normalized_crop("null normalized", 400, 200, 1, 1, NULL);
-    passed &= expect_invalid_normalized_crop(
-        "zero source", 0, 200, 1, 1,
-        &(img_layout_normalized_crop_t){0, 0, s, s});
+    passed &= expect_invalid_normalized_crop("zero source", 0, 200, 1, 1,
+                                             &(img_layout_normalized_crop_t){0, 0, s, s});
     return passed;
 }
 
