@@ -60,7 +60,7 @@ export interface SheetRenderInput {
   outputFormat: 'jpeg'
 }
 
-export interface SheetRenderSuccess extends LayoutRenderSuccess {}
+export type SheetRenderSuccess = LayoutRenderSuccess
 
 export interface RenderOptions {
   signal?: AbortSignal
