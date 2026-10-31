@@ -118,4 +118,50 @@ describe('P12 physical-sheet workflow', () => {
     await workflow.submit()
     expect(render).toHaveBeenCalledWith(expect.any(File), input)
   })
+  it('aborts in-flight rendering and ignores a late completion after reset', async () => {
+    let complete!: (value: {
+      jpeg: Blob
+      requestId: string | null
+      canvasWidth: number
+      canvasHeight: number
+      expectedCount: number
+      plannedCount: number
+      executedCount: number
+    }) => void
+    let signal: AbortSignal | undefined
+    const render = vi.fn((_file: File, _input: typeof input, options?: { signal?: AbortSignal }) =>
+      new Promise<{
+        jpeg: Blob
+        requestId: string | null
+        canvasWidth: number
+        canvasHeight: number
+        expectedCount: number
+        plannedCount: number
+        executedCount: number
+      }>((resolve) => {
+        signal = options?.signal
+        complete = resolve
+      }))
+    const workflow = createSheetRenderWorkflow(render)
+    workflow.select(image())
+    const submission = workflow.submit()
+    await nextTick()
+    expect(signal?.aborted).toBe(false)
+    workflow.reset()
+    expect(signal?.aborted).toBe(true)
+    complete({
+      jpeg: new Blob(['late'], { type: 'image/jpeg' }),
+      requestId: 'late-sheet-request',
+      canvasWidth: 2480,
+      canvasHeight: 3508,
+      expectedCount: 8,
+      plannedCount: 8,
+      executedCount: 8,
+    })
+    await submission
+    expect(workflow.status.value).toBe('idle')
+    expect(workflow.result.value).toBeNull()
+    expect(workflow.previewUrl.value).toBeNull()
+  })
+
 })
