@@ -174,6 +174,88 @@ jobs:
         if: always()
         working-directory: imgengine-saas/infra
         run: docker compose down --volumes --remove-orphans
+  frontend-verification:
+    name: Nuxt frontend verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: imgengine-saas/frontend/package-lock.json
+      - name: Install locked frontend dependencies
+        working-directory: imgengine-saas/frontend
+        run: npm ci
+      - name: Generate Nuxt TypeScript configuration
+        working-directory: imgengine-saas/frontend
+        run: npx nuxi prepare
+      - name: Run frontend unit tests
+        working-directory: imgengine-saas/frontend
+        run: npm test
+      - name: Type-check Nuxt application
+        working-directory: imgengine-saas/frontend
+        run: npm run typecheck
+      - name: Build production Nuxt application
+        working-directory: imgengine-saas/frontend
+        run: npm run build
+
+  rust-api-container:
+    name: Rust API container verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      API_KEYS: integration-test-key
+      WEB_API_KEY: integration-test-key
+      INTERNAL_API_TOKEN: integration-internal-token
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate complete Compose configuration
+        working-directory: imgengine-saas/infra
+        run: docker compose config > /tmp/imgengine-compose.rendered.yaml
+      - name: Create isolated integration network
+        run: docker network create imgengine-ci
+      - name: Build production Rust API image
+        run: docker build --file imgengine/rust/Dockerfile --tag imgengine-rust-api:ci imgengine
+      - name: Build production Nuxt image
+        run: docker build --file imgengine-saas/frontend/Dockerfile --tag imgengine-web:ci imgengine-saas/frontend
+      - name: Start isolated Rust API container
+        run: |
+          docker run --detach --name imgengine-rust-api-ci \
+            --network imgengine-ci --network-alias rust-api \
+            --publish 127.0.0.1:8001:8000 \
+            --env IMGENGINE_API_BIND=0.0.0.0:8000 \
+            --env IMGENGINE_API_KEYS=integration-test-key \
+            imgengine-rust-api:ci
+      - name: Start Nuxt server with private Rust API credentials
+        run: |
+          docker run --detach --name imgengine-web-ci \
+            --network imgengine-ci --network-alias web \
+            --publish 127.0.0.1:3000:3000 \
+            --env NUXT_IMGENGINE_API_BASE=http://rust-api:8000 \
+            --env NUXT_IMGENGINE_RENDER_API_KEY=integration-test-key \
+            imgengine-web:ci
+      - name: Exercise P5, P8, and P12 over HTTP
+        env:
+          API_URL: http://127.0.0.1:8001
+          API_KEY: integration-test-key
+        run: bash imgengine-saas/scripts/rust_api_smoke.sh imgengine/photo.jpg
+      - name: Exercise browser-facing P12 Nuxt proxy without an API key
+        env:
+          FRONTEND_URL: http://127.0.0.1:3000
+        run: bash imgengine-saas/scripts/frontend_proxy_smoke.sh imgengine/photo.jpg
+      - name: Print container logs on failure
+        if: failure()
+        run: |
+          if docker container inspect imgengine-web-ci >/dev/null 2>&1; then docker logs imgengine-web-ci; fi
+          if docker container inspect imgengine-rust-api-ci >/dev/null 2>&1; then docker logs imgengine-rust-api-ci; fi
+      - name: Stop integration containers and network
+        if: always()
+        run: |
+          docker rm --force imgengine-web-ci imgengine-rust-api-ci || true
+          docker network rm imgengine-ci || true
+
   docker-linux-verification:
     name: Ubuntu 24.04 Docker verification
     runs-on: ubuntu-latest

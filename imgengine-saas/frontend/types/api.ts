@@ -1,5 +1,6 @@
 export type RenderProblemCode =
   | 'invalid_request'
+  | 'does_not_fit'
   | 'authentication_failed'
   | 'resource_limit'
   | 'unsupported_media_type'
@@ -45,12 +46,29 @@ export interface LayoutRenderSuccess extends RenderSuccess {
   executedCount: number
 }
 
+/** Physical sheet dimensions are always expressed in millimetres at the HTTP boundary. */
+export interface SheetRenderInput {
+  sheetWidthMm: string
+  sheetHeightMm: string
+  photoWidthMm: string
+  photoHeightMm: string
+  dpi?: string
+  copies: string
+  marginMm: string
+  gapXmm: string
+  gapYmm: string
+  outputFormat: 'jpeg'
+}
+
+export type SheetRenderSuccess = LayoutRenderSuccess
+
 export interface RenderOptions {
   signal?: AbortSignal
 }
 
 export type RenderErrorKind =
   | 'invalid_request'
+  | 'does_not_fit'
   | 'authentication_failed'
   | 'request_too_large'
   | 'unsupported_media_type'
