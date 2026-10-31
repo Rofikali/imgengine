@@ -18,7 +18,8 @@ container. This is a side-by-side migration, not a deletion or replacement of
 legacy services.
 
 The Nuxt server proxies the P5, P8, and P12 browser requests to
-`http://rust-api:8000`. The browser never receives the backend API key.
+`http://rust-api:8000` using the private runtime overrides
+`NUXT_IMGENGINE_API_BASE` and `NUXT_IMGENGINE_RENDER_API_KEY`. The browser never receives the backend API key.
 
 ## Container properties
 
