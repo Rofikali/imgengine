@@ -85,7 +85,7 @@ async function renderAnother() {
         <label>Margin (mm) <input v-model="sheet.marginMm" inputmode="decimal" required aria-label="Sheet margin in millimetres"></label>
         <label>Horizontal gap (mm) <input v-model="sheet.gapXmm" inputmode="decimal" required aria-label="Horizontal gap in millimetres"></label>
         <label>Vertical gap (mm) <input v-model="sheet.gapYmm" inputmode="decimal" required aria-label="Vertical gap in millimetres"></label>
-        <p class="help layout-note">Default is A4 at 300 DPI. JPEG output only. If every requested copy cannot fit, the server rejects the request instead of silently reducing the count.</p>
+        <p class="help layout-note">Default is A4 at 300 DPI. DPI range is 1–1200; millimetre values allow up to three decimals. JPEG only. If every requested copy cannot fit, the server rejects the request instead of silently reducing the count.</p>
       </fieldset>
 
       <div v-if="selectedFile" class="selection-actions">
