@@ -1960,6 +1960,48 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn sheet_output_budget_is_server_owned_and_bounded() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let root = root("sheet-output-budget");
+        let config = ApiConfig::new("test-key", root.clone())
+            .expect("valid configuration")
+            .with_sheet_max_output_bytes(1)
+            .expect("valid bounded-output configuration");
+        let (app, root) = app_with_config(config, root);
+        let response = app
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &[
+                    ("file", "image/png", REAL_PNG),
+                    ("sheet_width_mm", "text/plain", b"10"),
+                    ("sheet_height_mm", "text/plain", b"10"),
+                    ("photo_width_mm", "text/plain", b"2"),
+                    ("photo_height_mm", "text/plain", b"2"),
+                    ("dpi", "text/plain", b"100"),
+                    ("copies", "text/plain", b"1"),
+                    ("margin_mm", "text/plain", b"0"),
+                    ("gap_x_mm", "text/plain", b"0"),
+                    ("gap_y_mm", "text/plain", b"0"),
+                    ("output_format", "text/plain", b"jpeg"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let body = String::from_utf8(response_bytes(response).await).expect("problem JSON");
+        assert!(body.contains("resource_limit"));
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
     #[test]
     fn physical_sheet_parser_converts_mm_and_preserves_exact_copy_count() {
         let values = std::collections::BTreeMap::from([
