@@ -70,6 +70,7 @@ jobs:
             --git-revision "${{ github.sha }}" \
             --output artifacts/saas-release-candidate/image-manifest.json \
             --service-image "api=${IMGENGINE_API_IMAGE}" \
+            --service-image "rust-api=${IMGENGINE_RUST_API_IMAGE}" \
             --service-image "worker=${IMGENGINE_WORKER_IMAGE}" \
             --service-image "cleanup=${IMGENGINE_WORKER_IMAGE}" \
             --service-image "web=${IMGENGINE_WEB_IMAGE}"
