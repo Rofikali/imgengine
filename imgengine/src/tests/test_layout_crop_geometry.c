@@ -110,7 +110,6 @@ static int expect_invalid_normalized_crop(const char *name, uint32_t sw, uint32_
 
 static int test_normalized_crop(void) {
     int passed = 1;
-    passed &= test_normalized_crop();
     const uint32_t s = IMG_LAYOUT_NORMALIZED_CROP_SCALE;
     passed &= expect_normalized_crop("center square", 400, 200, 1, 1,
                                      (img_layout_normalized_crop_t){s / 4, 0, s / 2, s},
@@ -135,6 +134,8 @@ static int test_normalized_crop(void) {
 
 int main(void) {
     int passed = 1;
+
+    passed &= test_normalized_crop();
 
     /* Same-aspect and square sources retain every source pixel. */
     passed &= expect_crop("equal aspect", 400, 200, 2, 1, (img_layout_crop_rect_t){0, 0, 400, 200});

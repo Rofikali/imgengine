@@ -162,3 +162,17 @@ P13 should reduce photo-agent rework: users can position the face/subject themse
 - support complaints about face/head positioning or print framing.
 
 Do not add paid crop features or pricing complexity until the workflow is validated with real users.
+
+
+## ABI 2.3 implementation slice
+
+The first crop-aware public operation is additive:
+
+- `imgengine_sheet_request_v2_t` and `imgengine_sheet_render_v2_bounded` are the ABI 2.3 contract.
+- ABI 2.2's `imgengine_sheet_request_v1_t` and `imgengine_sheet_render_v1_bounded` remain unchanged and continue to mean centered-fill.
+- ABI 2.3 carries one normalized rectangle for the source image, applied to every placement. C validates it against the decoded source and each placement's target aspect ratio.
+- The server-owned output byte budget remains a separate function argument; it is not part of the request.
+- The native renderer uses the already-decoded source buffer and a validated borrowed crop view, then resizes to each exact placement size.
+- The public consumer test freezes the ABI 2.2 and ABI 2.3 struct sizes/offsets and exercises successful crop rendering and invalid crop rejection.
+
+The browser/Rust transport adapter is not yet wired to ABI 2.3. That is a later milestone after this native boundary passes CI and review.

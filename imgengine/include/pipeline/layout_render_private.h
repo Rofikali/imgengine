@@ -6,6 +6,7 @@
 
 #include "core/buffer.h"
 #include "core/result.h"
+#include "pipeline/layout_crop_geometry.h"
 
 typedef struct img_engine img_engine_t;
 typedef struct img_ctx img_ctx_t;
@@ -13,6 +14,7 @@ typedef struct img_ctx img_ctx_t;
 #define IMG_LAYOUT_RENDER_V1_PRIVATE_VERSION 1u
 #define IMG_LAYOUT_RENDER_CROP_FIT 0u
 #define IMG_LAYOUT_RENDER_CROP_CENTERED_FILL 1u
+#define IMG_LAYOUT_RENDER_CROP_USER_RECTANGLE 2u
 #define IMG_LAYOUT_RENDER_V1_MAX_CANVAS_PIXELS 10000000u
 
 typedef struct {
@@ -42,9 +44,10 @@ typedef struct {
     const img_layout_render_rect_t *placements;
     uint32_t placement_count;
     uint32_t expected_count;
-    size_t max_output_bytes;    /* zero preserves existing unbounded behavior */
-    uint32_t crop_mode;         /* zero is the frozen FIT behavior */
-    uint32_t max_canvas_pixels; /* zero preserves the existing 4 MP limit */
+    size_t max_output_bytes;                      /* zero preserves existing unbounded behavior */
+    uint32_t crop_mode;                           /* zero is the frozen FIT behavior */
+    img_layout_normalized_crop_t normalized_crop; /* used only for USER_RECTANGLE */
+    uint32_t max_canvas_pixels;                   /* zero preserves the existing 4 MP limit */
     img_layout_render_v1_canvas_observer_t canvas_observer;
     void *canvas_observer_context;
 } img_layout_render_v1_request_t;
