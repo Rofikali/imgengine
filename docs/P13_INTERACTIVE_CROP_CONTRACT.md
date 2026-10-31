@@ -53,7 +53,24 @@ The request must not carry browser-provided source pixel dimensions, stride, poi
 - Resize the validated crop to the exact target dimensions without distortion.
 - Use the same crop for each placement in one sheet request; all placements must have compatible aspect ratios.
 
-**Decision gate:** Before implementation, review whether normalized rectangle coordinates or a normalized focal-point + zoom representation gives the cleaner ABI. The chosen representation must be deterministic across browser, Rust and C, and must not require trusting client source dimensions.
+### Normative geometry contract (selected)
+
+**Representation: normalized crop rectangle in source-image coordinates**, using unsigned integer fixed-point values with a constant scale of 1,000,000. This is selected over focal-point + zoom because it directly represents the visible crop, is easy to serialize, and avoids divergent browser/C interpretations of zoom semantics.
+
+Fields are `x`, `y`, `width`, and `height`; each is an integer in [0, 1,000,000], and extents must be non-zero. The rectangle is half-open: [x, x + width) × [y, y + height). Require x + width <= scale and y + height <= scale with checked addition. The scale is a protocol constant, not a caller-controlled field.
+
+**Pixel conversion is deterministic:**
+1. Decode the source once; use the decoded, orientation-corrected width and height as authoritative.
+2. Convert left/top edges with floor: `floor(coord * source_dimension / scale)`.
+3. Convert right/bottom edges with ceil: `ceil((coord + extent) * source_dimension / scale)`, using checked 64-bit integer arithmetic.
+4. Clamp only right/bottom rounding to the source dimension. Reject if the resulting pixel rectangle is empty or outside the source.
+5. Validate the resulting pixel rectangle against the target aspect ratio using an integer cross-product. Permit only the documented one-source-pixel rounding envelope; reject larger mismatch. The implementation must publish the exact inequality and reference vectors in the native header/tests before ABI freeze.
+6. Resize the selected pixels to the exact target dimensions with no stretching.
+
+This edge-based conversion preserves the user's selected region instead of shrinking it through truncation. The browser crop frame must use the exact target aspect ratio; the server remains authoritative. No floating-point value crosses the HTTP/FFI boundary.
+
+The same rectangle applies to every placement in a sheet request; placements with incompatible aspect ratios are rejected. Existing centered-fill remains the default when no explicit crop is supplied.
+
 
 ## 4. HTTP contract
 
