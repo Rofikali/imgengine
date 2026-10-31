@@ -1,4 +1,5 @@
 #include "pipeline/layout_render_private.h"
+#include "pipeline/layout_crop_geometry.h"
 
 #include "imgengine/api/v2/layout.h"
 #include "api/api_internal.h"
@@ -61,11 +62,16 @@ img_layout_render_validate_request(const img_layout_render_v1_request_t *request
 
     /* Defense in depth: the private renderer must not rely on its HTTP caller
      * to bound canvas memory or the quadratic rectangle-overlap validation. */
-    if (request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
+    const uint32_t canvas_pixel_limit = request->max_canvas_pixels
+                                            ? request->max_canvas_pixels
+                                            : IMGENGINE_LAYOUT_V2_MAX_CANVAS_PIXELS;
+    if (request->crop_mode > IMG_LAYOUT_RENDER_CROP_CENTERED_FILL ||
+        canvas_pixel_limit > IMG_LAYOUT_RENDER_V1_MAX_CANVAS_PIXELS ||
+        request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         request->canvas_height > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
         (uint64_t)request->canvas_width * (uint64_t)request->canvas_height >
-            IMGENGINE_LAYOUT_V2_MAX_CANVAS_PIXELS)
+            canvas_pixel_limit)
         return IMG_ERR_SECURITY;
 
     size_t row_bytes = 0;
@@ -210,17 +216,38 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
         uint32_t fitted_height = 0;
         uint32_t destination_x = 0;
         uint32_t destination_y = 0;
+        img_buffer_t cropped_view = {0};
         img_buffer_t scaled = {0};
+        const img_buffer_t *resize_source = &state->source;
 
-        result = img_layout_render_fit_geometry(&state->source, rect, &fitted_width, &fitted_height,
-                                                &destination_x, &destination_y);
-        if (result != IMG_SUCCESS)
-            goto cleanup;
+        if (state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) {
+            img_layout_crop_rect_t crop = {0};
+            if (!img_layout_centered_crop(state->source.width, state->source.height,
+                                          rect->width, rect->height, &crop) ||
+                !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
+                result = IMG_ERR_SECURITY;
+                goto cleanup;
+            }
+            resize_source = &cropped_view;
+            fitted_width = rect->width;
+            fitted_height = rect->height;
+            destination_x = rect->x;
+            destination_y = rect->y;
+        } else {
+            result = img_layout_render_fit_geometry(&state->source, rect, &fitted_width,
+                                                    &fitted_height, &destination_x,
+                                                    &destination_y);
+            if (result != IMG_SUCCESS)
+                goto cleanup;
+        }
 
-        result = img_layout_resize_bilinear(ctx, &state->source, &scaled, fitted_width,
+        result = img_layout_resize_bilinear(ctx, resize_source, &scaled, fitted_width,
                                             fitted_height, ctx->local_pool);
-        if (result != IMG_SUCCESS)
+        if (result != IMG_SUCCESS) {
+            if (scaled.data)
+                img_runtime_release_raw_buffer(state->engine, &scaled);
             goto cleanup;
+        }
 
         img_blit_avx2(&canvas.buf, &scaled, destination_x, destination_y);
         img_runtime_release_raw_buffer(state->engine, &scaled);
