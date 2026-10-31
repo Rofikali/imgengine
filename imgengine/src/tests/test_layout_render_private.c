@@ -240,8 +240,8 @@ static int reference_render_case(img_engine_t *engine, const char *name,
 
 static int test_scalar_rgb_oracle(img_engine_t *engine) {
     static const uint8_t wide_pixels[] = {
-        10,  20,  30,  40,  50,  60,  70,  80,  90,  100, 110, 120,
-        130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
+        10,  20,  30,  40,  50,  60,  70,  80,  90,  100, 110, 120, 130, 140, 150,
+        160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 251, 252, 253, 254, 255,
     };
     static const uint8_t tall_pixels[] = {
         9,   19,  29,  39,  49,  59,  69,  79,  89,  99,  109, 119,
@@ -300,7 +300,7 @@ static int test_centered_fill_crop(img_engine_t *engine) {
                                         .count = 1};
     int passed = 0;
 
-    if (!reference || !scaled_reference || !make_jpeg_rgb(pixels, 4, 2, &jpeg, &jpeg_size))
+    if (!reference || !scaled_reference || !make_jpeg_rgb(pixels, 5, 2, &jpeg, &jpeg_size))
         goto done;
 
     for (size_t index = 0; index < observation.expected_size; index += 3u) {
@@ -316,7 +316,7 @@ static int test_centered_fill_crop(img_engine_t *engine) {
     if (!img_layout_centered_crop(source.width, source.height, placement.width, placement.height,
                                   &crop) ||
         !img_layout_crop_borrowed_view(&source, &crop, &cropped) || cropped.owner_pool != NULL ||
-        cropped.stride != source.stride || cropped.width != 2 || cropped.height != 2)
+        cropped.stride != source.stride || crop.x != 1 || cropped.width != 2 || cropped.height != 2)
         goto done;
 
     reference_resize_rgb(&cropped, scaled_reference, placement.width, placement.height);
