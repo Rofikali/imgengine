@@ -2,7 +2,7 @@
 
 ## Status
 
-**Design decision / implementation gate.** This document freezes the proposed public C boundary for P12's physical-sheet renderer. It does not claim that the ABI, native renderer, Rust wrapper, or HTTP route has been implemented.
+**Implemented in draft PR #16; release gate remains open.** The public ABI 2.2 request, bounded C entry point, centered-fill native renderer, safe Rust FFI, bounded supervisor operation, and Axum sheet route are implemented on `feat/p12-native-abi22`. ABI export, public-consumer, A4 render, Rust integration, sanitizer, fuzz, and Ubuntu 24.04 Docker checks are required before merge. Peak-RSS/concurrency measurement and frontend integration remain release gates.
 
 This is an additive ABI 2.2 capability. Existing ABI v1, layout ABI 2.0, and bounded-layout ABI 2.1 remain unchanged.
 
@@ -56,7 +56,7 @@ The name deliberately distinguishes this new crop-to-fill sheet operation from t
 
 ## 3. Request data contract
 
-The proposed public declaration is:
+The implemented public declaration is:
 
 ```c
 #define IMGENGINE_SHEET_RENDER_V1_VERSION 1u
@@ -164,7 +164,7 @@ Status mapping should match the established ABI status model: invalid arguments/
 
 ### P12 sheet resource envelope
 
-The P12 sheet operation uses a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS; the native A4 integration test must measure/verify bounded execution memory before release.
+The P12 sheet operation uses a separate 10,000,000-pixel canvas ceiling, with each dimension still limited to 4096 px and placements still limited to 64. This is the smallest round-number policy that admits A4 at 300 DPI: 210 mm × 297 mm resolves by half-up rounding to 2480 × 3508 = 8,699,840 pixels. The existing P8 FIT ABI and `imgengine_layout_render_v2[_bounded]` keep their 4,000,000-pixel limit unchanged. The 10 MP ceiling is a geometry admission limit, not proof of peak RSS. The native and HTTP A4 integration tests exercise the 2480 × 3508 path; a separate measured peak-RSS/concurrency gate is still required before production release.
 
 ## 7. Crop semantics at the C boundary
 
