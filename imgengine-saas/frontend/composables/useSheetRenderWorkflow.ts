@@ -18,8 +18,9 @@ function validateFile(file: File | null): SheetWorkflowFailure | null {
 }
 
 /** Ephemeral UI state for the server-planned P12 physical-sheet workflow. */
-export function useSheetRenderWorkflow() {
-  const { renderSheet } = useImgengineApi()
+export function createSheetRenderWorkflow(
+  renderSheet: (file: File, input: SheetRenderInput) => Promise<SheetRenderSuccess>,
+) {
   const selectedFile = ref<File | null>(null)
   const status = ref<SheetWorkflowStatus>('idle')
   const failure = ref<SheetWorkflowFailure | null>(null)
@@ -88,6 +89,13 @@ export function useSheetRenderWorkflow() {
     status.value = 'idle'
   }
 
-  onBeforeUnmount(reset)
   return { selectedFile, status, failure, result, previewUrl, isSubmitting, sheet, select, submit, reset }
+}
+
+/** Component-scoped wrapper that revokes its preview URL on unmount. */
+export function useSheetRenderWorkflow() {
+  const { renderSheet } = useImgengineApi()
+  const workflow = createSheetRenderWorkflow(renderSheet)
+  onBeforeUnmount(workflow.reset)
+  return workflow
 }
