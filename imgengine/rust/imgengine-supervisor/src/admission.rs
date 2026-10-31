@@ -1,5 +1,5 @@
 use crate::{
-    LayoutPlan, ProcessReport, ResultClass, Supervisor, SupervisorError, SupervisorOptions,
+    LayoutPlan, ProcessReport, ResultClass, SheetPlan, Supervisor, SupervisorError, SupervisorOptions,
 };
 use std::fmt;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -18,6 +18,7 @@ struct QueuedRequest {
 enum QueuedOperation {
     EncodeJpeg,
     Layout(LayoutPlan),
+    Sheet(SheetPlan),
 }
 
 #[derive(Default)]
@@ -324,6 +325,29 @@ impl AdmissionController {
         self.submit_queued(request, response)
     }
 
+    /// Admits one typed P12 sheet request through the same bounded worker queue.
+    pub fn submit_sheet(
+        &self,
+        input: Vec<u8>,
+        plan: SheetPlan,
+        deadline: Option<Duration>,
+    ) -> Result<AdmissionRequest, AdmissionError> {
+        if input.len() > self.max_input_bytes {
+            self.metrics
+                .rejected_resource_limit
+                .fetch_add(1, Ordering::Relaxed);
+            return Err(AdmissionError::ResourceLimit);
+        }
+        let (response_sender, response) = mpsc::sync_channel(1);
+        let request = QueuedRequest {
+            input,
+            deadline,
+            operation: QueuedOperation::Sheet(plan),
+            response: response_sender,
+        };
+        self.submit_queued(request, response)
+    }
+
     fn submit_queued(
         &self,
         request: QueuedRequest,
@@ -413,6 +437,9 @@ fn worker_loop(
             QueuedOperation::EncodeJpeg => supervisor.process(&request.input, request.deadline),
             QueuedOperation::Layout(plan) => {
                 supervisor.process_layout(&request.input, &plan, request.deadline)
+            }
+            QueuedOperation::Sheet(plan) => {
+                supervisor.process_sheet(&request.input, &plan, request.deadline)
             }
         };
         metrics.record_completion(&result);
