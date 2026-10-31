@@ -145,8 +145,8 @@ services:
       rust-api:
         condition: service_healthy
     environment:
-      IMGENGINE_API_BASE: http://rust-api:8000
-      IMGENGINE_RENDER_API_KEY: ${WEB_API_KEY:?set WEB_API_KEY to one configured API key}
+      NUXT_IMGENGINE_API_BASE: http://rust-api:8000
+      NUXT_IMGENGINE_RENDER_API_KEY: ${WEB_API_KEY:?set WEB_API_KEY to one configured API key}
 
   redis:
     image: redis:7
