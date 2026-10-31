@@ -27,7 +27,7 @@ check_jpeg() {
 from pathlib import Path
 import sys
 
-headers_path, output_path, width, height, count = sys.argv[1:]
+headers_path, output_path, expected_width, expected_height, count = sys.argv[1:]
 headers = {}
 for line in Path(headers_path).read_text().splitlines():
     if ":" in line:
@@ -38,9 +38,9 @@ data = Path(output_path).read_bytes()
 assert data[:2] == b"\xff\xd8" and data[-2:] == b"\xff\xd9", "invalid JPEG framing"
 assert headers.get("content-type") == "image/jpeg", headers
 assert headers.get("x-request-id"), "missing request ID"
-if width != "0":
-    assert headers.get("x-imgengine-canvas-width") == width, headers
-    assert headers.get("x-imgengine-canvas-height") == height, headers
+if expected_width != "0":
+    assert headers.get("x-imgengine-canvas-width") == expected_width, headers
+    assert headers.get("x-imgengine-canvas-height") == expected_height, headers
     assert headers.get("x-imgengine-expected-count") == count, headers
     assert headers.get("x-imgengine-planned-count") == count, headers
     assert headers.get("x-imgengine-executed-count") == count, headers
@@ -66,12 +66,12 @@ while offset < len(data):
     if length < 2 or offset + length > len(data):
         break
     if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
-        height = int.from_bytes(data[offset + 3:offset + 5], "big")
-        width = int.from_bytes(data[offset + 5:offset + 7], "big")
-        dimensions = (width, height)
+        actual_height = int.from_bytes(data[offset + 3:offset + 5], "big")
+        actual_width = int.from_bytes(data[offset + 5:offset + 7], "big")
+        dimensions = (actual_width, actual_height)
         break
     offset += length
-assert dimensions == (int(width), int(height)) if width != "0" else dimensions is not None, dimensions
+assert dimensions == (int(expected_width), int(expected_height)) if expected_width != "0" else dimensions is not None, dimensions
 PY
 }
 
