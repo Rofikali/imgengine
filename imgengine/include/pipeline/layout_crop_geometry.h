@@ -9,6 +9,15 @@
 extern "C" {
 #endif
 
+#define IMG_LAYOUT_NORMALIZED_CROP_SCALE UINT32_C(1000000)
+
+typedef struct img_layout_normalized_crop {
+    uint32_t x;
+    uint32_t y;
+    uint32_t width;
+    uint32_t height;
+} img_layout_normalized_crop_t;
+
 typedef struct img_layout_crop_rect {
     uint32_t x;
     uint32_t y;
@@ -27,6 +36,19 @@ typedef struct img_layout_crop_rect {
  */
 int img_layout_centered_crop(uint32_t source_width, uint32_t source_height, uint32_t target_width,
                              uint32_t target_height, img_layout_crop_rect_t *output);
+
+/*
+ * Converts a normalized half-open crop rectangle to decoded source pixels.
+ * Left/top edges use floor; right/bottom edges use ceil. Coordinates use
+ * IMG_LAYOUT_NORMALIZED_CROP_SCALE units per full source dimension.
+ * The resulting crop must match target aspect ratio within a one-source-pixel
+ * rounding envelope (|w*th - h*tw| <= target_width + target_height).
+ * Returns 1 on success; on failure a non-null output is cleared.
+ */
+int img_layout_normalized_crop_to_pixels(uint32_t source_width, uint32_t source_height,
+                                         uint32_t target_width, uint32_t target_height,
+                                         const img_layout_normalized_crop_t *normalized,
+                                         img_layout_crop_rect_t *output);
 
 /*
  * Builds a read-only-by-contract, non-owning view over a validated crop.
