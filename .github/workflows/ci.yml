@@ -188,6 +188,9 @@ jobs:
       - name: Install locked frontend dependencies
         working-directory: imgengine-saas/frontend
         run: npm ci
+      - name: Generate Nuxt TypeScript configuration
+        working-directory: imgengine-saas/frontend
+        run: npx nuxi prepare
       - name: Run frontend unit tests
         working-directory: imgengine-saas/frontend
         run: npm test
@@ -227,7 +230,7 @@ jobs:
         run: bash imgengine-saas/scripts/rust_api_smoke.sh imgengine/photo.jpg
       - name: Print Rust API container logs on failure
         if: failure()
-        run: docker logs imgengine-rust-api-ci
+        run: if docker container inspect imgengine-rust-api-ci >/dev/null 2>&1; then docker logs imgengine-rust-api-ci; fi
       - name: Stop Rust API container
         if: always()
         run: docker rm --force imgengine-rust-api-ci || true
