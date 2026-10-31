@@ -42,6 +42,35 @@ services:
       timeout: 5s
       retries: 5
 
+  rust-api:
+    image: ${IMGENGINE_RUST_API_IMAGE:-imgengine/rust-api:dev}
+    build:
+      context: ../..
+      dockerfile: imgengine/rust/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      IMGENGINE_API_BIND: 0.0.0.0:8000
+      IMGENGINE_API_KEYS: ${API_KEYS:?set API_KEYS in your environment}
+      IMGENGINE_WORKSPACE_ROOT: /tmp/imgengine-workspaces
+      IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES: ${IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES:-16777216}
+      IMGENGINE_SHEET_MAX_OUTPUT_BYTES: ${IMGENGINE_SHEET_MAX_OUTPUT_BYTES:-67108864}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8000/readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
   worker:
     image: ${IMGENGINE_WORKER_IMAGE:-imgengine/worker:dev}
     build:
@@ -111,10 +140,13 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - api
+      api:
+        condition: service_started
+      rust-api:
+        condition: service_healthy
     environment:
-      NUXT_API_BASE: http://api:8000
-      NUXT_API_KEY: ${WEB_API_KEY:?set WEB_API_KEY to one configured API key}
+      IMGENGINE_API_BASE: http://rust-api:8000
+      IMGENGINE_RENDER_API_KEY: ${WEB_API_KEY:?set WEB_API_KEY to one configured API key}
 
   redis:
     image: redis:7
