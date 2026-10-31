@@ -6,6 +6,7 @@ const { selectedFile, status, failure, result, previewUrl, isSubmitting, layout,
 const fileInput = ref<HTMLInputElement | null>(null)
 const dropZone = ref<HTMLLabelElement | null>(null)
 const dragActive = ref(false)
+const activeMode = ref<'layout' | 'sheet'>('layout')
 const formatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 })
 const selectedFileSize = computed(() => selectedFile.value
   ? `${formatter.format(selectedFile.value.size / 1024)} KiB`
@@ -35,8 +36,13 @@ async function renderAnother() {
   <main class="page-shell">
     <section class="render-card" aria-labelledby="page-title">
       <p class="eyebrow">IMGENGINE</p>
-      <h1 id="page-title">Create a printable image layout.</h1>
-      <p class="intro">Choose a JPEG or PNG, define a FIT-only grid, then download the completed JPEG. Processing is synchronous and ephemeral.</p>
+      <h1 id="page-title">Create printable photo layouts.</h1>
+      <p class="intro">Choose a FIT grid or a physical print sheet. Processing is synchronous, server-validated, and ephemeral.</p>
+      <nav class="mode-switch" aria-label="Choose a rendering mode">
+        <button class="mode-tab" :aria-pressed="activeMode === 'layout'" type="button" @click="activeMode = 'layout'">FIT layout</button>
+        <button class="mode-tab" :aria-pressed="activeMode === 'sheet'" type="button" @click="activeMode = 'sheet'">Physical sheet</button>
+      </nav>
+      <div v-if="activeMode === 'layout'">
 
       <form v-if="status !== 'success'" class="render-form" @submit.prevent="submit">
         <label
@@ -102,6 +108,8 @@ async function renderAnother() {
           <button class="secondary" type="button" @click="renderAnother">Render another image</button>
         </div>
       </section>
+      </div>
+      <SheetRenderPanel v-else />
     </section>
   </main>
 </template>
@@ -118,6 +126,9 @@ button:focus-visible, a:focus-visible, .drop-zone:focus-visible { outline: 3px s
 .eyebrow { margin: 0 0 .6rem; color: #89b6ff; font-size: .75rem; font-weight: 800; letter-spacing: .14em; }
 h1, h2 { margin: 0; line-height: 1.1; } h1 { font-size: clamp(2rem, 6vw, 3.8rem); } h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
 .intro, .help, .drop-zone span { color: #bdcae0; line-height: 1.55; }.intro { max-width: 40rem; margin: 1rem 0 0; }
+.mode-switch { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+.mode-tab { min-height: 2.5rem; padding: .5rem .9rem; border: 1px solid #617da7; background: transparent; color: #edf4ff; }
+.mode-tab[aria-pressed="true"] { border-color: #8bb8ff; background: #18345a; }
 .render-form { display: grid; gap: 1rem; margin-top: 2rem; }
 .layout-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0; padding: 1rem; border: 1px solid #2f4568; border-radius: .85rem; }
 .layout-fields legend { padding: 0 .35rem; font-weight: 700; }.layout-fields label { display: grid; gap: .35rem; color: #bdcae0; font-size: .9rem; }.layout-fields input, .layout-fields select { min-width: 0; padding: .55rem; border: 1px solid #617da7; border-radius: .45rem; background: #07101d; color: #eef4ff; }.layout-note { grid-column: 1 / -1; margin: 0; }
