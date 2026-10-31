@@ -60,6 +60,9 @@ pub struct SheetRequestV1 {
     pub expected_count: u32,
 }
 
+#[cfg(target_pointer_width = "64")]
+const _: [(); 72] = [(); std::mem::size_of::<SheetRequestV1>()];
+
 #[repr(C)]
 pub struct LayoutOutputV2 {
     pub data: *mut u8,
