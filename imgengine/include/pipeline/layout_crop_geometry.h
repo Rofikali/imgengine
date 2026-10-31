@@ -23,9 +23,8 @@ typedef struct img_layout_crop_rect {
  * result that cannot retain at least one source pixel. On every failure a
  * non-null output is reset to all zeroes.
  */
-int img_layout_centered_crop(uint32_t source_width, uint32_t source_height,
-                             uint32_t target_width, uint32_t target_height,
-                             img_layout_crop_rect_t *output);
+int img_layout_centered_crop(uint32_t source_width, uint32_t source_height, uint32_t target_width,
+                             uint32_t target_height, img_layout_crop_rect_t *output);
 
 #ifdef __cplusplus
 }
