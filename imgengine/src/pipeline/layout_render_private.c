@@ -65,7 +65,7 @@ img_layout_render_validate_request(const img_layout_render_v1_request_t *request
     const uint32_t canvas_pixel_limit = request->max_canvas_pixels
                                             ? request->max_canvas_pixels
                                             : IMGENGINE_LAYOUT_V2_MAX_CANVAS_PIXELS;
-    if (request->crop_mode > IMG_LAYOUT_RENDER_CROP_CENTERED_FILL ||
+    if (request->crop_mode > IMG_LAYOUT_RENDER_CROP_USER_RECTANGLE ||
         canvas_pixel_limit > IMG_LAYOUT_RENDER_V1_MAX_CANVAS_PIXELS ||
         request->placement_count > IMGENGINE_LAYOUT_V2_MAX_PLACEMENTS ||
         request->canvas_width > IMGENGINE_LAYOUT_V2_MAX_DIMENSION ||
@@ -219,11 +219,17 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
         img_buffer_t scaled = {0};
         const img_buffer_t *resize_source = &state->source;
 
-        if (state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL) {
+        if (state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL ||
+            state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_USER_RECTANGLE) {
             img_layout_crop_rect_t crop = {0};
-            if (!img_layout_centered_crop(state->source.width, state->source.height, rect->width,
-                                          rect->height, &crop) ||
-                !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
+            const int crop_valid =
+                state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL
+                    ? img_layout_centered_crop(state->source.width, state->source.height,
+                                              rect->width, rect->height, &crop)
+                    : img_layout_normalized_crop_to_pixels(
+                          state->source.width, state->source.height, rect->width, rect->height,
+                          &state->request.normalized_crop, &crop);
+            if (!crop_valid || !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
                 result = IMG_ERR_SECURITY;
                 goto cleanup;
             }
