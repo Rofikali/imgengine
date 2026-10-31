@@ -62,7 +62,6 @@ int img_layout_centered_crop(uint32_t source_width, uint32_t source_height, uint
     return 1;
 }
 
-
 static uint64_t img_layout_crop_ceil_div_u64(uint64_t numerator, uint64_t denominator) {
     return numerator / denominator + (numerator % denominator != 0u);
 }
@@ -90,10 +89,8 @@ int img_layout_normalized_crop_to_pixels(uint32_t source_width, uint32_t source_
     /* All products are bounded by UINT32_MAX * 1,000,000 and fit uint64_t. */
     const uint64_t left_px = ((uint64_t)normalized->x * source_width) / scale;
     const uint64_t top_px = ((uint64_t)normalized->y * source_height) / scale;
-    uint64_t right_px =
-        img_layout_crop_ceil_div_u64(right * source_width, scale);
-    uint64_t bottom_px =
-        img_layout_crop_ceil_div_u64(bottom * source_height, scale);
+    uint64_t right_px = img_layout_crop_ceil_div_u64(right * source_width, scale);
+    uint64_t bottom_px = img_layout_crop_ceil_div_u64(bottom * source_height, scale);
 
     if (right_px > source_width)
         right_px = source_width; /* only the normalized right-edge rounding */
