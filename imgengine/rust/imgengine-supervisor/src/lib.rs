@@ -22,7 +22,7 @@ pub use request_lifecycle::{
 };
 
 use imgengine::{
-    Engine, EngineOptions, Error as EngineError, LayoutOutput, LayoutRect, LayoutRequest,
+    Engine, EngineOptions, Error as EngineError, LayoutOutput, LayoutRect, LayoutRequest, SheetRequest,
 };
 use std::fmt;
 use std::fs;
@@ -108,6 +108,7 @@ pub struct SupervisorOptions {
     stale_after: Duration,
     engine_options: EngineOptions,
     layout_max_output_bytes: usize,
+    sheet_max_output_bytes: usize,
 }
 
 impl SupervisorOptions {
@@ -118,6 +119,7 @@ impl SupervisorOptions {
             stale_after: DEFAULT_STALE_AFTER,
             engine_options: EngineOptions::default(),
             layout_max_output_bytes: 16 * 1024 * 1024,
+            sheet_max_output_bytes: 64 * 1024 * 1024,
         }
     }
 
@@ -137,6 +139,13 @@ impl SupervisorOptions {
     /// A zero value is rejected by the native bounded API before processing.
     pub fn layout_max_output_bytes(mut self, layout_max_output_bytes: usize) -> Self {
         self.layout_max_output_bytes = layout_max_output_bytes;
+        self
+    }
+
+    /// Sets the server-owned encoded-JPEG destination budget for P12 sheets.
+    /// This is independent of the frozen P8 FIT-layout budget.
+    pub fn sheet_max_output_bytes(mut self, sheet_max_output_bytes: usize) -> Self {
+        self.sheet_max_output_bytes = sheet_max_output_bytes;
         self
     }
 }
@@ -173,6 +182,48 @@ pub struct LayoutPlan {
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub placements: Vec<LayoutRect>,
+}
+
+/// Server-generated P12 physical-sheet plan. Its dimensions and placements
+/// are resolved pixels; native C independently validates every rectangle.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SheetPlan {
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub placements: Vec<LayoutRect>,
+}
+
+impl From<&MvpLayoutPlan> for SheetPlan {
+    fn from(plan: &MvpLayoutPlan) -> Self {
+        Self {
+            canvas_width: plan.sheet_width,
+            canvas_height: plan.sheet_height,
+            placements: plan
+                .placements
+                .iter()
+                .map(|placement| LayoutRect {
+                    x: placement.x,
+                    y: placement.y,
+                    width: placement.width,
+                    height: placement.height,
+                })
+                .collect(),
+        }
+    }
+}
+
+impl SheetPlan {
+    fn native_request(&self) -> Result<SheetRequest, SupervisorError> {
+        let expected_count = u32::try_from(self.placements.len())
+            .map_err(|_| SupervisorError::Engine(EngineError::ResourceLimit))?;
+        Ok(SheetRequest {
+            canvas_width: self.canvas_width,
+            canvas_height: self.canvas_height,
+            background: [255, 255, 255],
+            placements: self.placements.clone(),
+            expected_count,
+        })
+    }
 }
 
 impl LayoutPlan {
@@ -279,6 +330,7 @@ pub struct Supervisor {
     engine: Engine,
     workspace_root: WorkspaceRoot,
     layout_max_output_bytes: usize,
+    sheet_max_output_bytes: usize,
 }
 
 impl Supervisor {
@@ -292,6 +344,7 @@ impl Supervisor {
             engine,
             workspace_root,
             layout_max_output_bytes: options.layout_max_output_bytes,
+            sheet_max_output_bytes: options.sheet_max_output_bytes,
         })
     }
 
@@ -357,6 +410,51 @@ impl Supervisor {
         let output = self
             .engine
             .render_layout_jpeg_bounded(input, &request, self.layout_max_output_bytes)
+            .map_err(SupervisorError::Engine);
+        let duration = started.elapsed();
+        let cleanup = workspace.close();
+        if let Err(error) = cleanup {
+            return Err(SupervisorError::Workspace(error));
+        }
+        if matches!(deadline, Some(limit) if duration > limit) {
+            return Err(SupervisorError::DeadlineExceeded);
+        }
+        let output: LayoutOutput = output?;
+        Ok(ProcessReport {
+            input_size_bucket: size_bucket(input.len()),
+            output_size_bucket: size_bucket(output.jpeg.len()),
+            output: output.jpeg,
+            duration,
+            layout: Some(LayoutExecution {
+                canvas_width: output.canvas_width,
+                canvas_height: output.canvas_height,
+                expected_count: output.expected_count,
+                planned_count: output.planned_count,
+                executed_count: output.executed_count,
+            }),
+        })
+    }
+
+    /// Runs the additive ABI 2.2 centered-fill sheet operation in an isolated
+    /// request workspace. The existing FIT-only path remains separate.
+    pub fn process_sheet(
+        &mut self,
+        input: &[u8],
+        plan: &SheetPlan,
+        deadline: Option<Duration>,
+    ) -> Result<ProcessReport, SupervisorError> {
+        if matches!(deadline, Some(limit) if limit.is_zero()) {
+            return Err(SupervisorError::DeadlineExceeded);
+        }
+        let started = Instant::now();
+        let mut workspace = self
+            .workspace_root
+            .create_request_workspace()
+            .map_err(SupervisorError::Workspace)?;
+        let request = plan.native_request()?;
+        let output = self
+            .engine
+            .render_sheet_jpeg_bounded(input, &request, self.sheet_max_output_bytes)
             .map_err(SupervisorError::Engine);
         let duration = started.elapsed();
         let cleanup = workspace.close();
