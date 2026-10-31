@@ -151,13 +151,14 @@ The existing 16 MiB bounded-output default is a provisional encoded-destination 
 
 1. Review and approve this contract without changing the old route.
 2. Audit the frontend's current request schema and preview implementation.
-3. Complete the source-dimension handoff decision and a dedicated ABI 2.2 design.
-4. Implement the pure Rust API adapter and tests.
-5. Implement the additive C crop capability and independent boundary tests.
-6. Integrate the new route through the existing supervisor and lifecycle.
-7. Integrate the frontend only after request and preview contracts are stable.
-8. Run the existing Docker Ubuntu 24.04 verification gate plus new integration, sanitizer, fuzz, and ABI tests.
-9. Review the resulting PR and CI before merge. A green CI run is evidence for the tested revision, not a production-readiness claim.
+3. Source-dimension handoff is decided: C reuses the single decoded source and computes crop geometry internally.
+4. Freeze the additive ABI 2.2 request, symbol, output ownership, and validation contract in [P12.2 ABI design](P12_2_ABI_2_2_CROP_DESIGN.md).
+5. Implement the pure Rust API adapter and tests.
+6. Implement the additive C crop capability and independent boundary tests.
+7. Integrate the new route through the existing supervisor and lifecycle.
+8. Integrate the frontend only after request and preview contracts are stable.
+9. Run the existing Docker Ubuntu 24.04 verification gate plus new integration, sanitizer, fuzz, and ABI tests.
+10. Review the resulting PR and CI before merge. A green CI run is evidence for the tested revision, not a production-readiness claim.
 
 ## Explicit non-goals
 
