@@ -1,6 +1,6 @@
 use crate::{
     size_bucket, AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionRequest,
-    LayoutExecution, LayoutPlan, ProcessReport, ResultClass,
+    LayoutExecution, LayoutPlan, ProcessReport, ResultClass, SheetPlan,
 };
 use std::fmt;
 use std::fs;
@@ -380,6 +380,38 @@ impl RequestLifecycleService {
         let admission = self
             .admission
             .submit_layout(request.body, plan, self.policy.execution_timeout)
+            .map_err(|error| {
+                self.failure(
+                    request_id.clone(),
+                    RequestState::Rejected,
+                    Some(content_type),
+                    Some(input_size_bucket),
+                    ApplicationError::from_admission(error),
+                )
+            })?;
+        Ok(AdmittedRequest {
+            request_id,
+            content_type,
+            input_size_bucket,
+            admission: Some(admission),
+            metrics: Arc::clone(&self.metrics),
+            response_abandonment_observer: self.response_abandonment_observer.clone(),
+        })
+    }
+
+    /// Validates and transfers an owned image plus a server-generated P12
+    /// physical-sheet plan into the same bounded admission queue.
+    pub fn admit_sheet(
+        &self,
+        request: IncomingRequest,
+        plan: SheetPlan,
+    ) -> Result<AdmittedRequest, ApplicationFailure> {
+        let request_id = self.request_id_or_unavailable()?;
+        let content_type = self.validate(&request, &request_id)?;
+        let input_size_bucket = size_bucket(request.body.len());
+        let admission = self
+            .admission
+            .submit_sheet(request.body, plan, self.policy.execution_timeout)
             .map_err(|error| {
                 self.failure(
                     request_id.clone(),
