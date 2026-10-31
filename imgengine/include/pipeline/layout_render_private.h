@@ -44,8 +44,8 @@ typedef struct {
     const img_layout_render_rect_t *placements;
     uint32_t placement_count;
     uint32_t expected_count;
-    size_t max_output_bytes;    /* zero preserves existing unbounded behavior */
-    uint32_t crop_mode;         /* zero is the frozen FIT behavior */
+    size_t max_output_bytes;                      /* zero preserves existing unbounded behavior */
+    uint32_t crop_mode;                           /* zero is the frozen FIT behavior */
     img_layout_normalized_crop_t normalized_crop; /* used only for USER_RECTANGLE */
     uint32_t max_canvas_pixels; /* zero preserves the existing 4 MP limit */
     img_layout_render_v1_canvas_observer_t canvas_observer;

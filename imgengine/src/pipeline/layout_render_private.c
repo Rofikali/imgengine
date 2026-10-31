@@ -225,11 +225,12 @@ img_result_t img_layout_render_v1_execute(img_layout_render_v1_state_t *state, i
             const int crop_valid =
                 state->request.crop_mode == IMG_LAYOUT_RENDER_CROP_CENTERED_FILL
                     ? img_layout_centered_crop(state->source.width, state->source.height,
-                                              rect->width, rect->height, &crop)
+                                               rect->width, rect->height, &crop)
                     : img_layout_normalized_crop_to_pixels(
                           state->source.width, state->source.height, rect->width, rect->height,
                           &state->request.normalized_crop, &crop);
-            if (!crop_valid || !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
+            if (!crop_valid ||
+                !img_layout_crop_borrowed_view(&state->source, &crop, &cropped_view)) {
                 result = IMG_ERR_SECURITY;
                 goto cleanup;
             }

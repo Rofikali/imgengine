@@ -22,8 +22,7 @@ _Static_assert(offsetof(imgengine_sheet_request_v1_t, placements) == 56,
 _Static_assert(sizeof(imgengine_sheet_request_v1_t) == 72, "sheet request size changed on LP64");
 _Static_assert(offsetof(imgengine_sheet_request_v2_t, crop) == 72,
                "ABI 2.3 crop offset changed on LP64");
-_Static_assert(sizeof(imgengine_sheet_request_v2_t) == 88,
-               "ABI 2.3 request size changed on LP64");
+_Static_assert(sizeof(imgengine_sheet_request_v2_t) == 88, "ABI 2.3 request size changed on LP64");
 
 static const uint8_t k_png[] = {
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48,
@@ -75,7 +74,6 @@ static int valid_sheet_render(imgengine_engine_t *engine) {
     return passed && output_is_empty(&output);
 }
 
-
 static int valid_user_crop_sheet_render(imgengine_engine_t *engine) {
     const imgengine_layout_rect_v2_t placement = {.x = 2, .y = 2, .width = 4, .height = 4};
     const imgengine_sheet_request_v2_t request = {
@@ -102,8 +100,7 @@ static int valid_user_crop_sheet_render(imgengine_engine_t *engine) {
                        output.canvas_width == 8 && output.canvas_height == 8 &&
                        output.executed_count == 1;
     if (!passed)
-        fprintf(stderr, "ABI 2.3 user crop render failed: %s\\n",
-                imgengine_status_message(status));
+        fprintf(stderr, "ABI 2.3 user crop render failed: %s\\n", imgengine_status_message(status));
     imgengine_layout_output_release(&output);
     return passed && output_is_empty(&output);
 }
@@ -226,13 +223,15 @@ int main(void) {
     }
 
     const int passed = valid_sheet_render(engine) && valid_user_crop_sheet_render(engine) &&
-                       invalid_user_crop_is_rejected(engine) && rejected_requests_are_zeroed(engine) &&
+                       invalid_user_crop_is_rejected(engine) &&
+                       rejected_requests_are_zeroed(engine) &&
                        a4_300_dpi_canvas_is_admitted(engine);
     imgengine_engine_destroy(engine);
     if (!passed) {
         fprintf(stderr, "public sheet ABI consumer test failed\n");
         return 1;
     }
-    printf("[abi-sheet] ABI 2.2/2.3 validation, crop, bounded ownership, and A4 300-DPI render passed\n");
+    printf("[abi-sheet] ABI 2.2/2.3 validation, crop, bounded ownership, and A4 300-DPI render "
+           "passed\n");
     return 0;
 }

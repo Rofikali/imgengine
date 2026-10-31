@@ -81,11 +81,11 @@ static imgengine_status_t imgengine_sheet_render_common(
         .expected_count = request->expected_count,
         .max_output_bytes = max_output_bytes,
         .crop_mode = private_crop_mode,
-        .normalized_crop = normalized_crop
-                               ? (img_layout_normalized_crop_t){normalized_crop->x, normalized_crop->y,
-                                                               normalized_crop->width,
-                                                               normalized_crop->height}
-                               : (img_layout_normalized_crop_t){0},
+        .normalized_crop =
+            normalized_crop
+                ? (img_layout_normalized_crop_t){normalized_crop->x, normalized_crop->y,
+                                                 normalized_crop->width, normalized_crop->height}
+                : (img_layout_normalized_crop_t){0},
         .max_canvas_pixels = IMGENGINE_SHEET_V1_MAX_CANVAS_PIXELS,
     };
     img_layout_render_v1_result_t result = {0};

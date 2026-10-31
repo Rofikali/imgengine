@@ -1,6 +1,5 @@
 #ifndef IMGENGINE_API_V2_SHEET_H
 #define IMGENGINE_API_V2_SHEET_H
-
 /*
  * Additive IMGENGINE_2.2 physical-sheet rendering capability.
  * ABI v1 and the existing ABI-v2 FIT layout request remain unchanged.
