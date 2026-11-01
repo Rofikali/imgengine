@@ -25,10 +25,10 @@ static imgengine_status_t imgengine_sheet_map_result(img_result_t result) {
     }
 }
 
-imgengine_status_t imgengine_sheet_render_v1_bounded(imgengine_engine_t *engine,
-                                                     const imgengine_sheet_request_v1_t *request,
-                                                     size_t max_output_bytes,
-                                                     imgengine_layout_output_v2_t *output) {
+static imgengine_status_t imgengine_sheet_render_common(
+    imgengine_engine_t *engine, const imgengine_sheet_request_v1_t *request,
+    uint32_t private_crop_mode, const imgengine_normalized_crop_v1_t *normalized_crop,
+    size_t max_output_bytes, imgengine_layout_output_v2_t *output) {
     if (!output)
         return IMGENGINE_STATUS_INVALID_ARGUMENT;
     memset(output, 0, sizeof(*output));
@@ -80,7 +80,12 @@ imgengine_status_t imgengine_sheet_render_v1_bounded(imgengine_engine_t *engine,
         .placement_count = request->placement_count,
         .expected_count = request->expected_count,
         .max_output_bytes = max_output_bytes,
-        .crop_mode = IMG_LAYOUT_RENDER_CROP_CENTERED_FILL,
+        .crop_mode = private_crop_mode,
+        .normalized_crop =
+            normalized_crop
+                ? (img_layout_normalized_crop_t){normalized_crop->x, normalized_crop->y,
+                                                 normalized_crop->width, normalized_crop->height}
+                : (img_layout_normalized_crop_t){0},
         .max_canvas_pixels = IMGENGINE_SHEET_V1_MAX_CANVAS_PIXELS,
     };
     img_layout_render_v1_result_t result = {0};
@@ -114,4 +119,47 @@ imgengine_status_t imgengine_sheet_render_v1_bounded(imgengine_engine_t *engine,
     result.jpeg_data = NULL;
     result.jpeg_size = 0;
     return IMGENGINE_STATUS_OK;
+}
+
+imgengine_status_t imgengine_sheet_render_v1_bounded(imgengine_engine_t *engine,
+                                                     const imgengine_sheet_request_v1_t *request,
+                                                     size_t max_output_bytes,
+                                                     imgengine_layout_output_v2_t *output) {
+    return imgengine_sheet_render_common(engine, request, IMG_LAYOUT_RENDER_CROP_CENTERED_FILL,
+                                         NULL, max_output_bytes, output);
+}
+
+imgengine_status_t imgengine_sheet_render_v2_bounded(imgengine_engine_t *engine,
+                                                     const imgengine_sheet_request_v2_t *request,
+                                                     size_t max_output_bytes,
+                                                     imgengine_layout_output_v2_t *output) {
+    if (!output)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+    memset(output, 0, sizeof(*output));
+    if (!request || request->struct_size < sizeof(*request) ||
+        request->version != IMGENGINE_SHEET_RENDER_V2_VERSION ||
+        request->crop_mode != IMGENGINE_SHEET_CROP_USER_RECTANGLE)
+        return IMGENGINE_STATUS_INVALID_ARGUMENT;
+
+    const imgengine_sheet_request_v1_t base = {
+        .struct_size = sizeof(imgengine_sheet_request_v1_t),
+        .version = IMGENGINE_SHEET_RENDER_V1_VERSION,
+        .input = request->input,
+        .input_size = request->input_size,
+        .canvas_width = request->canvas_width,
+        .canvas_height = request->canvas_height,
+        .background_r = request->background_r,
+        .background_g = request->background_g,
+        .background_b = request->background_b,
+        .reserved0 = request->reserved0,
+        .reserved1 = {request->reserved1[0], request->reserved1[1], request->reserved1[2],
+                      request->reserved1[3]},
+        .crop_mode = IMGENGINE_SHEET_CROP_CENTERED_FILL,
+        .placements = request->placements,
+        .placement_count = request->placement_count,
+        .expected_count = request->expected_count,
+    };
+    /* The common validator checks the shared reserved fields and all sheet limits. */
+    return imgengine_sheet_render_common(engine, &base, IMG_LAYOUT_RENDER_CROP_USER_RECTANGLE,
+                                         &request->crop, max_output_bytes, output);
 }

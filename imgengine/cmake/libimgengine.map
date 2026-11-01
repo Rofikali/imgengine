@@ -26,3 +26,8 @@ IMGENGINE_2.2 {
     global:
         imgengine_sheet_render_v1_bounded;
 } IMGENGINE_2.1;
+
+IMGENGINE_2.3 {
+    global:
+        imgengine_sheet_render_v2_bounded;
+} IMGENGINE_2.2;

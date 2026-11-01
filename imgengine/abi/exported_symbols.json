@@ -42,5 +42,9 @@
   {
     "symbol": "imgengine_sheet_render_v1_bounded",
     "abi": "IMGENGINE_2.2"
+  },
+  {
+    "symbol": "imgengine_sheet_render_v2_bounded",
+    "abi": "IMGENGINE_2.3"
   }
 ]
