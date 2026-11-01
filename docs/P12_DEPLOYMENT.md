@@ -121,3 +121,8 @@ This is not a production release approval. Before canary or public exposure:
 5. Run a controlled canary while retaining the legacy route as the rollback path.
 6. Decide separately when the Python/Redis/PostgreSQL legacy stack can be
    retired; this PR intentionally does not remove it.
+
+The additive single-host production Compose profile is documented in
+`P14_PRODUCTION_BASELINE.md`. It is intentionally separate from this legacy
+side-by-side Compose file and does not itself constitute deployment, canary, or
+public-release evidence.

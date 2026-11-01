@@ -1,0 +1,29 @@
+{
+	# No administrative listener is needed for the single-host baseline.
+	admin off
+	# Caddy sends ACME-related notices here; this must be an operational mailbox.
+	email {$CADDY_EMAIL}
+}
+
+# CADDY_DOMAIN must be a real DNS name resolving to this host before startup.
+{$CADDY_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+	}
+
+	@health path /_internal/healthz
+	handle @health {
+		respond "ok" 200
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

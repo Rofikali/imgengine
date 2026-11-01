@@ -220,6 +220,21 @@ jobs:
         run: |
           docker compose --profile s3 --profile observability --file imgengine-saas/infra/docker-compose.yml config --format json > /tmp/imgengine-compose.rendered.json
           python3 imgengine-saas/scripts/check_compose_loopback_bindings.py /tmp/imgengine-compose.rendered.json
+      - name: Validate hardened production Compose policy
+        run: |
+          install -d -m 0700 /tmp/imgengine-production-secrets
+          printf '%s\n' integration-test-key > /tmp/imgengine-production-secrets/api-keys
+          printf '%s\n' integration-test-key > /tmp/imgengine-production-secrets/render-api-key
+          chmod 0600 /tmp/imgengine-production-secrets/api-keys /tmp/imgengine-production-secrets/render-api-key
+          CADDY_IMAGE='caddy@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' \
+          IMGENGINE_RUST_API_IMAGE='imgengine-rust-api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' \
+          IMGENGINE_WEB_IMAGE='imgengine-web@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' \
+          CADDY_DOMAIN='example.invalid' \
+          CADDY_EMAIL='ops@example.invalid' \
+          IMGENGINE_API_KEYS_FILE='/tmp/imgengine-production-secrets/api-keys' \
+          IMGENGINE_RENDER_API_KEY_FILE='/tmp/imgengine-production-secrets/render-api-key' \
+          docker compose --file infra/docker-compose.production.yml config --format json > /tmp/imgengine-production-compose.json
+          python3 infra/scripts/verify-production-compose.py /tmp/imgengine-production-compose.json
       - name: Create isolated integration network
         run: docker network create imgengine-ci
       - name: Build production Rust API image
@@ -232,7 +247,8 @@ jobs:
             --network imgengine-ci --network-alias rust-api \
             --publish 127.0.0.1:8001:8000 \
             --env IMGENGINE_API_BIND=0.0.0.0:8000 \
-            --env IMGENGINE_API_KEYS=integration-test-key \
+            --env IMGENGINE_API_KEYS_FILE=/run/secrets/imgengine_api_keys \
+            --mount type=bind,src=/tmp/imgengine-production-secrets/api-keys,dst=/run/secrets/imgengine_api_keys,readonly \
             imgengine-rust-api:ci
       - name: Start Nuxt server with private Rust API credentials
         run: |
@@ -240,7 +256,8 @@ jobs:
             --network imgengine-ci --network-alias web \
             --publish 127.0.0.1:3000:3000 \
             --env NUXT_IMGENGINE_API_BASE=http://rust-api:8000 \
-            --env NUXT_IMGENGINE_RENDER_API_KEY=integration-test-key \
+            --env IMGENGINE_RENDER_API_KEY_FILE=/run/secrets/imgengine_render_api_key \
+            --mount type=bind,src=/tmp/imgengine-production-secrets/render-api-key,dst=/run/secrets/imgengine_render_api_key,readonly \
             imgengine-web:ci
       - name: Exercise P5, P8, and P12 over HTTP
         env:
@@ -261,6 +278,8 @@ jobs:
         run: |
           docker rm --force imgengine-web-ci imgengine-rust-api-ci || true
           docker network rm imgengine-ci || true
+          rm -f /tmp/imgengine-production-secrets/api-keys /tmp/imgengine-production-secrets/render-api-key
+          rmdir /tmp/imgengine-production-secrets 2>/dev/null || true
 
   docker-linux-verification:
     name: Ubuntu 24.04 Docker verification

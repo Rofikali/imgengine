@@ -68,11 +68,13 @@ RUN apt-get update \
 
 COPY --from=builder /opt/imgengine/lib/ /opt/imgengine/lib/
 COPY --from=builder /build/cargo-target/release/imgengine-api-server /usr/local/bin/imgengine-api-server
+COPY rust/docker-entrypoint.sh /usr/local/bin/imgengine-api-entrypoint
 
 RUN ldd /usr/local/bin/imgengine-api-server \
     && ldd /opt/imgengine/lib/libimgengine.so \
     && ! ldd /usr/local/bin/imgengine-api-server | grep -q "not found" \
-    && ! ldd /opt/imgengine/lib/libimgengine.so | grep -q "not found"
+    && ! ldd /opt/imgengine/lib/libimgengine.so | grep -q "not found" \
+    && chmod 0555 /usr/local/bin/imgengine-api-entrypoint
 
 WORKDIR /app
 USER 10001:10001
@@ -81,4 +83,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
     CMD curl --fail --silent http://127.0.0.1:8000/readyz || exit 1
 
-ENTRYPOINT ["/usr/local/bin/imgengine-api-server"]
+ENTRYPOINT ["/usr/local/bin/imgengine-api-entrypoint"]

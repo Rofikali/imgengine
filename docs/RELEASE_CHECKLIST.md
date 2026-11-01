@@ -11,6 +11,16 @@
 - A current verified PostgreSQL backup exists, and the latest recorded restore drill meets the recovery objective.
 - The manual `imgengine-native-release-candidate` workflow is green and its archive SHA-256, deterministic archive check, SPDX runtime SBOM, manifest, ABI check, CTest, and native regressions are retained with the release record.
 - The manual `SaaS Release Candidate` workflow is green and retains its rendered Compose configuration, end-to-end runtime logs, and image manifest for the exact Git revision.
+- The P14 production profile renders successfully and
+  `infra/scripts/verify-production-compose.py` passes against that exact
+  rendered configuration.
+- Every deployed image is pinned by immutable registry digest; the deployment
+  record contains the prior manifest and a tested rollback procedure.
+- Production frontend dependency audit has no unreviewed critical/high finding;
+  any remaining advisory has a documented, time-bounded risk decision.
+- TLS/DNS/firewall, secret-file permissions, alert routes, peak RSS, temporary
+  disk, overload, restart/drain, controlled canary, and rollback evidence are
+  retained for the exact candidate revision.
 
 ## P12 Physical-Sheet Candidate Gates
 

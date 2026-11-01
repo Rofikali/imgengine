@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation status (draft PR #16).** The native ABI 2.2 renderer, centered-fill crop path, P12-only 10 MP limit, safe Rust FFI, bounded supervisor operation, and Axum `POST /api/v2/sheet-render` route are implemented on `feat/p12-native-abi22`. CI is being run on the exact branch head. The Nuxt frontend, measured peak-RSS/concurrency gate, deployment verification, and production release remain open.
+**Implementation status (main).** The native ABI 2.2 renderer, centered-fill crop path, P12-only 10 MP limit, safe Rust FFI, bounded supervisor operation, Axum `POST /api/v2/sheet-render` route, and same-origin Nuxt proxy are implemented on `main`. Measured peak-RSS/concurrency evidence, production deployment verification, canary, rollback exercise, and public release approval remain open.
 
 P12 is intentionally separate from P11. P11 remains a pure, deterministic Rust geometry planner. This contract is based on the existing P8 product contract, P9.3 bounded-output design, the current HTTP adapter, and the public C ABI version map.
 
@@ -26,7 +26,7 @@ POST /api/v2/sheet-render
 Content-Type: multipart/form-data
 ```
 
-This route is implemented in draft PR #16; it is not available from `main` until the stacked implementation PR is merged.
+This route is available from `main`. It remains a synchronous, ephemeral capability and is not evidence of public-production readiness.
 
 ### Request fields
 

@@ -1,0 +1,145 @@
+# Single-host production baseline. This is deliberately separate from
+# imgengine-saas/infra/docker-compose.yml, which retains legacy/dev services.
+# Supply immutable image references (image@sha256:...) and host-local secret
+# files; never place credential values in this file or an env file.
+name: imgengine-production
+
+services:
+  caddy-data-init:
+    image: ${CADDY_IMAGE:?set CADDY_IMAGE to an immutable Caddy image digest}
+    user: "0:0"
+    read_only: true
+    command: ["sh", "-ec", "mkdir -p /data/caddy /config/caddy && chown -R 10001:10001 /data /config"]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER]
+    security_opt: [no-new-privileges:true]
+    restart: "no"
+    network_mode: none
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+
+  caddy:
+    image: ${CADDY_IMAGE:?set CADDY_IMAGE to an immutable Caddy image digest}
+    depends_on:
+      caddy-data-init:
+        condition: service_completed_successfully
+      web:
+        condition: service_started
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 96m
+    memswap_limit: 96m
+    cpus: "0.25"
+    pids_limit: 64
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+    stop_grace_period: 15s
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN:?set a public DNS name}
+      CADDY_EMAIL: ${CADDY_EMAIL:?set an operational ACME email address}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=16m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/_internal/healthz | grep -qx ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [edge]
+
+  rust-api:
+    image: ${IMGENGINE_RUST_API_IMAGE:?set IMGENGINE_RUST_API_IMAGE to an immutable image digest}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: "0.75"
+    pids_limit: 64
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+    stop_grace_period: 30s
+    environment:
+      IMGENGINE_API_BIND: 0.0.0.0:8000
+      IMGENGINE_API_KEYS_FILE: /run/secrets/imgengine_api_keys
+      IMGENGINE_WORKSPACE_ROOT: /tmp/imgengine-workspaces
+      IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES: ${IMGENGINE_LAYOUT_MAX_OUTPUT_BYTES:-16777216}
+      IMGENGINE_SHEET_MAX_OUTPUT_BYTES: ${IMGENGINE_SHEET_MAX_OUTPUT_BYTES:-67108864}
+    secrets:
+      - source: imgengine_api_keys
+        target: imgengine_api_keys
+        mode: 0444
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=96m
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    networks: [app]
+
+  web:
+    image: ${IMGENGINE_WEB_IMAGE:?set IMGENGINE_WEB_IMAGE to an immutable image digest}
+    depends_on:
+      rust-api:
+        condition: service_healthy
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 192m
+    memswap_limit: 192m
+    cpus: "0.50"
+    pids_limit: 96
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+    stop_grace_period: 15s
+    environment:
+      NUXT_IMGENGINE_API_BASE: http://rust-api:8000
+      IMGENGINE_RENDER_API_KEY_FILE: /run/secrets/imgengine_render_api_key
+    secrets:
+      - source: imgengine_render_api_key
+        target: imgengine_render_api_key
+        mode: 0444
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=16m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    networks: [edge, app]
+
+secrets:
+  imgengine_api_keys:
+    file: ${IMGENGINE_API_KEYS_FILE:?set IMGENGINE_API_KEYS_FILE to a root-owned secret file}
+  imgengine_render_api_key:
+    file: ${IMGENGINE_RENDER_API_KEY_FILE:?set IMGENGINE_RENDER_API_KEY_FILE to a root-owned secret file}
+
+volumes:
+  caddy-data:
+  caddy-config:
+
+networks:
+  # Caddy needs outbound access for ACME; only Nuxt shares this network.
+  edge:
+  # Rust is reachable only through the Nuxt server proxy, never from the host.
+  app:
+    internal: true
