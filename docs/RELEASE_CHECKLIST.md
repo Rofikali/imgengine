@@ -16,8 +16,9 @@
   rendered configuration.
 - Every deployed image is pinned by immutable registry digest; the deployment
   record contains the prior manifest and a tested rollback procedure.
-- Production frontend dependency audit has no unreviewed critical/high finding;
-  any remaining advisory has a documented, time-bounded risk decision.
+- Neither the production runtime nor the trusted frontend build/test dependency
+  graph has an unreviewed critical/high finding; any remaining advisory has a
+  documented, time-bounded risk decision.
 - TLS/DNS/firewall, secret-file permissions, alert routes, peak RSS, temporary
   disk, overload, restart/drain, controlled canary, and rollback evidence are
   retained for the exact candidate revision.

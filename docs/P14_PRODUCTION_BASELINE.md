@@ -47,6 +47,42 @@ the host secret files and recreating the relevant containers during an approved
 maintenance window; record the affected image digests and time in the change
 record.
 
+## Local runtime evidence (2026-11-06)
+
+The following evidence was produced locally in Docker Desktop from integrated
+revision `093f1d69f47027ca5f0676cba7df42e1e5602866`. It is useful integration
+evidence, but is **not** an actual-VPS test or authorization to expose public
+traffic.
+
+- The Rust API image built from `imgengine/rust/Dockerfile` and started as
+  UID/GID `10001` with a read-only root, bounded `/tmp`, and an API key read
+  from a mounted secret file. Its readiness endpoint returned success and an
+  authenticated real-JPEG render returned HTTP 200.
+- The Nuxt image built from `imgengine-saas/frontend/Dockerfile` and started
+  under the same non-root/read-only posture with its server-side Rust credential
+  read from a mounted secret file.
+- The two images were connected only to a disposable Docker network and their
+  test ports were bound to loopback. A browser-facing P12 proxy request returned
+  a valid JPEG with the expected 2480 x 3508 canvas and exact-copy accounting;
+  an over-capacity request returned the documented `422 does_not_fit` problem.
+- All disposable containers, test network, and text-based secret artifacts were
+  removed after the run. This evidence does not validate Caddy/TLS because the
+  Caddy image pull did not complete in the local network environment.
+
+## Dependency-audit posture (2026-11-06)
+
+`npm audit --omit=dev` reported zero critical and zero high findings for the
+runtime dependency graph, with ten moderate and two low findings. The remaining
+runtime Nuxt/Nitro findings require a separately scoped Nuxt 4 migration or an
+explicit, time-bounded risk decision before any canary.
+
+The full frontend build/test graph has two critical findings through the
+development-only Vitest/Tinypool chain, in addition to moderate findings. Those
+packages are not copied into the final Nuxt runtime image, but they execute in
+the trusted CI/build environment. Remediating or formally time-bounding this
+build-pipeline risk is a release blocker; it must not be represented as a
+runtime-only issue.
+
 ## Preflight and rollback
 
 Before any controlled canary, render and verify the exact deployment profile:
@@ -81,8 +117,10 @@ the measurements with the release candidate.
 
 ## Remaining release blockers
 
-1. Complete the planned Nuxt 4 migration or formally risk-accept its remaining
-   moderate dependency advisories for a time-bounded canary.
+1. Remediate or formally time-bound the critical Vitest/Tinypool build-pipeline
+   advisories, and complete the planned Nuxt 4 migration or separately
+   risk-accept its remaining runtime moderate advisories for a time-bounded
+   canary.
 2. Produce actual-VPS capacity and operational evidence.
 3. Complete TLS/DNS/firewall validation using the real domain and host.
 4. Run retained release-candidate artifacts, monitoring/alert checks, rollback
