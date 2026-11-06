@@ -76,12 +76,14 @@ runtime dependency graph, with ten moderate and two low findings. The remaining
 runtime Nuxt/Nitro findings require a separately scoped Nuxt 4 migration or an
 explicit, time-bounded risk decision before any canary.
 
-The full frontend build/test graph has two critical findings through the
-development-only Vitest/Tinypool chain, in addition to moderate findings. Those
-packages are not copied into the final Nuxt runtime image, but they execute in
-the trusted CI/build environment. Remediating or formally time-bounding this
-build-pipeline risk is a release blocker; it must not be represented as a
-runtime-only issue.
+The earlier critical development-only Vitest/Tinypool findings were remediated
+on 2026-11-06 by upgrading Vitest to 5.1.0 and `vue-tsc` to 3.3.14. Frontend
+tests (36/36), typecheck, and production build passed after the upgrade. Both
+the runtime-only and full build/test audit commands then reported zero critical
+and zero high findings; the full graph has the same twelve moderate/low
+Nuxt-chain findings. Development tooling is not copied into the final Nuxt
+runtime image, but it remains part of the trusted CI/build boundary and must be
+audited with the runtime graph.
 
 ## Preflight and rollback
 
@@ -117,9 +119,8 @@ the measurements with the release candidate.
 
 ## Remaining release blockers
 
-1. Remediate or formally time-bound the critical Vitest/Tinypool build-pipeline
-   advisories, and complete the planned Nuxt 4 migration or separately
-   risk-accept its remaining runtime moderate advisories for a time-bounded
+1. Complete the planned Nuxt 4 migration or separately risk-accept its
+   remaining moderate/low runtime and build-chain advisories for a time-bounded
    canary.
 2. Produce actual-VPS capacity and operational evidence.
 3. Complete TLS/DNS/firewall validation using the real domain and host.
