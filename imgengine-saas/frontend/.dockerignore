@@ -3,3 +3,4 @@ node_modules
 .output
 .git
 npm-debug.log
+pnpm-debug.log*

@@ -9,10 +9,13 @@ describe('P5 render multipart request', () => {
     const file = new File(['fixture'], name, { type })
     const form = createRenderForm(file)
     const entries = [...form.entries()]
+    const entry = entries[0]
 
     expect(entries).toHaveLength(1)
-    expect(entries[0][0]).toBe('file')
-    expect(entries[0][1]).toBe(file)
+    expect(entry).toBeDefined()
+    if (!entry) throw new Error('expected file form entry')
+    expect(entry[0]).toBe('file')
+    expect(entry[1]).toBe(file)
   })
 })
 

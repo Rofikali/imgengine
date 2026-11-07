@@ -180,26 +180,28 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Enable pinned pnpm
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: imgengine-saas/frontend/package-lock.json
+          cache: pnpm
+          cache-dependency-path: imgengine-saas/frontend/pnpm-lock.yaml
       - name: Install locked frontend dependencies
         working-directory: imgengine-saas/frontend
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Generate Nuxt TypeScript configuration
         working-directory: imgengine-saas/frontend
-        run: npx nuxi prepare
+        run: pnpm exec nuxi prepare
       - name: Run frontend unit tests
         working-directory: imgengine-saas/frontend
-        run: npm test
+        run: pnpm test
       - name: Type-check Nuxt application
         working-directory: imgengine-saas/frontend
-        run: npm run typecheck
+        run: pnpm run typecheck
       - name: Build production Nuxt application
         working-directory: imgengine-saas/frontend
-        run: npm run build
+        run: pnpm run build
 
   rust-api-container:
     name: Rust API container verification

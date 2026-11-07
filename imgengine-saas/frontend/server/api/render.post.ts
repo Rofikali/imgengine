@@ -106,11 +106,12 @@ export default defineEventHandler(async (event) => {
     return proxyProblem(event, 400, 'invalid_request', 'Invalid multipart request')
   }
   const entries = [...incoming.entries()]
-  if (entries.length !== 1 || entries[0][0] !== 'file' || typeof entries[0][1] === 'string') {
+  const entry = entries[0]
+  if (entries.length !== 1 || entry === undefined || entry[0] !== 'file' || typeof entry[1] === 'string') {
     return proxyProblem(event, 400, 'invalid_request', 'Expected exactly one image file')
   }
 
-  const [_, file] = entries[0]
+  const [, file] = entry
   const body = new FormData()
   body.append('file', file)
 

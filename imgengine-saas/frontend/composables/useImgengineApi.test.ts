@@ -19,7 +19,8 @@ describe('useImgengineApi', () => {
 
     expect(result.jpeg.type).toBe('image/jpeg')
     expect(result.requestId).toBe('request-test-123')
-    const request = raw.mock.calls[0][1]
+    const request = raw.mock.calls[0]?.[1]
+    if (!request) throw new Error('expected render proxy request')
     expect(raw).toHaveBeenCalledWith('/api/render', expect.objectContaining({ method: 'POST' }))
     expect([...request.body.entries()].map(([field]: [string]) => field)).toEqual(['file'])
   })
@@ -61,7 +62,9 @@ describe('useImgengineApi', () => {
     )
 
     expect(result).toMatchObject({ canvasWidth: 28, canvasHeight: 10, executedCount: 2 })
-    const fields = [...raw.mock.calls[0][1].body.entries()].map(([field]: [string]) => field)
+    const request = raw.mock.calls[0]?.[1]
+    if (!request) throw new Error('expected layout render proxy request')
+    const fields = [...request.body.entries()].map(([field]: [string]) => field)
     expect(fields).toEqual(['file', 'width', 'height', 'unit', 'copies', 'columns', 'gap', 'margin', 'output_format'])
   })
   it('sends the P12 physical-sheet contract and returns server-confirmed sheet accounting', async () => {
@@ -92,7 +95,9 @@ describe('useImgengineApi', () => {
       expectedCount: 8, plannedCount: 8, executedCount: 8,
     })
     expect(raw).toHaveBeenCalledWith('/api/sheet-render', expect.objectContaining({ method: 'POST' }))
-    const fields = [...raw.mock.calls[0][1].body.entries()].map(([field]: [string]) => field)
+    const request = raw.mock.calls[0]?.[1]
+    if (!request) throw new Error('expected sheet render proxy request')
+    const fields = [...request.body.entries()].map(([field]: [string]) => field)
     expect(fields).toEqual([
       'file', 'sheet_width_mm', 'sheet_height_mm', 'photo_width_mm', 'photo_height_mm',
       'dpi', 'copies', 'margin_mm', 'gap_x_mm', 'gap_y_mm', 'output_format',

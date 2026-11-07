@@ -105,14 +105,16 @@ an H3 stack field. It never prints the key.
 Inside the Ubuntu frontend container, the authoritative frontend commands are:
 
 ```bash
-npm install
-npm test
-npm run typecheck
-npm run build
+corepack enable
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run typecheck
+pnpm run build
 ```
 
-`run-p7-nuxt.sh` uses the named Linux `node_modules` volume and performs
-`npm ci --foreground-scripts` only when it is absent. Foreground lifecycle
+The frontend pins `pnpm@10.34.9` through `packageManager`; Corepack selects
+that version. `run-p7-nuxt.sh` uses the named Linux `node_modules` volume and performs
+`pnpm install --frozen-lockfile --reporter=append-only` only when it is absent. Foreground lifecycle
 scripts avoid a Docker Desktop fresh-volume `esbuild` binary-validation race.
 For a fresh dependency path, remove only the P7 cache volumes and re-run the
 commands; do not mount or copy a Windows `node_modules` tree into the
@@ -134,12 +136,12 @@ Compose still requires the local ignored environment file before it can start.
 | Check | Result |
 | --- | --- |
 | Ubuntu container | PASS — Ubuntu 24.04.5 LTS on Docker Desktop/WSL2 |
-| Toolchain | PASS — Node 24.21.0, npm 11.19.0, rustc/cargo 1.75.0, GCC 13.3.0, Clang 18.1.3, CMake 3.28.3, Ninja 1.11.1 |
-| `npm install`, test, typecheck, build inside Ubuntu | PASS — 19 Vitest tests; Nuxt typecheck and production build passed |
+| Historical toolchain | PASS — Node 24.21.0, npm 11.19.0, rustc/cargo 1.75.0, GCC 13.3.0, Clang 18.1.3, CMake 3.28.3, Ninja 1.11.1. |
+| Pinned pnpm workflow | PASS — clean Node 24 Alpine container, pnpm 10.34.9, frozen lockfile, Nuxt prepare, 36 Vitest tests, Nuxt typecheck, and Nuxt 4.6.4 production build. |
 | Nuxt -> Rust -> C JPEG and PNG path | PASS — the real project JPEG and a derived PNG both returned decodable JPEG responses through `/api/render` |
 | Safe failure mapping and private-key boundary | PASS — 400 missing file, 415 unsupported, 422 malformed, 413 oversized, 401 direct unauthenticated Rust request, 503 unavailable Rust upstream; local test key absent from Nuxt client output |
 | Container recreation with retained caches | PASS — Compose recreation preserved only the intended named dependency/build caches and the render-contract verifier passed |
-| Fresh-volume dependency path | PASS — P7 volumes were removed with `down -v`; `npm ci --foreground-scripts`, native build, and both services bootstrapped successfully before the render-contract verifier passed |
+| Fresh-volume dependency path | PASS — clean Linux dependency tree installed from `pnpm-lock.yaml`; only esbuild is approved for an install-time build script. |
 
 ## Known limitations
 

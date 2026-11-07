@@ -69,21 +69,28 @@ traffic.
   removed after the run. This evidence does not validate Caddy/TLS because the
   Caddy image pull did not complete in the local network environment.
 
-## Dependency-audit posture (2026-11-06)
+## Dependency-audit posture (2026-11-07)
 
-`npm audit --omit=dev` reported zero critical and zero high findings for the
-runtime dependency graph, with ten moderate and two low findings. The remaining
-runtime Nuxt/Nitro findings require a separately scoped Nuxt 4 migration or an
-explicit, time-bounded risk decision before any canary.
+The frontend now uses Nuxt 4.6.4 and a Corepack-pinned pnpm 10.34.9 workflow.
+A clean Linux container passed frozen installation, Nuxt type generation, all
+36 Vitest tests, typecheck, production build, and the frontend runtime-image
+build. The migration made direct Vue usage explicit and records `esbuild` as
+the sole approved install-time build script.
+
+`pnpm audit --prod` reported zero critical and zero high findings, with two
+moderate and one low transitive findings. The moderate findings are `glob`
+13.0.7 and `minimatch` 10.2.6 beneath Nitro's `@vercel/nft` build chain. A
+blind major-version override was deliberately not applied because it would
+change that upstream tool's dependency contract without evidence. The low
+`deepmerge` 4.3.1 finding below Rollup's node-resolve plugin has no patched
+version reported by the advisory. These findings are not suppressed and require
+an upstream-compatible Nuxt/Nitro update or an explicit, time-bounded risk
+decision before any canary.
 
 The earlier critical development-only Vitest/Tinypool findings were remediated
-on 2026-11-06 by upgrading Vitest to 5.1.0 and `vue-tsc` to 3.3.14. Frontend
-tests (36/36), typecheck, and production build passed after the upgrade. Both
-the runtime-only and full build/test audit commands then reported zero critical
-and zero high findings; the full graph has the same twelve moderate/low
-Nuxt-chain findings. Development tooling is not copied into the final Nuxt
-runtime image, but it remains part of the trusted CI/build boundary and must be
-audited with the runtime graph.
+on 2026-11-06 by upgrading Vitest to 5.1.0 and `vue-tsc` to 3.3.14. Development
+tooling is not copied into the final Nuxt runtime image, but it remains part of
+the trusted CI/build boundary and must be audited with the runtime graph.
 
 ## Preflight and rollback
 
@@ -119,9 +126,9 @@ the measurements with the release candidate.
 
 ## Remaining release blockers
 
-1. Complete the planned Nuxt 4 migration or separately risk-accept its
-   remaining moderate/low runtime and build-chain advisories for a time-bounded
-   canary.
+1. Obtain an upstream-compatible remediation for the remaining moderate/low
+   Nuxt/Nitro build-chain advisories, or make an explicit, time-bounded risk
+   decision before any canary.
 2. Produce actual-VPS capacity and operational evidence.
 3. Complete TLS/DNS/firewall validation using the real domain and host.
 4. Run retained release-candidate artifacts, monitoring/alert checks, rollback

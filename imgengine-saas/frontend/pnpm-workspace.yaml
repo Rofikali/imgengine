@@ -1,0 +1,4 @@
+# esbuild supplies the platform-specific binary used by Nuxt/Vite. It is the
+# only dependency permitted to run an installation build script.
+allowBuilds:
+  esbuild: true

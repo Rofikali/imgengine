@@ -23,7 +23,7 @@ FROM build-base AS frontend-build
 WORKDIR /src/imgengine-saas/frontend
 # Optional native packages must be installed in Linux. Host node_modules may
 # contain Windows bindings and is deliberately excluded from the build context.
-RUN npm ci && npm run build
+RUN corepack enable && pnpm install --frozen-lockfile && pnpm run build
 
 FROM imgengine-p7-dev-rust-api:latest AS runtime
 ENV LD_LIBRARY_PATH=/usr/local/lib
