@@ -1,0 +1,134 @@
+name: P12 First MVP Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: Candidate version recorded in retained evidence
+        required: true
+        default: 1.0.0-rc.1
+
+permissions:
+  contents: read
+
+jobs:
+  verify-p12-candidate:
+    name: Build and verify P12 candidate evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      API_KEY: release-candidate-key
+      API_IMAGE: imgengine-p12-candidate/rust-api:${{ github.sha }}
+      WEB_IMAGE: imgengine-p12-candidate/web:${{ github.sha }}
+      ARTIFACT_DIR: artifacts/p12-release-candidate
+      SECRET_DIR: /tmp/imgengine-p12-release-secrets
+      NETWORK: imgengine-p12-release-network
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable pinned pnpm
+        run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: imgengine-saas/frontend/pnpm-lock.yaml
+      - name: Verify frontend production dependency threshold
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          pnpm install --frozen-lockfile
+          set +e
+          pnpm audit --prod --json > /tmp/imgengine-pnpm-audit.json
+          audit_exit=$?
+          set -e
+          node scripts/check-production-audit.mjs /tmp/imgengine-pnpm-audit.json
+          if [ "$audit_exit" -ne 0 ]; then
+            echo "pnpm audit reported non-critical/high advisories; see the audit summary above."
+          fi
+      - name: Render and verify production Compose policy
+        shell: bash
+        run: |
+          mkdir -p "$ARTIFACT_DIR" "$SECRET_DIR"
+          chmod 0700 "$SECRET_DIR"
+          printf '%s\n' "$API_KEY" > "$SECRET_DIR/api-keys"
+          printf '%s\n' "$API_KEY" > "$SECRET_DIR/render-api-key"
+          chmod 0600 "$SECRET_DIR/api-keys" "$SECRET_DIR/render-api-key"
+          CADDY_IMAGE='registry.example/imgengine/caddy@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' \
+          IMGENGINE_RUST_API_IMAGE='registry.example/imgengine/rust-api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' \
+          IMGENGINE_WEB_IMAGE='registry.example/imgengine/web@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' \
+          CADDY_DOMAIN='example.invalid' \
+          CADDY_EMAIL='ops@example.invalid' \
+          IMGENGINE_API_KEYS_FILE="$SECRET_DIR/api-keys" \
+          IMGENGINE_RENDER_API_KEY_FILE="$SECRET_DIR/render-api-key" \
+          docker compose --file infra/docker-compose.production.yml config --format json > "$ARTIFACT_DIR/production.compose.json"
+          python3 infra/scripts/verify-production-compose.py "$ARTIFACT_DIR/production.compose.json"
+      - name: Build candidate runtime images
+        run: |
+          docker build --file imgengine/rust/Dockerfile --tag "$API_IMAGE" imgengine
+          docker build --file imgengine-saas/frontend/Dockerfile --tag "$WEB_IMAGE" imgengine-saas/frontend
+      - name: Start hardened isolated candidate containers
+        shell: bash
+        run: |
+          docker network create "$NETWORK"
+          docker run --detach --name imgengine-p12-api-candidate \
+            --network "$NETWORK" --network-alias rust-api \
+            --publish 127.0.0.1:8001:8000 \
+            --user 10001:10001 --read-only --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --memory 256m --memory-swap 256m --cpus 0.75 --pids-limit 64 \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,mode=1777,size=96m \
+            --env IMGENGINE_API_BIND=0.0.0.0:8000 \
+            --env IMGENGINE_API_KEYS_FILE=/run/secrets/imgengine_api_keys \
+            --env IMGENGINE_WORKSPACE_ROOT=/tmp/imgengine-workspaces \
+            --mount type=bind,src="$SECRET_DIR/api-keys",dst=/run/secrets/imgengine_api_keys,readonly \
+            "$API_IMAGE"
+          docker run --detach --name imgengine-p12-web-candidate \
+            --network "$NETWORK" --network-alias web \
+            --publish 127.0.0.1:3000:3000 \
+            --user 10001:10001 --read-only --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --memory 192m --memory-swap 192m --cpus 0.50 --pids-limit 96 \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,mode=1777,size=16m \
+            --env NUXT_IMGENGINE_API_BASE=http://rust-api:8000 \
+            --env IMGENGINE_RENDER_API_KEY_FILE=/run/secrets/imgengine_render_api_key \
+            --mount type=bind,src="$SECRET_DIR/render-api-key",dst=/run/secrets/imgengine_render_api_key,readonly \
+            "$WEB_IMAGE"
+      - name: Exercise authenticated API and same-origin P12 proxy
+        env:
+          API_URL: http://127.0.0.1:8001
+          FRONTEND_URL: http://127.0.0.1:3000
+        run: |
+          bash imgengine-saas/scripts/rust_api_smoke.sh imgengine/photo.jpg
+          bash imgengine-saas/scripts/frontend_proxy_smoke.sh imgengine/photo.jpg
+      - name: Record candidate identities and logs
+        if: always()
+        shell: bash
+        run: |
+          docker image inspect "$API_IMAGE" "$WEB_IMAGE" > "$ARTIFACT_DIR/local-image-inspect.json" || true
+          docker logs imgengine-p12-api-candidate > "$ARTIFACT_DIR/rust-api.log" 2>&1 || true
+          docker logs imgengine-p12-web-candidate > "$ARTIFACT_DIR/web.log" 2>&1 || true
+          if [ -f "$ARTIFACT_DIR/production.compose.json" ] \
+            && docker image inspect "$API_IMAGE" "$WEB_IMAGE" >/dev/null 2>&1; then
+            python3 imgengine-saas/scripts/create_image_manifest.py \
+              --compose-config "$ARTIFACT_DIR/production.compose.json" \
+              --candidate-version "${{ inputs.candidate_version }}" \
+              --git-revision "${{ github.sha }}" \
+              --output "$ARTIFACT_DIR/image-manifest.json" \
+              --service-image "rust-api=$API_IMAGE" \
+              --service-image "web=$WEB_IMAGE"
+          fi
+      - name: Retain P12 candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgengine-p12-${{ inputs.candidate_version }}-${{ github.sha }}
+          path: artifacts/p12-release-candidate
+          if-no-files-found: error
+          retention-days: 90
+      - name: Remove disposable candidate resources
+        if: always()
+        shell: bash
+        run: |
+          docker rm --force imgengine-p12-web-candidate imgengine-p12-api-candidate || true
+          docker network rm "$NETWORK" || true
+          rm -rf "$SECRET_DIR"

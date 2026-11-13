@@ -150,6 +150,12 @@ critical or high findings. It prints the moderate/low counts rather than
 suppressing them, so any release candidate still requires the documented risk
 decision for unresolved findings.
 
+`P12 First MVP Release Candidate` is a manual GitHub workflow that retains a
+revision-bound production-Compose policy render, local image identities, logs,
+and authenticated Rust/Nuxt P12 smoke evidence from hardened disposable
+containers. It does not publish images, deploy a host, create registry
+digests, validate Caddy/TLS, or close actual-VPS/canary gates.
+
 ## Preflight and rollback
 
 Before any controlled canary, render and verify the exact deployment profile:

@@ -45,6 +45,10 @@ Status labels are deliberately evidence-specific:
 - [ ] Produce and retain release-candidate image digests, SBOM/provenance,
   rendered production Compose configuration, and exact verification logs for
   the release revision.
+- [ ] Dispatch the manual `P12 First MVP Release Candidate` workflow and retain
+  its revision-bound image-identity, hardened-container smoke, rendered
+  Compose-policy, and log artifacts. Local image IDs are candidate evidence,
+  not registry deployment digests.
 - [ ] Review remaining moderate/low dependency advisories and record either an
   upstream-compatible remediation or a time-bounded, accountable risk decision.
 
