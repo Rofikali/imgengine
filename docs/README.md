@@ -9,6 +9,7 @@ This directory is the documentation source of truth. Historical notes remain use
 | [PRD](PRD.md) | Product scope, release gates, delivery loops, and backlog. | Product, engineering, operations |
 | [Engine Specification](ENGINE_SPEC.md) | Native C/assembly layout contract: size, border, crop, bleed, output, and performance boundaries. | Native engineers, bindings authors |
 | [Rust API Contract](api.md) | Implemented synchronous Rust/Axum render, layout, and physical-sheet contracts. | Frontend, backend, and platform engineers |
+| [Local Docker Rehearsal](LOCAL_DOCKER_REHEARSAL.md) | Local P12 candidate rehearsal and its explicit evidence limits. | Developers and release owners |
 | [SaaS Contract (legacy)](SAAS_CONTRACT.md) | Historical FastAPI, queue, worker, storage, and durable-job contract. | Legacy-path maintainers |
 | [Engineering Playbook](ENGINEERING_PLAYBOOK.md) | How a loop moves from a requirement to verified production evidence. | All contributors |
 | [SRE Contract](SRE.md) | SLOs, alert rules, and incident response expectations. | Platform and on-call engineers |

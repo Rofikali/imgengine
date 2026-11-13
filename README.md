@@ -23,6 +23,10 @@ has not been silently deleted or declared retired. See
 and [`docs/MVP_RELEASE_CHECKLIST.md`](docs/MVP_RELEASE_CHECKLIST.md) for the
 current contract, migration status, and open release gates.
 
+For a local Windows 11/Docker Desktop rehearsal of the current Rust/Nuxt P12
+candidate, use [`docs/LOCAL_DOCKER_REHEARSAL.md`](docs/LOCAL_DOCKER_REHEARSAL.md).
+It is local integration evidence only, not actual-VPS or production evidence.
+
 > A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a Rust-backed application path.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
