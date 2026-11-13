@@ -32,9 +32,10 @@ Before starting, retain the following outside the repository:
    IDs are not deployment identities.
 3. A prior known-good deployment manifest for rollback, or an explicit record
    that this is the first host installation and has no prior manifest.
-4. Root-owned, mode-0600 secret files containing the server API key set and
-   the single Nuxt proxy key. Do not place secret values in shell history,
-   Compose files, logs, artifacts, or this repository.
+4. Root-owned, GID-`10001`-readable mode-`0440` secret files containing the
+   server API key set and the single Nuxt proxy key. Their parent directory
+   must be root:GID-`10001` mode `0710`. Do not place secret values in shell
+   history, Compose files, logs, artifacts, or this repository.
 5. A maintenance window, named operator, alert recipient, and explicit
    permission to bring up the host-local candidate.
 
@@ -80,7 +81,8 @@ Create `/etc/imgengine/production.env` from
 host-local paths. Do not source a file that is world-readable.
 
 ```bash
-sudo install -d -m 0700 /etc/imgengine /etc/imgengine/secrets
+sudo install -d -m 0755 /etc/imgengine
+sudo install -d -o root -g 10001 -m 0710 /etc/imgengine/secrets
 sudo stat -c '%a %U:%G %n' /etc/imgengine /etc/imgengine/secrets \
   /etc/imgengine/secrets/api-keys /etc/imgengine/secrets/render-api-key
 
@@ -93,9 +95,11 @@ python3 infra/scripts/verify-production-compose.py /tmp/imgengine-production-com
 sha256sum /tmp/imgengine-production-compose.json
 ```
 
-The expected secret-file mode is `0600`; directories should not be
-group/world-readable. The Compose verifier proves configuration structure, not
-DNS, certificate issuance, image provenance, or host firewall behavior.
+The expected secret-file mode is root:GID-`10001` `0440`; the secret directory
+is root:GID-`10001` `0710`. This permits only root and the container's primary
+GID to read files or traverse the known directory path, while preventing other
+users from listing it. The Compose verifier proves configuration structure,
+not DNS, certificate issuance, image provenance, or host firewall behavior.
 
 ## 3. Controlled candidate start and idle evidence
 

@@ -17,6 +17,21 @@ def has_all(values: object, required: set[str]) -> bool:
     return required.issubset({str(value) for value in as_list(values)})
 
 
+def has_secret_mount(service: object, source: str, target: str) -> bool:
+    for entry in as_list(service.get("secrets") if isinstance(service, dict) else None):
+        if not isinstance(entry, dict):
+            continue
+        if (
+            entry.get("source") == source
+            and entry.get("target") == target
+            and entry.get("uid") == "10001"
+            and entry.get("gid") == "10001"
+            and entry.get("mode") == "0440"
+        ):
+            return True
+    return False
+
+
 def validate(config: object) -> list[str]:
     if not isinstance(config, dict):
         return ["rendered Compose config must be an object"]
@@ -109,16 +124,16 @@ def validate(config: object) -> list[str]:
             errors.append("rust-api must read API keys from a secret file, not an environment value")
         if not isinstance(environment, dict) or environment.get("IMGENGINE_API_KEYS_FILE") != "/run/secrets/imgengine_api_keys":
             errors.append("rust-api must point IMGENGINE_API_KEYS_FILE at its mounted secret")
-        if not as_list(api.get("secrets")):
-            errors.append("rust-api must mount the API-key secret")
+        if not has_secret_mount(api, "imgengine_api_keys", "imgengine_api_keys"):
+            errors.append("rust-api must mount a UID/GID-10001 mode-0440 API-key secret")
     if isinstance(web, dict):
         environment = web.get("environment", {})
         if isinstance(environment, dict) and "NUXT_IMGENGINE_RENDER_API_KEY" in environment:
             errors.append("web must read the render credential from a secret file, not an environment value")
         if not isinstance(environment, dict) or environment.get("IMGENGINE_RENDER_API_KEY_FILE") != "/run/secrets/imgengine_render_api_key":
             errors.append("web must point IMGENGINE_RENDER_API_KEY_FILE at its mounted secret")
-        if not as_list(web.get("secrets")):
-            errors.append("web must mount the render-key secret")
+        if not has_secret_mount(web, "imgengine_render_api_key", "imgengine_render_api_key"):
+            errors.append("web must mount a UID/GID-10001 mode-0440 render-key secret")
 
     networks = config.get("networks")
     if not isinstance(networks, dict) or networks.get("app", {}).get("internal") is not True:

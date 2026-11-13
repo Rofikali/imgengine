@@ -82,7 +82,9 @@ services:
     secrets:
       - source: imgengine_api_keys
         target: imgengine_api_keys
-        mode: 0444
+        uid: "10001"
+        gid: "10001"
+        mode: 0440
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=96m
     healthcheck:
@@ -116,7 +118,9 @@ services:
     secrets:
       - source: imgengine_render_api_key
         target: imgengine_render_api_key
-        mode: 0444
+        uid: "10001"
+        gid: "10001"
+        mode: 0440
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,mode=1777,size=16m
     healthcheck:

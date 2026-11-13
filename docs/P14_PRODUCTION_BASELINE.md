@@ -40,7 +40,9 @@ Set all image variables in a root-owned deployment environment file from
 (`image@sha256:...`), not a mutable tag. Builds occur in CI; production Compose
 does not build from source.
 
-Create two separate, root-owned mode-0600 files outside the repository:
+Create two separate, root-owned, GID-`10001`-readable mode-`0440` files outside
+the repository. Their parent directory must be root:GID-`10001` mode `0710` so
+the non-root runtime can traverse it without making the directory listable:
 
 - `IMGENGINE_API_KEYS_FILE`: the server-side key set accepted by Rust;
 - `IMGENGINE_RENDER_API_KEY_FILE`: exactly one member of that key set, used

@@ -49,10 +49,12 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$ARTIFACT_DIR" "$SECRET_DIR"
-          chmod 0700 "$SECRET_DIR"
           printf '%s\n' "$API_KEY" > "$SECRET_DIR/api-keys"
           printf '%s\n' "$API_KEY" > "$SECRET_DIR/render-api-key"
-          chmod 0600 "$SECRET_DIR/api-keys" "$SECRET_DIR/render-api-key"
+          sudo chown root:10001 "$SECRET_DIR/api-keys" "$SECRET_DIR/render-api-key"
+          sudo chmod 0440 "$SECRET_DIR/api-keys" "$SECRET_DIR/render-api-key"
+          sudo chown root:10001 "$SECRET_DIR"
+          sudo chmod 0710 "$SECRET_DIR"
           CADDY_IMAGE='registry.example/imgengine/caddy@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' \
           IMGENGINE_RUST_API_IMAGE='registry.example/imgengine/rust-api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' \
           IMGENGINE_WEB_IMAGE='registry.example/imgengine/web@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' \
@@ -131,4 +133,4 @@ jobs:
         run: |
           docker rm --force imgengine-p12-web-candidate imgengine-p12-api-candidate || true
           docker network rm "$NETWORK" || true
-          rm -rf "$SECRET_DIR"
+          sudo rm -rf "$SECRET_DIR"
