@@ -185,8 +185,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-          cache-dependency-path: imgengine-saas/frontend/pnpm-lock.yaml
+      - name: Resolve and create pnpm store
+        id: pnpm-store
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          store_path="$(pnpm store path --silent)"
+          mkdir -p "$store_path"
+          echo "path=$store_path" >> "$GITHUB_OUTPUT"
+      - name: Restore pnpm package store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-node-24-pnpm-${{ hashFiles('imgengine-saas/frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-24-pnpm-
       - name: Install locked frontend dependencies
         working-directory: imgengine-saas/frontend
         run: pnpm install --frozen-lockfile
