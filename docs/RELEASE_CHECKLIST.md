@@ -1,5 +1,15 @@
 # IMGENGINE Release Checklist
 
+> **Scope notice (2026-11-13).** This is the historical checklist for the
+> legacy durable-job SaaS release path. Its PostgreSQL backup, idempotency,
+> owner-isolation, audit-timeline, and persistent-log requirements remain
+> applicable if that path is released. They are not requirements of the
+> synchronous, ephemeral Rust P12 first-MVP path, which deliberately has no
+> durable job, database, or permanent image-artifact model. The canonical
+> release decision record for that first-MVP path is
+> [`MVP_RELEASE_CHECKLIST.md`](MVP_RELEASE_CHECKLIST.md). This notice does not
+> waive any security or operational requirement for either path.
+
 ## Required Evidence
 
 - PRD and SaaS contract reflect the behavior being released.

@@ -228,6 +228,13 @@ Do not increase limits merely to make a demo pass.
 
 MVP 1.0 is not complete until the following are demonstrated end-to-end.
 
+**Evidence status.** P12's implemented native/FFI/HTTP/frontend slice is
+documented in `P12_PHYSICAL_SHEET_CONTRACT.md`; it is not equivalent to an
+MVP-release approval. The current status of every release-evidence gate is
+maintained in [`MVP_RELEASE_CHECKLIST.md`](MVP_RELEASE_CHECKLIST.md). The
+unchecked criteria below remain the product contract and must not be inferred
+as passed merely from implementation or CI evidence.
+
 ### Product behavior
 
 - [ ] One JPEG upload succeeds.

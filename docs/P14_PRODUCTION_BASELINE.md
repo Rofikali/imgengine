@@ -8,6 +8,11 @@ profile for the existing Nuxt -> Rust/Axum -> C engine path. It does not
 replace the legacy/development Compose stack, deploy an instance, or prove a
 VPS capacity envelope.
 
+The canonical first-MVP release decision record is
+[`MVP_RELEASE_CHECKLIST.md`](MVP_RELEASE_CHECKLIST.md). This document supplies
+deployment-profile evidence to that record; it does not close its actual-VPS,
+canary, or release-authority gates.
+
 ## Security boundary
 
 Only Caddy publishes host ports `80` and `443`. Nuxt and the Rust API are
