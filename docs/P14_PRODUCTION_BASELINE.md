@@ -74,6 +74,44 @@ traffic.
   removed after the run. This evidence does not validate Caddy/TLS because the
   Caddy image pull did not complete in the local network environment.
 
+## Local constrained P12 rerun (2026-11-13)
+
+Revision `1780f65` was exercised in a disposable Docker Desktop network using
+the current Rust API and Nuxt runtime images. The test deliberately used the
+P14 application ceilings only: Rust API 256 MiB/0.75 CPU/64 PIDs with a 96 MiB
+`/tmp` tmpfs, and Nuxt 192 MiB/0.50 CPU/96 PIDs with a 16 MiB `/tmp` tmpfs.
+Both containers were non-root, read-only, capability-dropped, and
+`no-new-privileges`; no host port was published and no test credential was
+recorded.
+
+- A P12 request through Nuxt's same-origin proxy produced a valid JPEG with
+  canvas `2480 x 3508` and four planned/executed placements from the
+  project-owned CC0 JPEG fixture.
+- A genuine PNG derived from that fixture produced a valid JPEG response.
+  Malformed declared-JPEG input returned `422 invalid_image`; an impossible
+  copy layout returned `422 does_not_fit`.
+- A four-request concurrent burst returned three `200` responses and one
+  documented `429 overloaded` response. The live API workspace directory had
+  zero entries after the workload.
+- An idle `docker stop` completed with exit code zero and no OOM indication.
+  After restart, `/readyz` succeeded and a subsequent P12 proxy request again
+  returned a valid JPEG.
+- `docker stats` recorded periodic samples rather than memory peaks: API
+  91.13 MiB / 256 MiB and Nuxt 98.77 MiB / 192 MiB after workload activity;
+  after restart, 74.62 MiB and 92.22 MiB respectively.
+- The rendered `infra/docker-compose.production.yml` passed
+  `infra/scripts/verify-production-compose.py` with placeholder immutable
+  digests and non-secret paths. The check confirmed Caddy-only public ports,
+  digest pinning, runtime hardening, internal API networking, and file-backed
+  application secrets without starting a production service.
+
+This is **local Docker constrained-runtime evidence only**. Docker Desktop's
+Linux VM, host filesystem, and Docker daemon were outside the service cgroups.
+The run did not include Caddy/TLS, a true 20 GB disk envelope, disk-pressure
+or OOM experiments, exact peak-RSS measurement, active-request graceful drain,
+or actual-VPS operating-system/service overhead. It does not close any
+actual-VPS or public-release gate.
+
 ## Dependency-audit posture (2026-11-07)
 
 The frontend now uses Nuxt 4.6.4 and a Corepack-pinned pnpm 10.34.9 workflow.
