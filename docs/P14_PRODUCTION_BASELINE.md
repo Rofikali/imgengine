@@ -145,6 +145,11 @@ frontend tests, typecheck, and production build passed. The remaining
 `glob`/`minimatch` and `deepmerge` findings remain release-risk decisions and
 are not suppressed by this patch.
 
+The frontend CI job now runs `pnpm audit --prod --json` and fails closed on
+critical or high findings. It prints the moderate/low counts rather than
+suppressing them, so any release candidate still requires the documented risk
+decision for unresolved findings.
+
 ## Preflight and rollback
 
 Before any controlled canary, render and verify the exact deployment profile:
