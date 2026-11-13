@@ -1,6 +1,7 @@
 node_modules
 .nuxt
 .output
+.pnpm-store
 .git
 npm-debug.log
 pnpm-debug.log*

@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@vue/server-renderer': 3.5.44
+  node-forge: 1.4.3
+  vue: 3.5.44
+
 importers:
 
   .:
@@ -507,7 +512,7 @@ packages:
       nuxt: 4.6.4
       rolldown: ^1.0.0
       rollup-plugin-visualizer: ^6.0.0 || ^7.0.1
-      vue: ^3.3.4
+      vue: 3.5.44
     peerDependenciesMeta:
       '@babel/plugin-proposal-decorators':
         optional: true
@@ -920,7 +925,7 @@ packages:
     resolution: {integrity: sha512-Wrmk62oC/V1EcBSKRDuy77kVaBtBXXsj6b+vEEWvmfo9AQfpLlc2b6vvvSj9WnXr8VY1ksKHj49Ejo8J/wLSOA==}
     peerDependencies:
       vite: '>=6.4.2'
-      vue: '>=3.5.18'
+      vue: 3.5.44
       webpack: '>=5.0.0'
     peerDependenciesMeta:
       vite:
@@ -938,14 +943,14 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-      vue: ^3.0.0
+      vue: 3.5.44
 
   '@vitejs/plugin-vue@6.0.10':
     resolution: {integrity: sha512-b80aUQh3n+qEzzZm5oQp3rT2QImeCx58K6eFl/RkJ3d65KW0kTuv5lNsLRVAjbW9YRUpo/wzmvzMgV34bTAItA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-      vue: ^3.2.25 || ^3.6.0-rc.10
+      vue: 3.5.44
 
   '@vitest/mocker@5.1.0':
     resolution: {integrity: sha512-5umB9/jlWcqVS6fsrFmv5Gdnpu6wAUio/lEOwAmvB7v+lFo/IW2B9FhAD0p19GCULTgMzLCdUmuCDCnAzWgppQ==}
@@ -987,7 +992,7 @@ packages:
     resolution: {integrity: sha512-/5Fv+6DgIcM9ajY05ZmKBv+LMX1M9A0X+IUwDRVdt67ciw8OV9bvG2r34p3RiEadlsQybjhKPRKNXDC8Bp23cw==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
-      vue: ^2.7.0 || ^3.2.25
+      vue: 3.5.44
     peerDependenciesMeta:
       vue:
         optional: true
@@ -1026,7 +1031,7 @@ packages:
   '@vue/devtools-core@8.2.1':
     resolution: {integrity: sha512-s/VfAY9oDTb/kFEWmy461jaFde2MIV1RO/gi1vwM+PAZBZ/Pc2Ndu3BNBdZUze8QDUuyYvElbEEGA83syjJfzA==}
     peerDependencies:
-      vue: ^3.0.0
+      vue: 3.5.44
 
   '@vue/devtools-kit@8.2.1':
     resolution: {integrity: sha512-FIGIuq3AWReEpbAHY/cRGeHDfI0qOb8OCQ3YjbEAX04uaxIDbGc9rhkbVcG7rnfHPXE3RsU5KrWOu9V/okd8AQ==}
@@ -2012,8 +2017,8 @@ packages:
       encoding:
         optional: true
 
-  node-forge@1.4.2:
-    resolution: {integrity: sha512-rRtAR5XLJ8gCKd9du4qrKAsgCG1ObGP4gLeNJMa4vYSeq4bmBMOJk5IHkrviBV0q7uoAJlVd8HEQYQSVUb4FGQ==}
+  node-forge@1.4.3:
+    resolution: {integrity: sha512-P6wzfh6t70avmV8FrVEAd/36sOPJQ+hkaJVX1Laap9J/77m7M0eyozDvc8SwnDf4P7MP94gwbAAo0rg3YVXT+g==}
     engines: {node: '>= 6.13.0'}
 
   node-gyp-build@4.8.4:
@@ -2788,7 +2793,7 @@ packages:
     resolution: {integrity: sha512-G07az+X68rtz9ngfBxZH8vVhZ7DOnZvJABnT9nFp/TBV+qfKtGqA00djblqvvbf3VYfwLmJtoqZhFDAx8mLpNw==}
     peerDependencies:
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0-0
-      vue: ^3.5.0
+      vue: 3.5.44
 
   vite@8.3.6:
     resolution: {integrity: sha512-UI7dK29NnS54Fk+mmo7o+jI6U8Fp7hDl+X5Q1k45WH+d4dSlbLVUETGQ+hfkNgvLQGyoElPj837nZyv4MBc0VA==}
@@ -2906,7 +2911,7 @@ packages:
       '@vue/compiler-sfc': ^3.5.34 || ^4.0.0
       pinia: ^3.0.4 || ^4.0.2
       vite: ^7.3.0 || ^8.0.0
-      vue: ^3.5.34 || ^4.0.0
+      vue: 3.5.44
     peerDependenciesMeta:
       '@pinia/colada':
         optional: true
@@ -4929,7 +4934,7 @@ snapshots:
       h3: 1.15.11
       http-shutdown: 1.2.2
       jiti: 2.7.0
-      node-forge: 1.4.2
+      node-forge: 1.4.3
       pathe: 2.0.3
       std-env: 4.3.0
       tinyclip: 0.1.15
@@ -5148,7 +5153,7 @@ snapshots:
     dependencies:
       whatwg-url: 5.0.0
 
-  node-forge@1.4.2: {}
+  node-forge@1.4.3: {}
 
   node-gyp-build@4.8.4: {}
 

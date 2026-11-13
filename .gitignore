@@ -31,6 +31,7 @@ logs/
 
 # === Node.js / Nuxt / Vue (Frontend) ===
 node_modules/
+.pnpm-store/
 .nuxt/
 .output/
 dist/

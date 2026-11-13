@@ -135,6 +135,16 @@ on 2026-11-06 by upgrading Vitest to 5.1.0 and `vue-tsc` to 3.3.14. Development
 tooling is not copied into the final Nuxt runtime image, but it remains part of
 the trusted CI/build boundary and must be audited with the runtime graph.
 
+On 2026-11-13, the compatible `node-forge` patch was updated from 1.4.2 to
+1.4.3 through pnpm's supported `pnpm.overrides` field. `listhen` declares
+`node-forge: ^1.4.0`, so this preserves its upstream patch-level contract. A
+fresh production audit then reported zero critical, zero high, two moderate,
+and one low finding; it no longer reported the patched `node-forge` TLS,
+signature, or header-processing advisories. Frozen offline install, all 36
+frontend tests, typecheck, and production build passed. The remaining
+`glob`/`minimatch` and `deepmerge` findings remain release-risk decisions and
+are not suppressed by this patch.
+
 ## Preflight and rollback
 
 Before any controlled canary, render and verify the exact deployment profile:
