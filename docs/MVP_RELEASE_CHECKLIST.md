@@ -33,6 +33,9 @@ Status labels are deliberately evidence-specific:
 | Supply-chain posture | The pnpm migration recorded no critical/high production audit findings. Moderate/low transitive Nuxt/Nitro build-chain advisories remain. | Open risk decision. |
 | Target VPS capacity | Local constrained Docker evidence exists; the actual approximately 1 GiB/20 GB VPS has not been measured. | Open. |
 
+The execution procedure for the still-open host gate is
+[`P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md`](P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md).
+
 ## Release evidence gates
 
 ### 1. Candidate integrity

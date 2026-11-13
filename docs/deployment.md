@@ -26,6 +26,10 @@ VPS-sizing result. They must be replaced or confirmed only after actual-host
 peak-RSS, CPU, disk, cleanup, overload, restart, drain, and rollback evidence
 has been recorded.
 
+The future host-evidence procedure is
+`P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md`. Its existence is not evidence that an
+actual VPS has been tested.
+
 ## Delivery and Rollback
 
 1. CI builds, tests, scans, generates an SBOM/provenance, and publishes immutable images.

@@ -188,6 +188,11 @@ usage on the intended VPS under valid, boundary, malformed, overload, restart,
 drain, and disk-pressure workloads. Then set final resource limits and retain
 the measurements with the release candidate.
 
+`P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md` defines the required host inventory,
+redacted evidence, bounded workload matrix, rollback exercise, and closure
+conditions for that future gate. It is a procedure, not a claim that the host
+evidence exists today.
+
 ## Remaining release blockers
 
 1. Obtain an upstream-compatible remediation for the remaining moderate/low
