@@ -1,7 +1,10 @@
 # IMGENGINE SaaS Contract
 
-**Status:** Living contract  
-**Applies to:** Nuxt UI, Nuxt server routes, FastAPI, Redis/Celery, worker, PostgreSQL, and storage.
+**Status:** Historical legacy durable-job contract.
+**Applies to:** the retained Nuxt/FastAPI/Redis/Celery/worker/PostgreSQL/storage
+path only. It is not the contract for the synchronous Rust/Axum first-MVP path;
+use [`api.md`](api.md) and [`MVP_RELEASE_CHECKLIST.md`](MVP_RELEASE_CHECKLIST.md)
+for that path. This status notice does not retire or delete the legacy path.
 
 ## 1. Service Boundaries
 

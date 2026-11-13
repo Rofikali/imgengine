@@ -1,4 +1,4 @@
-# IMGENGINE API Contract: Rust Target
+# IMGENGINE Rust API Contract
 
 **Status:** P5, P8, and P12 synchronous Rust capabilities are implemented and
 covered by the Ubuntu 24.04 CI/Docker gates. P12 adds a separate physical-sheet

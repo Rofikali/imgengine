@@ -1,6 +1,29 @@
 # imgengine
 
-> A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a path toward a Rust-backed SaaS platform.
+## Current application path
+
+The verified synchronous, ephemeral application path is:
+
+```text
+Browser -> Nuxt server proxy -> Rust/Axum API
+        -> RequestLifecycleService -> bounded Rust admission
+        -> safe Rust FFI -> libimgengine C ABI -> C scheduler -> C engine
+        -> completed JPEG response -> cleanup
+```
+
+Implemented Rust endpoints cover basic render, FIT-only layout render, and the
+physical-sheet render slice. Rust owns authentication, validation, lifecycle,
+bounded admission, response abandonment, graceful draining, and cleanup; C
+retains native scheduling and image execution.
+
+The older FastAPI/Celery/Redis/PostgreSQL application remains in the repository
+as a legacy/rollback path. It is not the target first-MVP deployment path and
+has not been silently deleted or declared retired. See
+[`docs/api.md`](docs/api.md), [`docs/architecture.md`](docs/architecture.md),
+and [`docs/MVP_RELEASE_CHECKLIST.md`](docs/MVP_RELEASE_CHECKLIST.md) for the
+current contract, migration status, and open release gates.
+
+> A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a Rust-backed application path.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Language](https://img.shields.io/badge/core-C11-00599C.svg)](https://en.wikipedia.org/wiki/C11)
@@ -181,7 +204,11 @@ imgengine/
 
 ## Status
 
-This is an actively engineered project. Native correctness and ABI hardening are being completed before retiring the legacy application stack and moving the production orchestration layer to Rust.
+The native ABI, safe Rust FFI, Rust lifecycle/admission boundary, Axum adapter,
+and initial Nuxt server proxies are implemented and verified in Ubuntu 24.04
+Docker CI. Production readiness, actual-VPS evidence, canary operation, and
+legacy-stack retirement remain open release decisions. A passing repository or
+Docker gate is not a production-readiness claim.
 
 ## License
 

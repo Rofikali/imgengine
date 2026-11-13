@@ -8,7 +8,8 @@ This directory is the documentation source of truth. Historical notes remain use
 | --- | --- | --- |
 | [PRD](PRD.md) | Product scope, release gates, delivery loops, and backlog. | Product, engineering, operations |
 | [Engine Specification](ENGINE_SPEC.md) | Native C/assembly layout contract: size, border, crop, bleed, output, and performance boundaries. | Native engineers, bindings authors |
-| [SaaS Contract](SAAS_CONTRACT.md) | Nuxt, FastAPI, queue, worker, storage, and API behavior. | Full-stack and platform engineers |
+| [Rust API Contract](api.md) | Implemented synchronous Rust/Axum render, layout, and physical-sheet contracts. | Frontend, backend, and platform engineers |
+| [SaaS Contract (legacy)](SAAS_CONTRACT.md) | Historical FastAPI, queue, worker, storage, and durable-job contract. | Legacy-path maintainers |
 | [Engineering Playbook](ENGINEERING_PLAYBOOK.md) | How a loop moves from a requirement to verified production evidence. | All contributors |
 | [SRE Contract](SRE.md) | SLOs, alert rules, and incident response expectations. | Platform and on-call engineers |
 | [Security Operations](SECURITY_OPERATIONS.md) | Implemented controls and beta tenancy/security gates. | Security and platform engineers |
@@ -26,18 +27,17 @@ This directory is the documentation source of truth. Historical notes remain use
 | [LLD](lld.md) | Native module mappings, ownership, and call flows. | Native engineers |
 | [Design Patterns](design_patterns.md) | Pattern guidance for the native implementation. | Native engineers |
 | [v2 RFC](v2.0%20RFC.md) | Historical high-performance architecture proposal. | Architecture reference |
-| [Target Architecture](architecture.md) | Planned Rust/C/Nuxt runtime boundaries and decisions. | Architecture and platform engineers |
-| [Migration Plan](migration.md) | Audited, reversible replacement plan for the current SaaS stack. | Engineering and release owners |
+| [Architecture](architecture.md) | Implemented Rust/C/Nuxt first-MVP boundaries, retained legacy path, and open release gates. | Architecture and platform engineers |
+| [Migration Plan](migration.md) | Reversible legacy-to-Rust migration position and retirement criteria. | Engineering and release owners |
 | [Security Design](security.md) | Target security controls and migration gates. | Security and platform engineers |
 | [Threat Model](threat-model.md) | Assets, threats, mitigations, and verification. | Security and engineering |
-| [Rust API Contract](api.md) | Planned synchronous, ephemeral API behavior. | Frontend and backend engineers |
 | [Deployment Design](deployment.md) | Hardened low-cost VPS operating model. | Platform and on-call engineers |
 | [Performance Strategy](performance.md) | Native and end-to-end measurement gates. | Native and performance engineers |
 
 ## Documentation Rules
 
 1. Mark each statement as **implemented**, **planned**, or **validated** when that distinction matters.
-2. Define public behavior in a contract before implementing it in C, FastAPI, Nuxt, or a worker.
+2. Define public behavior in a contract before implementing it in C, Rust/Axum, Nuxt, FastAPI, or a worker.
 3. Update the matching contract and acceptance criteria in the same change as an externally visible behavior change.
 4. Do not advertise benchmark targets until CI produces a reproducible benchmark result.
 5. Prefer stable names and versioned payloads over undocumented path or process assumptions.
@@ -49,8 +49,8 @@ This directory is the documentation source of truth. Historical notes remain use
 - **Sheet/canvas:** the final printable output containing one or more cells.
 - **Layout job:** dimensions, grid, print-safety, color, and output parameters used to render a sheet.
 - **Job:** a durable SaaS record in the legacy asynchronous architecture; the target synchronous architecture has no durable job artifact.
-- **Control plane:** currently Nuxt/FastAPI; target Rust validation, authorization, lifecycle, and scheduling.
-- **Execution plane:** currently worker plus native engine; target Rust supervisor plus native engine processing pixels.
+- **Control plane:** implemented Rust/Axum validation, authorization, lifecycle, and bounded admission; FastAPI remains the retained legacy control plane.
+- **Execution plane:** retained C scheduler and native engine process pixels; legacy workers remain only on the retained legacy path.
 
 ## Status Legend
 

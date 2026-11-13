@@ -2,24 +2,29 @@
 
 **Status:** Execution plan. Each phase is reversible until the final retirement phase.
 
-## 1. Current Architecture and Problems
+## 1. Current Architecture and Migration Position
 
-Current production behavior remains Nuxt -> FastAPI -> PostgreSQL + Redis/Celery
--> Python worker -> C CLI, with local/S3 artifacts and 24-hour retention. The
-separate Rust P5 slice is implemented and Ubuntu-verified, but is not yet the
-production default or legacy replacement. It provides synchronous ephemeral
-JPEG/PNG-to-JPEG processing with bounded admission. The C core now has a sealed
-ABI v1 and safe Rust wrapper; its retained scheduler/execution architecture is
-not a reason to replace it in Rust.
+The verified first-MVP path is Nuxt -> Rust/Axum ->
+`RequestLifecycleService` -> bounded Rust admission -> safe Rust FFI -> C ABI
+-> retained C scheduler -> C engine. It provides synchronous, ephemeral
+JPEG/PNG-to-JPEG processing and the documented P8/P12 layout slices. It is
+validated by the repository's Ubuntu 24.04 Docker CI gates, not by an actual
+VPS deployment or public canary.
+
+The historical Nuxt -> FastAPI -> PostgreSQL + Redis/Celery -> Python worker
+-> C CLI stack remains present as a legacy/rollback path. It is not the intended
+first-MVP deployment topology, but it has not been retired. Do not claim that
+the Rust path is the default public service or that the legacy stack was
+deleted until the explicit retirement criteria in this document are met.
 
 ## 2. Technology Decision
 
 | Technology | Decision | Reason |
 | --- | --- | --- |
 | C core and CLI | Keep and harden | Proven performance path; preserve SIMD and codec investment. |
-| Rust/Axum/Tokio | Introduce | Safe control plane, ownership, cancellation, bounded process supervision. |
+| Rust/Axum/Tokio | Implemented for the first-MVP path | Safe control plane, lifecycle, bounded admission, and HTTP transport. |
 | Nuxt/Vue/TypeScript | Keep | Existing product UI and server rendering boundary. |
-| Python/FastAPI/Celery | Retire after parity | Not required for synchronous ephemeral rendering. |
+| Python/FastAPI/Celery | Retained legacy path; retire only after approved evidence | Not required for the intended synchronous ephemeral MVP path. |
 | Redis/PostgreSQL | Remove from MVP | No durable jobs/accounts/billing in the target MVP. |
 | S3/MinIO | Remove from MVP; design an adapter later | No permanent output retention. |
 | ELK/Jaeger local stack | Remove from VPS baseline | Cost and operational weight exceed the deployment target. |
@@ -28,7 +33,10 @@ not a reason to replace it in Rust.
 
 **Keep in C now:** codec integration, decode/render/encode kernels, layout math validated by existing tests, SIMD dispatch, and native benchmarks.
 
-**Move to Rust first:** CLI option parsing, HTTP validation, request lifecycle, filesystem policy, process supervision, rate/concurrency controls, logging/metrics, and a future safe opaque-handle FFI facade.
+**Implemented in Rust:** HTTP validation, request lifecycle, bounded admission,
+filesystem/workspace policy, safe error mapping, and a safe opaque-handle FFI
+facade. The current adapter calls the retained C scheduler through that FFI;
+it does not execute the C CLI as the active Rust boundary.
 
 **Evaluate later:** scheduler/queues, arena/slab ownership, RPC/VFS, and non-kernel orchestration. Migrate only with explicit ownership semantics and scalar/SIMD equivalence evidence.
 
@@ -61,9 +69,10 @@ Emit one JSON record per lifecycle event with `request_id`, `trace_id`, route, r
    characterization retains the C scheduler; reconsider it only with new
    measured evidence and a separate decision. Keep C scheduling, kernels, and
    memory ownership as the correctness/performance baseline.
-5. **Rust SaaS backend:** the narrow Axum/Tokio vertical slice is implemented
-   after native-boundary stabilization; reach contract parity and production
-   evidence before Nuxt cutover.
+5. **Rust SaaS backend:** the narrow Axum/Tokio vertical slice, same-origin
+   Nuxt proxies, and P8/P12 additive routes are implemented. Reach release-
+   scoped contract review, actual-host evidence, canary, and rollback proof
+   before calling it the public default.
 6. **Remove obsolete infrastructure:** retire FastAPI, Python workers, Celery, Redis, and job-only PostgreSQL only after the Rust route has passed its rollback window.
 7. **Nuxt modernization:** preserve Vue while upgrading the UI to a supported Nuxt 4/5 TypeScript release after backend contract parity.
 8. **Benchmark every stage:** measure native and end-to-end latency, throughput, RSS, failure handling, and bounded concurrency to establish the real $5-VPS operating envelope.
