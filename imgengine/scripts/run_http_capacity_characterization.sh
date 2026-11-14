@@ -45,7 +45,7 @@ metadata="$results_dir/environment.txt"
 { time -p env \
   LD_LIBRARY_PATH="$normal_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
   RUSTFLAGS="-L native=$normal_dir" \
-  cargo run --release --quiet --manifest-path "$source_dir/rust/imgengine-api/Cargo.toml" \
+  cargo run --release --quiet --manifest-path "$source_dir/../backend/imgengine-api/Cargo.toml" \
   --bin http_capacity_characterization -- \
   "$build_dir/workspaces" "$build_dir/fixtures/small.jpg" "$build_dir/fixtures/small.png" "$build_dir/fixtures/large.jpg" "$report"; } \
   2> "$results_dir/resources.txt"
