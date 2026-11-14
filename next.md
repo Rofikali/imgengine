@@ -121,6 +121,8 @@ The original file described print-debug cleanup, sanitizer CI, Windows PowerShel
 
 </details>
 
+**Native C/Rust contract-to-evidence handoff:** [docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) records public ABI vs internal static SDK, C/Rust ownership, P7.4/P7.5 evidence, native metrics concurrency review, resource/sandbox gaps, algorithms, and performance measurements. It is documentation, **not** an implementation or validation gate closure.
+
 ## Native C17 + Rust documentation audit (2026-11-14)
 
 **Status: DOCUMENTED / HUMAN REVIEW REQUIRED.** See [the native/Rust audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [all-81-document scope map](docs/NATIVE_C_RUST_DOCS_MAP.md). This is a **docs-only source audit**, not executed tests or permission to modify native code. Keep the relevant old evidence, statuses and local dirty worktree undisturbed.
