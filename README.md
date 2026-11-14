@@ -1,5 +1,7 @@
 # imgengine
 
+> **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `imgengine/rust/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
+
 ## Current application path
 
 The verified synchronous, ephemeral application path is:
