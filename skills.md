@@ -73,3 +73,15 @@ Keep one compact handoff report per milestone: baseline SHA, changed files, comm
 - Treat `next.md` as live state; do not duplicate the entire backlog here.
 - If a workflow becomes obsolete, mark it superseded rather than silently deleting historical intent.
 - Separate "planned", "implemented", "validated" and "production released" in every claim.
+
+## Skill 7 — Native C/Rust documentation and correctness audit
+
+Use [the dated source-backed audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [complete documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md). Restrict this recipe to the native C17 core, public `.so`/future `.a`, FFI wrapper, Rust supervisor, admission, security, observability, HLD/LLD, DSA and algorithms. Do not review browser/Wasm or frontend code when the milestone excludes them.
+
+1. Inventory actual source and tests at an exact SHA; mark every statement **implemented, verified with revision, partial, planned, legacy, historical or open risk**.
+2. Compare versioned installed headers and exported C symbols with Rust FFI and contracts. Identify ownership, allocation/release, struct sizes, error mapping, thread-safety and cancellation limitations.
+3. For security, map every untrusted-byte path, process/OS sandbox claims, aggregate memory/buffer quotas, input validation and cleanup. Do not call a suspected data race a proven exploit without concurrent reachability/test evidence.
+4. For native observability, distinguish C-level encoder/decoder/scheduler measurements from Rust admission/HTTP; document atomicity, cardinality, privacy, instrumentation overhead and deterministic timing regions.
+5. For HLD, LLD, SOLID/DRY, hexagonal/DDD and patterns, record **source-backed actual usages** rather than mandating all patterns. For queues, allocators, and image kernels state algorithmic complexity, synchronization invariants and trade-offs.
+6. For performance, separately measure tiny dispatch, kernel, prepared rendering, decode, encode, and end-to-end; keep scalar image-quality/bitwise correctness and security gates. No unverified nanosecond or 100K ops/s claim.
+7. Finish with a concise finding register: ID, status, severity, cited file, residual uncertainty, owner, next verification. Update `next.md`. For docs-only audit: Markdown links/consistency/diff only, **no manual native build**, and preserve required GitHub CI.
