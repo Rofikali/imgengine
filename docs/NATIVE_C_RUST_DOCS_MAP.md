@@ -1,5 +1,7 @@
 # IMGENGINE C/Rust Documentation Map and Status Authority
 
+> **Post-snapshot note (2026-11-14):** This map inventories **81 files at its original audit revision**, not the full current directory. After merged backend-relocation PR #37, `main` contains **89 tracked Markdown files under `docs/`** (before the added Astra start guide). Active Rust/Axum source is at top-level `backend/`; historical `imgengine/rust/` references remain correct only for their original revision. For current triage read [Astra start guide](ASTRA_ENGINEERING_START_HERE.md) and [docs index](README.md).
+
 **Audit base:** `e0f8a32044c8c2d9e68ae37299abdedaedf318a7` (2026-11-14). This maps **all 81 tracked `docs/**/*.md` files** by intended purpose and time period. A heading alone is not proof of implementation. See [native/Rust audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md).
 
 ## Reading order for C / Rust milestones
