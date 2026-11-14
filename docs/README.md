@@ -2,7 +2,7 @@
 
 This directory is the documentation source of truth. Historical notes remain useful, but a requirement is binding only when it is stated in the PRD or a linked canonical contract below.
 
-## Start Here
+The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.\n\n## Start Here
 
 | Document | Purpose | Audience |
 | --- | --- | --- |
