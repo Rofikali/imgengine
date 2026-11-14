@@ -818,7 +818,7 @@ For the native C17 and Rust implementation, the [contract-to-evidence matrix](do
 
 ## Frontend and legacy backend documentation handoff (2026-11-14)
 
-For files inside `imgengine-saas/frontend/` and `imgengine-saas/backend/`, read their **respective scoped AGENTS.md** and the [current frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). The legacy backend AGENTS.md describes Rust as a *target design* while its directory contains Python/Celery code; the current Rust code lives under `backend/` and follows native AGENTS.md. Review [skills.md](skills.md) and [next.md](next.md) for bounded testing and status. Do not confuse source presence, prior CI evidence, browser abort, or local Docker rehearsal with production security or native cancellation.
+For files inside `imgengine-saas/frontend/` and `imgengine-saas/backend/`, read their **respective scoped AGENTS.md** and the [current frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). The legacy backend AGENTS.md describes Rust as a *target design* while its directory contains Python/Celery code; the current Rust code lives under `backend/` and follows [backend AGENTS](backend/AGENTS.md) plus root policy; native C ABI rules are under [native AGENTS](imgengine/AGENTS.md). Review [skills.md](skills.md) and [next.md](next.md) for bounded testing and status. Do not confuse source presence, prior CI evidence, browser abort, or local Docker rehearsal with production security or native cancellation.
 
 ## Native C/Rust documentation audit handoff (2026-11-14)
 
