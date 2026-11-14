@@ -4,6 +4,8 @@
 **Status of implementation:** Target C17 + Rust/Axum + Nuxt already has implemented P5/P8/P12 slices; this ADR **does not** mean the legacy services have been removed or the target is publicly released.
 **Audited repository baseline:** `fee24bdff441e6ef735afaa06c024d4948fb623f`. This document makes an explicit product-stack choice; it does not contain fresh CI, capacity or deployment evidence.
 
+**Source audit:** [technology-policy consistency audit and existing Python file inventory](TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md). This source audit is dated, is documentation-only, and does not claim any legacy code or Python verification scripts have been removed.
+
 ## 1. Non-negotiable technology direction
 
 **The user's selected target is C17 for the native image-processing core, Rust for the backend and FFI, and the existing Nuxt/Vue/TypeScript frontend.** Do not propose or add a Python-based backend, queue, worker, data service, image engine, SDK integration, or new Python-based test/build tooling for this target.
