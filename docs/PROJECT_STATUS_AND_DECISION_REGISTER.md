@@ -1,6 +1,6 @@
 # IMGENGINE — Project inventory and decision register
 
-**Snapshot:** 2026-11-14, `main` at `14d1a8683f492ec2c1128a2014442cc85cd832e9`. This is a living index, not a release certificate. Status is based on repository contracts, tracked code/PRs, and recorded verification, not fresh end-to-end execution.
+**Initial snapshot:** 2026-11-14, `main` at `14d1a8683f492ec2c1128a2014442cc85cd832e9`. **Layout/status reconciliation:** `main` at `e567616975476204c9279f476c28fb74e67512bc`, after PR #37 merge (2026-11-14). This is a living index, not a release certificate. Status is based on repository contracts, tracked code/PRs, and recorded verification, not fresh end-to-end execution.
 
 ## Status vocabulary
 - **Implemented:** tracked code exists; may not have complete evidence.
@@ -44,7 +44,7 @@
 
 ## Approved technology and directory decision (2026-11-14)
 
-**ADR-TECH-001 accepted for all future product work:** C17 native core; safe Rust FFI; Rust/Axum/Tokio HTTP/backend; existing Nuxt/Vue/TypeScript frontend. No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python scripts/tooling. This is a **new-work policy**, not a claim that the retained legacy FastAPI/Celery/Redis/PostgreSQL sources or old Python verification scripts have been removed. Active Rust source is `imgengine/rust/`; the confusing `imgengine-saas/backend/` name is legacy Python only. Folder moves, code deletion and legacy retirement remain **DEFERRED** until independently authorized with dependency paths, tests, data disposition and rollback. See [technology and structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md). Future paid metadata storage is undecided and requires separate explicit approval; avoid introducing PostgreSQL by default.
+**ADR-TECH-001 accepted for all future product work:** C17 native core; safe Rust FFI; Rust/Axum/Tokio HTTP/backend; existing Nuxt/Vue/TypeScript frontend. No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python scripts/tooling. This is a **new-work policy**, not a claim that the retained legacy FastAPI/Celery/Redis/PostgreSQL sources or old Python verification scripts have been removed. Active Rust source is now top-level `backend/` after merged PR #37; `imgengine-saas/backend/` remains legacy Python only. **Legacy** folder moves, code deletion and retirement remain **DEFERRED** until independently authorized with dependency paths, tests, data disposition and rollback. See [technology and structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../backend/AGENTS.md). Future paid metadata storage is undecided and requires separate explicit approval; avoid introducing PostgreSQL by default.
 
 ## Decision log
 | ID | Decision | Reason / revisit |
@@ -61,7 +61,14 @@
 
 ## Nuxt frontend and legacy backend reconciliation (2026-11-14)
 
-See [frontend/legacy backend source audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) for per-feature source references, agent scope and open questions. **Implemented / prior recorded evidence:** Nuxt 4.6.4, typed P5/P8/P12 same-origin proxies, private server-only Rust credential, bounded multipart ingress, client preview cleanup, unit tests/build recorded Nov 2026; retained Python/FastAPI/Celery/Redis/PostgreSQL job backend source and historical backup/SRE contracts. **Partial:** interactive P13 crop transport/UI, accessibility/browser E2E evidence and overall memory budget. **Planned:** local Worker/Wasm image processing, PNG/PDF sheet output, batch, paid users/tenants. **Open:** historic production dependency advisories, browser production hardening, actual VPS capacity/TLS/canary, and legacy service security hypotheses (internal-token comparison, request-ID trust, metric endpoint reachability). Legacy Python source is not the location of the Rust backend, which lives in `imgengine/rust/`.
+See [frontend/legacy backend source audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) for per-feature source references, agent scope and open questions. **Implemented / prior recorded evidence:** Nuxt 4.6.4, typed P5/P8/P12 same-origin proxies, private server-only Rust credential, bounded multipart ingress, client preview cleanup, unit tests/build recorded Nov 2026; retained Python/FastAPI/Celery/Redis/PostgreSQL job backend source and historical backup/SRE contracts. **Partial:** interactive P13 crop transport/UI, accessibility/browser E2E evidence and overall memory budget. **Planned:** local Worker/Wasm image processing, PNG/PDF sheet output, batch, paid users/tenants. **Open:** historic production dependency advisories, browser production hardening, actual VPS capacity/TLS/canary, and legacy service security hypotheses (internal-token comparison, request-ID trust, metric endpoint reachability). Legacy Python source is not the location of the Rust backend, which now lives in top-level `backend/`.
+
+## Astra engineering handoff and structural verification
+
+- **DONE / MERGED:** Rust backend crates moved to top-level `backend/` in [PR #37](https://github.com/Rofikali/imgengine/pull/37), 7/7 CI jobs passed at exact PR head `4ab5a65fcde411fd77dde8eb36aea09dce7915c3` ([run](https://github.com/Rofikali/imgengine/actions/runs/43618598771)). This does not close P13 or P14.
+- **PARTIAL:** P13 native ABI 2.3 is implemented; Rust adapter, HTTP/proxy, accessible Nuxt UI and parity evidence remain separate milestones.
+- **OPEN / review-only first:** C observability concurrency, aggregate memory envelope, deployment isolation and current production release proof.
+- **Source of handoff:** [Astra start guide](ASTRA_ENGINEERING_START_HERE.md) defines three bounded frontend/backend/native tracks, quality gates and CA/MBA business checks. Do not convert its proposals into shipped features.
 
 ## Keeping this register current
 For each PR: update relevant status, source links, owner/decision, blockers, next action, and exact revision tested. Do not mark an item validated from an AI summary alone. Historical records remain immutable; corrections should be dated. Cross-check `docs/PRODUCT_ROADMAP_BROWSER_FIRST.md` and `docs/CHANGE_SCOPED_VERIFICATION.md`.

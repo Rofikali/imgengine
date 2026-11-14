@@ -8,6 +8,8 @@
 
 ## Authority and startup
 
+**Astra-ready navigation:** [docs/ASTRA_ENGINEERING_START_HERE.md](docs/ASTRA_ENGINEERING_START_HERE.md) defines the bounded frontend, Rust backend, and C17 native review/implementation tracks. Choose a single milestone; it is not an installed skill, a test report, or permission to introduce new services.
+
 Read, in this order:
 1. `AGENTS.md` and relevant nested `AGENTS.md` (rules and boundaries).
 2. `next.md` (current state and one active milestone).
@@ -102,7 +104,7 @@ Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND
 - If a workflow becomes obsolete, mark it superseded rather than silently deleting historical intent.
 - Separate "planned", "implemented", "validated" and "production released" in every claim.
 
-## Skill 7 — Native C/Rust documentation and correctness audit
+## Skill 9 — Native C/Rust documentation and correctness audit
 
 Use [the dated source-backed audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [complete documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md). Restrict this recipe to the native C17 core, public `.so`/future `.a`, FFI wrapper, Rust supervisor, admission, security, observability, HLD/LLD, DSA and algorithms. Do not review browser/Wasm or frontend code when the milestone excludes them.
 

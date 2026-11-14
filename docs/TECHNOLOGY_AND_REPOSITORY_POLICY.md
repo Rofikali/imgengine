@@ -30,16 +30,16 @@ Free ephemeral image processing requires no durable job database. Paid accounts,
 
 The C engine never handles customer identity, billing, tenant policy or databases. Rust owns that application policy once approved. Nuxt owns user experience and safe transport, never secret enforcement or native execution.
 
-## 3. Active source layout on the relocation PR
+## 3. Active source layout after merged PR #37
 
-The operator selected a clear physical Rust backend folder after the original documentation ADR. A separate, **unmerged source refactor** moves the **existing** Rust crates from `imgengine/rust/` to a top-level `backend/`, preserving Rust implementations and sibling Cargo path dependencies. **The change is pending all required CI/packaging/FFI validation; it is not a production or `main` release claim until merged.**
+The repository moved existing Rust crates from `imgengine/rust/` to top-level `backend/` in **merged PR [#37](https://github.com/Rofikali/imgengine/pull/37)**. Seven GitHub CI jobs passed on exact PR head `4ab5a65fcde411fd77dde8eb36aea09dce7915c3`, merged as `e567616975476204c9279f476c28fb74e67512bc`. This verifies the structural integration and tested build at that revision, **not a public production release or a measured speed increase**. For new agent tasks, read [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).
 
 ```text
 imgengine/                        # C17 native image-processing engine
   AGENTS.md                       # native safety + C ABI rules
   include/imgengine/api/          # public C ABI
   src/                            # native decoder, layout, scheduler, encoder
-backend/                          # ACTIVE RUST BACKEND (source-refactor PR)
+backend/                          # ACTIVE RUST BACKEND on main
   AGENTS.md                       # Rust/Axum/FFI safety and architecture
   Dockerfile                      # root-context native C + Rust API build
   docker-entrypoint.sh
@@ -66,12 +66,12 @@ next.md                             # task status register
 
 ## 4. Migration and safe folder policy
 
-- **Stage S0 — approved Rust-backend source move (this PR):** relocate existing Rust crate blobs intact to `backend/`, adjust Docker build context, Cargo invocation, Linux verifier, scripts, docs and CI. This is a **structural change**, not a new feature, kernel rewrite or a reason to add Python/Redis/PostgreSQL. Merge only when exact-revision required native + Rust + frontend integration gates pass, path references have been audited and any failures are fixed.
+- **Stage S0 — DONE (merged PR #37):** relocated the existing Rust crates to `backend/`, adjusted Docker/Cargo/CI/verification paths and passed all seven required CI jobs at the PR head. This was a structural change, not a new feature, kernel rewrite, production release or authorization to add Python/Redis/PostgreSQL.
 - **Stage S1 — optional subsequent cleanup:** do **not** move `imgengine-saas/backend/` automatically. It contains still-retained Python source and migrations; a future separate PR can archive or rename only after legacy-data, API parity, backup, rollback, container, CI and deployment implications are reviewed.
 - **Stage S2 — approved legacy retirement:** only after route/behavior and data-disposition parity, canary/recovery tests, rollback window and explicit human approval. Renaming a folder is not retirement.
 - **Stage S3 — paid product modules:** Rust-only application modules when needed; a separate approved durable-metadata decision, no automatic Redis/PostgreSQL/queue introduction.
 
-**No premature cleanup:** Do not remove old Python source or critical Python verification scripts in this refactor; they still serve current legacy or native/release gates. Don't rewrite them without equivalent safe test evidence. The top-level `backend/` move is an organizational choice, with **no presumed image-processing speed improvement**.
+**No premature cleanup:** Do not remove old Python source or critical Python verification scripts in future refactors; they still serve current legacy or native/release gates. Don't rewrite them without equivalent safe test evidence. The top-level `backend/` move is an organizational choice, with **no presumed image-processing speed improvement**.
 
 ## 5. Architecture and verification rules
 
@@ -104,4 +104,4 @@ next.md                             # task status register
 | Old FastAPI/Celery/Redis/PostgreSQL backend | **LEGACY PRESENT** | Read-only default; scoped security/recovery maintenance and retirement gate |
 | Python helper/build scripts in CI | **EXISTING TOOLING** | Inventory and replace by safe verified Rust/shell tools only when task justifies; no deletion now |
 | Public installable .a SDK, paid account store, new product modules | **PLANNED / NOT APPROVED IMPLEMENTATION** | Separate designs and approval |
-| Rust crates moved into top-level backend/ | **CODE MOVE UNDER REVIEW** | Exact CI/Docker/Cargo/native verifier evidence before merge |\n| Moving/retiring old Python backend | **DEFERRED** | Separate approved migration/rollback/data-retention gate |
+| Rust crates moved into top-level backend/ | **DONE / MERGED**, 7/7 CI at PR #37 head | Preserve paths and exact-version verification in subsequent changes |\n| Moving/retiring old Python backend | **DEFERRED** | Separate approved migration/rollback/data-retention gate |

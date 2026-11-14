@@ -4,6 +4,8 @@
 
 > **Binding backend selection (2026-11-14):** The only approved **new IMGENGINE API/backend** is Rust/Axum under `backend/`, with safe FFI to C17. **Never** introduce or route a new frontend feature through Python/FastAPI, Django/DRF, Flask, Celery, Redis or PostgreSQL; the older backend is retained solely for authorized legacy maintenance/rollback. The existing Nuxt server-side proxy is a credential-protecting browser adapter, **not** permission to build a second independent backend. See [approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [Rust-scoped AGENTS](../../backend/AGENTS.md), current [API contract](../../docs/api.md) and [next queue](../../next.md).
 
+> **Astra frontend start:** Follow [three-track engineering handoff, Track B](../../docs/ASTRA_ENGINEERING_START_HERE.md). Do **not** begin implementing interactive P13 drag/zoom against invented HTTP fields; first review/freeze the Rust/Axum M1.1 contract. Keep P12 centered-fill behavior and same-origin server-only credentials, test keyboard/touch/mobile and preview cleanup, and update `next.md` with exact evidence.
+
 ## 1. Scope
 
 These instructions apply to `imgengine-saas/frontend` and supplement the repository-level `AGENTS.md`.

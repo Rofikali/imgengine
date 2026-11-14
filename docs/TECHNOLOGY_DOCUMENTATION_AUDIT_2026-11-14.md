@@ -2,7 +2,7 @@
 
 **Basis:** tracked `main` at `fee24bdff441e6ef735afaa06c024d4948fb623f`. **Audit type:** static GitHub source/document inventory; this PR changes Markdown policy only, with no compiled code, runtime settings, CI or migration. Findings are limited to reviewed repository content and are not a full dependency-license or runtime verification.
 
-> **Subsequent source-layout update (draft refactor):** The original audit's `imgengine/rust/` source paths describe the **2026-11-14 baseline** and remain correct at that historical revision. A separate branch moves those Rust crates to top-level `backend/` with updated Cargo/CI/Docker paths. Until required checks pass and that PR merges, this is **not a verified change on main**. See [living technology decision](TECHNOLOGY_AND_REPOSITORY_POLICY.md).
+> **Post-audit reconciliation, 2026-11-14:** The original audit's `imgengine/rust/` paths below remain historically correct at its original SHA. **Merged PR [#37](https://github.com/Rofikali/imgengine/pull/37)** moved the active Rust crates to top-level `backend/`, with [7/7 CI at the tested PR head](https://github.com/Rofikali/imgengine/actions/runs/43618598771). Historical source-path observations below were not rewritten. For current work use [technology ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Astra handoff](ASTRA_ENGINEERING_START_HERE.md).
 
 ## Decision
 

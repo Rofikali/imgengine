@@ -1,6 +1,8 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
-#> **Binding product-stack decision (2026-11-14):** For **all new IMGENGINE product/backend development**, use **C17 native core + Rust/Tokio/Axum HTTP/application layer + safe C FFI + existing Nuxt/Vue/TypeScript frontend**. **No new Python, FastAPI, Django/DRF, Flask, Celery, Redis, PostgreSQL, or Python-based tooling** for the target architecture; do not substitute a new queue/database automatically. Existing legacy Python/services and Python verification scripts remain temporarily only for safe maintenance and migration. **Changing this decision requires the user's explicit approval and a new ADR.** See [approved technology and repository structure](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](backend/AGENTS.md). A new Rust service belongs under `backend/`, not the legacy `imgengine-saas/backend/` tree.
+> **Binding product-stack decision (2026-11-14):** For **all new IMGENGINE product/backend development**, use **C17 native core + Rust/Tokio/Axum HTTP/application layer + safe C FFI + existing Nuxt/Vue/TypeScript frontend**. **No new Python, FastAPI, Django/DRF, Flask, Celery, Redis, PostgreSQL, or Python-based tooling** for the target architecture; do not substitute a new queue/database automatically. Existing legacy Python/services and Python verification scripts remain temporarily only for safe maintenance and migration. **Changing this decision requires the user's explicit approval and a new ADR.** See [approved technology and repository structure](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](backend/AGENTS.md). A new Rust service belongs under `backend/`, not the legacy `imgengine-saas/backend/` tree.
+
+> **Current repository-status checkpoint (2026-11-14):** The Rust backend migration [PR #37](https://github.com/Rofikali/imgengine/pull/37) is **merged** and [7/7 CI checks passed](https://github.com/Rofikali/imgengine/actions/runs/43618598771) at its PR-head revision. C17 remains in `imgengine/`, Rust/Axum in `backend/`, Nuxt in `imgengine-saas/frontend/`, and Python backend in retained legacy `imgengine-saas/backend/`. Previous “complete/validated” milestone claims are scoped to their dated test evidence, **not blanket production/security approval**. Begin bounded Astra work from [the engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) and [next.md](next.md); do not assume P13 crop or P14 VPS release is finished.
 
 # 1. Purpose
 
@@ -34,7 +36,7 @@ The goal is:
 The proven architecture and implemented first-slice transport boundary are:
 
 ```
-Nuxt 4/5 + Vue + TypeScript
+Nuxt 4 + Vue + TypeScript (P5/P8/P12 current)
                 |
                 v
 Rust HTTP/application layer (implemented P5 Axum adapter; production not claimed)
@@ -58,7 +60,7 @@ Rust HTTP/application layer (implemented P5 Axum adapter; production not claimed
                 +--> TurboJPEG
                 +--> decoding
                 +--> layout/rendering
-                +--> JPEG/PDF encoding
+                +--> JPEG output; PDF encoder remains internal/not public P12
 ```
 
 The C scheduler and C engine remain the performance-critical execution plane.
@@ -172,7 +174,7 @@ HTTP.
 Implemented: the smallest authenticated Axum adapter around the lifecycle
 contract, with P6 transport/limit evidence. Planned: production-service
 evidence and contract expansion, legacy retirement after a rollback window,
-Nuxt modernization, and measured production economics/scale. Do not mark those
+P13 accessible crop completion, and measured production economics/scale. Do not mark those
 planned phases as implemented merely because the first vertical slice exists.
 
 ---
@@ -480,11 +482,7 @@ For production-impacting work, Definition of Done normally includes:
 
 # 13. Git Policy
 
-Current repository branch:
-
-```
-codex/fix-saas-candidate-fixtures
-```
+The current branch is **not fixed by this document**. Inspect `git status -sb`, current HEAD SHA, worktree cleanliness, remotes and open PRs before making changes.
 
 Remote:
 
@@ -678,7 +676,7 @@ Scale architecture should be designed intelligently, but infrastructure should b
 
 # 20. Documentation Rules
 
-Canonical product/engineering behavior belongs in `docs/`.
+Canonical product/engineering behavior belongs in `docs/`. Read [the Astra start guide](docs/ASTRA_ENGINEERING_START_HERE.md) for the current three-track frontend/Rust/C17 source/contract/test handoff. Legacy `docs/PRD.md`, `docs/SAAS_CONTRACT.md`, `docs/OBSERVABILITY.md`, and `docs/RELEASE_CHECKLIST.md` belong to the older asynchronous Python product generation; the current Rust/Nuxt first-MVP follows versioned [API](docs/api.md), [P12](docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](docs/P13_INTERACTIVE_CROP_CONTRACT.md) and [release checklist](docs/MVP_RELEASE_CHECKLIST.md).
 
 Important documentation currently includes:
 

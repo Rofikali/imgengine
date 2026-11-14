@@ -4,7 +4,7 @@ This directory contains current contracts, dated evidence, proposed designs, and
 
 The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.
 
-For concrete C17/Rust subsystem ownership, HLD/LLD contracts, security and observability boundaries, DSA/patterns, open risks and measurement requirements, use the [Native/Rust Contract-to-Evidence Matrix](NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md). It supplements the existing [81-file map](NATIVE_C_RUST_DOCS_MAP.md) and [audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md); no new code/test result is claimed.
+For concrete C17/Rust subsystem ownership, HLD/LLD contracts, security and observability boundaries, DSA/patterns, open risks and measurement requirements, use the [Native/Rust Contract-to-Evidence Matrix](NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md). The [81-file map](NATIVE_C_RUST_DOCS_MAP.md) and [dated audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) preserve their *original snapshot*; the audited pre-Astra `main` snapshot had **89 Markdown files under `docs/`**, and this documentation branch adds the 90th, the Astra start guide. Those historical counts must not be reused as an up-to-date total.
 
 For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Frontend and Legacy Backend Audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). This is the source-aligned state/authority guide for the two scoped [frontend AGENTS](../imgengine-saas/frontend/AGENTS.md) and [legacy backend AGENTS](../imgengine-saas/backend/AGENTS.md), not a production release certificate.
 
@@ -14,15 +14,17 @@ The root [living next-action dashboard](../next.md) now includes cross-workstrea
 
 For the **source-backed policy reconciliation and exact inventory of existing Python-related files**, consult [Technology Documentation Audit (2026-11-14)](TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md). It distinguishes a binding no-new-Python/Rust-only decision from the retained legacy Python code and verification scripts.
 
-**Rust backend relocation (draft, pending CI):** [Rust Backend Directory Migration](RUST_BACKEND_DIRECTORY_MIGRATION.md) documents the move of Rust/Axum, FFI and supervisor crates to top-level `backend/`, required Docker/Cargo/CI migration checks and rollback. Native C17 remains under `imgengine/`; the Python code under `imgengine-saas/backend/` remains legacy and untouched. Treat this as a reviewable code-layout change, not a shipped feature or production release.
+**Rust backend relocation complete (PR #37):** [Rust Backend Directory Migration](RUST_BACKEND_DIRECTORY_MIGRATION.md) records the move of Rust/Axum, FFI and supervisor crates to top-level `backend/`, verified by [7 passing GitHub CI jobs](https://github.com/Rofikali/imgengine/actions/runs/43618598771). Native C17 remains in `imgengine/`; Python in `imgengine-saas/backend/` remains legacy. This is **not** a public production release.
 
 ## Start Here
+
+**For an AI coding/review agent such as Astra, start with [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).** It defines source-backed scope, three bounded C17/Rust/Nuxt tracks, P13 sequencing, security and performance gates, and business review criteria.
 
 | Document | Purpose | Audience |
 | --- | --- | --- |
 | [Frontend and Legacy Backend Audit (2026-11-14)](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) | Implemented Nuxt P5/P8/P12, incomplete crop/production, retained FastAPI/Celery, security/operations gaps and agent scopes. | Frontend, legacy/backend, security, product owners |
 | [Native C/Rust Documentation Audit (2026-11-14)](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) | Source-backed security, observability, HLD/LLD, FFI, performance and documentation conflicts with status/evidence. | Native C and Rust reviewers |
-| [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) | All 81 docs indexed by current, historical, legacy, target and excluded scope. | All contributors |
+| [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) | Original dated 81-document classification; historical snapshot rather than the complete current index. | All contributors |
 | [Project Status & Decision Register](PROJECT_STATUS_AND_DECISION_REGISTER.md) | Living inventory of implemented, partial, deferred, legacy and blocked work, with evidence and decisions. | All contributors |
 | [Browser-First Product Roadmap](PRODUCT_ROADMAP_BROWSER_FIRST.md) | Proposed image-tool routes, Rust/Wasm milestones, free/paid features, and business gates. | Product, architecture, engineering |
 | [Change-Scoped Verification](CHANGE_SCOPED_VERIFICATION.md) | Fast developer-loop testing and AI token/time budget policy without weakening release gates. | All contributors, CI owners |

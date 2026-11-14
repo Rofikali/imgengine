@@ -4,6 +4,8 @@
 
 > **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `backend/` and follow [root AGENTS.md](../../AGENTS.md) + [Rust backend AGENTS.md](../../backend/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
 
+> **Astra legacy scope:** For active Rust work use [top-level Rust backend AGENTS](../../backend/AGENTS.md) and [three-track start guide](../../docs/ASTRA_ENGINEERING_START_HERE.md). Do **not** select any historical FastAPI/Celery/PostgreSQL architecture sections below as new implementation tasks. This legacy directory may receive only explicitly approved security/retirement/rollback maintenance.
+
 ## 1. Scope
 
 These instructions apply to:

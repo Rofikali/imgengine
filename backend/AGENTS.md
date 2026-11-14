@@ -2,6 +2,8 @@
 
 **Scope:** top-level `backend/` and its descendants. This file supplements [root AGENTS](../AGENTS.md) and [native C/FFI AGENTS](../imgengine/AGENTS.md). On conflict, preserve stronger security and ABI invariants; consult the [approved technology and structure ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md).
 
+> **Astra start / status:** For Rust interface review or M1.1 P13 crop transport, start with [three-track engineering handoff](../docs/ASTRA_ENGINEERING_START_HERE.md) and [P13 contract](../docs/P13_INTERACTIVE_CROP_CONTRACT.md). The folder move is **merged/7-of-7 CI verified** by PR #37; P13 Rust integration, paid tenancy, native cancellation and public release are **not complete**. Read the checked-out source and exact SHA before implementing; update `next.md` only after relevant tests.
+
 ## 1. Approved backend: Rust, not Python
 
 **All NEW backend services, HTTP APIs, application logic, workers, supervisor code, integrations and related test utilities must use Rust** (primarily Tokio/Axum where applicable). Do **not** add Python, FastAPI, Flask, Django/DRF, Celery, Redis, PostgreSQL, or other Python/broker/DB dependencies as shortcuts. No new Python scripts/tools. Existing Python code and some historical verification scripts elsewhere in the repository are **legacy/existing**, not part of this directory's implementation mandate. Maintenance or retirement of those files is a separate approved change; this policy does not claim they have been removed.
