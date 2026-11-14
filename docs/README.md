@@ -24,7 +24,7 @@ For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Fronte
 | [Local Docker Rehearsal](LOCAL_DOCKER_REHEARSAL.md) | Local P12 candidate rehearsal and its explicit evidence limits. | Developers and release owners |
 | [SaaS Contract (legacy)](SAAS_CONTRACT.md) | Historical FastAPI, queue, worker, storage, and durable-job contract. | Legacy-path maintainers |
 | [Engineering Playbook](ENGINEERING_PLAYBOOK.md) | How a loop moves from a requirement to verified production evidence. | All contributors |
-| [SRE Contract](SRE.md) | SLOs, alert rules, and incident response expectations. | Platform and on-call engineers |
+| [SRE Contract (legacy durable jobs)](SRE.md) | Retained FastAPI/Celery job/queue objectives and incident rules; not Rust MVP SLO evidence. | Platform and on-call engineers |
 | [Security Operations](SECURITY_OPERATIONS.md) | Implemented controls and beta tenancy/security gates. | Security and platform engineers |
 | [Release Checklist](RELEASE_CHECKLIST.md) | Required verification evidence and rollout governance. | Release owners |
 | [Database Recovery](DATABASE_RECOVERY.md) | Verified local PostgreSQL backup, restore, and recovery boundaries. | Platform and on-call engineers |
