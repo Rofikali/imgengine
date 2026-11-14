@@ -1,5 +1,7 @@
 # IMGENGINE native C17 / Rust: contract-to-evidence and engineering review matrix
 
+> **Post-merge scope note:** The 81-file number here refers to the original dated audit, not the present 89-file pre-Astra snapshot. Rust crates moved to top-level `backend/` in merged PR #37; C source stayed under `imgengine/`. This source/evidence matrix remains a dated design review, not a newly executed source or security verification. Use the current [Astra handoff](ASTRA_ENGINEERING_START_HERE.md).
+
 **Status:** Documentation-only reconciliation of the current source and existing documentation. **Baseline:** main at 2a92166006e0160df0503319176a6b29b28e183d, 2026-11-14. **No builds/tests performed for this report.** This matrix supplements, and does not replace, the already-merged [81-file documentation map](NATIVE_C_RUST_DOCS_MAP.md) and [dated findings register](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md).
 
 **Scope:** C17 core; shared/static library packaging; Rust safe FFI, Rust admission/lifecycle and Axum; native security, architecture, observability, data structures, algorithms, and performance. No frontend, browser Wasm, migration execution or implementation change.
