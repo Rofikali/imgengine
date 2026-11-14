@@ -1,5 +1,7 @@
 # High-Level Design (HLD) — imgengine (Production-ready)
 
+> **Status: historical v2.0 RFC architecture/targets; not a production-readiness certificate.** This document's title and performance figures describe intended design, not universal results. Current C ABI/Rust boundaries are in [ABI.md](ABI.md), [architecture.md](architecture.md), [RUST_FFI.md](RUST_FFI.md), and [NATIVE_C_RUST_DOCS_MAP.md](NATIVE_C_RUST_DOCS_MAP.md). Benchmark claims require [NATIVE_BENCHMARKING.md](NATIVE_BENCHMARKING.md) evidence. 
+
 This HLD captures the v2.0 RFC's intent and translates it into a concrete, reviewable architecture suitable for a kernel-grade, deterministic execution engine. It is meant to be the authoritative reference for system-level decisions, runtime constraints, and production policies.
 
 ## 0. System Definition (one line)
