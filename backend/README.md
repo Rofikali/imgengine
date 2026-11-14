@@ -1,6 +1,6 @@
 # IMGENGINE Rust backend
 
-**Status:** directory layout change in [migration review](../docs/RUST_BACKEND_DIRECTORY_MIGRATION.md). This is the active **Rust/Tokio/Axum backend** source tree. It does **not** contain or depend on the retained Python/FastAPI service in `imgengine-saas/backend/`.
+**Status:** active Rust/Tokio/Axum backend in top-level `backend/`, relocated by [merged PR #37](https://github.com/Rofikali/imgengine/pull/37) with [7/7 GitHub CI jobs passed](https://github.com/Rofikali/imgengine/actions/runs/43618598771) on its reviewed head. See [migration history](../docs/RUST_BACKEND_DIRECTORY_MIGRATION.md). This is the active **Rust/Tokio/Axum backend** source tree. It does **not** contain or depend on the retained Python/FastAPI service in `imgengine-saas/backend/`.
 
 ## Crates
 
@@ -39,8 +39,8 @@ docker build --file backend/Dockerfile --tag imgengine-rust-api:layout-check .
 
 For local Rust tests, build or obtain the **already validated compatible native `libimgengine.so`** and set `LD_LIBRARY_PATH` and `RUSTFLAGS=-L native=...` before running a crate's `cargo test --manifest-path backend/.../Cargo.toml`. The repository's [Linux native verifier](../imgengine/scripts/verify_linux.sh) demonstrates the required native/FFI environment and the comprehensive release gates. Do not manually rerun that complete C sanitizer/fuzz matrix on ordinary isolated Rust API documentation or frontend-only work.
 
-The Docker build and full CI must pass on this exact PR head before merge; historical tests of the old source layout do not validate a relocation. The [P14 real-host deployment gate](../docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md) is still open.
+The relocation PR's seven required CI checks passed at head `4ab5a65fcde411fd77dde8eb36aea09dce7915c3`. Future Rust/C or deployment changes require their **own** exact-head tests; the prior result is not a permanent safety guarantee. The [P14 real-host deployment gate](../docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md) is still open.
 
 ## Migration/rollback
 
-The old `imgengine/rust/` source path is removed from this feature branch. External tooling must update manifest and Docker paths, not duplicate crates into both directories. [Migration contract](../docs/RUST_BACKEND_DIRECTORY_MIGRATION.md) lists all changed integration points and rollback gates. The old Python backend and its persistent data are **unchanged**.
+The old `imgengine/rust/` source path was removed from `main` by merged PR #37. External tooling must update manifest and Docker paths, not duplicate crates into both directories. [Migration contract](../docs/RUST_BACKEND_DIRECTORY_MIGRATION.md) lists all changed integration points and rollback gates. The old Python backend and its persistent data are **unchanged**.
