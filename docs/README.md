@@ -26,7 +26,7 @@ For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Fronte
 | [Engineering Playbook](ENGINEERING_PLAYBOOK.md) | How a loop moves from a requirement to verified production evidence. | All contributors |
 | [SRE Contract (legacy durable jobs)](SRE.md) | Retained FastAPI/Celery job/queue objectives and incident rules; not Rust MVP SLO evidence. | Platform and on-call engineers |
 | [Security Operations (legacy controls)](SECURITY_OPERATIONS.md) | Legacy durable-job API-key/job-ownership controls and future tenancy gates; not implemented Rust paid tenancy. | Security and platform engineers |
-| [Release Checklist](RELEASE_CHECKLIST.md) | Required verification evidence and rollout governance. | Release owners |
+| [Release Checklist (legacy durable-job)](RELEASE_CHECKLIST.md) | Historical asynchronous release governance; Rust physical-sheet release uses MVP_RELEASE_CHECKLIST.md. | Release owners |
 | [Database Recovery (legacy)](DATABASE_RECOVERY.md) | Retained PostgreSQL durable-job backup/restore; not a dependency of the Rust ephemeral MVP. | Platform and on-call engineers |
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
 | [Native Benchmarking](NATIVE_BENCHMARKING.md) | Reproducible native performance measurement contract and evidence policy. | Native and performance engineers |
