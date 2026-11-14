@@ -45,8 +45,8 @@ services:
   rust-api:
     image: ${IMGENGINE_RUST_API_IMAGE:-imgengine/rust-api:dev}
     build:
-      context: ../../imgengine
-      dockerfile: rust/Dockerfile
+      context: ../..
+      dockerfile: backend/Dockerfile
     restart: unless-stopped
     ports:
       - "127.0.0.1:8001:8000"
