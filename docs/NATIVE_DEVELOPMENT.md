@@ -4,6 +4,12 @@
 
 Ubuntu Linux is the authoritative native-engine development and CI target. The GitHub Actions workflow installs dependencies, configures CMake with Ninja, builds, runs CTest, executes CLI help, runs the progressive-JPEG regression, and checks the public ABI.
 
+The shipping native-core and public-ABI baseline is strict ISO C17 with
+extensions disabled. C23 is not accepted in public headers or the portable
+production core. The verifier retains a C11 whole-core compatibility
+regression and a C11 installed-public-consumer check; these preserve
+compatibility evidence but do not lower the release baseline.
+
 Install prerequisites:
 
 ```bash
@@ -27,6 +33,17 @@ cmake --build imgengine/build/dev --target regression_progressive
 cmake --build imgengine/build/dev --target regression_geometry
 cmake --build imgengine/build/dev --target regression_security
 IMGENGINE_BUILD_DIR="$PWD/imgengine/build/dev" python3 imgengine/scripts/check_exported_symbols.py
+```
+
+Run the non-shipping C11 compatibility regression when changing native
+language features, public headers, or CMake language settings:
+
+```bash
+cmake -S imgengine -B imgengine/build/c11-compat -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DIMGENGINE_LTO=OFF -DIMGENGINE_BENCH=OFF \
+  -DIMGENGINE_C11_COMPATIBILITY=ON
+cmake --build imgengine/build/c11-compat --parallel
+ctest --test-dir imgengine/build/c11-compat --output-on-failure
 ```
 
 Build the production portable baseline (no optional SIMD objects) and compare it with optimized output:
