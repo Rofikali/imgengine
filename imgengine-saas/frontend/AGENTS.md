@@ -2,6 +2,8 @@
 
 > **Current frontend status and authority (2026-11-14):** This directory contains the implemented Nuxt 4.6.4/Vue 3.5.44 TypeScript frontend, typed P5/P8/P12 render workflows, and three same-origin server proxies. This is **not** a claim of public release, complete accessibility/browser-E2E coverage, user-selected P13 crop, browser-local Wasm, PDF export, tenants, or billing. Consult [source-based frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [Rust API contract](../../docs/api.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md), [next.md](../../next.md), and [optional skills.md](../../skills.md). Current source and versioned contracts take precedence over historical P7.0 design descriptions.
 
+> **Binding backend selection (2026-11-14):** The only approved **new IMGENGINE API/backend** is Rust/Axum under `imgengine/rust/`, with safe FFI to C17. **Never** introduce or route a new frontend feature through Python/FastAPI, Django/DRF, Flask, Celery, Redis or PostgreSQL; the older backend is retained solely for authorized legacy maintenance/rollback. The existing Nuxt server-side proxy is a credential-protecting browser adapter, **not** permission to build a second independent backend. See [approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [Rust-scoped AGENTS](../../imgengine/rust/AGENTS.md), current [API contract](../../docs/api.md) and [next queue](../../next.md).
+
 ## 1. Scope
 
 These instructions apply to `imgengine-saas/frontend` and supplement the repository-level `AGENTS.md`.
