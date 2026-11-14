@@ -6,7 +6,7 @@ backend migration.
 
 ## Scope
 
-`imgengine/rust/imgengine` is the only Rust crate that declares or invokes the
+`backend/imgengine` is the only Rust crate that declares or invokes the
 `libimgengine` ABI v1 symbols. Its private `sys` module contains every
 `extern "C"` declaration, raw pointer operation, and `unsafe` block. Consumers
 use only the safe public API:
