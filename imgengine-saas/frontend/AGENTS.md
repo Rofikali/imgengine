@@ -163,6 +163,16 @@ Before adding a package, document:
 
 Do not add a state-management library, UI framework, upload library, or HTTP abstraction merely for convenience.
 
+### Current frontend security and performance boundaries
+
+- Three Nuxt server routes perform bounded multipart parsing, private credential forwarding, and safe error mapping; they are *similar but not interchangeable*. Preserve each P5/P8/P12 contract and test before considering any DRY refactor.
+- Client-side AbortController and temporary object-URL release are **not native C cancellation**. The Rust request lifecycle may finish native work after a browser disconnect.
+- Never interpret a server-to-server shared API key as end-user authentication, tenant isolation, or paid quota enforcement.
+- User-controlled crop remains a separate M1 feature; do not invent a P13 browser-to-Rust crop field before the backend contract is implemented and validated.
+- Browser-local image processing, when later approved, must not upload original image bytes or silently switch to server processing. Worker/Wasm remains **planned**.
+- Frontend-only implementation should run focused Vitest/typecheck/build and relevant browser/a11y tests; do **not** manually rebuild the native C core or run its full sanitizer/fuzz suite unless a native/shared boundary changed. Required GitHub CI and release checks remain mandatory.
+- Track dependency-audit findings and review Nuxt devtools behavior in production. Previous P14 dependency results are dated evidence, not a fresh vulnerability scan.
+
 ## 11. Testing
 
 Frontend changes should use layered verification appropriate to the change:
