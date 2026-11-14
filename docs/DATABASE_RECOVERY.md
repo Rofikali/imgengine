@@ -1,5 +1,7 @@
 # IMGENGINE Database Recovery
 
+> **Legacy-only scope (2026-11-14):** These backup and restore procedures govern the retained PostgreSQL-backed durable-job architecture. The current Rust/Axum P12 synchronous, ephemeral first-MVP does not depend on this job database. This document is **not** a production Rust backup, recovery, or deployment approval. See [frontend and legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](SAAS_CONTRACT.md), and [Rust architecture](architecture.md).
+
 **Status:** implemented for the single-node Docker deployment. PostgreSQL state is held in the named `postgres-data` volume; it survives container recreation but not `docker compose down -v`.
 
 ## Backup
