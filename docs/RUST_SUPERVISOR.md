@@ -6,7 +6,7 @@ backend, or legacy worker.
 
 ## Purpose
 
-`imgengine/rust/imgengine-supervisor` is a synchronous control-plane component
+`backend/imgengine-supervisor` is a synchronous control-plane component
 that owns exactly one safe `imgengine::Engine`. It established lifecycle rules
 used by bounded admission and the transport-neutral request lifecycle. The
 narrow P5 Axum adapter consumes this boundary; neither component authorizes
