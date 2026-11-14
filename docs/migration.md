@@ -1,6 +1,6 @@
 # IMGENGINE Rust/C/Nuxt Migration Plan
 
-**Status:** Execution plan. Each phase is reversible until the final retirement phase.
+**Status:** Execution plan. Each phase is reversible until the final retirement phase. **Binding stack decision (2026-11-14):** all NEW backend and orchestration work is Rust/Axum, not Python/FastAPI/Django/DRF/Flask, Celery, Redis or PostgreSQL. This applies beyond the first MVP; the legacy stack remains only until safely retired. Do not add new Python scripts to the target engineering path. See [approved technology/structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md).
 
 ## 1. Current Architecture and Migration Position
 
@@ -25,7 +25,7 @@ deleted until the explicit retirement criteria in this document are met.
 | Rust/Axum/Tokio | Implemented for the first-MVP path | Safe control plane, lifecycle, bounded admission, and HTTP transport. |
 | Nuxt/Vue/TypeScript | Keep | Existing product UI and server rendering boundary. |
 | Python/FastAPI/Celery | Retained legacy path; retire only after approved evidence | Not required for the intended synchronous ephemeral MVP path. |
-| Redis/PostgreSQL | Remove from MVP | No durable jobs/accounts/billing in the target MVP. |
+| Redis/PostgreSQL | **Explicitly excluded from all NEW target architecture**, not just MVP | Existing broker/database belong to legacy only; future account/billing metadata requires a separate user-approved storage design that does not silently reintroduce them. |
 | S3/MinIO | Remove from MVP; design an adapter later | No permanent output retention. |
 | ELK/Jaeger local stack | Remove from VPS baseline | Cost and operational weight exceed the deployment target. |
 

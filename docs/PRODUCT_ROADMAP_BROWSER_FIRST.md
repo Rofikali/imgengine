@@ -11,7 +11,7 @@ A privacy-first, image-only workstation for students, photo studios, printing sh
 - Server: existing Rust/Axum admission/lifecycle -> safe C FFI -> C17 native scheduler/engine; no scheduler rewrite.
 - Keep native and browser behavior linked through versioned geometry, rounding, orientation, color, dimensions, and output fixtures. Pixel-perfect encoder bytes may differ across codecs; define acceptable parity explicitly.
 - Privacy: never transmit image bytes by default for a browser-local operation. Ask consent before any server fallback; redact telemetry. Do not persist private images or ID documents by default.
-- No Python runtime in the target new product path; legacy code remains until separately retired.
+- **Binding technology decision:** no new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python-based build/test tooling in the target product, including later paid tiers. Existing legacy Python services/scripts remain until separately retired/replaced with verified parity. See [technology policy and folder ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md).
 
 ## Dependency-ordered milestones
 | Stage | Scope | Exit evidence | Status |

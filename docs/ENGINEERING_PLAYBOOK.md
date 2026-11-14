@@ -39,6 +39,8 @@ Before modifying a subsystem, answer:
 - Test scalar fallback and any SIMD leaf independently.
 - Run sanitizer, ABI, regression, and benchmark gates on the supported Linux toolchain.
 
+> **Target-product scope rule (2026-11-14):** Only the accepted **Rust/Axum** backend may receive new product features. Any Pydantic, Python worker, Redis/PostgreSQL, Celery or database-migration instructions below apply **solely to retained legacy work**, not the new product. The new Rust feature loop is contract → focused Rust tests → safe FFI/native gates if affected → evidence → `next.md` update. See [approved stack ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](../imgengine/rust/AGENTS.md). No new Python tooling.
+
 ## 4. SaaS Change Checklist
 
 - Define Pydantic request/response schemas before route logic.

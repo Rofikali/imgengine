@@ -1,8 +1,10 @@
 # IMGENGINE Product Requirements Document
 
+> **New-product technology policy (2026-11-14):** The active/current IMGENGINE backend uses Rust/Axum; future backend work must **not** use Python/FastAPI, Django/DRF, Flask, Celery, Redis or PostgreSQL. All older instructions below about durable jobs, SQL tables, and Python workers are historical legacy requirements, **not a target backlog**. See [approved technology ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md), [Rust API](api.md) and [product roadmap](PRODUCT_ROADMAP_BROWSER_FIRST.md).
+
 > **Scope clarification (2026-11-14):** This August 2026 PRD describes the **legacy asynchronous durable-job SaaS**, including FastAPI/Celery/Redis/PostgreSQL. Preserve its historical requirements for that retained path; it is **not** the authoritative contract for the newer synchronous ephemeral Rust/Axum first-MVP. For that scope use [api.md](api.md), [architecture.md](architecture.md), [MVP_RELEASE_CHECKLIST.md](MVP_RELEASE_CHECKLIST.md), and [NATIVE_C_RUST_DOCS_MAP.md](NATIVE_C_RUST_DOCS_MAP.md). 
 
-**Status:** Living document  
+**Status:** HISTORICAL / LEGACY-ONLY requirements snapshot (not the living target PRD)  
 **Owner:** Product and Engineering  
 **Last updated:** 2026-08-17
 **Delivery model:** Thin vertical slices; every loop ends with an observable user outcome and automated evidence.

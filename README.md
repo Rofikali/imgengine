@@ -1,5 +1,7 @@
 # imgengine
 
+> **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `imgengine/rust/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
+
 ## Current application path
 
 The verified synchronous, ephemeral application path is:
@@ -31,7 +33,7 @@ It is local integration evidence only, not actual-VPS or production evidence.
 
 > A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a Rust-backed application path.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+**License/provenance:** No root `LICENSE` file was present in the audited Git tree. The earlier MIT badge was removed pending an explicit, owner-approved license and third-party provenance decision; this statement grants no license. See [project status](docs/PROJECT_STATUS_AND_DECISION_REGISTER.md).
 [![Language](https://img.shields.io/badge/core-C17-00599C.svg)](https://en.wikipedia.org/wiki/C17_(C_standard_revision))
 [![Build](https://img.shields.io/badge/build-CMake-064F8C.svg)](https://cmake.org/)
 [![Focus](https://img.shields.io/badge/focus-systems%20%2B%20image%20processing-111827.svg)](#)

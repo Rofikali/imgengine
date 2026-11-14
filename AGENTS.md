@@ -1,6 +1,8 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
-## 1. Purpose
+#> **Binding product-stack decision (2026-11-14):** For **all new IMGENGINE product/backend development**, use **C17 native core + Rust/Tokio/Axum HTTP/application layer + safe C FFI + existing Nuxt/Vue/TypeScript frontend**. **No new Python, FastAPI, Django/DRF, Flask, Celery, Redis, PostgreSQL, or Python-based tooling** for the target architecture; do not substitute a new queue/database automatically. Existing legacy Python/services and Python verification scripts remain temporarily only for safe maintenance and migration. **Changing this decision requires the user's explicit approval and a new ADR.** See [approved technology and repository structure](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](imgengine/rust/AGENTS.md). A new Rust service belongs under `imgengine/rust/`, not the legacy `imgengine-saas/backend/` tree.
+
+# 1. Purpose
 
 This file defines the global engineering rules for the IMGENGINE repository.
 
@@ -91,12 +93,12 @@ The following are legacy technologies and must not be reintroduced into the targ
 * FastAPI
 * Celery
 * Redis
-* PostgreSQL for job-only persistence
+* PostgreSQL for any new target-product persistence (not just job-only persistence)
 * permanent image storage
 * S3/MinIO for the MVP image path
 * unnecessary ELK/Jaeger infrastructure
 
-Existing legacy code may remain temporarily during migration.
+Existing legacy code and historical Python-based verification helpers may remain temporarily during migration; this is not authorization to use them for new backend work. Do not remove required verification tools until an equivalent non-Python replacement has proven CI/release parity.
 
 Do not remove legacy components merely because the target architecture says they will eventually disappear.
 

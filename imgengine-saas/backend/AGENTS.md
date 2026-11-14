@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE retained legacy backend (Python)
 
+> **Product decision:** No **new** IMGENGINE backend uses Python, FastAPI, Flask, Django/DRF, Celery, Redis or PostgreSQL. New HTTP services use Rust/Axum under `imgengine/rust/`. This directory is **legacy-retained for migration/rollback and security-only maintenance**, not a source of new services or design templates. [Approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../../imgengine/rust/AGENTS.md) govern future backend architecture; never treat the architecture diagrams below as permission to reintroduce banned components.
+
 > **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `imgengine/rust/` and follow [root AGENTS.md](../../AGENTS.md) + [native AGENTS.md](../../imgengine/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
 
 ## 1. Scope
@@ -313,7 +315,7 @@ Images and generated outputs must not become permanent application state.
 
 # 11. No Database for Ephemeral Jobs
 
-The target MVP does not require PostgreSQL for temporary image-processing jobs.
+The target new product **does not use PostgreSQL**, whether for jobs, customer accounts, or future billing metadata. Existing PostgreSQL is a **retained legacy implementation detail** only; any future durable product metadata needs a separately approved non-default storage ADR.
 
 Do not add durable database state merely to represent:
 
@@ -329,7 +331,7 @@ Do not accidentally turn ephemeral rendering into a durable job platform.
 
 ---
 
-# 12. No Redis Initially
+# 12. No Redis in New Rust Product (Legacy Use Only)
 
 Do not introduce Redis simply because:
 
@@ -343,7 +345,7 @@ The initial architecture should use in-process bounded concurrency and appropria
 Queue saturation must produce explicit overload behavior; it must not retain
 unbounded request bodies or silently block callers.
 
-Redis may be reconsidered later when measured requirements justify it.
+**For the selected new IMGENGINE product, Redis is not an approved future default or scale fallback.** Reconsideration requires an explicit user-approved technology-policy ADR, not a generic performance or queue argument. Existing legacy Redis configuration remains solely for safe legacy recovery/migration.
 
 ---
 

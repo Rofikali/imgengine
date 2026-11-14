@@ -10,6 +10,10 @@ For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Fronte
 
 The root [living next-action dashboard](../next.md) now includes cross-workstream priorities, exact scope ownership for frontend/legacy Python/native Rust and status update rules. The [original 2026-08-17 `next.md` backlog](HISTORICAL_NEXT_2026-08-17.md) is preserved verbatim from Git history and **is not** an active requirement. Agent files define policy, not milestone status; the [optional skills recipes](../skills.md) define workflows.
 
+**Approved future application stack:** C17 native core + safe Rust FFI + Rust/Axum/Tokio backend + current Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI, Redis, PostgreSQL, Celery, or Python tooling.** Existing legacy Python sources and historical docs remain only for controlled maintenance/migration, not as new-work guidance. See [binding technology and repository-structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md); do not move/delete the legacy folder as part of a documentation change.
+
+For the **source-backed policy reconciliation and exact inventory of existing Python-related files**, consult [Technology Documentation Audit (2026-11-14)](TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md). It distinguishes a binding no-new-Python/Rust-only decision from the retained legacy Python code and verification scripts.
+
 ## Start Here
 
 | Document | Purpose | Audience |

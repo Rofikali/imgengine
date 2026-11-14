@@ -2,6 +2,10 @@
 
 **Status:** Optional task playbook; not an executable skill, installed Codex skill, or automatic GitHub Copilot instruction. The tracked repository did not previously contain a root `skills.md` on 2026-11-14. **`AGENTS.md` and nested `AGENTS.md` are authoritative for agent rules**; this file provides reusable *how-to* recipes without replacing them. If using a tool-specific skill installer, follow that tool's supported skill format and path rather than assuming this markdown is auto-loaded.
 
+> **Approved technology constraint:** All new backend work uses Rust/Axum/Tokio and safe C17 FFI, not Python/FastAPI/Django/DRF/Flask, Celery, Redis, PostgreSQL or Python-based scripts. Existing legacy code is retained solely for migration/maintenance; do not rewrite or delete it without a separate approved gate. First read the [binding technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), then the [Rust-only scoped AGENTS](imgengine/rust/AGENTS.md) for active backend tasks. Proposals for durable paid-product metadata require user approval of a new storage ADR; no automatic database adoption.
+
+**Scope reminder:** [Binding stack ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [source audit](docs/TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md) apply to all future work. Existing Python scripts for ABI, release and Compose checks are **present and must not be deleted without verified Rust/shell replacements**. Folder renames need separately approved path/CI/Docker/Cargo/CMake migration tests; documentation changes alone are not permission.
+
 ## Authority and startup
 
 Read, in this order:
