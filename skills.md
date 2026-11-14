@@ -73,6 +73,17 @@ Keep one compact handoff report per milestone: baseline SHA, changed files, comm
 
 Use [Native/Rust Contract-to-Evidence Matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) together with the [81-file document map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [dated source audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). For every native/Rust review identify the exact public or private entry point, ownership, memory/CPU budget, possible concurrent readers/writers, observability unit/redaction, test evidence and any uncertainty. Do not invent production readiness or require a full native build for docs-only changes.
 
+## Skill 7 — Nuxt frontend and retained Python backend audit
+
+Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), scoped [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). Note that the latter governs *legacy Python*, while current Rust/Axum/FFI is under `imgengine/rust/` and `imgengine/AGENTS.md`.
+
+1. Identify whether the task changes a Nuxt component, same-origin proxy, current Rust contract, or retained Python service. Do not mix these generations.
+2. Trace exactly which P5, P8 or P12 contract is affected; reject unsupported P13 crop, PDF, job, billing or account claims.
+3. Verify server-only secret handling, bounded upload/response memory, safe typed errors, abort semantics, object URL cleanup, accessibility and current advisories.
+4. For legacy work, trace FastAPI auth, DB job transitions, queue/retry, internal token, metrics exposure, retention, backup and rollback; do not retire it without approval.
+5. Run focused frontend Vitest/typecheck/build, browser/a11y checks or scoped legacy Python tests **only when those boundaries change**. Avoid manual C rebuild/sanitizers/fuzz for docs/UI-only work; mandatory CI and release gates remain.
+6. Report status as implemented, recorded-verified, partial, planned or legacy with source citations and open business/security cost. Update `next.md` in the same PR.
+
 ## Maintenance rules
 - Treat `next.md` as live state; do not duplicate the entire backlog here.
 - If a workflow becomes obsolete, mark it superseded rather than silently deleting historical intent.
