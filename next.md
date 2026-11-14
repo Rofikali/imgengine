@@ -123,6 +123,22 @@ The original file described print-debug cleanup, sanitizer CI, Windows PowerShel
 
 **Native C/Rust contract-to-evidence handoff:** [docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) records public ABI vs internal static SDK, C/Rust ownership, P7.4/P7.5 evidence, native metrics concurrency review, resource/sandbox gaps, algorithms, and performance measurements. It is documentation, **not** an implementation or validation gate closure.
 
+## Frontend and legacy backend scoped audit (2026-11-14)
+
+**Source-backed audit:** [docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). See [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). The latter governs **retained Python/FastAPI/Celery source**, not active Rust code in `imgengine/rust/`.
+
+| ID | Status | Scope / actual result | Next evidence |
+| --- | --- | --- | --- |
+| FE-A01 | IMPLEMENTED / prior recorded verification | Nuxt 4.6.4 + Vue/TS + typed P5/P8/P12 Nuxt proxies/workflows, bounded ingress and private server key | Keep behavior and existing unit/type/build/CI evidence |
+| FE-A02 | PARTIAL | Native P13 crop ABI exists, but Rust-to-Nuxt transport and interactive crop are incomplete | M1.1→M1.2→M1.3; accessibility and image parity |
+| FE-A03 | OPEN | Browser E2E/a11y production verification, actual VPS, current advisories, aggregate request/response RSS | Focused browser/security/release evidence, not blanket native rebuild |
+| FE-A04 | DESIGN REVIEW | Three proxy modules repeat bounded stream/problem handling; risk of drift, no proven defect | Shared adapter design only when tested against route-specific contracts |
+| BE-A01 | LEGACY IMPLEMENTED SOURCE | FastAPI `/api/generate`, internal updates, Celery/Redis/PostgreSQL, durable jobs and backups | Preserve until explicit parity, canary, rollback and retirement |
+| BE-A02 | OPEN SECURITY REVIEW | Legacy internal token comparison, client-origin request IDs, `/metrics` exposure, dev-secret enforcement | Threat context, reachability, redaction and focused tests; do not call vulnerabilities proven |
+| BE-A03 | PLANNED / NOT RUST MVP | Paid tenants, customer quota/billing, legacy-to-Rust durability parity, broad image catalog | Separate product/security design and economic case |
+
+This section is an execution handoff, **not new test or deployment evidence**. No frontend, backend, C, Rust or CI source changes were made by its docs-only PR.
+
 ## Native C17 + Rust documentation audit (2026-11-14)
 
 **Status: DOCUMENTED / HUMAN REVIEW REQUIRED.** See [the native/Rust audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [all-81-document scope map](docs/NATIVE_C_RUST_DOCS_MAP.md). This is a **docs-only source audit**, not executed tests or permission to modify native code. Keep the relevant old evidence, statuses and local dirty worktree undisturbed.
