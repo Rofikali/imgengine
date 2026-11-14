@@ -79,7 +79,7 @@ Use [Native/Rust Contract-to-Evidence Matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE
 
 ## Skill 7 — Nuxt frontend and retained Python backend audit
 
-Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), scoped [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). Note that the latter governs *legacy Python*, while current Rust/Axum/FFI is under `backend/` and `imgengine/AGENTS.md`.
+Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), scoped [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). Note that the latter governs *legacy Python*, while current Rust/Axum/FFI is under `backend/` and [backend AGENTS](backend/AGENTS.md); shared C ABI rules remain under [native AGENTS](imgengine/AGENTS.md).
 
 1. Identify whether the task changes a Nuxt component, same-origin proxy, current Rust contract, or retained Python service. Do not mix these generations.
 2. Trace exactly which P5, P8 or P12 contract is affected; reject unsupported P13 crop, PDF, job, billing or account claims.
