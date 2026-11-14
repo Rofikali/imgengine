@@ -2,6 +2,8 @@
 
 > **Applicability notice (2026-11-14):** The job-owner, idempotency, stored API-key and PostgreSQL-related controls described below belong to the **retained legacy durable-job architecture** unless separately verified in current Rust. They are not automatic evidence of paid tenant lifecycle or per-tenant quota accounting for synchronous Rust/Axum. See [security.md](security.md), [RUST_REQUEST_LIFECYCLE.md](RUST_REQUEST_LIFECYCLE.md), [MVP_RELEASE_CHECKLIST.md](MVP_RELEASE_CHECKLIST.md), and [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). 
 
+For current source-bound distinctions between the retained Python backend, Nuxt proxy credentials and Rust/Axum security ownership, consult the [frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). The controls below are scoped to their legacy route, and open security hypotheses are not confirmed exploits.
+
 ## Implemented Controls
 
 - Public API keys are hashed before job ownership is stored.
