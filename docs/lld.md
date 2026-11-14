@@ -1,5 +1,7 @@
 # Low-Level Design (LLD) — imgengine
 
+> **Status: implementation mapping with conceptual v2 RFC sketches; not authoritative public ABI declarations.** For installed public headers use `imgengine/include/imgengine/api/v1` and `v2`, [ABI.md](ABI.md) and the exported symbol map. Older `include/api/v1` references below describe historical/internal code. See [Native/Rust audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). 
+
 ## Purpose
 
 This document maps the major headers in `include/` to their implementing sources in `src/`, outlines the main call flows, and highlights key files to inspect when working on a subsystem.

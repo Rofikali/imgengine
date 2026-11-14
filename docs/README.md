@@ -1,12 +1,19 @@
 # IMGENGINE Documentation
 
-This directory is the documentation source of truth. Historical notes remain useful, but a requirement is binding only when it is stated in the PRD or a linked canonical contract below.
+This directory contains current contracts, dated evidence, proposed designs, and legacy/historical records. A requirement is binding only within its named product and versioned scope: current public ABI/API source and approved contracts take precedence over historical PRDs or RFCs. Use the [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) for the source-of-truth hierarchy.
 
-The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.\n\n## Start Here
+The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.
+
+## Start Here
 
 | Document | Purpose | Audience |
 | --- | --- | --- |
-| [Project Status & Decision Register](PROJECT_STATUS_AND_DECISION_REGISTER.md) | Living inventory of implemented, partial, deferred, legacy and blocked work, with evidence and decisions. | All contributors |\n| [Browser-First Product Roadmap](PRODUCT_ROADMAP_BROWSER_FIRST.md) | Proposed image-tool routes, Rust/Wasm milestones, free/paid features, and business gates. | Product, architecture, engineering |\n| [Change-Scoped Verification](CHANGE_SCOPED_VERIFICATION.md) | Fast developer-loop testing and AI token/time budget policy without weakening release gates. | All contributors, CI owners |\n| [PRD](PRD.md) | Product scope, release gates, delivery loops, and backlog. | Product, engineering, operations |
+| [Native C/Rust Documentation Audit (2026-11-14)](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) | Source-backed security, observability, HLD/LLD, FFI, performance and documentation conflicts with status/evidence. | Native C and Rust reviewers |
+| [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) | All 81 docs indexed by current, historical, legacy, target and excluded scope. | All contributors |
+| [Project Status & Decision Register](PROJECT_STATUS_AND_DECISION_REGISTER.md) | Living inventory of implemented, partial, deferred, legacy and blocked work, with evidence and decisions. | All contributors |
+| [Browser-First Product Roadmap](PRODUCT_ROADMAP_BROWSER_FIRST.md) | Proposed image-tool routes, Rust/Wasm milestones, free/paid features, and business gates. | Product, architecture, engineering |
+| [Change-Scoped Verification](CHANGE_SCOPED_VERIFICATION.md) | Fast developer-loop testing and AI token/time budget policy without weakening release gates. | All contributors, CI owners |
+| [PRD](PRD.md) | Product scope, release gates, delivery loops, and backlog. | Product, engineering, operations |
 | [Engine Specification](ENGINE_SPEC.md) | Native C/assembly layout contract: size, border, crop, bleed, output, and performance boundaries. | Native engineers, bindings authors |
 | [Rust API Contract](api.md) | Implemented synchronous Rust/Axum render, layout, and physical-sheet contracts. | Frontend, backend, and platform engineers |
 | [Local Docker Rehearsal](LOCAL_DOCKER_REHEARSAL.md) | Local P12 candidate rehearsal and its explicit evidence limits. | Developers and release owners |

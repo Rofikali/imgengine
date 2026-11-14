@@ -1,5 +1,7 @@
 # IMGENGINE Native Engine Specification
 
+> **Boundary notice (2026-11-14):** This specification contains **internal/CLI** image job conventions and examples. An internal `img_job_t` or CLI option is **not automatically an installed public C ABI feature**. Current installed C interfaces and Rust-reachable operations are governed by [ABI.md](ABI.md), [abi/exported_symbols.md](abi/exported_symbols.md), [api.md](api.md), and [NATIVE_C_RUST_DOCS_MAP.md](NATIVE_C_RUST_DOCS_MAP.md). 
+
 **Status:** Living contract  
 **Applies to:** C public API, CLI, bindings, worker invocation, and native tests.
 

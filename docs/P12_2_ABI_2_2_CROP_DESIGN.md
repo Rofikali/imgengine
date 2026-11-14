@@ -1,5 +1,7 @@
 # P12.2 Native ABI 2.2 Design: Centered-Fill Sheet Rendering
 
+> **Historical phase notice (2026-11-14):** References below to “draft PR #16” and pending merge are dated design/implementation evidence. Native ABI 2.2 centered-fill has since been merged, with public-release work still open. See [P12_PHYSICAL_SHEET_CONTRACT.md](P12_PHYSICAL_SHEET_CONTRACT.md) and [MVP_RELEASE_CHECKLIST.md](MVP_RELEASE_CHECKLIST.md). 
+
 ## Status
 
 **Implemented in draft PR #16; release gate remains open.** The public ABI 2.2 request, bounded C entry point, centered-fill native renderer, safe Rust FFI, bounded supervisor operation, and Axum sheet route are implemented on `feat/p12-native-abi22`. ABI export, public-consumer, A4 render, Rust integration, sanitizer, fuzz, and Ubuntu 24.04 Docker checks are required before merge. Peak-RSS/concurrency measurement and frontend integration remain release gates.
