@@ -71,6 +71,12 @@ run_rust_supervisor "$build_root/normal"
 run_rust_api "$build_root/normal"
 bash "$source_dir/tests/abi/real_image_verification.sh" "$build_root/normal" "$source_dir"
 
+# C17 is the release baseline. Keep the pre-M0 C11 core as a separate
+# compatibility regression so C17-only language features cannot accidentally
+# leak into the public ABI or portable core without an explicit decision.
+configure "$build_root/c11-compat" -DIMGENGINE_C11_COMPATIBILITY=ON
+run_ctest "$build_root/c11-compat"
+
 configure "$build_root/asan" -DIMGENGINE_SANITIZE=ON
 ASAN_OPTIONS="detect_leaks=1:halt_on_error=1" \
 UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1" \

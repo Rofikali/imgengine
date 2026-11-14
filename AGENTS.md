@@ -72,6 +72,8 @@ The frontend remains a separate presentation layer.
 
 ## Keep
 
+* Strict ISO C17 for the public C ABI and portable native core; C23 only as
+  an isolated, capability-gated enhancement after separate evidence.
 * C for proven performance-critical image-processing code.
 * SIMD/AVX2 where benchmarks justify it.
 * TurboJPEG and existing native codec investment.

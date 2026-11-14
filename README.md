@@ -30,7 +30,7 @@ It is local integration evidence only, not actual-VPS or production evidence.
 > A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a Rust-backed application path.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Language](https://img.shields.io/badge/core-C11-00599C.svg)](https://en.wikipedia.org/wiki/C11)
+[![Language](https://img.shields.io/badge/core-C17-00599C.svg)](https://en.wikipedia.org/wiki/C17_(C_standard_revision))
 [![Build](https://img.shields.io/badge/build-CMake-064F8C.svg)](https://cmake.org/)
 [![Focus](https://img.shields.io/badge/focus-systems%20%2B%20image%20processing-111827.svg)](#)
 
@@ -71,7 +71,7 @@ That separation makes the project useful both as a native library/CLI and as the
                                   │ stable FFI
                          ┌────────▼────────┐
                          │ imgengine Core   │
-                         │ C11             │
+                         │ C17             │
                          ├─────────────────┤
                          │ decode          │
                          │ resize / crop   │

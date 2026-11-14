@@ -15,11 +15,24 @@ include(GNUInstallDirs)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 # ── Standards ──────────────────────────────────────────────
-set(CMAKE_C_STANDARD            11)
+# The default native-core profile is strict ISO C17. The public ABI headers
+# remain C11-consumable; IMGENGINE_C11_COMPATIBILITY is a regression profile,
+# not a shipping-standard override.
+set(CMAKE_C_STANDARD            17)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
 set(CMAKE_C_EXTENSIONS          OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)   # for clangd / analyzer
+
+option(IMGENGINE_C11_COMPATIBILITY
+       "Build the existing native core as a C11 compatibility regression"
+       OFF)
+if(IMGENGINE_C11_COMPATIBILITY)
+    set(CMAKE_C_STANDARD 11)
+    message(STATUS "[LANG] C11 compatibility regression profile (non-shipping)")
+else()
+    message(STATUS "[LANG] strict ISO C17 native-core profile")
+endif()
 
 # ── Architecture detection ─────────────────────────────────
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")

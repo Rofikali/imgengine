@@ -16,6 +16,19 @@ The native engine is performance-critical and security-sensitive.
 
 Do not treat it as ordinary application code.
 
+## Language-standard policy
+
+The production native core compiles as strict ISO C17 with compiler extensions
+disabled. Public ABI headers remain C11-consumable. The authoritative Linux
+verifier also builds the core using its C11 compatibility regression profile;
+that profile protects existing portability and public-header consumers but is
+not the shipping language baseline.
+
+C23 is not part of the public ABI or portable production core. A future C23
+experiment must be isolated from public headers and C17 objects, capability
+gated, independently tested, and justified by recorded evidence before it can
+be adopted.
+
 ---
 
 # 2. Native Architecture
