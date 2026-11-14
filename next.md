@@ -134,39 +134,15 @@ For precise dependencies, routes, business model and milestones, use `docs/PRODU
 
 The **original 2026-08-17** `next.md` text is archived **verbatim** in [docs/HISTORICAL_NEXT_2026-08-17.md](docs/HISTORICAL_NEXT_2026-08-17.md), recovered from Git commit [a7be443](https://github.com/Rofikali/imgengine/blob/a7be44310311859f764cd4170728e0465d02a446/next.md). The previous empty “preserved verbatim” block was incorrect and is replaced by this source-backed reference. Original ideas about native sanitizer CI, observability, queues, database recovery and tenancy remain historical: first check later implementations and migration scope before reopening a task.
 
-**Native C/Rust contract-to-evidence handoff:** [docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) records public ABI vs internal static SDK, C/Rust ownership, P7.4/P7.5 evidence, native metrics concurrency review, resource/sandbox gaps, algorithms, and performance measurements. It is documentation, **not** an implementation or validation gate closure.
+## H. Detailed audit handoffs — keep evidence out of this dashboard
 
-## Frontend and legacy backend scoped audit (2026-11-14)
+The status IDs in the current board and the A–D inventory are the **actionable summary**. For findings, precise source locations and test-evidence limitations, read the relevant detailed audit rather than copying entire tables into `next.md`.
 
-**Source-backed audit:** [docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). See [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). The latter governs **retained Python/FastAPI/Celery source**, not active Rust code in `imgengine/rust/`.
+| Audit | What is established | What remains open |
+| --- | --- | --- |
+| [Native C/Rust audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [contract matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) | C17/C11 M0 evidence, public ABI 1.0–2.3, Rust FFI/admission/lifecycle, P7.4/P7.5 narrow fixes | Aggregate resource and isolation proof, possible metrics race review, public static SDK, portable binary/benchmark and release evidence |
+| [Frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) | Nuxt 4 typed P5/P8/P12 UI/proxies; tracked FastAPI/Celery durable-job code is **legacy** | P13 browser-to-Rust crop, accessibility/E2E, current advisories, backend token/request-ID/metrics review, safe legacy migration |
+| [Product roadmap](docs/PRODUCT_ROADMAP_BROWSER_FIRST.md) | Proposed future image-only user routes, batch/presets and pricing hypotheses | Browser Worker/Wasm and paid features are **not shipped** |
+| [P14 operations checklist](docs/MVP_RELEASE_CHECKLIST.md) | Local-only Docker and release-candidate procedures | Actual VPS/TLS/secrets/canary/rollback and explicit approval |
 
-| ID | Status | Scope / actual result | Next evidence |
-| --- | --- | --- | --- |
-| FE-A01 | IMPLEMENTED / prior recorded verification | Nuxt 4.6.4 + Vue/TS + typed P5/P8/P12 Nuxt proxies/workflows, bounded ingress and private server key | Keep behavior and existing unit/type/build/CI evidence |
-| FE-A02 | PARTIAL | Native P13 crop ABI exists, but Rust-to-Nuxt transport and interactive crop are incomplete | M1.1→M1.2→M1.3; accessibility and image parity |
-| FE-A03 | OPEN | Browser E2E/a11y production verification, actual VPS, current advisories, aggregate request/response RSS | Focused browser/security/release evidence, not blanket native rebuild |
-| FE-A04 | DESIGN REVIEW | Three proxy modules repeat bounded stream/problem handling; risk of drift, no proven defect | Shared adapter design only when tested against route-specific contracts |
-| BE-A01 | LEGACY IMPLEMENTED SOURCE | FastAPI `/api/generate`, internal updates, Celery/Redis/PostgreSQL, durable jobs and backups | Preserve until explicit parity, canary, rollback and retirement |
-| BE-A02 | OPEN SECURITY REVIEW | Legacy internal token comparison, client-origin request IDs, `/metrics` exposure, dev-secret enforcement | Threat context, reachability, redaction and focused tests; do not call vulnerabilities proven |
-| BE-A03 | PLANNED / NOT RUST MVP | Paid tenants, customer quota/billing, legacy-to-Rust durability parity, broad image catalog | Separate product/security design and economic case |
-
-This section is an execution handoff, **not new test or deployment evidence**. No frontend, backend, C, Rust or CI source changes were made by its docs-only PR.
-
-## Native C17 + Rust documentation audit (2026-11-14)
-
-**Status: DOCUMENTED / HUMAN REVIEW REQUIRED.** See [the native/Rust audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [all-81-document scope map](docs/NATIVE_C_RUST_DOCS_MAP.md). This is a **docs-only source audit**, not executed tests or permission to modify native code. Keep the relevant old evidence, statuses and local dirty worktree undisturbed.
-
-| Priority | Audit follow-up | Present status | Exit condition |
-| --- | --- | --- | --- |
-| P0 | Resolve misleading HLD/LLD and old PRD/legacy status | Docs reconciliation recorded | Review canonical ABI/FFI and current service routes; no false production-ready claims |
-| P0 | Native metrics min/max writers/readers and concurrency | Potential risk, **not reproduced** | Source-reachability/atomicity test and focused concurrency review before change decision |
-| P0 | Decoder sandbox actual execution/process boundary | Partial controls, host proof open | Document per-entry-point seccomp/process isolation and test evidence |
-| P0 | Aggregate C/Rust memory/pixel/output/queue/workspace envelope | Partial limits; capacity blocked | Explicit bound model, hostile/concurrent test + actual-VPS evidence |
-| P1 | License/upstream/codec provenance for future SDK distribution | Open verification | Named owner, license/NOTICE analysis, dependency inventory and approved distribution terms |
-| P1 | Distributable public static SDK `.a` vs current internal archive | Partial | Design public ABI parity/install/link/consumer tests before code authorization |
-| P1 | Native/Rust observability contract | Internal code exists; production proof open | Unit-safe, redacted metrics/log/export schema, timing overhead and operational proof |
-| P1 | Portable CPU dispatch / publishable benchmark | Harness implemented, enforceable threshold open | Repeatable CPU/compiler/fixture baseline and scalar/SIMD parity |
-| P2 | Source-backed SOLID, design pattern, DSA and detailed ownership map | HLD/LLD sketches plus partial evidence | Link actual symbols and tests; keep architectural goals distinct from reality |
-| P2 | P13 crop Rust transport | C ABI 2.3 implemented, Rust/HTTP path partial | Independent M1.1 contract, implementation and focused verification in a later code milestone |
-
-**Done with recorded earlier evidence:** C17/C11 baseline, public ABI 1.0–2.3 exports, retained native scheduler, Rust safe FFI/admission/lifecycle, P7.4/P7.5 hardening in documented scope, and native verifier infrastructure. **Not done:** real-host production capacity, unrestricted native concurrency, native mid-operation cancellation, public static SDK, full commercial tenant API, universal ultra-low latency. No code changes are requested by this entry.
+**When closing an audit finding:** record a named SHA, implementation PR, review or test evidence (where applicable), owner/decision and remaining risk in its canonical audit/contract, then update only the corresponding summary row and priority in this file. A docs-only status review must not be represented as a production fix, security validation, or feature completion.
