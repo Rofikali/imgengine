@@ -16,10 +16,10 @@
 
 | Boundary | Owner | Existing entry/source | Contract / limitation |
 | --- | --- | --- | --- |
-| Rust HTTP | Rust API | imgengine/rust/imgengine-api/src/lib.rs | API ingress, authentication, multipart validation, safe errors; bounded synchronous operation |
-| Rust lifecycle | Rust | imgengine/rust/imgengine-supervisor/src/request_lifecycle.rs | Request ownership, graceful drain and response abandonment; no native mid-operation interruption |
-| Rust admission | Rust | imgengine/rust/imgengine-supervisor/src/admission.rs | Bounded owned-input channel and overload; not a second native scheduler |
-| Safe FFI | Rust | imgengine/rust/imgengine/src/lib.rs and sys.rs | Unsafe declarations isolated; !Send/!Sync engine, guarded native output, Rust-owned output copy |
+| Rust HTTP | Rust API | backend/imgengine-api/src/lib.rs | API ingress, authentication, multipart validation, safe errors; bounded synchronous operation |
+| Rust lifecycle | Rust | backend/imgengine-supervisor/src/request_lifecycle.rs | Request ownership, graceful drain and response abandonment; no native mid-operation interruption |
+| Rust admission | Rust | backend/imgengine-supervisor/src/admission.rs | Bounded owned-input channel and overload; not a second native scheduler |
+| Safe FFI | Rust | backend/imgengine/src/lib.rs and sys.rs | Unsafe declarations isolated; !Send/!Sync engine, guarded native output, Rust-owned output copy |
 | Public native ABI | C | imgengine/include/imgengine/api/v1/imgengine.h, v2/layout.h, v2/sheet.h | Versioned 1.0 to 2.3 exported symbols; exact struct_size and ownership contract |
 | Engine execution | C | imgengine/src/api/imgengine_v1.c, imgengine_v2_layout.c, imgengine_v2_sheet.c | Single active process-scoped engine; operation mutex; borrowed encoded input; explicit output release |
 | Scheduling | C | imgengine/src/runtime/scheduler*.c, queue*.c | Existing worker/queue ownership retained; no unproved concurrent destroy |
