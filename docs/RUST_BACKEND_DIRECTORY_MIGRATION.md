@@ -36,6 +36,8 @@ All **23 original tracked Rust subtree files** are moved with their original Git
 | Rust smoke | `imgengine/rust/imgengine-ffi-smoke/` | `backend/imgengine-ffi-smoke/` |
 | API Dockerfile / entrypoint | `imgengine/rust/Dockerfile` and `imgengine/rust/docker-entrypoint.sh` | `backend/Dockerfile` and `backend/docker-entrypoint.sh` |
 | API Docker build context | `imgengine/` | repository root; `COPY imgengine` and `COPY backend` |
+> **Verification incident on earlier PR head (resolved in branch source, new checks still required):** The first comprehensive Ubuntu 24.04 Docker run failed **after native tests and Rust API tests passed** because `imgengine/tests/abi/real_image_verification.sh` still referenced `$source_dir/rust/imgengine-ffi-smoke/Cargo.toml`. The tested revision was superseded. The script was corrected to `$source_dir/../backend/imgengine-ffi-smoke/Cargo.toml`; this is a test-harness path fix, not a native C ABI or Rust rendering change. Six other checks completed successfully on that old revision; **do not claim their results validate the subsequent commit**. Re-run required CI at the new head before merging.
+
 | Build helper manifests | `$source_dir/rust/...` | `$source_dir/../backend/...` |
 | CI / local candidate API image | old API Dockerfile and native-only context | root-context backend Dockerfile |
 | Legacy Compose Rust API | `context: ../../imgengine`, `rust/Dockerfile` | `context: ../..`, `backend/Dockerfile` |
