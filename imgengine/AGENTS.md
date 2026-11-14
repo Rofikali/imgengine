@@ -2,6 +2,8 @@
 
 > **Rust scope and selected stack (2026-11-14):** Code under top-level `backend/` follows [the backend AGENTS.md](../backend/AGENTS.md). The accepted new-product backend is **Rust/Axum**, not Python/FastAPI, Celery, Redis or PostgreSQL. The current C17 scheduler and public ABI remain the native execution plane. Consult [binding technology/structure ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md); historical “do not introduce a full Rust backend” instructions for a *focused C ABI task* must not be interpreted as prohibiting the already-implemented Rust API. No automatic native C tests for Rust-only docs/frontend changes; existing required CI gates remain.
 
+> **Astra native C start:** Use [three-track engineering handoff, Track C](../docs/ASTRA_ENGINEERING_START_HERE.md) for an evidence-first C17/ABI/security/DSA/performance review. The existing metrics-concurrency question, total RSS accounting and sandbox reachability are **review items, not confirmed exploits**. Keep C17/C11/ABI compatibility and required safety gates. No frontend, Rust HTTP or unrelated C feature rewrite during a native-only review.
+
 ## 1. Scope
 
 These instructions apply to:
