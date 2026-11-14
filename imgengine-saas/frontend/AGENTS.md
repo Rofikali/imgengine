@@ -196,6 +196,17 @@ Clearly distinguish:
 
 Frontend documentation must reference the authoritative backend contract instead of copying stale legacy API assumptions.
 
+## 12.1 Work-tracking and evidence handoff
+
+**This file defines scoped frontend engineering rules; it is not the project backlog.** Before a frontend milestone, read [root next.md](../../next.md) for the current F/H/O/P status ID and next acceptance gate, the [source-backed frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [change-scoped verification](../../docs/CHANGE_SCOPED_VERIFICATION.md), the authoritative versioned API contract, and optional [skills.md](../../skills.md). Do not duplicate whole roadmaps or speculative routes here.
+
+- A feature can be **planned**, **implemented in Nuxt**, **verified at a specific SHA**, or **released**; state precisely which. A merged docs-only PR is not frontend functionality or public release.
+- For a change to P5/P8/P12, preserve the exact multipart fields, server-only credential, server-confirmed counts and safe error semantics. The Rust endpoint remains authoritative; the P13 user-selected crop contract must first be implemented through Rust/Axum and the typed proxy.
+- For browser-local work proposed after M1, the frontend may own ephemeral in-browser processing and state, but **must not** claim the work stays private until no-image-upload, telemetry, memory cleanup and optional server-fallback consent have been verified. The prohibition on server persistence in section 4 does not prohibit explicitly approved local, ephemeral user editing.
+- When a milestone lands, update the relevant **next.md** ID with exact status, PR, test-head SHA, concrete verification and unresolved issues; update the relevant API/product document, not this AGENTS rulebook with an entire test report.
+- Product/CA-MBA check: document customer task success and accessibility, device and network cost, bundle size, support/maintenance cost and any new server processing cost before adding broad image-editor dependencies or monetization features.
+- **Testing scope:** for Nuxt-only changes, run focused frontend tests/typecheck/build and browser accessibility tests when relevant. Do not manually rerun native CMake/ASan/UBSan/fuzz without a shared native/FFI change. Existing required CI and release checks are never waived.
+
 ## 13. Git
 
 Keep frontend changes scoped.

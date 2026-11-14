@@ -84,6 +84,15 @@ Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND
 5. Run focused frontend Vitest/typecheck/build, browser/a11y checks or scoped legacy Python tests **only when those boundaries change**. Avoid manual C rebuild/sanitizers/fuzz for docs/UI-only work; mandatory CI and release gates remain.
 6. Report status as implemented, recorded-verified, partial, planned or legacy with source citations and open business/security cost. Update `next.md` in the same PR.
 
+## Skill 8 — Maintain the living work register without duplication
+
+1. Read [next.md](next.md) **current board first** and locate the named F/H/O/P, FE-A or BE-A item. Confirm relevant root and nested AGENTS rules and exact contract/source at current head before work starts.
+2. **Keep `next.md` as status + owner role + next action + acceptance evidence.** Full test logs, HLD/LLD, threat models, API schemas, old RFCs and long audit tables stay in their canonical `docs/` files.
+3. Classify each claim as **planned, implemented, recorded-verified, partial, blocked, legacy or released**. Source presence is not a test pass; a merged documentation PR is not feature completion. Record exact SHA, related PR, what was tested, what was not, and residual risk.
+4. The [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) governs Nuxt/Vue/TS; the [backend AGENTS](imgengine-saas/backend/AGENTS.md) governs retained Python. Rust/Axum/FFI is under `imgengine/rust/` and the [native AGENTS](imgengine/AGENTS.md). Do not conflate them.
+5. Preserve [original Aug 2026 backlog](docs/HISTORICAL_NEXT_2026-08-17.md) as historical provenance; do not automatically re-open its completed sanitizer/native work or legacy Redis/Postgres tasks.
+6. For a docs-only update, check changed-file scope and relative links, **no manual C rebuild/ASan/UBSan/fuzz**. Do not weaken existing CI, native release requirements or required deployment evidence.
+
 ## Maintenance rules
 - Treat `next.md` as live state; do not duplicate the entire backlog here.
 - If a workflow becomes obsolete, mark it superseded rather than silently deleting historical intent.
