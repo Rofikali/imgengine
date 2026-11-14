@@ -2,6 +2,8 @@
 
 **Basis:** tracked `main` at `fee24bdff441e6ef735afaa06c024d4948fb623f`. **Audit type:** static GitHub source/document inventory; this PR changes Markdown policy only, with no compiled code, runtime settings, CI or migration. Findings are limited to reviewed repository content and are not a full dependency-license or runtime verification.
 
+> **Subsequent source-layout update (draft refactor):** The original audit's `imgengine/rust/` source paths describe the **2026-11-14 baseline** and remain correct at that historical revision. A separate branch moves those Rust crates to top-level `backend/` with updated Cargo/CI/Docker paths. Until required checks pass and that PR merges, this is **not a verified change on main**. See [living technology decision](TECHNOLOGY_AND_REPOSITORY_POLICY.md).
+
 ## Decision
 
 The user explicitly selects **C17 native IMGENGINE core → safe Rust FFI → Rust/Tokio/Axum HTTP/application backend → Nuxt/Vue/TypeScript frontend**. For **all new target product work**, do **not** use Python, FastAPI, Flask, Django/DRF, Celery, Redis, PostgreSQL, new Python scripts/tooling, or a newly introduced substitute queue/database without an explicit separately approved ADR. Rust/C and Nuxt are **existing**, not projects to rewrite. Refer to the [binding technology/structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md).
