@@ -12,4 +12,4 @@ cmake --build "$native_build" --parallel "$(nproc)"
 
 export LD_LIBRARY_PATH="$native_build${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export RUSTFLAGS="-L native=$native_build${RUSTFLAGS:+ $RUSTFLAGS}"
-exec cargo run --manifest-path "$source_dir/rust/imgengine-api/Cargo.toml" --bin imgengine-api-server
+exec cargo run --manifest-path "$source_dir/../backend/imgengine-api/Cargo.toml" --bin imgengine-api-server

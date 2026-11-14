@@ -27,13 +27,13 @@ run_rust_ffi_smoke() {
     local build_dir="$1"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo test --quiet --manifest-path "$source_dir/rust/imgengine/Cargo.toml"
+        cargo test --quiet --manifest-path "$source_dir/../backend/imgengine/Cargo.toml"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
+        cargo run --quiet --manifest-path "$source_dir/../backend/imgengine-ffi-smoke/Cargo.toml"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml"
+        cargo test --quiet --manifest-path "$source_dir/../backend/imgengine-ffi-smoke/Cargo.toml"
 }
 
 run_rust_supervisor() {
@@ -42,10 +42,10 @@ run_rust_supervisor() {
     local output="$build_dir/supervisor-smoke.jpg"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml"
+        cargo test --quiet --manifest-path "$source_dir/../backend/imgengine-supervisor/Cargo.toml"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo run --quiet --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml" \
+        cargo run --quiet --manifest-path "$source_dir/../backend/imgengine-supervisor/Cargo.toml" \
         --bin imgengine-supervisor -- \
         "$source_dir/photo.jpg" "$output" "$workspace_root"
     identify -format '%m %wx%h' "$output"
@@ -57,7 +57,7 @@ run_rust_api() {
     local build_dir="$1"
     LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
     RUSTFLAGS="-L native=$build_dir" \
-        cargo test --quiet --manifest-path "$source_dir/rust/imgengine-api/Cargo.toml"
+        cargo test --quiet --manifest-path "$source_dir/../backend/imgengine-api/Cargo.toml"
 }
 
 rm -rf "$build_root"

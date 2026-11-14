@@ -82,7 +82,7 @@ try {
   Push-Location $repoRoot
 
   if ($Build) {
-    Invoke-Docker @('build', '--file', 'imgengine/rust/Dockerfile', '--tag', $apiImage, 'imgengine')
+    Invoke-Docker @('build', '--file', 'backend/Dockerfile', '--tag', $apiImage, '.')
     Invoke-Docker @('build', '--file', 'imgengine-saas/frontend/Dockerfile', '--tag', $webImage, 'imgengine-saas/frontend')
   }
   foreach ($image in @($apiImage, $webImage)) {

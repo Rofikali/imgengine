@@ -61,7 +61,7 @@ revision `093f1d69f47027ca5f0676cba7df42e1e5602866`. It is useful integration
 evidence, but is **not** an actual-VPS test or authorization to expose public
 traffic.
 
-- The Rust API image built from `imgengine/rust/Dockerfile` and started as
+- The Rust API image built from `backend/Dockerfile` and started as
   UID/GID `10001` with a read-only root, bounded `/tmp`, and an API key read
   from a mounted secret file. Its readiness endpoint returned success and an
   authenticated real-JPEG render returned HTTP 200.

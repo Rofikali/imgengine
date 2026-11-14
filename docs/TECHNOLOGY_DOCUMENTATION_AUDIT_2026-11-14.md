@@ -2,6 +2,8 @@
 
 **Basis:** tracked `main` at `fee24bdff441e6ef735afaa06c024d4948fb623f`. **Audit type:** static GitHub source/document inventory; this PR changes Markdown policy only, with no compiled code, runtime settings, CI or migration. Findings are limited to reviewed repository content and are not a full dependency-license or runtime verification.
 
+> **Subsequent source-layout update (draft refactor):** The original audit's `imgengine/rust/` source paths describe the **2026-11-14 baseline** and remain correct at that historical revision. A separate branch moves those Rust crates to top-level `backend/` with updated Cargo/CI/Docker paths. Until required checks pass and that PR merges, this is **not a verified change on main**. See [living technology decision](TECHNOLOGY_AND_REPOSITORY_POLICY.md).
+
 ## Decision
 
 The user explicitly selects **C17 native IMGENGINE core → safe Rust FFI → Rust/Tokio/Axum HTTP/application backend → Nuxt/Vue/TypeScript frontend**. For **all new target product work**, do **not** use Python, FastAPI, Flask, Django/DRF, Celery, Redis, PostgreSQL, new Python scripts/tooling, or a newly introduced substitute queue/database without an explicit separately approved ADR. Rust/C and Nuxt are **existing**, not projects to rewrite. Refer to the [binding technology/structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md).
@@ -11,7 +13,7 @@ The user explicitly selects **C17 native IMGENGINE core → safe Rust FFI → Ru
 | Scope/file | What the baseline said | Correction / classification | Remaining action |
 | --- | --- | --- | --- |
 | [Root AGENTS](../AGENTS.md) | Rust/Axum target, but banned only “PostgreSQL for job-only persistence” | Explicitly excluded PostgreSQL and other old stack tech for **any new target** feature, not only job DB | Keep legacy/verification tools unchanged until evidence-backed retirement |
-| [Native AGENTS](../imgengine/AGENTS.md) | C scheduler/FFI rules; cautioned against creating a full Rust backend during ABI milestone | Cross-link dedicated [Rust AGENTS](../imgengine/rust/AGENTS.md): no ambiguity between ABI-only scope and the existing Rust/Axum service | Update status with real tests at later implementation milestones |
+| [Native AGENTS](../imgengine/AGENTS.md) | C scheduler/FFI rules; cautioned against creating a full Rust backend during ABI milestone | Cross-link dedicated [Rust AGENTS](../backend/AGENTS.md): no ambiguity between ABI-only scope and the existing Rust/Axum service | Update status with real tests at later implementation milestones |
 | [Legacy backend AGENTS](../imgengine-saas/backend/AGENTS.md) | Correctly notes Python legacy, but said Redis “may be reconsidered later” and limited PostgreSQL prohibition to jobs | Remove default future-Redis option; explicitly exclude PostgreSQL for new product; keep legacy recovery policy | Review legacy vulnerabilities and migration separately, not here |
 | [Frontend AGENTS](../imgengine-saas/frontend/AGENTS.md) | Accurate P5/P8/P12 Nuxt→Rust proxies, but stack prohibition implicit | Explicit no new Python API, Redis/Postgres and link Rust owner | P13 crop UI/transport still partial |
 | [Migration](migration.md) | Said “Redis/PostgreSQL remove from MVP” | Make technology choice permanent for new development unless user approves a new ADR | Existing legacy retirement blocked by parity/canary/rollback |

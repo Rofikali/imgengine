@@ -38,7 +38,7 @@ jobs:
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/imgengine/build/ci
           RUSTFLAGS: -L native=${{ github.workspace }}/imgengine/build/ci
-        run: cargo test --manifest-path imgengine/rust/imgengine-supervisor/Cargo.toml
+        run: cargo test --manifest-path backend/imgengine-supervisor/Cargo.toml
       - name: Configure portable scalar reference build
         run: |
           cmake -S imgengine -B imgengine/build/portable-ci -G Ninja \
@@ -268,7 +268,7 @@ jobs:
       - name: Create isolated integration network
         run: docker network create imgengine-ci
       - name: Build production Rust API image
-        run: docker build --file imgengine/rust/Dockerfile --tag imgengine-rust-api:ci imgengine
+        run: docker build --file backend/Dockerfile --tag imgengine-rust-api:ci .
       - name: Build production Nuxt image
         run: docker build --file imgengine-saas/frontend/Dockerfile --tag imgengine-web:ci imgengine-saas/frontend
       - name: Start isolated Rust API container

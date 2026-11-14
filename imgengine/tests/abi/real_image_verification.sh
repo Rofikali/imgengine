@@ -56,7 +56,7 @@ run_valid() {
     if [[ "$mode" == "all" ]]; then
         rust_result=$(LD_LIBRARY_PATH="$build_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
             RUSTFLAGS="-L native=$build_dir" \
-            cargo run --quiet --manifest-path "$source_dir/rust/imgengine-ffi-smoke/Cargo.toml" -- \
+            cargo run --quiet --manifest-path "$source_dir/../backend/imgengine-ffi-smoke/Cargo.toml" -- \
             "$input" "$rust_output" "$repetitions")
         rust_info=$(identify -format '%m %wx%h %b' "$rust_output")
     fi

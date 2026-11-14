@@ -22,7 +22,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
-COPY . ./imgengine
+COPY imgengine ./imgengine
+COPY backend ./backend
 
 RUN cmake -S /src/imgengine -B /build/native -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
@@ -39,7 +40,7 @@ RUN cmake -S /src/imgengine -B /build/native -G Ninja \
     && ! ldd /opt/imgengine/lib/libimgengine.so | grep -q "not found"
 
 RUN cargo build \
-        --manifest-path /src/imgengine/rust/imgengine-api/Cargo.toml \
+        --manifest-path /src/backend/imgengine-api/Cargo.toml \
         --locked \
         --release \
         --bin imgengine-api-server
@@ -68,7 +69,7 @@ RUN apt-get update \
 
 COPY --from=builder /opt/imgengine/lib/ /opt/imgengine/lib/
 COPY --from=builder /build/cargo-target/release/imgengine-api-server /usr/local/bin/imgengine-api-server
-COPY rust/docker-entrypoint.sh /usr/local/bin/imgengine-api-entrypoint
+COPY backend/docker-entrypoint.sh /usr/local/bin/imgengine-api-entrypoint
 
 RUN ldd /usr/local/bin/imgengine-api-server \
     && ldd /opt/imgengine/lib/libimgengine.so \

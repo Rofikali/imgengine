@@ -9,7 +9,7 @@ This complements the [81-file C/Rust documentation inventory](NATIVE_C_RUST_DOCS
 - [Root AGENTS.md](../AGENTS.md) applies repository-wide.
 - [Frontend AGENTS.md](../imgengine-saas/frontend/AGENTS.md) governs the active **Nuxt/Vue/TypeScript** UI and server-side proxies. It does not govern the C scheduler or Rust FFI.
 - [Backend AGENTS.md](../imgengine-saas/backend/AGENTS.md) governs files under `imgengine-saas/backend/`. **That directory contains retained Python/FastAPI/Celery/worker code.** Its Rust target architecture is a migration design, not evidence that Rust sources live here.
-- Active Rust/Axum, safe FFI and supervisor source is under `imgengine/rust/`, governed by [native AGENTS.md](../imgengine/AGENTS.md) plus root policy. Never infer Rust code is governed by the legacy backend AGENTS simply because it describes Rust.
+- Active Rust/Axum, safe FFI and supervisor source is under `backend/`, governed by [Rust backend AGENTS](../backend/AGENTS.md) and root/native ABI policy. Never infer Rust code is governed by the legacy backend AGENTS simply because it describes Rust.
 - [skills.md](../skills.md) is an **optional** workflow playbook, not an automatically installed/loaded skill; [next.md](../next.md) tracks exact status and open questions; [change-scoped verification](CHANGE_SCOPED_VERIFICATION.md) governs **local test choice**, not CI suppression.
 
 ## Status classification
@@ -70,7 +70,7 @@ The Python source is **retained, not selected as the target first-MVP service**.
 | Production configuration validation | LEGACY / IMPLEMENTED SOURCE | `app/core/config.py` rejects known development secrets when DEPLOYMENT_ENV=production | Must verify actual deployment environment and secret mount |
 | Legacy logs/Prometheus/tracing | LEGACY / IMPLEMENTED SOURCE | `main.py`, `app/core/metrics.py`, `tracing.py`, Celery task metrics | Not evidence of Rust/Axum production telemetry |
 | Legacy database backup/restore scripts | LEGACY / SOURCE+DATED EVIDENCE | [DATABASE_RECOVERY](DATABASE_RECOVERY.md) and `imgengine-saas/scripts/` | Not Rust MVP requirement |
-| Rust/Axum current backend | IMPLEMENTED elsewhere | `imgengine/rust/imgengine-api`, `imgengine-supervisor`, `imgengine` | **Not contained in** `imgengine-saas/backend/` |
+| Rust/Axum current backend | IMPLEMENTED elsewhere | `backend/imgengine-api`, `imgengine-supervisor`, `imgengine` | **Not contained in** `imgengine-saas/backend/` |
 | Full retirement of Python/Celery/Redis/Postgres | OPEN / DEFERRED | [migration](migration.md), [legacy release checklist](RELEASE_CHECKLIST.md) | Requires parity/canary/rollback and explicit decision |
 
 ### Legacy backend security/operations review hypotheses
