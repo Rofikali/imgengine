@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE SaaS Backend
 
+> **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `imgengine/rust/` and follow [root AGENTS.md](../../AGENTS.md) + [native AGENTS.md](../../imgengine/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
+
 ## 1. Scope
 
 These instructions apply to:
