@@ -4,6 +4,8 @@ This directory contains current contracts, dated evidence, proposed designs, and
 
 The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.
 
+For concrete C17/Rust subsystem ownership, HLD/LLD contracts, security and observability boundaries, DSA/patterns, open risks and measurement requirements, use the [Native/Rust Contract-to-Evidence Matrix](NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md). It supplements the existing [81-file map](NATIVE_C_RUST_DOCS_MAP.md) and [audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md); no new code/test result is claimed.
+
 ## Start Here
 
 | Document | Purpose | Audience |
