@@ -12,6 +12,7 @@ For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Fronte
 
 | Document | Purpose | Audience |
 | --- | --- | --- |
+| [Frontend and Legacy Backend Audit (2026-11-14)](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) | Implemented Nuxt P5/P8/P12, incomplete crop/production, retained FastAPI/Celery, security/operations gaps and agent scopes. | Frontend, legacy/backend, security, product owners |
 | [Native C/Rust Documentation Audit (2026-11-14)](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) | Source-backed security, observability, HLD/LLD, FFI, performance and documentation conflicts with status/evidence. | Native C and Rust reviewers |
 | [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) | All 81 docs indexed by current, historical, legacy, target and excluded scope. | All contributors |
 | [Project Status & Decision Register](PROJECT_STATUS_AND_DECISION_REGISTER.md) | Living inventory of implemented, partial, deferred, legacy and blocked work, with evidence and decisions. | All contributors |
