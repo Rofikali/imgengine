@@ -8,6 +8,8 @@ For concrete C17/Rust subsystem ownership, HLD/LLD contracts, security and obser
 
 For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Frontend and Legacy Backend Audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). This is the source-aligned state/authority guide for the two scoped [frontend AGENTS](../imgengine-saas/frontend/AGENTS.md) and [legacy backend AGENTS](../imgengine-saas/backend/AGENTS.md), not a production release certificate.
 
+The root [living next-action dashboard](../next.md) now includes cross-workstream priorities, exact scope ownership for frontend/legacy Python/native Rust and status update rules. The [original 2026-08-17 `next.md` backlog](HISTORICAL_NEXT_2026-08-17.md) is preserved verbatim from Git history and **is not** an active requirement. Agent files define policy, not milestone status; the [optional skills recipes](../skills.md) define workflows.
+
 ## Start Here
 
 | Document | Purpose | Audience |
