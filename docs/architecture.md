@@ -4,6 +4,8 @@
 Ubuntu 24.04 Docker CI. Actual-VPS operation, public release, and retirement of
 the retained legacy stack are not yet claimed.
 
+> **Selected target and source authority (2026-11-14):** **C17 native engine + Rust/Axum backend + safe Rust FFI + existing Nuxt/Vue/TypeScript frontend.** No Python/FastAPI/Flask/Django/DRF, Celery, Redis or PostgreSQL in **new product work**. Existing Python tooling and the legacy service remain until a safe, reviewed retirement; they are not approved new dependencies. The full normative decision and folder policy are in [TECHNOLOGY_AND_REPOSITORY_POLICY.md](TECHNOLOGY_AND_REPOSITORY_POLICY.md); all Rust backend work follows [imgengine/rust/AGENTS.md](../imgengine/rust/AGENTS.md).
+
 ## Implemented first-MVP path
 
 ```text
