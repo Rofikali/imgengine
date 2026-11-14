@@ -4,7 +4,7 @@
 
 ## Reading order for C / Rust milestones
 
-1. [Root engineering policy](../AGENTS.md) and [Native directory policy](../imgengine/AGENTS.md). The backend AGENTS in `imgengine-saas/backend/` applies only to files under that directory; Rust code under `imgengine/rust/` is under native AGENTS and root policy.
+1. [Root engineering policy](../AGENTS.md) and [Native directory policy](../imgengine/AGENTS.md). The backend AGENTS in `imgengine-saas/backend/` applies only to files under that directory; Rust code under `backend/` is governed by [backend AGENTS](../backend/AGENTS.md) and root C-ABI policy.
 2. [Next action inventory](../next.md): finished, partial, blocked, planned, historical.
 3. [Task recipes](../skills.md) and [change-scoped testing](CHANGE_SCOPED_VERIFICATION.md).
 4. For **native C library**: [public ABI](ABI.md), [installed exports](abi/exported_symbols.md), [native development](NATIVE_DEVELOPMENT.md), [engine spec](ENGINE_SPEC.md), [C17 ADR](M0_C17_PORTABILITY_AND_WASM_ADR.md).
