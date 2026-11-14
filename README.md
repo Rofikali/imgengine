@@ -23,6 +23,8 @@ has not been silently deleted or declared retired. See
 and [`docs/MVP_RELEASE_CHECKLIST.md`](docs/MVP_RELEASE_CHECKLIST.md) for the
 current contract, migration status, and open release gates.
 
+The scoped frontend and retained Python backend engineering records are indexed in the [frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). Follow the respective `imgengine-saas/frontend/AGENTS.md` and `imgengine-saas/backend/AGENTS.md`; the active Rust implementation follows `imgengine/AGENTS.md`.
+
 For a local Windows 11/Docker Desktop rehearsal of the current Rust/Nuxt P12
 candidate, use [`docs/LOCAL_DOCKER_REHEARSAL.md`](docs/LOCAL_DOCKER_REHEARSAL.md).
 It is local integration evidence only, not actual-VPS or production evidence.
