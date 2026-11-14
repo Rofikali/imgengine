@@ -1,6 +1,6 @@
 # ImgEngine Observability
 
-> **Migration note:** This document records the current FastAPI/Celery implementation. The Rust/C/Nuxt target is defined in [migration.md](migration.md); its target signal model is summarized there and in [architecture.md](architecture.md). This filename intentionally remains uppercase for cross-platform compatibility; do not add a second `observability.md` that differs only by case.
+> **Legacy-only applicability (2026-11-14):** This document records the *retained legacy FastAPI/Celery* implementation, not the current synchronous Rust/Axum observability contract. See [frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [native/Rust telemetry matrix](NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md), and [Rust request lifecycle](RUST_REQUEST_LIFECYCLE.md). The Rust/C/Nuxt target is defined in [migration.md](migration.md); its target signal model is summarized there and in [architecture.md](architecture.md). This filename intentionally remains uppercase for cross-platform compatibility; do not add a second `observability.md` that differs only by case.
 
 ## Objectives
 
