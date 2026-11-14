@@ -55,5 +55,9 @@
 | D-008 | No blanket promise of 30 ms, 60 FPS, 1 GiB VPS capacity, passport compliance, or guaranteed target-KB quality | Require workload-specific evidence |
 | D-009 | No production or public release without explicit human go/no-go | Security, legal, cost and operational risk |
 
+## Nuxt frontend and legacy backend reconciliation (2026-11-14)
+
+See [frontend/legacy backend source audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) for per-feature source references, agent scope and open questions. **Implemented / prior recorded evidence:** Nuxt 4.6.4, typed P5/P8/P12 same-origin proxies, private server-only Rust credential, bounded multipart ingress, client preview cleanup, unit tests/build recorded Nov 2026; retained Python/FastAPI/Celery/Redis/PostgreSQL job backend source and historical backup/SRE contracts. **Partial:** interactive P13 crop transport/UI, accessibility/browser E2E evidence and overall memory budget. **Planned:** local Worker/Wasm image processing, PNG/PDF sheet output, batch, paid users/tenants. **Open:** historic production dependency advisories, browser production hardening, actual VPS capacity/TLS/canary, and legacy service security hypotheses (internal-token comparison, request-ID trust, metric endpoint reachability). Legacy Python source is not the location of the Rust backend, which lives in `imgengine/rust/`.
+
 ## Keeping this register current
 For each PR: update relevant status, source links, owner/decision, blockers, next action, and exact revision tested. Do not mark an item validated from an AI summary alone. Historical records remain immutable; corrections should be dated. Cross-check `docs/PRODUCT_ROADMAP_BROWSER_FIRST.md` and `docs/CHANGE_SCOPED_VERIFICATION.md`.

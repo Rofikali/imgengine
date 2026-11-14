@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE SaaS Backend
 
+> **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `imgengine/rust/` and follow [root AGENTS.md](../../AGENTS.md) + [native AGENTS.md](../../imgengine/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
+
 ## 1. Scope
 
 These instructions apply to:
@@ -647,6 +649,17 @@ Do not place:
 inside images.
 
 Use environment/runtime secret management.
+
+---
+
+## Legacy Python maintenance and verification policy (2026-11-14)
+
+- For changes **inside this directory**, inspect current FastAPI routes, auth, Pydantic schemas, SQL migrations, Celery task/retry policy, database/storage ownership and retention before editing; keep the legacy contract until the agreed migration/rollback gate closes.
+- Distinguish **implemented legacy behavior** (durable `/api/generate`, job status, DB/events, Redis broker, worker CLI) from **current Rust behavior** (synchronous P5/P8/P12 with ephemeral results). Do not silently advertise legacy routes as Rust API features.
+- Document and independently verify internal-token comparison, externally supplied correlation-ID validation, legacy `/metrics` reachability, dev-secret rejection in production, log redaction and auth/retention. These are **review hypotheses** from source, not demonstrated exploits.
+- A focused legacy-only code PR should use scoped Python/API/worker/storage/security tests. Do not manually run unrelated C17 builds, ASan/UBSan or native fuzz unless shared ABI/FFI/native code changes; required GitHub CI/release gates are not waived.
+- **No new FastAPI/Python runtime for the target Rust product** just because this legacy directory still exists. No deletion/retirement without API parity, recovery/rollback evidence and an explicit go/no-go.
+- Read the [source-backed audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [change-scoped testing policy](../../docs/CHANGE_SCOPED_VERIFICATION.md) and [legacy SRE](../../docs/SRE.md) before any legacy work.
 
 ---
 

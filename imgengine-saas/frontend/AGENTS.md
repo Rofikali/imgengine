@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE SaaS Frontend Engineering Constitution
 
+> **Current frontend status and authority (2026-11-14):** This directory contains the implemented Nuxt 4.6.4/Vue 3.5.44 TypeScript frontend, typed P5/P8/P12 render workflows, and three same-origin server proxies. This is **not** a claim of public release, complete accessibility/browser-E2E coverage, user-selected P13 crop, browser-local Wasm, PDF export, tenants, or billing. Consult [source-based frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [Rust API contract](../../docs/api.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md), [next.md](../../next.md), and [optional skills.md](../../skills.md). Current source and versioned contracts take precedence over historical P7.0 design descriptions.
+
 ## 1. Scope
 
 These instructions apply to `imgengine-saas/frontend` and supplement the repository-level `AGENTS.md`.
@@ -160,6 +162,16 @@ Before adding a package, document:
 4. maintenance/security implications.
 
 Do not add a state-management library, UI framework, upload library, or HTTP abstraction merely for convenience.
+
+### Current frontend security and performance boundaries
+
+- Three Nuxt server routes perform bounded multipart parsing, private credential forwarding, and safe error mapping; they are *similar but not interchangeable*. Preserve each P5/P8/P12 contract and test before considering any DRY refactor.
+- Client-side AbortController and temporary object-URL release are **not native C cancellation**. The Rust request lifecycle may finish native work after a browser disconnect.
+- Never interpret a server-to-server shared API key as end-user authentication, tenant isolation, or paid quota enforcement.
+- User-controlled crop remains a separate M1 feature; do not invent a P13 browser-to-Rust crop field before the backend contract is implemented and validated.
+- Browser-local image processing, when later approved, must not upload original image bytes or silently switch to server processing. Worker/Wasm remains **planned**.
+- Frontend-only implementation should run focused Vitest/typecheck/build and relevant browser/a11y tests; do **not** manually rebuild the native C core or run its full sanitizer/fuzz suite unless a native/shared boundary changed. Required GitHub CI and release checks remain mandatory.
+- Track dependency-audit findings and review Nuxt devtools behavior in production. Previous P14 dependency results are dated evidence, not a fresh vulnerability scan.
 
 ## 11. Testing
 

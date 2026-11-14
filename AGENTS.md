@@ -814,6 +814,10 @@ It is the smallest system that satisfies the real requirements with strong evide
 
 For the native C17 and Rust implementation, the [contract-to-evidence matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) provides a source-linked subsystem/ownership/algorithm/security/performance checklist. It supplements the existing [documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md), and does not authorize code changes or waive required CI.
 
+## Frontend and legacy backend documentation handoff (2026-11-14)
+
+For files inside `imgengine-saas/frontend/` and `imgengine-saas/backend/`, read their **respective scoped AGENTS.md** and the [current frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). The legacy backend AGENTS.md describes Rust as a *target design* while its directory contains Python/Celery code; the current Rust code lives under `imgengine/rust/` and follows native AGENTS.md. Review [skills.md](skills.md) and [next.md](next.md) for bounded testing and status. Do not confuse source presence, prior CI evidence, browser abort, or local Docker rehearsal with production security or native cancellation.
+
 ## Native C/Rust documentation audit handoff (2026-11-14)
 
 For tasks touching `imgengine/` native C, the installed public ABI or `imgengine/rust/`, first read [the native/Rust documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [dated audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) **after** this policy and the relevant nested AGENTS.md. Use [next.md](next.md) for task state and [skills.md](skills.md) for optional task recipes. These are **evidence/navigation aids**, not a replacement for actual source review, current API contracts or release checks. Do not treat historical PRD, HLD, LLD or v2 RFC proposals as shipped features or measured performance. No native source change is authorized by a documentation finding alone.

@@ -1,3 +1,5 @@
+> **Historical migration note (2026-11-14):** This file is an early Python/FastAPI/Celery brainstorming and implementation guide. It is **not** the target IMGENGINE backend architecture or an instruction to reintroduce Python. The active synchronous API is Rust/Axum under `imgengine/rust/`; the FastAPI/Celery/PostgreSQL stack is retained for controlled legacy migration only. See [source-backed frontend/backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [current API](docs/api.md), [migration](docs/migration.md), [AGENTS](AGENTS.md) and [next](next.md). Preserve historical text for archaeology.
+
 ### 🧠 SHOULD YOU BUILD SaaS? (BRUTAL TRUTH)
 
     ✅ YES — if your goal is:

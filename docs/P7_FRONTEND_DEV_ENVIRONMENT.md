@@ -1,5 +1,7 @@
 # P7.1.1 Frontend Development Environment
 
+> **Current-source reconciliation (2026-11-14):** This file records **P7.1.1 environment/rehearsal evidence**, not the full current frontend feature inventory. Its historical references to a deferred Nuxt upgrade or a render-only P5 UI do not override the current Nuxt 4.6.4 package, implemented P8/P12 proxies and product panel. Keep the recorded Docker evidence as dated, distinct from actual-VPS proof. See [frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [P12](P12_PHYSICAL_SHEET_CONTRACT.md) and [P14](P14_PRODUCTION_BASELINE.md).
+
 ## Status
 
 **IMPLEMENTED:** the P7 development stack is defined by
