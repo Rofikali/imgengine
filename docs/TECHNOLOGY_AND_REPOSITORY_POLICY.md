@@ -13,7 +13,7 @@
 | Layer | Approved target | Excluded for NEW work | Reality in current repository |
 | --- | --- | --- | --- |
 | Native image execution | Strict C17; C ABI; .so and, after packaging proof, public .a; TurboJPEG, measured SIMD | Python image processing, redundant Rust rewrite of working C scheduler | C core + public .so exist; public installable .a not established |
-| Backend / HTTP | **Rust, Tokio, Axum**, bounded synchronous/ephemeral processing, versioned contracts, safe Rust FFI | **Python, FastAPI, Flask, Django, Django REST Framework (DRF)**; Python API frameworks or workers | Current Rust API is under `imgengine/rust/imgengine-api/` |
+| Backend / HTTP | **Rust, Tokio, Axum**, bounded synchronous/ephemeral processing, versioned contracts, safe Rust FFI | **Python, FastAPI, Flask, Django, Django REST Framework (DRF)**; Python API frameworks or workers | Current Rust API is under `backend/imgengine-api/` |
 | Queue / task orchestration | Rust bounded in-process admission, existing native C scheduler | **Celery, Redis, RQ, Dramatiq**; Kafka/RabbitMQ/other brokers absent separately approved requirement | Rust bounded admission exists; old Celery/Redis lives in legacy directory |
 | Product/job persistence | No database for ephemeral images or synchronous render jobs; ephemeral workspace/response cleanup | **PostgreSQL** (including future new product use), Redis-backed persistence, permanent image storage, automatic MongoDB/MySQL/other database adoption | Old PostgreSQL job state exists only in retained legacy backend |
 | Frontend and same-origin BFF | Existing Nuxt 4, Vue, TypeScript and JavaScript, private Nuxt server-side credential proxy | New independent Node/Python image-processing backend; secrets in the browser | Nuxt P5/P8/P12 proxy code exists |
@@ -30,47 +30,48 @@ Free ephemeral image processing requires no durable job database. Paid accounts,
 
 The C engine never handles customer identity, billing, tenant policy or databases. Rust owns that application policy once approved. Nuxt owns user experience and safe transport, never secret enforcement or native execution.
 
-## 3. Exact current directory map and authority
+## 3. Active source layout on the relocation PR
+
+The operator selected a clear physical Rust backend folder after the original documentation ADR. A separate, **unmerged source refactor** moves the **existing** Rust crates from `imgengine/rust/` to a top-level `backend/`, preserving Rust implementations and sibling Cargo path dependencies. **The change is pending all required CI/packaging/FFI validation; it is not a production or `main` release claim until merged.**
 
 ```text
-imgengine/                         # active native C and Rust execution code
-  AGENTS.md                        # native/FFI safety rules
-  include/imgengine/api/           # installed C ABI contracts
-  src/                             # native C17 implementations
-  rust/
-    AGENTS.md                      # NEW: focused Rust backend/FFI rules
-    imgengine/                      # safe Rust wrapper and unsafe sys declarations
-    imgengine-supervisor/           # request lifecycle and bounded admission
-    imgengine-api/                  # Rust/Axum HTTP product API
-    imgengine-ffi-smoke/            # Rust-native external integration smoke
+imgengine/                        # C17 native image-processing engine
+  AGENTS.md                       # native safety + C ABI rules
+  include/imgengine/api/          # public C ABI
+  src/                            # native decoder, layout, scheduler, encoder
+backend/                          # ACTIVE RUST BACKEND (source-refactor PR)
+  AGENTS.md                       # Rust/Axum/FFI safety and architecture
+  Dockerfile                      # root-context native C + Rust API build
+  docker-entrypoint.sh
+  imgengine/                      # safe Rust wrapper over native C ABI
+  imgengine-supervisor/           # bounded admission/request lifecycle
+  imgengine-api/                  # Axum HTTP product API
+  imgengine-ffi-smoke/            # external native FFI smoke
 imgengine-saas/
   frontend/
-    AGENTS.md                      # active Nuxt/Vue/TS scope
-    server/api/                     # same-origin authenticated proxies
+    AGENTS.md                     # active Nuxt 4/Vue/TS presentation
+    server/api/                   # typed same-origin Rust proxies
   backend/
-    AGENTS.md                      # LEGACY Python/FastAPI/Celery scope ONLY
-    api-service/                    # legacy FastAPI/PostgreSQL routes and migrations
-    worker-service/                 # legacy Python/Celery workers
-infra/                              # present shared local/production-candidate infra
-docs/                               # versioned contracts, audits, historical records
-AGENTS.md                           # global engineering policy
-skills.md                           # optional task recipes; not installed automation
-next.md                             # status and next-action register
+    AGENTS.md                     # RETAINED LEGACY PYTHON ONLY
+    api-service/                  # old FastAPI/PostgreSQL job service
+    worker-service/               # old Celery workers
+infra/                             # build/deploy candidate; paths updated in refactor
+docs/                              # contracts, architecture, evidence
+AGENTS.md                           # repository policy
+skills.md                           # optional workflow recipes
+next.md                             # task status register
 ```
 
-**Do not infer `imgengine-saas/backend/` is the active backend merely from its name.** The active Rust backend is in `imgengine/rust/`. When working in Rust, obey root AGENTS, `imgengine/AGENTS.md`, and new `imgengine/rust/AGENTS.md`. Legacy backend AGENTS applies only to the Python directory.
+**Agent scope:** root AGENTS governs all; `imgengine/AGENTS.md` governs **native C**; `backend/AGENTS.md` governs **Rust/Axum, supervisor and FFI**; `imgengine-saas/frontend/AGENTS.md` governs Nuxt; `imgengine-saas/backend/AGENTS.md` governs **only legacy Python**. This prevents the misleading old folder name from routing Rust work into Python.
 
-## 4. Folder decision — rename is NOT required now
+## 4. Migration and safe folder policy
 
-**Keep existing directories for now.** Moving `imgengine/rust/` to `backend/` or `imgengine-saas/backend/` to `legacy/` without a separate code/infrastructure PR can break Cargo manifests, `RUSTFLAGS` and `LD_LIBRARY_PATH`, CMake/FFI link and Docker build contexts, CI, deployment scripts, local worktrees and documented paths. A rename does not improve runtime performance.
+- **Stage S0 — approved Rust-backend source move (this PR):** relocate existing Rust crate blobs intact to `backend/`, adjust Docker build context, Cargo invocation, Linux verifier, scripts, docs and CI. This is a **structural change**, not a new feature, kernel rewrite or a reason to add Python/Redis/PostgreSQL. Merge only when exact-revision required native + Rust + frontend integration gates pass, path references have been audited and any failures are fixed.
+- **Stage S1 — optional subsequent cleanup:** do **not** move `imgengine-saas/backend/` automatically. It contains still-retained Python source and migrations; a future separate PR can archive or rename only after legacy-data, API parity, backup, rollback, container, CI and deployment implications are reviewed.
+- **Stage S2 — approved legacy retirement:** only after route/behavior and data-disposition parity, canary/recovery tests, rollback window and explicit human approval. Renaming a folder is not retirement.
+- **Stage S3 — paid product modules:** Rust-only application modules when needed; a separate approved durable-metadata decision, no automatic Redis/PostgreSQL/queue introduction.
 
-**Recommended future cleanup, only after release/migration evidence:**
-- **Stage S0 — current documentation-only action:** make Rust path explicit; add Rust-specific AGENTS and this ADR. No moves/deletes.
-- **Stage S1 — optional source refactor:** only if actual onboarding/cross-team complexity justifies it, propose new path mapping with mechanical git moves, updated imports, Cargo/CMake/Docker/CI, scripts/README/contracts, codeowner/agent scope and regression verification. Preserve current production behavior and rollback.
-- **Stage S2 — legacy archival/retirement:** after approved API/functional parity, backups/data disposition, security assessment, canary, rollback window, ownership decision and actual deployment release evidence, choose archive (e.g. `legacy/python-saas/`) or deletion. Do not deploy obsolete services or keep them publicly reachable by default.
-- **Stage S3 — future product modules:** for a paid platform, add Rust application modules only for demonstrated needs (auth/tenancy, billing, metering, idempotency, audit); new databases/queues remain prohibited unless explicitly chosen through a new ADR. No unnecessary microservice split.
-
-No stages S1–S3 are approved for execution by this documentation decision. Do not create empty speculative folders.
+**No premature cleanup:** Do not remove old Python source or critical Python verification scripts in this refactor; they still serve current legacy or native/release gates. Don't rewrite them without equivalent safe test evidence. The top-level `backend/` move is an organizational choice, with **no presumed image-processing speed improvement**.
 
 ## 5. Architecture and verification rules
 
@@ -84,7 +85,7 @@ No stages S1–S3 are approved for execution by this documentation decision. Do 
 ## 6. Authority, cross-linking and change control
 
 1. [Root AGENTS](../AGENTS.md) — global engineering constraints, including this policy.
-2. [Native AGENTS](../imgengine/AGENTS.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md) — C and Rust/FFI scopes.
+2. [Native AGENTS](../imgengine/AGENTS.md) and [Rust AGENTS](../backend/AGENTS.md) — C and Rust/FFI scopes.
 3. [Frontend AGENTS](../imgengine-saas/frontend/AGENTS.md) and [Legacy backend AGENTS](../imgengine-saas/backend/AGENTS.md) — Nuxt vs retained Python scope.
 4. [Architecture](architecture.md), [Rust API](api.md), [migration](migration.md), [P12](P12_PHYSICAL_SHEET_CONTRACT.md), [P13](P13_INTERACTIVE_CROP_CONTRACT.md) — source-backed contracts for particular released/partial slices.
 5. [next.md](../next.md) — exact done/partial/open/planned status, next implementation milestone and verification.
@@ -103,4 +104,4 @@ No stages S1–S3 are approved for execution by this documentation decision. Do 
 | Old FastAPI/Celery/Redis/PostgreSQL backend | **LEGACY PRESENT** | Read-only default; scoped security/recovery maintenance and retirement gate |
 | Python helper/build scripts in CI | **EXISTING TOOLING** | Inventory and replace by safe verified Rust/shell tools only when task justifies; no deletion now |
 | Public installable .a SDK, paid account store, new product modules | **PLANNED / NOT APPROVED IMPLEMENTATION** | Separate designs and approval |
-| Reorganizing folders / moving old backend | **DEFERRED** | Stage S1/S2 only with exact dependency inventory, tests and rollback |
+| Rust crates moved into top-level backend/ | **CODE MOVE UNDER REVIEW** | Exact CI/Docker/Cargo/native verifier evidence before merge |\n| Moving/retiring old Python backend | **DEFERRED** | Separate approved migration/rollback/data-retention gate |
