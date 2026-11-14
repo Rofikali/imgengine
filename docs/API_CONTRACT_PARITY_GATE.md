@@ -1,5 +1,7 @@
 # API Contract and Parity Design Gate
 
+> **2026-11-14 applicability:** The original P5 “one capability only” text remains correct **for its dated P5 baseline**, but the later P8 FIT and P12 physical sheet routes are implemented. For current frontend proxies and the legacy Python backend scope see [frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [current Rust API](api.md) and [P12](P12_PHYSICAL_SHEET_CONTRACT.md). This historical parity gate does not authorize retiring the old backend.
+
 **Status:** P5 first-slice contract. The authenticated Axum adapter described
 below is implemented and verified in the Ubuntu 24.04 Docker gate through its
 in-process Axum-to-native integration suite. It is neither production-ready
