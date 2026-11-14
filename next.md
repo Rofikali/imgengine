@@ -120,3 +120,22 @@ The original file described print-debug cleanup, sanitizer CI, Windows PowerShel
 
 
 </details>
+
+## Native C17 + Rust documentation audit (2026-11-14)
+
+**Status: DOCUMENTED / HUMAN REVIEW REQUIRED.** See [the native/Rust audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [all-81-document scope map](docs/NATIVE_C_RUST_DOCS_MAP.md). This is a **docs-only source audit**, not executed tests or permission to modify native code. Keep the relevant old evidence, statuses and local dirty worktree undisturbed.
+
+| Priority | Audit follow-up | Present status | Exit condition |
+| --- | --- | --- | --- |
+| P0 | Resolve misleading HLD/LLD and old PRD/legacy status | Docs reconciliation recorded | Review canonical ABI/FFI and current service routes; no false production-ready claims |
+| P0 | Native metrics min/max writers/readers and concurrency | Potential risk, **not reproduced** | Source-reachability/atomicity test and focused concurrency review before change decision |
+| P0 | Decoder sandbox actual execution/process boundary | Partial controls, host proof open | Document per-entry-point seccomp/process isolation and test evidence |
+| P0 | Aggregate C/Rust memory/pixel/output/queue/workspace envelope | Partial limits; capacity blocked | Explicit bound model, hostile/concurrent test + actual-VPS evidence |
+| P1 | License/upstream/codec provenance for future SDK distribution | Open verification | Named owner, license/NOTICE analysis, dependency inventory and approved distribution terms |
+| P1 | Distributable public static SDK `.a` vs current internal archive | Partial | Design public ABI parity/install/link/consumer tests before code authorization |
+| P1 | Native/Rust observability contract | Internal code exists; production proof open | Unit-safe, redacted metrics/log/export schema, timing overhead and operational proof |
+| P1 | Portable CPU dispatch / publishable benchmark | Harness implemented, enforceable threshold open | Repeatable CPU/compiler/fixture baseline and scalar/SIMD parity |
+| P2 | Source-backed SOLID, design pattern, DSA and detailed ownership map | HLD/LLD sketches plus partial evidence | Link actual symbols and tests; keep architectural goals distinct from reality |
+| P2 | P13 crop Rust transport | C ABI 2.3 implemented, Rust/HTTP path partial | Independent M1.1 contract, implementation and focused verification in a later code milestone |
+
+**Done with recorded earlier evidence:** C17/C11 baseline, public ABI 1.0–2.3 exports, retained native scheduler, Rust safe FFI/admission/lifecycle, P7.4/P7.5 hardening in documented scope, and native verifier infrastructure. **Not done:** real-host production capacity, unrestricted native concurrency, native mid-operation cancellation, public static SDK, full commercial tenant API, universal ultra-low latency. No code changes are requested by this entry.
