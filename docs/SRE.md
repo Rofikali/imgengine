@@ -1,5 +1,7 @@
 # IMGENGINE SRE Contract
 
+> **Applicability notice (2026-11-14):** The `/api/generate`/Celery/Redis/PostgreSQL queue SLOs and recovery procedures below belong to the **retained legacy durable-job backend**. They are not measured SLOs or incident-response proof for the synchronous Rust P12 service. See [frontend and legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [MVP release checklist](MVP_RELEASE_CHECKLIST.md) and [P14 actual-host runbook](P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md). Retain these procedures if the legacy backend is operated.
+
 ## Service Objectives
 
 | Indicator | Objective | Measurement |
