@@ -76,7 +76,7 @@ cmake -S "$source_dir" -B "$build_dir" -G Ninja \
     -DIMGENGINE_ENABLE_DSL_CODEGEN=OFF
 cmake --build "$build_dir" --target scheduler_c_baseline_bench imgengine --parallel
 RUSTFLAGS="-L native=$build_dir" cargo build --release \
-    --manifest-path "$source_dir/rust/imgengine-supervisor/Cargo.toml" \
+    --manifest-path "$source_dir/../backend/imgengine-supervisor/Cargo.toml" \
     --bin scheduler_admission_bench
 
 generate_fixtures() {
@@ -115,7 +115,7 @@ generate_fixtures
 results="$results_dir/results.jsonl"
 : > "$results"
 c_bench="$build_dir/scheduler_c_baseline_bench"
-rust_bench="$source_dir/rust/imgengine-supervisor/target/release/scheduler_admission_bench"
+rust_bench="$source_dir/../backend/imgengine-supervisor/target/release/scheduler_admission_bench"
 
 run_pair() {
     local fixture_name="$1"
