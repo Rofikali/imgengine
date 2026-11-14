@@ -27,7 +27,7 @@ For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Fronte
 | [SRE Contract (legacy durable jobs)](SRE.md) | Retained FastAPI/Celery job/queue objectives and incident rules; not Rust MVP SLO evidence. | Platform and on-call engineers |
 | [Security Operations (legacy controls)](SECURITY_OPERATIONS.md) | Legacy durable-job API-key/job-ownership controls and future tenancy gates; not implemented Rust paid tenancy. | Security and platform engineers |
 | [Release Checklist](RELEASE_CHECKLIST.md) | Required verification evidence and rollout governance. | Release owners |
-| [Database Recovery](DATABASE_RECOVERY.md) | Verified local PostgreSQL backup, restore, and recovery boundaries. | Platform and on-call engineers |
+| [Database Recovery (legacy)](DATABASE_RECOVERY.md) | Retained PostgreSQL durable-job backup/restore; not a dependency of the Rust ephemeral MVP. | Platform and on-call engineers |
 | [Native Development](NATIVE_DEVELOPMENT.md) | Supported Linux toolchain and reproducible Loop A commands. | Native engineers, CI owners |
 | [Native Benchmarking](NATIVE_BENCHMARKING.md) | Reproducible native performance measurement contract and evidence policy. | Native and performance engineers |
 | [Linux Native Verification](LINUX_VERIFICATION.md) | Ubuntu 24.04 Docker verification gate for C correctness and security. | Native engineers and CI owners |
