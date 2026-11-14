@@ -69,6 +69,10 @@ Stop when the repository differs from the declared SHA or critical evidence cann
 
 Keep one compact handoff report per milestone: baseline SHA, changed files, commands, results, unresolved risks, documentation updates, and PR link. Avoid rerunning unrelated suites manually.
 
+## Native C/Rust audit evidence recipe (linked)
+
+Use [Native/Rust Contract-to-Evidence Matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) together with the [81-file document map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [dated source audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). For every native/Rust review identify the exact public or private entry point, ownership, memory/CPU budget, possible concurrent readers/writers, observability unit/redaction, test evidence and any uncertainty. Do not invent production readiness or require a full native build for docs-only changes.
+
 ## Maintenance rules
 - Treat `next.md` as live state; do not duplicate the entire backlog here.
 - If a workflow becomes obsolete, mark it superseded rather than silently deleting historical intent.
