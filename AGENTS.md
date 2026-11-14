@@ -811,3 +811,7 @@ Profitability
 The best implementation is not the one with the most technology.
 
 It is the smallest system that satisfies the real requirements with strong evidence.
+
+## Native C/Rust documentation audit handoff (2026-11-14)
+
+For tasks touching `imgengine/` native C, the installed public ABI or `imgengine/rust/`, first read [the native/Rust documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [dated audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) **after** this policy and the relevant nested AGENTS.md. Use [next.md](next.md) for task state and [skills.md](skills.md) for optional task recipes. These are **evidence/navigation aids**, not a replacement for actual source review, current API contracts or release checks. Do not treat historical PRD, HLD, LLD or v2 RFC proposals as shipped features or measured performance. No native source change is authorized by a documentation finding alone.
