@@ -42,6 +42,10 @@
 7. **Nuxt dependency advisories:** verify current advisory state and record accountable disposition; historical audit mentioned moderate/low findings.
 8. **Branch protection:** at last repository inspection `main` was unprotected; establish required checks/reviews according to repository capabilities.
 
+## Approved technology and directory decision (2026-11-14)
+
+**ADR-TECH-001 accepted for all future product work:** C17 native core; safe Rust FFI; Rust/Axum/Tokio HTTP/backend; existing Nuxt/Vue/TypeScript frontend. No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python scripts/tooling. This is a **new-work policy**, not a claim that the retained legacy FastAPI/Celery/Redis/PostgreSQL sources or old Python verification scripts have been removed. Active Rust source is `imgengine/rust/`; the confusing `imgengine-saas/backend/` name is legacy Python only. Folder moves, code deletion and legacy retirement remain **DEFERRED** until independently authorized with dependency paths, tests, data disposition and rollback. See [technology and structure ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../imgengine/rust/AGENTS.md). Future paid metadata storage is undecided and requires separate explicit approval; avoid introducing PostgreSQL by default.
+
 ## Decision log
 | ID | Decision | Reason / revisit |
 | --- | --- | --- |
