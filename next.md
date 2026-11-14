@@ -2,6 +2,8 @@
 
 **Living status register.** Original inventory baseline: `f09eeae7cb8097a8c51188f64d6a0ab139ab09f2`; latest documentation/agent reconciliation reviewed against `main` at `bae6bda2e3db1f82b65865ba3d36ccb7b3c5bd93` on 2026-11-14 (PR #34 merged). Status is grounded in tracked source, versioned contracts and *dated* test evidence; this review did not rerun tests. GitHub cannot inspect uncommitted local worktrees. Refresh the baseline, evidence and status when implementation changes.
 
+> **Binding future stack (ADR-TECH-001, 2026-11-14):** **Native C17 + Rust/Axum/Tokio backend + safe C FFI + existing Nuxt/Vue/TS frontend.** Do **not** introduce Python/FastAPI/Django/DRF/Flask, Celery, Redis, PostgreSQL or new Python scripts into the target product. Historical Python backend and existing verification scripts still exist; do not silently delete them or claim retirement. [Technology and folder policy](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) defines forbidden/approved tools, Rust ownership and staged folder migration. The target choice is **DECIDED**; physical restructuring and legacy retirement are **DEFERRED**.
+
 ## 0. Current status and next-action board
 
 **Purpose of this file:** track **what is done, what is half-done, what has not started, what is blocked and exactly what happens next**. Do **not** copy full HLD/LLD, API specifications, agent rules or test logs here; link to canonical documents. The A–D inventory below retains finished work and long-term plans.
