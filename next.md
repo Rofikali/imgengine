@@ -1,6 +1,26 @@
 # IMGENGINE — Master Work Inventory and Next Actions
 
-**Audit snapshot:** 2026-11-14. **GitHub baseline reviewed:** `main` at `f09eeae7cb8097a8c51188f64d6a0ab139ab09f2` (documentation PR #30 merge). **Scope:** tracked GitHub repository, existing design/operations contracts, PR history, and user-reported local evidence. This is a living inventory, **not** proof that every test was rerun. Local uncommitted worktrees cannot be inspected through GitHub.
+**Living status register.** Original inventory baseline: `f09eeae7cb8097a8c51188f64d6a0ab139ab09f2`; latest documentation/agent reconciliation reviewed against `main` at `bae6bda2e3db1f82b65865ba3d36ccb7b3c5bd93` on 2026-11-14 (PR #34 merged). Status is grounded in tracked source, versioned contracts and *dated* test evidence; this review did not rerun tests. GitHub cannot inspect uncommitted local worktrees. Refresh the baseline, evidence and status when implementation changes.
+
+## 0. Current status and next-action board
+
+**Purpose of this file:** track **what is done, what is half-done, what has not started, what is blocked and exactly what happens next**. Do **not** copy full HLD/LLD, API specifications, agent rules or test logs here; link to canonical documents. The A–D inventory below retains finished work and long-term plans.
+
+| Priority / ID | Area and status | Next bounded action and completion evidence | Governed by |
+| --- | --- | --- | --- |
+| **P0 / H01** | **P13 interactive crop — HALF IMPLEMENTED**: C ABI 2.3 done; Rust/Axum/Nuxt path and UI not done | M1.1 safe Rust FFI→HTTP→typed proxy; M1.2 keyboard/drag UI; M1.3 exact-image parity and P12 backward compatibility | [Native AGENTS](imgengine/AGENTS.md), [Frontend AGENTS](imgengine-saas/frontend/AGENTS.md), [P13 contract](docs/P13_INTERACTIVE_CROP_CONTRACT.md) |
+| **P0 / FE-A03** | **Frontend release checks — OPEN**: P5/P8/P12 source implemented, production accessibility/E2E and current dependency disposition open | Verify keyboard/mobile and critical browser flows, dependency audit at release SHA, errors/response memory and production behavior | [Frontend AGENTS](imgengine-saas/frontend/AGENTS.md), [frontend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) |
+| **P0 / BE-A02** | **Retained Python backend security — REVIEW OPEN** (not proven exploits) | Assess internal-token comparison, supplied request IDs, metrics network reachability, prod-secret rejection and log redaction; **do not** migrate or delete legacy automatically | [Legacy backend AGENTS](imgengine-saas/backend/AGENTS.md), [legacy audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) |
+| **P0 / native audit** | **C/Rust native security — PARTIAL evidence** | Source-trace metrics concurrency, decoder isolation, aggregate RSS/CPU/disk limits and cancellation; independent tests only if affected | [Native AGENTS](imgengine/AGENTS.md), [native matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) |
+| **P0 / H02** | **P14 public deployment — BLOCKED** despite local Docker evidence | Exact candidate and real-host resource/TLS/secrets/monitoring/canary/rollback evidence and human go/no-go | [release checklist](docs/MVP_RELEASE_CHECKLIST.md), [P14 runbook](docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md) |
+| **P1 / H03** | **Legacy retirement — DEFERRED**: Python FastAPI/Celery/Redis/Postgres remains tracked | Compare scoped parity, recovery, canary and rollback before explicit retirement decision; no new Python target features | [migration](docs/migration.md), [legacy contract](docs/SAAS_CONTRACT.md) |
+| **P1 / O05** | **Public SDK/provenance — OPEN**: shared `.so` exists; externally installable public `.a` not established | Licensing/dependency review, static/public ABI parity design, external consumer compatibility evidence | [native matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) |
+| **P2 / P01** | **Browser-first Rust/Wasm — PLANNED**: no first-party browser engine today | After M1, Astra-led ADR/threat model and bounded Worker prototype with mobile memory, size, latency and no-upload tests | [roadmap](docs/PRODUCT_ROADMAP_BROWSER_FIRST.md), [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) |
+| **Governance** | **PRs #30–34 — MERGED documentation updates**; this board is not proof of release | Next milestone PR updates changed IDs, evidence/SHA and next action; retain local dirty worktrees. PR #27 remains open for separate reconciliation | [audit index](docs/README.md), [optional skills](skills.md) |
+
+**File ownership:** [Root AGENTS](AGENTS.md) is repository policy; [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) governs Nuxt/Vue/TS and server-side proxy files; [backend AGENTS](imgengine-saas/backend/AGENTS.md) governs retained **Python** source only; [native AGENTS](imgengine/AGENTS.md) governs C17 **and** Rust/Axum under `imgengine/rust/`. [skills.md](skills.md) contains optional task recipes, [change-scoped verification](docs/CHANGE_SCOPED_VERIFICATION.md) defines developer-loop tests, and `docs/` contains full contracts and audit evidence.
+
+**Update rule:** Each merged implementation milestone changes its relevant F/H/O/P status **and** this board, adding the tested SHA, exact evidence, remaining gap and next step. Put long design notes and test logs in `docs/`; never change a status to “verified” from an AI summary, historical document, or documentation-only PR. A planned route is not a working customer feature.
 
 ## How to read this file
 
@@ -110,16 +130,9 @@ For precise dependencies, routes, business model and milestones, use `docs/PRODU
 - Astra reviews high-risk Wasm architecture, native/FFI changes, adversarial security and release gates; Terra/Sol implement bounded steps. An AI model is not a replacement for test evidence.
 - Do not merge or deploy until the applicable review/go-no-go. Do not alter dirty local worktrees.
 
-## G. Historical original next.md backlog (retained without deleting intent)
+## G. Historical root next.md — preserved accurately
 
-The original file described print-debug cleanup, sanitizer CI, Windows PowerShell/make verification, JSON observability and ELK/Loki, Redis/Postgres/worker SLOs, CMYK/JPEG security fixtures, key rotation and tenancy. These were **ideas for an older architecture**, not an automatically active mandate. Existing CI includes native sanitizer/fuzz jobs, so "add sanitizer CI" is not an unimplemented task without a documented gap. Legacy queue/database observability and migrations must not be imposed on the new ephemeral Rust path.
-
-<details>
-<summary>Original next.md text, preserved verbatim</summary>
-
-
-
-</details>
+The **original 2026-08-17** `next.md` text is archived **verbatim** in [docs/HISTORICAL_NEXT_2026-08-17.md](docs/HISTORICAL_NEXT_2026-08-17.md), recovered from Git commit [a7be443](https://github.com/Rofikali/imgengine/blob/a7be44310311859f764cd4170728e0465d02a446/next.md). The previous empty “preserved verbatim” block was incorrect and is replaced by this source-backed reference. Original ideas about native sanitizer CI, observability, queues, database recovery and tenancy remain historical: first check later implementations and migration scope before reopening a task.
 
 **Native C/Rust contract-to-evidence handoff:** [docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) records public ABI vs internal static SDK, C/Rust ownership, P7.4/P7.5 evidence, native metrics concurrency review, resource/sandbox gaps, algorithms, and performance measurements. It is documentation, **not** an implementation or validation gate closure.
 
