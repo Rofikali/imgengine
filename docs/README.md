@@ -6,6 +6,8 @@ The root [next.md](../next.md) is the execution/status dashboard. The optional [
 
 For concrete C17/Rust subsystem ownership, HLD/LLD contracts, security and observability boundaries, DSA/patterns, open risks and measurement requirements, use the [Native/Rust Contract-to-Evidence Matrix](NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md). It supplements the existing [81-file map](NATIVE_C_RUST_DOCS_MAP.md) and [audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md); no new code/test result is claimed.
 
+For Nuxt/Vue/TypeScript and the retained FastAPI/Celery backend, use the [Frontend and Legacy Backend Audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). This is the source-aligned state/authority guide for the two scoped [frontend AGENTS](../imgengine-saas/frontend/AGENTS.md) and [legacy backend AGENTS](../imgengine-saas/backend/AGENTS.md), not a production release certificate.
+
 ## Start Here
 
 | Document | Purpose | Audience |
