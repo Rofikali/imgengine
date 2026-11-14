@@ -2,7 +2,7 @@
 
 **Status:** Optional task playbook; not an executable skill, installed Codex skill, or automatic GitHub Copilot instruction. The tracked repository did not previously contain a root `skills.md` on 2026-11-14. **`AGENTS.md` and nested `AGENTS.md` are authoritative for agent rules**; this file provides reusable *how-to* recipes without replacing them. If using a tool-specific skill installer, follow that tool's supported skill format and path rather than assuming this markdown is auto-loaded.
 
-> **Approved technology constraint:** All new backend work uses Rust/Axum/Tokio and safe C17 FFI, not Python/FastAPI/Django/DRF/Flask, Celery, Redis, PostgreSQL or Python-based scripts. Existing legacy code is retained solely for migration/maintenance; do not rewrite or delete it without a separate approved gate. First read the [binding technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), then the [Rust-only scoped AGENTS](imgengine/rust/AGENTS.md) for active backend tasks. Proposals for durable paid-product metadata require user approval of a new storage ADR; no automatic database adoption.
+> **Approved technology constraint:** All new backend work uses Rust/Axum/Tokio and safe C17 FFI, not Python/FastAPI/Django/DRF/Flask, Celery, Redis, PostgreSQL or Python-based scripts. Existing legacy code is retained solely for migration/maintenance; do not rewrite or delete it without a separate approved gate. First read the [binding technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), then the [Rust-only scoped AGENTS](backend/AGENTS.md) for active backend tasks. Proposals for durable paid-product metadata require user approval of a new storage ADR; no automatic database adoption.
 
 **Scope reminder:** [Binding stack ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [source audit](docs/TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md) apply to all future work. Existing Python scripts for ABI, release and Compose checks are **present and must not be deleted without verified Rust/shell replacements**. Folder renames need separately approved path/CI/Docker/Cargo/CMake migration tests; documentation changes alone are not permission.
 
@@ -79,7 +79,7 @@ Use [Native/Rust Contract-to-Evidence Matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE
 
 ## Skill 7 — Nuxt frontend and retained Python backend audit
 
-Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), scoped [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). Note that the latter governs *legacy Python*, while current Rust/Axum/FFI is under `imgengine/rust/` and `imgengine/AGENTS.md`.
+Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), scoped [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) and [backend AGENTS](imgengine-saas/backend/AGENTS.md). Note that the latter governs *legacy Python*, while current Rust/Axum/FFI is under `backend/` and `imgengine/AGENTS.md`.
 
 1. Identify whether the task changes a Nuxt component, same-origin proxy, current Rust contract, or retained Python service. Do not mix these generations.
 2. Trace exactly which P5, P8 or P12 contract is affected; reject unsupported P13 crop, PDF, job, billing or account claims.
@@ -93,7 +93,7 @@ Read the [frontend and legacy backend source audit](docs/FRONTEND_LEGACY_BACKEND
 1. Read [next.md](next.md) **current board first** and locate the named F/H/O/P, FE-A or BE-A item. Confirm relevant root and nested AGENTS rules and exact contract/source at current head before work starts.
 2. **Keep `next.md` as status + owner role + next action + acceptance evidence.** Full test logs, HLD/LLD, threat models, API schemas, old RFCs and long audit tables stay in their canonical `docs/` files.
 3. Classify each claim as **planned, implemented, recorded-verified, partial, blocked, legacy or released**. Source presence is not a test pass; a merged documentation PR is not feature completion. Record exact SHA, related PR, what was tested, what was not, and residual risk.
-4. The [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) governs Nuxt/Vue/TS; the [backend AGENTS](imgengine-saas/backend/AGENTS.md) governs retained Python. Rust/Axum/FFI is under `imgengine/rust/` and the [native AGENTS](imgengine/AGENTS.md). Do not conflate them.
+4. The [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) governs Nuxt/Vue/TS; the [backend AGENTS](imgengine-saas/backend/AGENTS.md) governs retained Python. Rust/Axum/FFI is under `backend/` and the [native AGENTS](imgengine/AGENTS.md). Do not conflate them.
 5. Preserve [original Aug 2026 backlog](docs/HISTORICAL_NEXT_2026-08-17.md) as historical provenance; do not automatically re-open its completed sanitizer/native work or legacy Redis/Postgres tasks.
 6. For a docs-only update, check changed-file scope and relative links, **no manual C rebuild/ASan/UBSan/fuzz**. Do not weaken existing CI, native release requirements or required deployment evidence.
 
