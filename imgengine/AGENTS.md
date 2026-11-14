@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE Native C Engine
 
+> **Rust scope and selected stack (2026-11-14):** Code under `imgengine/rust/` additionally follows [its own AGENTS.md](rust/AGENTS.md). The accepted new-product backend is **Rust/Axum**, not Python/FastAPI, Celery, Redis or PostgreSQL. The current C17 scheduler and public ABI remain the native execution plane. Consult [binding technology/structure ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md); historical “do not introduce a full Rust backend” instructions for a *focused C ABI task* must not be interpreted as prohibiting the already-implemented Rust API. No automatic native C tests for Rust-only docs/frontend changes; existing required CI gates remain.
+
 ## 1. Scope
 
 These instructions apply to:
