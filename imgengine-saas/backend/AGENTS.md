@@ -331,7 +331,7 @@ Do not accidentally turn ephemeral rendering into a durable job platform.
 
 ---
 
-# 12. No Redis Initially
+# 12. No Redis in New Rust Product (Legacy Use Only)
 
 Do not introduce Redis simply because:
 
