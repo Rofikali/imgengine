@@ -1,8 +1,8 @@
 # AGENTS.md — IMGENGINE retained legacy backend (Python)
 
-> **Product decision:** No **new** IMGENGINE backend uses Python, FastAPI, Flask, Django/DRF, Celery, Redis or PostgreSQL. New HTTP services use Rust/Axum under `imgengine/rust/`. This directory is **legacy-retained for migration/rollback and security-only maintenance**, not a source of new services or design templates. [Approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../../imgengine/rust/AGENTS.md) govern future backend architecture; never treat the architecture diagrams below as permission to reintroduce banned components.
+> **Product decision:** No **new** IMGENGINE backend uses Python, FastAPI, Flask, Django/DRF, Celery, Redis or PostgreSQL. New HTTP services use Rust/Axum under `backend/`. This directory is **legacy-retained for migration/rollback and security-only maintenance**, not a source of new services or design templates. [Approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../../backend/AGENTS.md) govern future backend architecture; never treat the architecture diagrams below as permission to reintroduce banned components.
 
-> **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `imgengine/rust/` and follow [root AGENTS.md](../../AGENTS.md) + [native AGENTS.md](../../imgengine/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
+> **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `backend/` and follow [root AGENTS.md](../../AGENTS.md) + [Rust backend AGENTS.md](../../backend/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
 
 ## 1. Scope
 
@@ -14,7 +14,7 @@ These instructions apply to:
 
 They supplement the root repository `AGENTS.md`.
 
-The **repository-wide target** backend architecture is Rust/Axum/Tokio, implemented under `imgengine/rust/`. **This directory remains the retained Python/FastAPI/Celery backend.** Do not create a parallel Rust backend here or treat the target diagrams below as proof of what this directory currently executes.
+The **repository-wide target** backend architecture is Rust/Axum/Tokio, implemented under `backend/`. **This directory remains the retained Python/FastAPI/Celery backend.** Do not create a parallel Rust backend here or treat the target diagrams below as proof of what this directory currently executes.
 
 The backend must remain a control-plane/orchestration layer.
 
