@@ -14,6 +14,8 @@ The root [living next-action dashboard](../next.md) now includes cross-workstrea
 
 For the **source-backed policy reconciliation and exact inventory of existing Python-related files**, consult [Technology Documentation Audit (2026-11-14)](TECHNOLOGY_DOCUMENTATION_AUDIT_2026-11-14.md). It distinguishes a binding no-new-Python/Rust-only decision from the retained legacy Python code and verification scripts.
 
+**Rust backend relocation (draft, pending CI):** [Rust Backend Directory Migration](RUST_BACKEND_DIRECTORY_MIGRATION.md) documents the move of Rust/Axum, FFI and supervisor crates to top-level `backend/`, required Docker/Cargo/CI migration checks and rollback. Native C17 remains under `imgengine/`; the Python code under `imgengine-saas/backend/` remains legacy and untouched. Treat this as a reviewable code-layout change, not a shipped feature or production release.
+
 ## Start Here
 
 | Document | Purpose | Audience |
