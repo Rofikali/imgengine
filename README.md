@@ -1,6 +1,6 @@
 # imgengine
 
-> **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `imgengine/rust/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
+> **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `backend/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
 
 ## Current application path
 
@@ -25,7 +25,7 @@ has not been silently deleted or declared retired. See
 and [`docs/MVP_RELEASE_CHECKLIST.md`](docs/MVP_RELEASE_CHECKLIST.md) for the
 current contract, migration status, and open release gates.
 
-The scoped frontend and retained Python backend engineering records are indexed in the [frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). Follow the respective `imgengine-saas/frontend/AGENTS.md` and `imgengine-saas/backend/AGENTS.md`; the active Rust implementation follows `imgengine/AGENTS.md`.
+The scoped frontend and retained Python backend engineering records are indexed in the [frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). Follow the respective `imgengine-saas/frontend/AGENTS.md` and `imgengine-saas/backend/AGENTS.md`; the active Rust implementation follows `backend/AGENTS.md`.
 
 For a local Windows 11/Docker Desktop rehearsal of the current Rust/Nuxt P12
 candidate, use [`docs/LOCAL_DOCKER_REHEARSAL.md`](docs/LOCAL_DOCKER_REHEARSAL.md).
