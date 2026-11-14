@@ -1,6 +1,6 @@
 # AGENTS.md — IMGENGINE Rust API, supervision and safe FFI
 
-**Scope:** `imgengine/rust/` and its descendants. This file supplements [root AGENTS](../../AGENTS.md) and [native C/FFI AGENTS](../AGENTS.md). On conflict, preserve stronger security and ABI invariants; consult the [approved technology and structure ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md).
+**Scope:** top-level `backend/` and its descendants. This file supplements [root AGENTS](../AGENTS.md) and [native C/FFI AGENTS](../imgengine/AGENTS.md). On conflict, preserve stronger security and ABI invariants; consult the [approved technology and structure ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md).
 
 ## 1. Approved backend: Rust, not Python
 
@@ -16,7 +16,7 @@ Do not introduce a new database, queue, ORM, object store, microservice, Kuberne
 | `imgengine-supervisor/` | Request lifecycle, bounded admission, overload, deadlines, disconnect/drain semantics, ephemeral cleanup | Duplicate C native scheduler, Redis/Celery queue |
 | `imgengine/` | Safe ownership facade to public C ABI, narrow isolated `unsafe` declarations, native status mapping | HTTP, SaaS pricing, accounts, databases |
 | `imgengine-ffi-smoke/` | External consumer/link integration smoke for documented native ABI | Application-specific product features |
-| `../src/`, `../include/` (outside Rust subtree) | C17 codec, layout, SIMD, scheduler, versioned C ABI | Product billing, HTTP and user identity |
+| `../imgengine/src/`, `../imgengine/include/` (native C subtree) | C17 codec, layout, SIMD, scheduler, versioned C ABI | Product billing, HTTP and user identity |
 
 The Rust/C bridge is `HTTP → request lifecycle → bounded admission → safe Rust facade → stable C ABI → C scheduler`. Keep separate transport/application/native boundaries and exact versioned contracts, rather than blindly implementing all DDD/Hexagonal/GoF patterns.
 
@@ -28,7 +28,7 @@ The Rust/C bridge is `HTTP → request lifecycle → bounded admission → safe 
 - Do not advertise native cancellation: a Rust request timeout/disconnect may abandon the response but does not stop an already running ABI v1 native function.
 - No user image bytes, credentials, filenames, private paths, raw exception details or secrets in logs, metrics, traces or analytics. Use generated correlation IDs and bounded, low-cardinality telemetry.
 - API keys are server-to-server credentials in the current slice, **not** complete tenant accounts or a billing/authorization service.
-- Use error classes, ownership semantics, exact geometry and cleanup from [current Rust API contract](../../docs/api.md), [request lifecycle](../../docs/RUST_REQUEST_LIFECYCLE.md), [safe FFI](../../docs/RUST_FFI.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md) and [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md). Do not copy outdated legacy Python job/queue claims.
+- Use error classes, ownership semantics, exact geometry and cleanup from [current Rust API contract](../docs/api.md), [request lifecycle](../docs/RUST_REQUEST_LIFECYCLE.md), [safe FFI](../docs/RUST_FFI.md), [P12](../docs/P12_PHYSICAL_SHEET_CONTRACT.md) and [P13](../docs/P13_INTERACTIVE_CROP_CONTRACT.md). Do not copy outdated legacy Python job/queue claims.
 
 ## 4. Tests, efficiency, and evidence
 
@@ -40,6 +40,6 @@ The Rust/C bridge is `HTTP → request lifecycle → bounded admission → safe 
 
 ## 5. Task and decision handoff
 
-Read [root next.md](../../next.md), [approved stack ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [native contract matrix](../../docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) and optional [skills.md](../../skills.md) before each milestone. M1.1 P13 user-crop Rust FFI/API integration is **planned**, while native C crop ABI 2.3 is implemented. Do not invent supported new routes or formats.
+Read [root next.md](../next.md), [approved stack ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [native contract matrix](../docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) and optional [skills.md](../skills.md) before each milestone. M1.1 P13 user-crop Rust FFI/API integration is **planned**, while native C crop ABI 2.3 is implemented. Do not invent supported new routes or formats.
 
 For every PR, update only the affected status/evidence in `next.md` and the canonical contract. New technology adoption, legacy retirement, filesystem move, public deployment and a paid data store require their own explicit user decision. Preserve current source directories and local dirty worktrees.
