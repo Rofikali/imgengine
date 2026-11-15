@@ -13,6 +13,8 @@
 | Mode | [read-only audit / docs-only / code + tests / release review] |
 | Exact repo, base branch and starting SHA | [actual SHA; do not copy an outdated example] |
 | In-scope directories and files | [minimal list with scoped AGENTS] |
+| Change class and test lane | [docs / Nuxt UI / HTTP-proxy / isolated browser-Wasm / Rust API / unsafe FFI / C native / infra / mixed or unknown; L0 vs L1 vs L2; justification] |
+| Test/computation and AI-context budget | [focused commands, full CI handled separately, log/artifact path, max excerpt, exact-SHA evidence requirements] |
 | Explicitly out of scope | [including infrastructure/legacy where not involved] |
 | Authoritative contracts and API/ABI versions | [links to exact docs and installed headers] |
 | Existing behavior and measured baseline | [commands/evidence or UNKNOWN] |
@@ -33,7 +35,7 @@
 4. **Design before edit:** compact HLD+LLD for material boundaries, failure paths, input/ownership/clock/thread invariants, alternative options and an acceptance matrix. Do not implement imagined HTTP or ABI fields.
 5. **Apply seven-level review lenses:** include the relevant items from C below. Scale review depth with change risk; do not generate ceremonial role reports for trivial diffs.
 6. **Implement smallest bounded change only when task mode authorizes editing.** Keep public ABI and P12 existing behavior stable unless an explicitly versioned and approved contract changes.
-7. **Verify with relevant gates:** use change-scoped testing for developer loop; never skip existing required CI, security or release evidence. If the environment cannot run a test, mark it **NOT RUN**, not PASS.
+7. **Verify with relevant gates:** first classify the full changed-path set and follow [Test Lanes & AI-Agent Budget](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md). Use focused developer tests (L0), risk-appropriate PR/integration (L1) and full native/release evidence when required (L2). **Do not manually duplicate all seven currently automatic CI jobs for isolated Nuxt or future browser-Wasm changes.** For Nuxt typed form/proxy changes, include HTTP/Rust contract integration. Capture full logs outside model context and summarize command/SHA/PASS/FAIL/NOT RUN; never skip required CI, security or release evidence. If the environment cannot run a test, mark it **NOT RUN**, not PASS.
 8. **Business/security review:** detail attack surfaces, confidentiality, operational cost per success and customer value, leaving unknown inputs explicitly unknown.
 9. **Review own diff:** scan unrelated changes, broken links, unintended secrets/images, new dependencies, portability and backwards compatibility; explain rollback/revert.
 10. **Hand off:** report SHA, changes, exact tests/results, fresh vs inherited evidence, open risks, updated next.md item (only after genuine completion) and next single milestone. Stop before merge, deployment, legacy removal, purchases or secret/DNS changes without separate explicit approval.

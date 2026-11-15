@@ -159,3 +159,14 @@ Use the proposed [platform/product/business strategy](docs/IMGENGINE_PLATFORM_PR
 4. First source-trace the native C-A0 queue/metrics concerns, public ABI operation lock and aggregate RSS; review suspected security issues before optimizing concurrency. Do not treat suspected findings as confirmed.
 5. For a frontend-first prioritization change, draft a reviewed ADR reconciling existing P13 M1 and browser Wasm M2 sequencing, preserving security/release gates and stable C ABI.
 6. Delegate STRAT-00 as read-only architecture/product/business discovery with a **draft docs PR**; use the task-specific agent template to decide the next one bounded implementation PR. Keep source evidence, scope, human approval and costs explicit.
+
+## Skill 14 — Change-scoped testing, safe CI lanes and model-context efficiency
+
+**Required reading for Astra/Codex/humans:** [Test Lanes, Milestone Gates & Agent Budget](docs/TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md), [Change-Scoped Verification](docs/CHANGE_SCOPED_VERIFICATION.md), and the separate [CI-SCOPE-01 safe implementation handoff](docs/ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md).
+
+1. Before any test, inspect HEAD/base and complete PR diff **plus staged, unstaged and untracked changes**. Assign docs/UI/Wasm/HTTP proxy/Rust API/FFI/native/infra/unknown risk class; list downstream contracts.
+2. **L0 local loop:** run the smallest safe focused test set; for pure Nuxt or future isolated browser-Wasm changes, do **not** manually rebuild C17/native sanitizers/fuzz/Ubuntu Docker. HTTP form/proxy edits still require relevant Rust/proxy integration; C/ABI/unsafe FFI still require native/security checks.
+3. **L1 PR:** the inspected `.github/workflows/ci.yml` currently runs **seven unconditional jobs on every PR**. Allow required CI and consume summarized statuses rather than manually re-running every job and injecting full passing logs into the model context.
+4. **L2 release/native safety:** full relevant C17/C11/ABI/ASan/UBSan/fuzz/Rust/container tests and exact candidate/host release evidence when risk warrants. No prior-commit or skipped-check PASS claim.
+5. Log once to files/artifacts, retain exit codes, summarize <=15 lines with test command/SHA/PASS-FAIL-NOT RUN, failed excerpts and actionable next step. Failure is never ignored to save tokens.
+6. Automatic selective GitHub job execution remains **CI-SCOPE-01 PROPOSED**, with a dry-run path classifier, fail-closed unknown changes, always-on required aggregate gate, branch-rule review and separate human-approved CI PR. Do not touch `.github/workflows/ci.yml`, skip tests, merge or deploy just to reduce compute.
