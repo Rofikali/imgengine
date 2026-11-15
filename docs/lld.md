@@ -2,6 +2,8 @@
 
 > **Status: implementation mapping with conceptual v2 RFC sketches; not authoritative public ABI declarations.** For installed public headers use `imgengine/include/imgengine/api/v1` and `v2`, [ABI.md](ABI.md) and the exported symbol map. Older `include/api/v1` references below describe historical/internal code. See [Native/Rust audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). 
 
+> **Current-source LLD reconciliation (2026-11-15):** For implemented ownership, exact public ABI, scheduler/queue concurrency invariants, algorithms/complexities, test gaps and status at `ff5dd06755069d170d97c9ab323a2fa52915aa68`, use the [principal C17 source audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md). The existing conceptual v2 template/decode/pattern sketches and older `include/api/v1` paths below are **historical/illustrative**, not new stable SDK claims; the installed public C ABI is `include/imgengine/api/v1` and `v2`. Avoid labeling this conceptual mapping 'production-ready' without exact-revision source/tests.
+
 ## Purpose
 
 This document maps the major headers in `include/` to their implementing sources in `src/`, outlines the main call flows, and highlights key files to inspect when working on a subsystem.
