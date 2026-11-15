@@ -1,10 +1,10 @@
 # AGENTS.md — IMGENGINE SaaS Frontend Engineering Constitution
 
-> **Current frontend status and authority (2026-11-14):** This directory contains the implemented Nuxt 4.6.4/Vue 3.5.44 TypeScript frontend, typed P5/P8/P12 render workflows, and three same-origin server proxies. This is **not** a claim of public release, complete accessibility/browser-E2E coverage, user-selected P13 crop, browser-local Wasm, PDF export, tenants, or billing. Consult [source-based frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [Rust API contract](../../docs/api.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md), [next.md](../../next.md), and [optional skills.md](../../skills.md). Current source and versioned contracts take precedence over historical P7.0 design descriptions.
+> **Current frontend status and authority (2026-11-15, post merged [PR #43](https://github.com/Rofikali/imgengine/pull/43)):** This directory contains Nuxt 4.6.4/Vue 3.5.44 TypeScript P5/P8/P12 workflows, the three same-origin proxies, and **M1.1 validated P13 crop transport in the sheet proxy**. The **browser crop UI, typed user-selection/serialization, M1.3 parity, browser-local Wasm, production accessibility/E2E, PDF, tenancy and billing remain unimplemented or unverified**. Recorded seven passing CI jobs: [PR #43 head](https://github.com/Rofikali/imgengine/actions/runs/43683324448), not a live release. Consult [source-based frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [Rust API contract](../../docs/api.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md), [next.md](../../next.md), and [optional skills.md](../../skills.md). Current source and versioned contracts take precedence over historical P7.0 design descriptions.
 
 > **Binding backend selection (2026-11-14):** The only approved **new IMGENGINE API/backend** is Rust/Axum under `backend/`, with safe FFI to C17. **Never** introduce or route a new frontend feature through Python/FastAPI, Django/DRF, Flask, Celery, Redis or PostgreSQL; the older backend is retained solely for authorized legacy maintenance/rollback. The existing Nuxt server-side proxy is a credential-protecting browser adapter, **not** permission to build a second independent backend. See [approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [Rust-scoped AGENTS](../../backend/AGENTS.md), current [API contract](../../docs/api.md) and [next queue](../../next.md).
 
-> **Astra frontend start:** Follow [three-track engineering handoff, Track B](../../docs/ASTRA_ENGINEERING_START_HERE.md). Do **not** begin implementing interactive P13 drag/zoom against invented HTTP fields; first review/freeze the Rust/Axum M1.1 contract. Keep P12 centered-fill behavior and same-origin server-only credentials, test keyboard/touch/mobile and preview cleanup, and update `next.md` with exact evidence.
+> **Astra frontend M1.2 start — READY:** Read the [source-backed frontend editor task](../../docs/ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md) and [Astra Track B](../../docs/ASTRA_ENGINEERING_START_HERE.md). **M1.1 is already merged**; do not reimplement Rust/Axum/proxy transport. The four existing `crop_*` fields are documented in [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md). **Browser `SheetRenderInput` and `createSheetRenderForm` currently do not serialize them**; add typed all-or-none optional fields plus an accessible crop UI in a focused M1.2 PR. Omitted crop preserves P12 centered fill. Test keyboard/touch/mobile, validation, result preview cleanup, and report exact SHA/CI. M1.3 image parity remains later.
 
 ## 1. Scope
 
@@ -28,8 +28,10 @@ FIT-only grid -> completed JPEG + native plan accounting
 POST /api/v2/sheet-render
 multipart/form-data: file, sheet_width_mm, sheet_height_mm,
   photo_width_mm, photo_height_mm, dpi?, copies, margin_mm,
-  gap_x_mm, gap_y_mm, output_format
-physical sheet + centered crop-to-fill -> completed JPEG + native plan accounting
+  gap_x_mm, gap_y_mm, output_format,
+  crop_x?, crop_y?, crop_width?, crop_height?  # ALL FOUR or NONE
+physical sheet: omitted crop = P12 centered-fill; complete crop = P13 selected crop (ABI 2.3)
+completed JPEG + native plan accounting
 ```
 
 All three routes require server-side `X-API-Key` authentication and run synchronously through the Rust request lifecycle and bounded admission path. They are ephemeral; the API does not create durable jobs or output URLs.
@@ -172,7 +174,7 @@ Do not add a state-management library, UI framework, upload library, or HTTP abs
 - Three Nuxt server routes perform bounded multipart parsing, private credential forwarding, and safe error mapping; they are *similar but not interchangeable*. Preserve each P5/P8/P12 contract and test before considering any DRY refactor.
 - Client-side AbortController and temporary object-URL release are **not native C cancellation**. The Rust request lifecycle may finish native work after a browser disconnect.
 - Never interpret a server-to-server shared API key as end-user authentication, tenant isolation, or paid quota enforcement.
-- User-controlled crop remains a separate M1 feature; do not invent a P13 browser-to-Rust crop field before the backend contract is implemented and validated.
+- **P13 M1.1 is implemented/merged:** `server/api/sheet-render.post.ts` accepts and forwards the exact four `crop_x`, `crop_y`, `crop_width`, `crop_height` fields; `types/api.ts` and `utils/render-form.ts` still need M1.2 browser selection + serialization. Do not invent additional HTTP fields or imply M1.2/M1.3 complete.
 - Browser-local image processing, when later approved, must not upload original image bytes or silently switch to server processing. Worker/Wasm remains **planned**.
 - Frontend-only implementation should run focused Vitest/typecheck/build and relevant browser/a11y tests; do **not** manually rebuild the native C core or run its full sanitizer/fuzz suite unless a native/shared boundary changed. Required GitHub CI and release checks remain mandatory.
 - Track dependency-audit findings and review Nuxt devtools behavior in production. Previous P14 dependency results are dated evidence, not a fresh vulnerability scan.
@@ -205,7 +207,7 @@ Frontend documentation must reference the authoritative backend contract instead
 **This file defines scoped frontend engineering rules; it is not the project backlog.** Before a frontend milestone, read [root next.md](../../next.md) for the current F/H/O/P status ID and next acceptance gate, the [source-backed frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [change-scoped verification](../../docs/CHANGE_SCOPED_VERIFICATION.md), the authoritative versioned API contract, and optional [skills.md](../../skills.md). Do not duplicate whole roadmaps or speculative routes here.
 
 - A feature can be **planned**, **implemented in Nuxt**, **verified at a specific SHA**, or **released**; state precisely which. A merged docs-only PR is not frontend functionality or public release.
-- For a change to P5/P8/P12, preserve the exact multipart fields, server-only credential, server-confirmed counts and safe error semantics. The Rust endpoint remains authoritative; the P13 user-selected crop contract must first be implemented through Rust/Axum and the typed proxy.
+- For a change to P5/P8/P12, preserve the exact multipart fields, server-only credential, server-confirmed counts and safe error semantics. P13 M1.1 Rust/Axum/typed **server proxy** crop transport is already implemented; M1.2 must wire the **browser type/form/workflow/editor** and keep omitted crop as P12 centered-fill. M1.3 separately verifies full browser/native pixel parity.
 - For browser-local work proposed after M1, the frontend may own ephemeral in-browser processing and state, but **must not** claim the work stays private until no-image-upload, telemetry, memory cleanup and optional server-fallback consent have been verified. The prohibition on server persistence in section 4 does not prohibit explicitly approved local, ephemeral user editing.
 - When a milestone lands, update the relevant **next.md** ID with exact status, PR, test-head SHA, concrete verification and unresolved issues; update the relevant API/product document, not this AGENTS rulebook with an entire test report.
 - Product/CA-MBA check: document customer task success and accessibility, device and network cost, bundle size, support/maintenance cost and any new server processing cost before adding broad image-editor dependencies or monetization features.
@@ -250,6 +252,6 @@ C scheduler + native engine
 
 The frontend must not recreate any lower-layer state machine.
 
-## 15. P12 Principle
+## 15. P12/P13 Authority Principle
 
-The P12 physical-sheet UI is an adapter to the verified ABI 2.2/Rust contract. It may collect physical dimensions and copy count, but it must never calculate authoritative placement, crop coordinates, resource budgets, or success counts in the browser. Display server-confirmed canvas dimensions and execution counts. Keep the P8 FIT mode distinct from the P12 centered-fill mode.
+The P12 physical-sheet UI adapts to the verified ABI 2.2/Rust contract and the **additive P13 ABI 2.3 optional user crop**. It may collect physical dimensions, copy count and a **user-selected normalized source-relative crop rectangle** as preview/interactions, but it must not calculate **authoritative decoded-image crop pixel coordinates**, placement, resource budgets, or success counts; the server/native engine remains authoritative. Omitting all four P13 fields preserves the centered-fill P12 path. Display server-confirmed canvas dimensions and execution counts. Keep P8 FIT distinct from P12/P13 sheet workflows. A local crop-preview operation does **not** make the eventual Render request browser-only: source photo bytes are submitted to the existing server on user action.
