@@ -6,7 +6,7 @@
 
 ## 1. Authority and document navigation
 
-**Do not paste all 89 documents into one agent context.** Read this concise index, root [AGENTS](../AGENTS.md), [next.md](../next.md), [skills](../skills.md), and [approved stack](TECHNOLOGY_AND_REPOSITORY_POLICY.md). Then read only the affected scoped AGENTS, source, versioned API/ABI and design/evidence documents. The source and exact-revision tests outrank old plans and aspirational HLD. A root `skills.md` is a playbook, **not automatically installed as a model skill**.
+**Do not paste the whole documentation tree into one agent context** (91 Markdown files in `docs/` on this infra-audit branch). Read this concise index, root [AGENTS](../AGENTS.md), [next.md](../next.md), [skills](../skills.md), and [approved stack](TECHNOLOGY_AND_REPOSITORY_POLICY.md). Then read only the affected scoped AGENTS, source, versioned API/ABI and design/evidence documents. The source and exact-revision tests outrank old plans and aspirational HLD. A root `skills.md` is a playbook, **not automatically installed as a model skill**.
 
 | Track | Mandatory scoped files | Relevant canonical technical contracts |
 | --- | --- | --- |
