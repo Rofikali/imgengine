@@ -1,6 +1,6 @@
 # P13 Interactive Crop Editor: Contract and Implementation Plan
 
-> **Status reconciliation (2026-11-14):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26); the complete Rust FFI/Axum/proxy and accessible interaction workflow is **not yet established**. The original proposal status below is historical, not a denial of the native implementation. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md). 
+> **Status reconciliation (2026-11-15):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26). M1.1 now adds the safe Rust FFI, Axum, bounded-admission, and same-origin Nuxt-proxy transport, verified by the Ubuntu 24.04 gate at `7ef95249a9068987338689eb6c665f5d876f8edc`. The accessible browser crop editor, browser image-parity evidence, and production release remain unimplemented. The original proposal status below is historical, not a denial of either completed layer. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md).
 
 ## Status
 
