@@ -22,6 +22,8 @@ Internet -> Caddy -> Nuxt -> Rust/Axum -> lifecycle/admission -> C engine
 The P12 operation remains synchronous and ephemeral. Native work is not
 cancelled mid-operation by client disconnect, deadline, or graceful drain.
 
+> **INFRA-01 host-secret prerequisite (2026-11-15):** A correctly rendered `uid/gid/mode` stanza on a Docker Compose **file-backed** secret does not apply ownership/mode to the underlying bind mount. The [Docker Compose reference](https://docs.docker.com/reference/compose-file/services/) says those attributes are ignored for `file:` sources. Before public traffic, verify the required root:GID-10001 host-file mode `0440`, parent directory `0710`, in-container metadata and non-root readability with **metadata-only checks**; never display secret contents. Check the rest of [infra audit](INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) for capacity, abuse, edge TLS and observability blockers.
+
 ## Preconditions
 
 Before starting, retain the following outside the repository:
