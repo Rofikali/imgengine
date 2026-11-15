@@ -2,6 +2,8 @@
 
 **Status:** Proposed contributor policy, expanded by [Test Lanes, Milestone Gates & AI-Agent Budget (2026-11-15)](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) and the proposed [Astra CI-SCOPE-01 handoff](ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md). This document does **not** change existing GitHub Actions workflows, release gates, or authoritative `imgengine/scripts/verify_linux.sh`. No tests are disabled by this documentation PR. The actual `.github/workflows/ci.yml` currently runs **seven unconditional jobs** for all PRs, including docs/UI-only PRs; do not duplicate them manually.
 
+**Permanent log/output execution rule:** [CI-first minimal-AI-context policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md). Run scoped local tests and preserve all required CI; store full logs in files or CI artifacts, present concise exact-SHA statuses (including NOT RUN/PENDING), and inspect failed steps only when needed. This guidance reduces AI log-reading tokens, **not** the number of GitHub tests or the validity of failures.
+
 ## Goal
 Reduce repeated local compilation, sanitizer/fuzz time, and AI-agent context/token consumption **without** suppressing required checks for changed boundaries or shipping unverified code. The AI agent must not execute a full native rebuild merely because a frontend-only milestone begins.
 
