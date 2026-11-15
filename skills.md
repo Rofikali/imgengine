@@ -115,3 +115,13 @@ Use [the dated source-backed audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-
 5. For HLD, LLD, SOLID/DRY, hexagonal/DDD and patterns, record **source-backed actual usages** rather than mandating all patterns. For queues, allocators, and image kernels state algorithmic complexity, synchronization invariants and trade-offs.
 6. For performance, separately measure tiny dispatch, kernel, prepared rendering, decode, encode, and end-to-end; keep scalar image-quality/bitwise correctness and security gates. No unverified nanosecond or 100K ops/s claim.
 7. Finish with a concise finding register: ID, status, severity, cited file, residual uncertainty, owner, next verification. Update `next.md`. For docs-only audit: Markdown links/consistency/diff only, **no manual native build**, and preserve required GitHub CI.
+
+## Skill 10 — Infrastructure security, P14 operations and cost review
+
+Read [infra AGENTS](infra/AGENTS.md), [infra source audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [infra environment guide](infra/README.md), [P14 runbook](docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md) and [release checklist](docs/MVP_RELEASE_CHECKLIST.md). Distinguish P7 dev, P8 simulated VPS, P12 local disposable rehearsal, P14 production configuration and **actual** real-host evidence.
+
+- Examine Caddy public 80/443 boundary, Nuxt proxy, internal Rust service, mounted credential host-file owner/group/mode, runtime UID/capabilities, resource ceilings, TLS renewal, alerts and rollback. Never print keys or user images.
+- Docker Compose **ignores** long-syntax uid/gid/mode on file-backed secrets; verify actual host and container metadata before public release. Treat a rendered policy JSON check as static validation only.
+- Review the **existing** Python Compose checker without deleting it or introducing more Python. A proposed Rust/shell replacement requires exact negative-test and CI parity in a separate approved PR.
+- Reject unfounded claims that P8 simulation proves a clean checkout or a 1 GiB VPS; investigate its mutable dev-image and missing tracked offline registry directory separately from production.
+- Report evidence at a named SHA/image digest, success/failure, real-host vs simulation, resource/abuse and customer-cost risk. Do not authorize deploy/DNS/secret/CI change or relax required gates to save tokens.

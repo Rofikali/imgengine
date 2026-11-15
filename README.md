@@ -2,6 +2,8 @@
 
 > **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `backend/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
 
+**Infrastructure reviewers:** [infra AGENTS](infra/AGENTS.md), [infra README](infra/README.md), and [2026-11-15 infrastructure audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) define current Caddy/Docker/secret/observability and VPS-release evidence boundaries. This does not authorize production changes.
+
 **Starting Astra or another engineering agent?** Read [Astra engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) before choosing frontend, Rust backend or C17 native work. [next.md](next.md) is the living status board; current scoped [Rust AGENTS](backend/AGENTS.md), [native AGENTS](imgengine/AGENTS.md) and [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) define boundaries. Merged PR #37 relocated Rust to `backend/` with [seven passing CI jobs](https://github.com/Rofikali/imgengine/actions/runs/43618598771), **not** a production release.
 
 ## Current application path
