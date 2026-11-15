@@ -12,6 +12,8 @@
 
 **Engineering-agent operating rules (docs-only):** The [Seven-Level Engineering Operating Model](docs/SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) and [Agent Milestone Handoff Template](docs/AGENT_MILESTONE_HANDOFF_TEMPLATE.md) define proportionate Junior-to-Distinguished review lenses, security/SRE/CA-MBA business gates, and an exact-SHA evidence handoff for Astra/Codex. These are **governance guidance**, not proof that P13, C-A0 or P14 changed status. Existing P0 priorities, human approval and release blockers below remain unchanged.
 
+**STRAT-00 strategy candidate (documentation only, not a completed milestone):** Read the [Platform Product & Business Strategy](docs/IMGENGINE_PLATFORM_PRODUCT_BUSINESS_STRATEGY_2026-11-15.md), [C17/Rust/Browser/Server/Desktop Performance Plan](docs/IMGENGINE_PERFORMANCE_AND_MULTICHANNEL_ARCHITECTURE_2026-11-15.md) and [Agent First Move](docs/IMGENGINE_STRATEGY_AGENT_START_2026-11-15.md). These propose a browser-first free-tools product, differentiated paid Studio workflow, and **later** metered Rust/C API, native SDK and desktop after customer evidence. A priority ADR must explicitly reconcile existing M1→M2 sequencing; C-A0 P0 native review, aggregate RSS and P14 safety/release blockers remain active. No code, launch, pricing or status is declared DONE.
+
 ## 0. Current status and next-action board
 
 **Purpose of this file:** track **what is done, what is half-done, what has not started, what is blocked and exactly what happens next**. Do **not** copy full HLD/LLD, API specifications, agent rules or test logs here; link to canonical documents. The A–D inventory below retains finished work and long-term plans.
