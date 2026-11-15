@@ -90,7 +90,7 @@ image input remains `415`; malformed image data is `422`; layout/body resource
 limits are `413`; queue overload is `429`; and expiry is `504`. Physical-
 sheet centered-fill is implemented separately by P12 below.
 
-## CURRENT P12 PHYSICAL-SHEET CAPABILITY
+## CURRENT P12 PHYSICAL-SHEET CAPABILITY + M1.1 CROP TRANSPORT
 
 `POST /api/v2/sheet-render` is an additive physical-sheet endpoint. It uses the
 same authenticated Rust request lifecycle, bounded admission path, existing C
@@ -108,6 +108,19 @@ The Rust endpoint accepts multipart fields:
 - `copies`: exact requested copy count;
 - `margin_mm`, `gap_x_mm`, `gap_y_mm`: physical spacing; and
 - `output_format=jpeg`: the only output format in this slice.
+
+M1.1 additionally accepts an optional, all-or-none ABI 2.3 normalized crop
+rectangle: `crop_x`, `crop_y`, `crop_width`, and `crop_height`. Each is an
+unsigned decimal integer in the fixed 0–1,000,000 coordinate space; extents
+must be non-zero and checked sums must stay within that scale. If all four are
+absent, the endpoint retains P12's ABI 2.2 centered-fill behavior exactly.
+Partial, duplicate, malformed, negative, overflowed, or out-of-range crop
+fields return `400 invalid_request` before admission. C alone derives source
+dimensions; an otherwise well-formed crop that is incompatible with decoded
+source/placement aspect ratios is rejected by the native resource-limit path
+as `413 resource_limit`. The Nuxt proxy accepts and forwards only this bounded
+field set while retaining the backend API key server-side. No crop editor is
+included in this transport-only milestone.
 
 Millimetre fields accept decimal values with up to three fractional digits.
 The server converts physical dimensions to pixels using checked arithmetic and

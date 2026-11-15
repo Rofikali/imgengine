@@ -1,6 +1,6 @@
 use crate::{
     size_bucket, AdmissionController, AdmissionError, AdmissionMetricsSnapshot, AdmissionRequest,
-    LayoutExecution, LayoutPlan, ProcessReport, ResultClass, SheetPlan,
+    LayoutExecution, LayoutPlan, NormalizedCrop, ProcessReport, ResultClass, SheetPlan,
 };
 use std::fmt;
 use std::fs;
@@ -406,12 +406,23 @@ impl RequestLifecycleService {
         request: IncomingRequest,
         plan: SheetPlan,
     ) -> Result<AdmittedRequest, ApplicationFailure> {
+        self.admit_sheet_with_crop(request, plan, None)
+    }
+
+    /// Validates and transfers a P12 sheet plan with optional ABI 2.3 crop
+    /// metadata into the same bounded admission queue.
+    pub fn admit_sheet_with_crop(
+        &self,
+        request: IncomingRequest,
+        plan: SheetPlan,
+        crop: Option<NormalizedCrop>,
+    ) -> Result<AdmittedRequest, ApplicationFailure> {
         let request_id = self.request_id_or_unavailable()?;
         let content_type = self.validate(&request, &request_id)?;
         let input_size_bucket = size_bucket(request.body.len());
         let admission = self
             .admission
-            .submit_sheet(request.body, plan, self.policy.execution_timeout)
+            .submit_sheet_with_crop(request.body, plan, crop, self.policy.execution_timeout)
             .map_err(|error| {
                 self.failure(
                     request_id.clone(),

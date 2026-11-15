@@ -1,5 +1,6 @@
 use crate::{
-    LayoutPlan, ProcessReport, ResultClass, SheetPlan, Supervisor, SupervisorError, SupervisorOptions,
+    LayoutPlan, NormalizedCrop, ProcessReport, ResultClass, SheetPlan, Supervisor, SupervisorError,
+    SupervisorOptions,
 };
 use std::fmt;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -18,7 +19,10 @@ struct QueuedRequest {
 enum QueuedOperation {
     EncodeJpeg,
     Layout(LayoutPlan),
-    Sheet(SheetPlan),
+    Sheet {
+        plan: SheetPlan,
+        crop: Option<NormalizedCrop>,
+    },
 }
 
 #[derive(Default)]
@@ -332,6 +336,19 @@ impl AdmissionController {
         plan: SheetPlan,
         deadline: Option<Duration>,
     ) -> Result<AdmissionRequest, AdmissionError> {
+        self.submit_sheet_with_crop(input, plan, None, deadline)
+    }
+
+    /// Admits one optional ABI 2.3 crop alongside the existing P12 plan. The
+    /// crop is owned queue metadata; its presence does not alter queue bounds
+    /// or create another scheduler.
+    pub fn submit_sheet_with_crop(
+        &self,
+        input: Vec<u8>,
+        plan: SheetPlan,
+        crop: Option<NormalizedCrop>,
+        deadline: Option<Duration>,
+    ) -> Result<AdmissionRequest, AdmissionError> {
         if input.len() > self.max_input_bytes {
             self.metrics
                 .rejected_resource_limit
@@ -342,7 +359,7 @@ impl AdmissionController {
         let request = QueuedRequest {
             input,
             deadline,
-            operation: QueuedOperation::Sheet(plan),
+            operation: QueuedOperation::Sheet { plan, crop },
             response: response_sender,
         };
         self.submit_queued(request, response)
@@ -438,8 +455,8 @@ fn worker_loop(
             QueuedOperation::Layout(plan) => {
                 supervisor.process_layout(&request.input, &plan, request.deadline)
             }
-            QueuedOperation::Sheet(plan) => {
-                supervisor.process_sheet(&request.input, &plan, request.deadline)
+            QueuedOperation::Sheet { plan, crop } => {
+                supervisor.process_sheet_with_crop(&request.input, &plan, crop, request.deadline)
             }
         };
         metrics.record_completion(&result);

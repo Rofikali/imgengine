@@ -2,7 +2,11 @@
 
 ## Status
 
-**Design proposal; no implementation or release claim.** P13 adds user-controlled crop positioning to the existing physical-sheet workflow. It is intentionally separate from P12's centered-fill behavior.
+**Transport implementation: implemented and validated by M1.1; browser editor: planned.**
+The additive ABI 2.3 normalized-crop operation and its Rust/Axum/Nuxt proxy
+transport are implemented. This is not an interactive browser crop editor,
+production-readiness claim, or release claim. P13 remains intentionally
+separate from P12's centered-fill behavior.
 
 ## 1. Product outcome
 
@@ -24,11 +28,13 @@ The editor is an image-selection aid, not a trust boundary. The server and nativ
 - Existing C ABI symbols, request structures, output ownership, and crop geometry must not be modified in place.
 - Legacy FastAPI/worker flows remain in place until a separately approved migration milestone.
 
-## 3. Proposed API shape
+## 3. ABI shape
 
 Add an explicitly versioned crop-aware sheet operation rather than extending the ABI 2.2 request in place.
 
-Proposed native capability: **ABI 2.3**, with a new request version and a new bounded symbol. Names are provisional until header/export review.
+Native capability: **ABI 2.3**, using the additive `imgengine_sheet_request_v2_t`
+request and `imgengine_sheet_render_v2_bounded` symbol. ABI 2.2's request and
+symbol remain unchanged.
 
 The crop-aware request carries a normalized crop rectangle in a fixed-point coordinate space:
 
@@ -74,17 +80,32 @@ The same rectangle applies to every placement in a sheet request; placements wit
 
 ## 4. HTTP contract
 
-Extend the same-origin Nuxt proxy and Rust API with optional crop fields only after the ABI contract is approved.
+`POST /api/v2/sheet-render` and the same-origin Nuxt proxy
+`POST /api/sheet-render` accept these optional multipart text fields:
+
+| Field | Representation |
+|---|---|
+| `crop_x` | unsigned decimal normalized origin x |
+| `crop_y` | unsigned decimal normalized origin y |
+| `crop_width` | unsigned decimal normalized extent width |
+| `crop_height` | unsigned decimal normalized extent height |
+
+The coordinate scale is fixed at 1,000,000 and is not a request field.
 
 - Omitted crop fields: preserve current centered-fill behavior.
-- Complete crop fields: use the explicit user crop.
-- Partial, duplicate, malformed, non-finite, negative, or out-of-range fields: reject with `invalid_request`.
+- All four complete crop fields: use the explicit user crop through ABI 2.3.
+- Partial, duplicate, malformed, non-integer, negative, overflowed, or
+  out-of-range fields: reject with `400 invalid_request` before admission.
+- Aspect compatibility cannot be trusted from browser metadata. Native C
+  checks it against decoded source dimensions and each target placement during
+  the single decode; the established native resource-limit classifier maps a
+  mismatch to `413 resource_limit`.
 - Browser sends normalized values only; server does not trust them.
 - Crop parameters are bounded small integers, not arbitrary floating-point strings.
 - API key remains server-side; the browser continues using the same-origin proxy.
 - No crop metadata is persisted by the server after the request.
 
-## 5. Frontend behavior
+## 5. Frontend behavior — planned separately
 
 The P13 UI adds a crop step before sheet rendering:
 
@@ -145,8 +166,8 @@ The preview is an approximation for interaction. The server-rendered JPEG remain
 1. Approve the crop representation and rounding contract.
 2. Add native geometry helper + unit/property tests, without touching P12 centered-fill.
 3. Add additive ABI 2.3 request/symbol + export/version audit.
-4. Add safe Rust FFI wrapper and API validation/integration tests.
-5. Add Nuxt crop editor with local preview and accessible controls.
+4. Add safe Rust FFI wrapper plus Axum/Nuxt proxy validation and integration tests. **Completed by M1.1.**
+5. Add Nuxt crop editor with local preview and accessible controls. **Planned; not part of M1.1.**
 6. Add end-to-end tests proving UI crop parameters reach the native renderer correctly.
 7. Run the full CI matrix and review the ABI/security diff.
 8. Merge in small PRs: native contract, API integration, frontend editor, release verification.
@@ -175,4 +196,8 @@ The first crop-aware public operation is additive:
 - The native renderer uses the already-decoded source buffer and a validated borrowed crop view, then resizes to each exact placement size.
 - The public consumer test freezes the ABI 2.2 and ABI 2.3 struct sizes/offsets and exercises successful crop rendering and invalid crop rejection.
 
-The browser/Rust transport adapter is not yet wired to ABI 2.3. That is a later milestone after this native boundary passes CI and review.
+M1.1 wires the safe Rust FFI, bounded supervisor queue, Axum endpoint, and
+same-origin Nuxt proxy to ABI 2.3. When crop fields are absent, it deliberately
+continues to call the ABI 2.2 centered-fill operation. The interactive crop
+editor, preview, keyboard controls, and end-to-end browser UI evidence remain
+separate planned work.

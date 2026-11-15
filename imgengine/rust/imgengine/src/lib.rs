@@ -1,5 +1,6 @@
 //! Safe ownership boundary for stable `libimgengine` ABI v1 and additive
-//! `IMGENGINE_2.0` FIT layout and `IMGENGINE_2.2` physical-sheet capabilities.
+//! `IMGENGINE_2.0` FIT layout plus `IMGENGINE_2.2` and `IMGENGINE_2.3`
+//! physical-sheet capabilities.
 //!
 //! `Engine` deliberately is neither `Send` nor `Sync`: ABI v1 has one active
 //! engine per process and serializes operations internally. It also has no
@@ -109,6 +110,49 @@ pub struct SheetRequest {
     pub background: [u8; 3],
     pub placements: Vec<LayoutRect>,
     pub expected_count: u32,
+}
+
+/// Fixed coordinate scale used by ABI 2.3 normalized crop rectangles.
+pub const NORMALIZED_CROP_SCALE: u32 = 1_000_000;
+
+/// A validated, half-open, normalized source crop rectangle for ABI 2.3.
+///
+/// Construction rejects zero extents and rectangles outside the fixed
+/// `NORMALIZED_CROP_SCALE` coordinate space. The native renderer still
+/// validates the crop against decoded source dimensions and every placement.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NormalizedCrop {
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+}
+
+impl NormalizedCrop {
+    /// Creates a crop whose bounds are valid independently of source pixels.
+    pub fn new(x: u32, y: u32, width: u32, height: u32) -> Result<Self, Error> {
+        if width == 0
+            || height == 0
+            || x > NORMALIZED_CROP_SCALE
+            || y > NORMALIZED_CROP_SCALE
+            || width > NORMALIZED_CROP_SCALE
+            || height > NORMALIZED_CROP_SCALE
+            || x.checked_add(width)
+                .filter(|bound| *bound <= NORMALIZED_CROP_SCALE)
+                .is_none()
+            || y.checked_add(height)
+                .filter(|bound| *bound <= NORMALIZED_CROP_SCALE)
+                .is_none()
+        {
+            return Err(Error::InvalidArgument);
+        }
+        Ok(Self {
+            x,
+            y,
+            width,
+            height,
+        })
+    }
 }
 
 /// Rust-owned layout output with native plan accounting preserved for audit.
@@ -298,6 +342,86 @@ impl Engine {
         output.copy_to_owned()
     }
 
+    /// Renders an explicit user crop through the additive ABI 2.3 sheet
+    /// capability. Input bytes and placement metadata remain borrowed only for
+    /// this synchronous FFI call; returned JPEG bytes are copied into Rust
+    /// ownership before native output release.
+    pub fn render_sheet_jpeg_with_crop_bounded(
+        &mut self,
+        input: &[u8],
+        request: &SheetRequest,
+        crop: NormalizedCrop,
+        max_output_bytes: usize,
+    ) -> Result<LayoutOutput, Error> {
+        let placement_count =
+            u32::try_from(request.placements.len()).map_err(|_| Error::ResourceLimit)?;
+        let canvas_pixels = u64::from(request.canvas_width)
+            .checked_mul(u64::from(request.canvas_height))
+            .ok_or(Error::ResourceLimit)?;
+        if input.is_empty()
+            || request.canvas_width == 0
+            || request.canvas_height == 0
+            || placement_count == 0
+            || request.expected_count != placement_count
+            || max_output_bytes == 0
+        {
+            return Err(Error::InvalidArgument);
+        }
+        if request.canvas_width > 4096
+            || request.canvas_height > 4096
+            || canvas_pixels > 10_000_000
+            || placement_count > 64
+            || max_output_bytes > i32::MAX as usize
+        {
+            return Err(Error::ResourceLimit);
+        }
+
+        let placements: Vec<sys::LayoutRectV2> = request
+            .placements
+            .iter()
+            .map(|rect| sys::LayoutRectV2 {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+            })
+            .collect();
+        let native = sys::SheetRequestV2 {
+            struct_size: std::mem::size_of::<sys::SheetRequestV2>() as u32,
+            version: 2,
+            input: input.as_ptr(),
+            input_size: input.len(),
+            canvas_width: request.canvas_width,
+            canvas_height: request.canvas_height,
+            background_r: request.background[0],
+            background_g: request.background[1],
+            background_b: request.background[2],
+            reserved0: 0,
+            crop_mode: 2,
+            reserved1: [0; 4],
+            placements: placements.as_ptr(),
+            placement_count,
+            expected_count: request.expected_count,
+            crop: sys::NormalizedCropV1 {
+                x: crop.x,
+                y: crop.y,
+                width: crop.width,
+                height: crop.height,
+            },
+        };
+        let mut output = NativeLayoutOutput::default();
+        let status = sys::sheet_render_v2_bounded(
+            self.raw.as_ptr(),
+            &native,
+            max_output_bytes,
+            &mut output.raw,
+        );
+        if status != sys::STATUS_OK {
+            return Err(Error::from_status(status));
+        }
+        output.copy_to_owned()
+    }
+
     pub fn render_layout_jpeg_bounded(
         &mut self,
         input: &[u8],
@@ -412,11 +536,40 @@ impl Drop for NativeLayoutOutput {
 
 #[cfg(test)]
 mod tests {
-    use super::{EngineOptions, Error};
+    use super::{EngineOptions, Error, NormalizedCrop, NORMALIZED_CROP_SCALE};
 
     #[test]
     fn rejects_invalid_worker_counts_without_native_state() {
         assert_eq!(EngineOptions::new(0), Err(Error::InvalidArgument));
         assert_eq!(EngineOptions::new(65), Err(Error::InvalidArgument));
+    }
+
+    #[test]
+    fn normalized_crop_rejects_invalid_bounds_before_ffi() {
+        assert_eq!(
+            NormalizedCrop::new(0, 0, 0, NORMALIZED_CROP_SCALE),
+            Err(Error::InvalidArgument)
+        );
+        assert_eq!(
+            NormalizedCrop::new(NORMALIZED_CROP_SCALE, 0, 1, 1),
+            Err(Error::InvalidArgument)
+        );
+        assert_eq!(
+            NormalizedCrop::new(0, NORMALIZED_CROP_SCALE, 1, 1),
+            Err(Error::InvalidArgument)
+        );
+        assert_eq!(
+            NormalizedCrop::new(0, 0, NORMALIZED_CROP_SCALE + 1, 1),
+            Err(Error::InvalidArgument)
+        );
+        assert_eq!(
+            NormalizedCrop::new(0, 0, NORMALIZED_CROP_SCALE, NORMALIZED_CROP_SCALE),
+            Ok(NormalizedCrop {
+                x: 0,
+                y: 0,
+                width: NORMALIZED_CROP_SCALE,
+                height: NORMALIZED_CROP_SCALE,
+            })
+        );
     }
 }
