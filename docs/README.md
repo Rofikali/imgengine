@@ -16,6 +16,8 @@ For the **source-backed policy reconciliation and exact inventory of existing Py
 
 **Rust backend relocation complete (PR #37):** [Rust Backend Directory Migration](RUST_BACKEND_DIRECTORY_MIGRATION.md) records the move of Rust/Axum, FFI and supervisor crates to top-level `backend/`, verified by [7 passing GitHub CI jobs](https://github.com/Rofikali/imgengine/actions/runs/43618598771). Native C17 remains in `imgengine/`; Python in `imgengine-saas/backend/` remains legacy. This is **not** a public production release.
 
+**Infrastructure entry point:** [Infra Security/Operations/Economics Audit (2026-11-15)](INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [infra AGENTS](../infra/AGENTS.md) and [infra README](../infra/README.md) cover the 18 tracked active infrastructure files: P7 local dev, P8 simulation, P12 disposable candidate and P14 production configuration. Read with [P14 runbook](P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md). Static Docker policy checks and local image builds are **not** public VPS security or capacity proof.
+
 ## Start Here
 
 **For an AI coding/review agent such as Astra, start with [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).** It defines source-backed scope, three bounded C17/Rust/Nuxt tracks, P13 sequencing, security and performance gates, and business review criteria.
