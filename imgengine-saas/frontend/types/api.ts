@@ -46,8 +46,13 @@ export interface LayoutRenderSuccess extends RenderSuccess {
   executedCount: number
 }
 
+/** Complete source-relative crop at the fixed ABI 2.3 scale of 1,000,000. */
+export interface SheetCrop { x: number, y: number, width: number, height: number }
+
 /** Physical sheet dimensions are always expressed in millimetres at the HTTP boundary. */
 export interface SheetRenderInput {
+  /** Omission selects P12 centered fill; an explicit rectangle is all-or-none. */
+  crop?: SheetCrop
   sheetWidthMm: string
   sheetHeightMm: string
   photoWidthMm: string

@@ -119,8 +119,8 @@ fields return `400 invalid_request` before admission. C alone derives source
 dimensions; an otherwise well-formed crop that is incompatible with decoded
 source/placement aspect ratios is rejected by the native resource-limit path
 as `413 resource_limit`. The Nuxt proxy accepts and forwards only this bounded
-field set while retaining the backend API key server-side. No crop editor is
-included in this transport-only milestone.
+field set while retaining the backend API key server-side. The browser editor
+is a separate M1.2 implementation; see its [scope and orientation limitations](P13_M1_2_FRONTEND_IMPLEMENTATION.md).
 
 Millimetre fields accept decimal values with up to three fractional digits.
 The server converts physical dimensions to pixels using checked arithmetic and
@@ -132,7 +132,8 @@ copy count: if the exact count does not fit, it returns `422 does_not_fit`.
 A successful response is `image/jpeg` and includes a request ID plus native-
 confirmed canvas width/height and expected/planned/executed counts in
 `X-Imgengine-*` headers. The UI displays those server-confirmed values; it
-does not calculate crop coordinates, placements, or resource budgets.
+may submit an optional normalized crop selection, but does not calculate
+authoritative decoded-source crop pixels, placements, or resource budgets.
 
 P12 currently has a 1 MiB multipart input limit, queue capacity 1, a 10-second
 post-dequeue execution deadline, a 10,000,000-pixel canvas ceiling, and a

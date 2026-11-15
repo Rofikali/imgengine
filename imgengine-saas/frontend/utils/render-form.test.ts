@@ -42,3 +42,24 @@ describe('P12 physical-sheet multipart request', () => {
     ])
   })
 })
+
+describe('P13 explicit crop serialization', () => {
+  const input = { sheetWidthMm: '210', sheetHeightMm: '297', photoWidthMm: '35', photoHeightMm: '45',
+    dpi: '300', copies: '8', marginMm: '10', gapXmm: '2', gapYmm: '2', outputFormat: 'jpeg' as const }
+  const file = new File(['fixture'], 'source.jpg', { type: 'image/jpeg' })
+  it('sends exactly four integer text fields only for an explicit selection', () => {
+    const form = createSheetRenderForm(file, { ...input, crop: { x: 250000, y: 0, width: 500000, height: 1000000 } })
+    expect([...form.entries()].filter(([key]) => key.startsWith('crop_'))).toEqual([
+      ['crop_x', '250000'], ['crop_y', '0'], ['crop_width', '500000'], ['crop_height', '1000000'],
+    ])
+    expect([...createSheetRenderForm(file, input).keys()].some(key => key.startsWith('crop_'))).toBe(false)
+  })
+  it.each([
+    { x: NaN, y: 0, width: 1, height: 1 }, { x: -1, y: 0, width: 1, height: 1 },
+    { x: 0, y: 0, width: 0, height: 1 }, { x: 0, y: 0, width: 1.5, height: 1 },
+    { x: 1000000, y: 0, width: 1, height: 1 }, { x: 0, y: 0, width: Infinity, height: 1 },
+    { x: 0, y: 0, width: 1, height: undefined as unknown as number },
+  ])('rejects invalid/partial runtime values before submission: %j', (crop) => {
+    expect(() => createSheetRenderForm(file, { ...input, crop })).toThrow('Invalid crop rectangle')
+  })
+})
