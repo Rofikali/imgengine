@@ -1,10 +1,10 @@
 # P13 Interactive Crop Editor: Contract and Implementation Plan
 
-> **Status reconciliation (2026-11-15):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26). M1.1 now adds the safe Rust FFI, Axum, bounded-admission, and same-origin Nuxt-proxy transport, verified by the Ubuntu 24.04 gate at `7ef95249a9068987338689eb6c665f5d876f8edc`. M1.2 now implements the browser editor, typed serialization and scoped tests locally; review/CI, orientation-aware acceptance, comprehensive image parity and production release remain open. See [M1.2 implementation and limitations](P13_M1_2_FRONTEND_IMPLEMENTATION.md). The original proposal status below is historical, not a denial of either completed layer. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md).
+> **Status reconciliation (2026-11-15):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26). M1.1 now adds the safe Rust FFI, Axum, bounded-admission, and same-origin Nuxt-proxy transport, verified by the Ubuntu 24.04 gate at `7ef95249a9068987338689eb6c665f5d876f8edc`. M1.2 now implements the browser editor, typed serialization and scoped tests locally; review/CI, comprehensive image parity and production release remain open. See [M1.2 implementation and limitations](P13_M1_2_FRONTEND_IMPLEMENTATION.md). The original proposal status below is historical, not a denial of either completed layer. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md).
 
 ## Status
 
-**Transport: implemented by M1.1; browser editor: implemented locally by M1.2 with guarded orientation support and review/CI pending.**
+**Transport: implemented by M1.1; browser editor: implemented locally by M1.2 with stored-raster orientation support and review/CI pending.**
 The additive ABI 2.3 normalized-crop operation and its Rust/Axum/Nuxt proxy
 transport are implemented. The M1.2 browser editor is described below; this is not a
 production-readiness claim, or release claim. P13 remains intentionally
@@ -68,7 +68,7 @@ The request must not carry browser-provided source pixel dimensions, stride, poi
 Fields are `x`, `y`, `width`, and `height`; each is an integer in [0, 1,000,000], and extents must be non-zero. The rectangle is half-open: [x, x + width) × [y, y + height). Require x + width <= scale and y + height <= scale with checked addition. The scale is a protocol constant, not a caller-controlled field.
 
 **Pixel conversion is deterministic:**
-1. Decode the source once; use the decoded, orientation-corrected width and height as authoritative.
+1. Decode the source once; use the decoded, stored-raster width and height (EXIF orientation is ignored) as authoritative.
 2. Convert left/top edges with floor: `floor(coord * source_dimension / scale)`.
 3. Convert right/bottom edges with ceil: `ceil((coord + extent) * source_dimension / scale)`, using checked 64-bit integer arithmetic.
 4. Clamp only right/bottom rounding to the source dimension. Reject if the resulting pixel rectangle is empty or outside the source.
@@ -109,7 +109,7 @@ The coordinate scale is fixed at 1,000,000 and is not a request field.
 
 ## 5. Frontend behavior — M1.2 implemented locally
 
-The P13 UI adds a crop step before sheet rendering. [M1.2 details](P13_M1_2_FRONTEND_IMPLEMENTATION.md) define preview bounds, lifecycle, tests and the EXIF orientation guard. Full orientation-aware acceptance and M1.3 parity remain open:
+The P13 UI adds a crop step before sheet rendering. [M1.2 details](P13_M1_2_FRONTEND_IMPLEMENTATION.md) define preview bounds, lifecycle, tests and the stored-raster orientation contract. M1.3 parity remains open:
 
 1. Load the selected image into a browser-local preview.
 2. Show a fixed-aspect crop frame based on photo width/height.
@@ -169,7 +169,7 @@ The preview is an approximation for interaction. The server-rendered JPEG remain
 2. Add native geometry helper + unit/property tests, without touching P12 centered-fill.
 3. Add additive ABI 2.3 request/symbol + export/version audit.
 4. Add safe Rust FFI wrapper plus Axum/Nuxt proxy validation and integration tests. **Completed by M1.1.**
-5. Add Nuxt crop editor with local preview and accessible controls. **Implemented locally by M1.2; review/CI and orientation acceptance remain open.**
+5. Add Nuxt crop editor with local preview and accessible controls. **Implemented locally by M1.2; review/CI remain open.**
 6. Add end-to-end tests proving UI crop parameters reach the native renderer correctly.
 7. Run the full CI matrix and review the ABI/security diff.
 8. Merge in small PRs: native contract, API integration, frontend editor, release verification.

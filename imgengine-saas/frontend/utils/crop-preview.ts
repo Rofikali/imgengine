@@ -3,7 +3,6 @@ import { MAX_PREVIEW_EDGE, MAX_PREVIEW_PIXELS, type ImageSize } from './crop-edi
 export interface CropPreview extends ImageSize { url: string, dispose: () => void }
 export class CropPreviewError extends Error {}
 const invalid = () => new CropPreviewError('This image cannot be previewed safely. Choose another JPEG or PNG.')
-const orientationError = () => new CropPreviewError('This photo has orientation metadata the crop service cannot match yet. Export an upright copy without orientation metadata to use the editor.')
 
 function checkExif(bytes: Uint8Array) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
@@ -18,13 +17,13 @@ function checkExif(bytes: Uint8Array) {
     const entry = offset + 2 + index * 12
     if (view.getUint16(entry, little) !== 0x112) continue
     if (view.getUint16(entry + 2, little) !== 3 || view.getUint32(entry + 4, little) !== 1
-      || view.getUint16(entry + 8, little) !== 1) throw orientationError()
+      || view.getUint16(entry + 8, little) < 1 || view.getUint16(entry + 8, little) > 8) throw invalid()
   }
 }
 
 /** Bounded header preflight before browser decode. This is a UX resource guard,
  * not a substitute for native validation or a browser decoder memory guarantee. */
-export function inspectPreview(bytes: Uint8Array): ImageSize {
+export function inspectPreview(bytes: Uint8Array, metadata: Array<[number, number]> = []): ImageSize {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   let size: ImageSize | undefined
   if (bytes.length >= 33 && view.getUint32(0) === 0x89504e47 && view.getUint32(4) === 0x0d0a1a0a) {
@@ -35,7 +34,10 @@ export function inspectPreview(bytes: Uint8Array): ImageSize {
       const length = view.getUint32(offset)
       if (length > bytes.length - offset - 12) throw invalid()
       const type = view.getUint32(offset + 4)
-      if (type === 0x65584966) checkExif(bytes.subarray(offset + 8, offset + 8 + length))
+      if (type === 0x65584966) {
+        checkExif(bytes.subarray(offset + 8, offset + 8 + length))
+        metadata.push([offset, offset + length + 12])
+      }
       // Animated PNG has no single stable source frame contract.
       if (type === 0x6163544c) throw invalid()
       offset += length + 12
@@ -51,6 +53,7 @@ export function inspectPreview(bytes: Uint8Array): ImageSize {
       if (length < 2 || offset + length > bytes.length) throw invalid()
       if (marker === 0xe1 && length >= 8 && view.getUint32(offset + 2) === 0x45786966 && view.getUint16(offset + 6) === 0) {
         checkExif(bytes.subarray(offset + 8, offset + length))
+        metadata.push([offset - 2, offset + length])
       }
       if ([0xc0, 0xc1, 0xc2].includes(marker ?? 0)) {
         if (length < 8 || size) throw invalid()
@@ -67,9 +70,17 @@ export function inspectPreview(bytes: Uint8Array): ImageSize {
 }
 
 export async function loadCropPreview(file: File, signal: AbortSignal): Promise<CropPreview> {
-  const size = inspectPreview(new Uint8Array(await file.arrayBuffer()))
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const metadata: Array<[number, number]> = []
+  const size = inspectPreview(bytes, metadata)
   if (signal.aborted) throw invalid()
-  const url = URL.createObjectURL(file)
+  // Preview the same stored raster as native C. Remove EXIF only from this
+  // ephemeral preview copy; original encoded upload bytes remain untouched.
+  const parts: Uint8Array<ArrayBuffer>[] = []
+  let start = 0
+  for (const [left, right] of metadata) { parts.push(bytes.subarray(start, left)); start = right }
+  parts.push(bytes.subarray(start))
+  const url = URL.createObjectURL(new Blob(parts, { type: bytes[0] === 0xff ? 'image/jpeg' : 'image/png' }))
   const image = new Image()
   let disposed = false
   const dispose = () => {

@@ -3,7 +3,7 @@
 Implementation branch: `codex/p13-m1-2-crop-editor`, based on
 `d73e321566c1cd58854a03b4ea051a6a9f3cb322` (PR #45 merged).
 Status: implemented locally with scoped verification; remote CI/review and
-the orientation limitation below remain open. This is not a production release.
+the release gates below remain open. This is not a production release.
 The final handoff records the exact tested implementation SHA and log location.
 
 ## Design and ownership
@@ -39,24 +39,22 @@ new state. Failure clears the explicit selection and explains that retry uses
 centered fill; the same photo can be selected again to reopen the editor.
 Request abort stops browser waiting and does not promise native cancellation.
 
-## Orientation limitation and separate contract proposal
+## Orientation contract resolved without backend changes
 
-Source inspection of `imgengine/src/io/decoder/decoder_entry.c` and
-`stb_bridge.c` shows direct TurboJPEG/stb decoding without EXIF orientation
-application. Therefore the P13 proposal's orientation-corrected-source assumption
-is not established by the implementation. Browser autorotation can otherwise
-silently select a different region from the server.
+M1.2 coordinates and output use the **stored raster**, ignoring EXIF orientation.
+This explicitly supersedes the original proposal's orientation-corrected-source
+assumption. C17/Rust behavior and P12 compatibility remain unchanged.
+The browser removes JPEG EXIF segments or PNG eXIf chunks only from an ephemeral
+preview copy. It does not rotate/re-encode pixels or modify uploaded file bytes.
+All eight valid orientation values, including mirrored values, are accepted;
+malformed metadata fails closed. The editor explains stored orientation and tells
+users to export upright when they want rotated output. Automatic upright rendering
+is a separate future product capability, not claimed by this contract.
 
-The frontend reads bounded JPEG APP1 / PNG eXIf metadata and refuses an explicit
-preview for non-identity or malformed orientation. The UI asks for an upright
-export without orientation metadata. It also rejects animated PNG previews.
-Existing P12 centered-fill rendering remains available, with no matching-preview
-claim. This limitation means full orientation-aware M1.2 acceptance remains open.
-
-Proposed separate task: freeze native orientation semantics, add orientation 2–8
-and mirrored JPEG/PNG fixtures, decide the compatibility effect on existing
-endpoints, and validate a narrowly scoped native/FFI change with the required
-native/ABI/sanitizer/fuzz evidence. No native change is included here.
+Live acceptance covers orientations 1–8 in JPEG and PNG, alternating TIFF byte
+order: preview dimensions and red/blue landmarks, byte-identical original upload,
+and the real Rust/C right-hand crop producing a blue JPEG. Comprehensive M1.3
+pixel parity and cross-browser/manual screen-reader testing remain separate gates.
 
 ## Verification lanes and reproduction
 
@@ -131,7 +129,7 @@ edges. Staff: P12 omission and untouched M1.1/ABI boundary. Senior Staff: scoped
 M1.2 evidence versus pending M1.3/CI/release gates. Principal/Distinguished:
 no editor framework, new service, storage or native rewrite; one reversible
 frontend change. Security/SRE: header preflight, bounded decode lifetime, no
-image telemetry or exposed credential, explicit orientation guard and no native
+image telemetry or exposed credential, explicit stored-raster contract and no native
 cancellation claim. These are one agent's review lenses, not independent reviewers.
 
 Playwright and axe are development-only additions because existing Vitest cannot
@@ -142,11 +140,10 @@ service. User task success/retry reduction, aggregate browser/native memory and
 cost per successful sheet are NOT MEASURED. No revenue or cost-saving claim is made.
 
 Rollback: revert this frontend change; omission still selects P12. No persistent
-data migration or backend rollout is needed. Keep EXIF orientation acceptance,
+data migration or backend rollout is needed. Keep
 full M1.3 parity, dependency disposition, C-A0 and P14 release gates open.
 
-Next bounded milestone: M1.3 image-parity fixture matrix and orientation contract
-decision, after review/required CI. Separately propose CI-SCOPE-01 dry-run path
+Next bounded milestone: M1.3 image-parity fixture matrix and expanded orientation regressions, after review/required CI. Separately propose CI-SCOPE-01 dry-run path
 classification (known, mixed, renamed/deleted and unknown paths; fail closed),
 keeping all seven jobs running. No selective skipping, branch-rule change,
 merge or deployment is authorized by this implementation.

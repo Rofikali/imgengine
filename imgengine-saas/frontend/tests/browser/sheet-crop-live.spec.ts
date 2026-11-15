@@ -1,4 +1,52 @@
 import { expect, test } from '@playwright/test'
+import { oriented } from './orientation'
+
+test('EXIF 1–8 JPEG/PNG previews match stored raster and upload original bytes', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Physical sheet', exact: true }).click()
+  for (const png of [false, true]) {
+    const mime = png ? 'image/png' : 'image/jpeg'
+    const bytes = Buffer.from(await page.evaluate(type => {
+      const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 200
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = 'red'; ctx.fillRect(0, 0, 200, 200)
+      ctx.fillStyle = 'blue'; ctx.fillRect(200, 0, 200, 200)
+      return canvas.toDataURL(type).split(',')[1]!
+    }, mime), 'base64')
+    for (let orientation = 1; orientation <= 8; orientation++) {
+      const buffer = oriented(bytes, orientation, png, orientation % 2 === 0)
+      await page.getByLabel('Choose a JPEG or PNG photo').setInputFiles({ name: png ? 'fixture.png' : 'fixture.jpg', mimeType: mime, buffer })
+      const preview = page.getByAltText('Selected photo within the crop frame')
+      await expect(preview).toBeVisible()
+      await expect.poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(400)
+      const colors = await preview.evaluate((img: HTMLImageElement) => {
+        const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 200
+        const ctx = canvas.getContext('2d')!; ctx.drawImage(img, 0, 0)
+        return [Array.from(ctx.getImageData(50, 100, 1, 1).data), Array.from(ctx.getImageData(350, 100, 1, 1).data)]
+      })
+      expect(colors[0]![0]).toBeGreaterThan(240); expect(colors[1]![2]).toBeGreaterThan(240)
+      for (const label of ['Sheet width', 'Sheet height', 'Photo width', 'Photo height']) await page.getByLabel(`${label} in millimetres`).fill('25.4')
+      await page.getByLabel('Print DPI').fill('100'); await page.getByLabel('Exact number of copies').fill('1')
+      await page.getByLabel('Sheet margin in millimetres').fill('0')
+      await page.getByLabel('Horizontal position:').focus(); await page.keyboard.press('End')
+      await page.route('**/api/sheet-render', async route => {
+        expect(route.request().postDataBuffer()!.includes(buffer)).toBe(true)
+        await route.continue()
+      }, { times: 1 })
+      await page.getByRole('button', { name: 'Create physical sheet' }).click()
+      const result = page.getByAltText('Rendered physical photo sheet preview')
+      await expect(result).toBeVisible()
+      const pixel = await result.evaluate(async (img: HTMLImageElement) => {
+        await img.decode()
+        const canvas = document.createElement('canvas'); canvas.width = 100; canvas.height = 100
+        const ctx = canvas.getContext('2d')!; ctx.drawImage(img, 0, 0)
+        return Array.from(ctx.getImageData(50, 50, 1, 1).data)
+      })
+      expect(pixel[2]).toBeGreaterThan(240); expect(pixel[0]).toBeLessThan(15)
+      await page.getByRole('button', { name: 'Create another sheet' }).click()
+    }
+  }
+})
 
 test('real browser -> Nuxt -> Rust crop and P12 omission return decodable JPEGs and accounting', async ({ page }, testInfo) => {
   const explicitFields: boolean[] = []

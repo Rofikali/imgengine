@@ -39,8 +39,7 @@ describe('bounded crop preview header guard', () => {
       const view = new DataView(chunk.buffer)
       view.setUint32(0, metadata.length); view.setUint32(4, 0x65584966); chunk.set(metadata, 8)
       for (const bytes of [jpeg, png(400, 200, chunk)]) {
-        if (orientation === 1) expect(inspectPreview(bytes)).toEqual({ width: 400, height: 200 })
-        else expect(() => inspectPreview(bytes)).toThrow('orientation metadata')
+        expect(inspectPreview(bytes)).toEqual({ width: 400, height: 200 })
       }
     }
   })

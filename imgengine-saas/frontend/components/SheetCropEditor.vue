@@ -54,6 +54,7 @@ function keydown(event: KeyboardEvent) {
 <template>
   <fieldset class="crop-editor" :disabled="disabled">
     <legend>Adjust photo crop</legend>
+    <p class="help">Preview and output use the stored photo orientation, ignoring camera rotation metadata. To rotate a photo upright, export it upright before choosing it here.</p>
     <p id="crop-help" class="help">Drag the photo, or use the position and zoom sliders. Arrow keys move the crop; Shift + arrow moves further. Reset returns to centered fill.</p>
     <div ref="frame" class="crop-frame" role="group" aria-label="Photo crop preview" aria-describedby="crop-help"
       :tabindex="disabled ? -1 : 0" :aria-disabled="disabled" :style="{ aspectRatio: `${target.width} / ${target.height}`, width: `min(100%, 22rem, ${28 * target.width / target.height}rem)` }"
