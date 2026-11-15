@@ -22,7 +22,7 @@
 | P8 FIT layout | Implemented | `docs/P8_PRODUCT_CONTRACT.md` | Keep unchanged while adding new tools |
 | P11 geometry planning | Implemented | PR #13, `docs/P12_PHYSICAL_SHEET_CONTRACT.md` | Preserve deterministic parity |
 | P12 physical JPEG sheet and Nuxt UI | Implemented; local workflow demonstrated, not production | `docs/P12_PHYSICAL_SHEET_CONTRACT.md`, PRs #16–19, #18 | VPS/resource evidence, usability release gates |
-| P13 normalized native crop, ABI 2.3 | **Partial** | PRs #24–26, `docs/P13_INTERACTIVE_CROP_CONTRACT.md` | Rust/Axum/Nuxt transport, accessible UI, end-to-end parity |
+| P13 native ABI 2.3 + M1.1 Rust/HTTP/Nuxt server proxy crop transport | **PARTIAL overall; M1.1 merged and recorded-verified** | PRs #24–26, [#43](https://github.com/Rofikali/imgengine/pull/43), [7/7 CI](https://github.com/Rofikali/imgengine/actions/runs/43683324448), `docs/P13_INTERACTIVE_CROP_CONTRACT.md` | M1.2 browser typed form/workflow/editor, M1.3 full parity; see [Astra handoff](ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md) |
 | Nuxt 4 frontend and typed proxy | Implemented | `imgengine-saas/frontend/`, frontend `AGENTS.md` | Crop UI, browser-local engine, broader tools |
 | Docker / Caddy private candidate | Implemented local candidate; production blocked | `docs/P12_DEPLOYMENT.md`, `docs/LOCAL_DOCKER_REHEARSAL.md` | Real VPS, TLS/DNS/firewall, rollback, monitoring |
 | Native sanitizer/fuzz/ABI verification | Validated (recorded), not run for this documentation change | `imgengine/scripts/verify_linux.sh`, PR #29 | Re-run on relevant native changes and release gates |
@@ -33,7 +33,7 @@
 | Paid tenancy, quotas, metering, B2B | **Planned** | `docs/PRD.md`, roadmap | Demand validation, privacy and payment architecture |
 
 ## Unfinished, interrupted or deferred work
-1. **P13/M1 interactive crop:** native ABI complete, transport/UI incomplete. Next implementation boundary.
+1. **P13/M1 interactive crop:** native ABI and M1.1 safe Rust FFI/Axum/Nuxt server-proxy transport complete/merged PR #43; M1.2 browser-facing optional crop typed form/workflow/editor and M1.3 parity remain incomplete. [Astra frontend M1.2 handoff](ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md).
 2. **P12/P14 public release:** local candidate exists; actual-VPS RAM/CPU/disk, TLS, monitoring, canary and rollback evidence missing. Do not claim production-ready.
 3. **P7.5 separate worktree:** preserve as-is; inspect locally before any reconciliation. A remote branch or PR does not prove its uncommitted state.
 4. **Browser-local processing:** no first-party Worker/Wasm engine. Transitive Wasm dependencies are not product functionality.
@@ -61,12 +61,12 @@
 
 ## Nuxt frontend and legacy backend reconciliation (2026-11-14)
 
-See [frontend/legacy backend source audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) for per-feature source references, agent scope and open questions. **Implemented / prior recorded evidence:** Nuxt 4.6.4, typed P5/P8/P12 same-origin proxies, private server-only Rust credential, bounded multipart ingress, client preview cleanup, unit tests/build recorded Nov 2026; retained Python/FastAPI/Celery/Redis/PostgreSQL job backend source and historical backup/SRE contracts. **Partial:** interactive P13 crop transport/UI, accessibility/browser E2E evidence and overall memory budget. **Planned:** local Worker/Wasm image processing, PNG/PDF sheet output, batch, paid users/tenants. **Open:** historic production dependency advisories, browser production hardening, actual VPS capacity/TLS/canary, and legacy service security hypotheses (internal-token comparison, request-ID trust, metric endpoint reachability). Legacy Python source is not the location of the Rust backend, which now lives in top-level `backend/`.
+See [frontend/legacy backend source audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) for per-feature source references, agent scope and open questions. **Implemented / prior recorded evidence:** Nuxt 4.6.4, typed P5/P8/P12 same-origin proxies, private server-only Rust credential, bounded multipart ingress, client preview cleanup, unit tests/build recorded Nov 2026; retained Python/FastAPI/Celery/Redis/PostgreSQL job backend source and historical backup/SRE contracts. **Partial:** P13 browser crop editor/UI and M1.3 parity despite completed M1.1 proxy transport, accessibility/browser E2E evidence and overall memory budget. **Planned:** local Worker/Wasm image processing, PNG/PDF sheet output, batch, paid users/tenants. **Open:** historic production dependency advisories, browser production hardening, actual VPS capacity/TLS/canary, and legacy service security hypotheses (internal-token comparison, request-ID trust, metric endpoint reachability). Legacy Python source is not the location of the Rust backend, which now lives in top-level `backend/`.
 
 ## Astra engineering handoff and structural verification
 
 - **DONE / MERGED:** Rust backend crates moved to top-level `backend/` in [PR #37](https://github.com/Rofikali/imgengine/pull/37), 7/7 CI jobs passed at exact PR head `4ab5a65fcde411fd77dde8eb36aea09dce7915c3` ([run](https://github.com/Rofikali/imgengine/actions/runs/43618598771)). This does not close P13 or P14.
-- **PARTIAL:** P13 native ABI 2.3 is implemented; Rust adapter, HTTP/proxy, accessible Nuxt UI and parity evidence remain separate milestones.
+- **PARTIAL:** P13 native ABI 2.3 and **M1.1 Rust adapter, Axum/HTTP, supervisor and Nuxt server-proxy** transport are merged via [PR #43](https://github.com/Rofikali/imgengine/pull/43), with [seven CI jobs passing at PR head](https://github.com/Rofikali/imgengine/actions/runs/43683324448). M1.2 browser typed input/form/UI and M1.3 full parity are still open. Starting [Astra M1.2](ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md) does not establish production readiness.
 - **OPEN / review-only first:** C observability concurrency, aggregate memory envelope, deployment isolation and current production release proof.
 - **Source of handoff:** [Astra start guide](ASTRA_ENGINEERING_START_HERE.md) defines three bounded frontend/backend/native tracks, quality gates and CA/MBA business checks. Do not convert its proposals into shipped features.
 
