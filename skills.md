@@ -137,3 +137,14 @@ Read [infra AGENTS](infra/AGENTS.md), [infra source audit](docs/INFRA_SECURITY_O
 5. **Portability, performance and product economics:** confirm x86-64 portable baseline and actual ARM64 build before redistributing; use pinned benchmarks with quality oracles, p95/p99 and peak memory before claiming microseconds. Quantify the effect on host capacity and cost per valid image, not a made-up revenue number.
 6. **Change-scoped testing:** C/FFI/security fixes require focused deterministic regression, ABI C/Rust consumer, concurrency/sanitizer checks and mandatory CI. For docs-only audit, use Markdown source references, links and scope; **do not manually run full C builds or fuzz**.
 7. End with IDs/status/priority/caller path/evidence/uncertainty/lowest-cost verification; update the single relevant next.md item. Never mix the current Rust backend with legacy Python, and never merge/deploy/retire services without explicit authorization.
+
+## Skill 12 — Seven-level engineering, security and CA/MBA agent handoff
+
+Use the [Seven-Level Engineering Operating Model](docs/SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) to review each meaningful IMGENGINE change from Junior, Mid-Level, Senior, Staff, Senior Staff, Principal and Distinguished perspectives **proportionally to risk**, together with security/privacy, SRE, product/UX, CA/finance and MBA/management. These are review perspectives, not seven independent AI agents or an authorization to act autonomously.
+
+1. Open the [Agent Milestone Handoff Template](docs/AGENT_MILESTONE_HANDOFF_TEMPLATE.md); name one exact next.md task ID, mode, affected directory, current SHA and acceptance matrix. Read only the scoped AGENTS, source and contracts that task needs.
+2. For simple changes, do the shortest sufficient review. For C ABI/FFI, scheduler, decoder, auth, trust boundaries or deployment, produce a source-backed HLD/LLD, ownership/concurrency/DSA checks, threat model, compatibility risks and rollback plan before editing.
+3. Make no new Python/FastAPI/Redis/PostgreSQL or speculative DB/broker additions. Do not confuse legacy services, old CI or static Compose settings with the selected Rust/C17 product's implementation and release evidence.
+4. Run the change-scoped tests and preserve mandatory CI. Separate **NOT RUN**, historical evidence and tests executed at the exact revision. Benchmark correctness and total resources before claiming performance savings.
+5. Include variable cost per successful job, customer value, opportunity cost, support burden, privacy and infrastructure assumptions; mark unknowns explicitly and never fabricate sales/profits.
+6. Deliver the template's report with changed paths, SHA, status, risks, user decisions and one next milestone. Do not merge, deploy, rotate secrets, spend money or retire legacy without separate explicit authorization.
