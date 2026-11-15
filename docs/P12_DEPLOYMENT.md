@@ -3,7 +3,7 @@
 ## What is deployed in this slice
 
 The Compose stack now includes a separate `rust-api` service built from
-`imgengine/rust/Dockerfile`. It serves the verified synchronous Rust/Axum
+`backend/Dockerfile`. It serves the verified synchronous Rust/Axum
 capabilities:
 
 - `POST /api/v1/render` — P5 single-image render

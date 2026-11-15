@@ -1,5 +1,11 @@
 # AGENTS.md — IMGENGINE SaaS Frontend Engineering Constitution
 
+> **Current frontend status and authority (2026-11-14):** This directory contains the implemented Nuxt 4.6.4/Vue 3.5.44 TypeScript frontend, typed P5/P8/P12 render workflows, and three same-origin server proxies. This is **not** a claim of public release, complete accessibility/browser-E2E coverage, user-selected P13 crop, browser-local Wasm, PDF export, tenants, or billing. Consult [source-based frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [Rust API contract](../../docs/api.md), [P12](../../docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md), [next.md](../../next.md), and [optional skills.md](../../skills.md). Current source and versioned contracts take precedence over historical P7.0 design descriptions.
+
+> **Binding backend selection (2026-11-14):** The only approved **new IMGENGINE API/backend** is Rust/Axum under `backend/`, with safe FFI to C17. **Never** introduce or route a new frontend feature through Python/FastAPI, Django/DRF, Flask, Celery, Redis or PostgreSQL; the older backend is retained solely for authorized legacy maintenance/rollback. The existing Nuxt server-side proxy is a credential-protecting browser adapter, **not** permission to build a second independent backend. See [approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [Rust-scoped AGENTS](../../backend/AGENTS.md), current [API contract](../../docs/api.md) and [next queue](../../next.md).
+
+> **Astra frontend start:** Follow [three-track engineering handoff, Track B](../../docs/ASTRA_ENGINEERING_START_HERE.md). Do **not** begin implementing interactive P13 drag/zoom against invented HTTP fields; first review/freeze the Rust/Axum M1.1 contract. Keep P12 centered-fill behavior and same-origin server-only credentials, test keyboard/touch/mobile and preview cleanup, and update `next.md` with exact evidence.
+
 ## 1. Scope
 
 These instructions apply to `imgengine-saas/frontend` and supplement the repository-level `AGENTS.md`.
@@ -161,6 +167,16 @@ Before adding a package, document:
 
 Do not add a state-management library, UI framework, upload library, or HTTP abstraction merely for convenience.
 
+### Current frontend security and performance boundaries
+
+- Three Nuxt server routes perform bounded multipart parsing, private credential forwarding, and safe error mapping; they are *similar but not interchangeable*. Preserve each P5/P8/P12 contract and test before considering any DRY refactor.
+- Client-side AbortController and temporary object-URL release are **not native C cancellation**. The Rust request lifecycle may finish native work after a browser disconnect.
+- Never interpret a server-to-server shared API key as end-user authentication, tenant isolation, or paid quota enforcement.
+- User-controlled crop remains a separate M1 feature; do not invent a P13 browser-to-Rust crop field before the backend contract is implemented and validated.
+- Browser-local image processing, when later approved, must not upload original image bytes or silently switch to server processing. Worker/Wasm remains **planned**.
+- Frontend-only implementation should run focused Vitest/typecheck/build and relevant browser/a11y tests; do **not** manually rebuild the native C core or run its full sanitizer/fuzz suite unless a native/shared boundary changed. Required GitHub CI and release checks remain mandatory.
+- Track dependency-audit findings and review Nuxt devtools behavior in production. Previous P14 dependency results are dated evidence, not a fresh vulnerability scan.
+
 ## 11. Testing
 
 Frontend changes should use layered verification appropriate to the change:
@@ -183,6 +199,17 @@ Clearly distinguish:
 - Validated
 
 Frontend documentation must reference the authoritative backend contract instead of copying stale legacy API assumptions.
+
+## 12.1 Work-tracking and evidence handoff
+
+**This file defines scoped frontend engineering rules; it is not the project backlog.** Before a frontend milestone, read [root next.md](../../next.md) for the current F/H/O/P status ID and next acceptance gate, the [source-backed frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [change-scoped verification](../../docs/CHANGE_SCOPED_VERIFICATION.md), the authoritative versioned API contract, and optional [skills.md](../../skills.md). Do not duplicate whole roadmaps or speculative routes here.
+
+- A feature can be **planned**, **implemented in Nuxt**, **verified at a specific SHA**, or **released**; state precisely which. A merged docs-only PR is not frontend functionality or public release.
+- For a change to P5/P8/P12, preserve the exact multipart fields, server-only credential, server-confirmed counts and safe error semantics. The Rust endpoint remains authoritative; the P13 user-selected crop contract must first be implemented through Rust/Axum and the typed proxy.
+- For browser-local work proposed after M1, the frontend may own ephemeral in-browser processing and state, but **must not** claim the work stays private until no-image-upload, telemetry, memory cleanup and optional server-fallback consent have been verified. The prohibition on server persistence in section 4 does not prohibit explicitly approved local, ephemeral user editing.
+- When a milestone lands, update the relevant **next.md** ID with exact status, PR, test-head SHA, concrete verification and unresolved issues; update the relevant API/product document, not this AGENTS rulebook with an entire test report.
+- Product/CA-MBA check: document customer task success and accessibility, device and network cost, bundle size, support/maintenance cost and any new server processing cost before adding broad image-editor dependencies or monetization features.
+- **Testing scope:** for Nuxt-only changes, run focused frontend tests/typecheck/build and browser accessibility tests when relevant. Do not manually rerun native CMake/ASan/UBSan/fuzz without a shared native/FFI change. Existing required CI and release checks are never waived.
 
 ## 13. Git
 

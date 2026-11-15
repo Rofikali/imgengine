@@ -1,5 +1,7 @@
 # P8 First Online Product Contract
 
+> **Historical phase notice (2026-11-14):** The design-only wording below reflects the original P8 contract gate. The FIT-only C/Rust capability was implemented in later milestones; its current boundary is recorded in [api.md](api.md) and [ABI.md](ABI.md). This earlier design document remains useful for requirements history. 
+
 ## Status and scope
 
 This document defines the first capability-backed layout product. It is the

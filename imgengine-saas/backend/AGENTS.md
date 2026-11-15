@@ -1,4 +1,10 @@
-# AGENTS.md — IMGENGINE SaaS Backend
+# AGENTS.md — IMGENGINE retained legacy backend (Python)
+
+> **Product decision:** No **new** IMGENGINE backend uses Python, FastAPI, Flask, Django/DRF, Celery, Redis or PostgreSQL. New HTTP services use Rust/Axum under `backend/`. This directory is **legacy-retained for migration/rollback and security-only maintenance**, not a source of new services or design templates. [Approved technology ADR](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust AGENTS](../../backend/AGENTS.md) govern future backend architecture; never treat the architecture diagrams below as permission to reintroduce banned components.
+
+> **Directory scope clarification (2026-11-14):** Everything under `imgengine-saas/backend/` is currently the **retained legacy FastAPI/Celery/Python worker** source, not the location of the active Rust API. Current Rust/Axum, FFI and supervisor live under `backend/` and follow [root AGENTS.md](../../AGENTS.md) + [Rust backend AGENTS.md](../../backend/AGENTS.md). The Rust architecture and future-target instructions below are **migration design guidance**, not evidence Rust files live in this directory or permission to rewrite/restart the Python stack. Legacy data, migrations, backup, audit and worker behavior must remain safe and reversible until explicit retirement approval. See [frontend/legacy backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [migration](../../docs/migration.md), [current Rust API](../../docs/api.md), [next.md](../../next.md), and [optional skills.md](../../skills.md).
+
+> **Astra legacy scope:** For active Rust work use [top-level Rust backend AGENTS](../../backend/AGENTS.md) and [three-track start guide](../../docs/ASTRA_ENGINEERING_START_HERE.md). Do **not** select any historical FastAPI/Celery/PostgreSQL architecture sections below as new implementation tasks. This legacy directory may receive only explicitly approved security/retirement/rollback maintenance.
 
 ## 1. Scope
 
@@ -10,13 +16,21 @@ These instructions apply to:
 
 They supplement the root repository `AGENTS.md`.
 
-The target backend architecture is Rust/Axum/Tokio.
+The **repository-wide target** backend architecture is Rust/Axum/Tokio, implemented under `backend/`. **This directory remains the retained Python/FastAPI/Celery backend.** Do not create a parallel Rust backend here or treat the target diagrams below as proof of what this directory currently executes.
 
 The backend must remain a control-plane/orchestration layer.
 
 It must not duplicate the native image-processing engine.
 
 ---
+
+## 1.1 Authority, task scope and progress tracking
+
+This file gives mandatory safety rules when editing **existing code under `imgengine-saas/backend/`**. The Rust target design in the following sections is a **migration reference**, not a command to change Python files or a replacement for [native Rust AGENTS](../../imgengine/AGENTS.md). Follow root AGENTS first.
+
+Before a legacy-backend task, inspect [root next.md](../../next.md) for its **BE-A** status/exit gate; read the [frontend/backend audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [legacy SaaS contract](../../docs/SAAS_CONTRACT.md), [security operations](../../docs/SECURITY_OPERATIONS.md), [SRE](../../docs/SRE.md), [database recovery](../../docs/DATABASE_RECOVERY.md), [change-scoped verification](../../docs/CHANGE_SCOPED_VERIFICATION.md) and optional [skills.md](../../skills.md), as applicable.
+
+**Status truth:** Python source and prior dated legacy verification establish legacy implementation; current Rust contracts govern the separate Axum product. Keep finished, partial, planned, legacy-retained, and retired states distinct. Update the **next.md** task ID with exact PR/SHA, evidence, residual risk, next action and migration decision; keep tests, runbooks and technical contracts in `docs/`, not copied into this AGENTS file.
 
 # 2. Target Architecture
 
@@ -303,7 +317,7 @@ Images and generated outputs must not become permanent application state.
 
 # 11. No Database for Ephemeral Jobs
 
-The target MVP does not require PostgreSQL for temporary image-processing jobs.
+The target new product **does not use PostgreSQL**, whether for jobs, customer accounts, or future billing metadata. Existing PostgreSQL is a **retained legacy implementation detail** only; any future durable product metadata needs a separately approved non-default storage ADR.
 
 Do not add durable database state merely to represent:
 
@@ -319,7 +333,7 @@ Do not accidentally turn ephemeral rendering into a durable job platform.
 
 ---
 
-# 12. No Redis Initially
+# 12. No Redis in New Rust Product (Legacy Use Only)
 
 Do not introduce Redis simply because:
 
@@ -333,7 +347,7 @@ The initial architecture should use in-process bounded concurrency and appropria
 Queue saturation must produce explicit overload behavior; it must not retain
 unbounded request bodies or silently block callers.
 
-Redis may be reconsidered later when measured requirements justify it.
+**For the selected new IMGENGINE product, Redis is not an approved future default or scale fallback.** Reconsideration requires an explicit user-approved technology-policy ADR, not a generic performance or queue argument. Existing legacy Redis configuration remains solely for safe legacy recovery/migration.
 
 ---
 
@@ -650,6 +664,17 @@ Use environment/runtime secret management.
 
 ---
 
+## Legacy Python maintenance and verification policy (2026-11-14)
+
+- For changes **inside this directory**, inspect current FastAPI routes, auth, Pydantic schemas, SQL migrations, Celery task/retry policy, database/storage ownership and retention before editing; keep the legacy contract until the agreed migration/rollback gate closes.
+- Distinguish **implemented legacy behavior** (durable `/api/generate`, job status, DB/events, Redis broker, worker CLI) from **current Rust behavior** (synchronous P5/P8/P12 with ephemeral results). Do not silently advertise legacy routes as Rust API features.
+- Document and independently verify internal-token comparison, externally supplied correlation-ID validation, legacy `/metrics` reachability, dev-secret rejection in production, log redaction and auth/retention. These are **review hypotheses** from source, not demonstrated exploits.
+- A focused legacy-only code PR should use scoped Python/API/worker/storage/security tests. Do not manually run unrelated C17 builds, ASan/UBSan or native fuzz unless shared ABI/FFI/native code changes; required GitHub CI/release gates are not waived.
+- **No new FastAPI/Python runtime for the target Rust product** just because this legacy directory still exists. No deletion/retirement without API parity, recovery/rollback evidence and an explicit go/no-go.
+- Read the [source-backed audit](../../docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [change-scoped testing policy](../../docs/CHANGE_SCOPED_VERIFICATION.md) and [legacy SRE](../../docs/SRE.md) before any legacy work.
+
+---
+
 # 25. Testing Strategy
 
 Rust backend tests should eventually cover:
@@ -856,3 +881,13 @@ The Rust backend should be:
 Its job is to safely move requests to the native engine and return results.
 
 It should not become a second monolith containing every possible technology.
+
+---
+
+# 33. Current legacy-backend change gate
+
+- **Current responsibility:** maintain the retained FastAPI HTTP app, authentication, durable job model, Celery worker, Redis/PostgreSQL interactions, artifacts, retention and recovery **only where the existing rollback/migration policy requires them**. No new Python service is to be created for the target Rust product.
+- **Security review, not a vulnerability assertion:** trace the internal-token equality check, untrusted `X-Request-ID`, public-versus-private `/metrics` exposure, production credential validation, and output/log redaction. Propose code fixes only after analyzing real reachability and tests.
+- **No accidental rewrites or retirement:** do not delete migrations, stored job history, persistent artifacts, queues or rollback procedures without documented parity, authorized retention decisions, verified restoration, canary evidence and explicit human approval.
+- **Focused verification:** test the changed Python auth/API/DB/queue/storage boundary, including failures and recovery as applicable. Do **not** manually rebuild native C, run full ASan/UBSan/fuzz or frontend UI tests for docs-only or isolated Python changes unless the shared interface genuinely changed. Required CI and release gates still run.
+- **Business and operational gate:** account for the cost of keeping both generations (backup/storage, worker/broker, security patches and support), and justify continued operation against migration risk. Do not claim that retaining source means the old public service is actively deployed.

@@ -16,7 +16,7 @@ RUN cmake -S imgengine -B /build/native -G Ninja \
 FROM native-build AS rust-build
 COPY .docker/.cargo/registry /usr/local/cargo/registry
 RUN CARGO_NET_OFFLINE=true LD_LIBRARY_PATH=/build/native RUSTFLAGS='-L native=/build/native' \
-    cargo build --release --manifest-path imgengine/rust/imgengine-api/Cargo.toml \
+    cargo build --release --manifest-path backend/imgengine-api/Cargo.toml \
       --bin imgengine-api-server
 
 FROM build-base AS frontend-build

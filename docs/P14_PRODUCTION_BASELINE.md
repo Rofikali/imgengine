@@ -33,6 +33,8 @@ admission, temporary workspace cleanup, and native invocation. This profile
 does not add a second queue, scheduler, persistence layer, or browser-held
 credential.
 
+> **Infrastructure audit reconciliation (2026-11-15):** Read [active infra audit](INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) and [infra AGENTS](../infra/AGENTS.md). The 2026-11-14 Compose policy check verifies **rendered configuration**, not live secret-file modes, actual Caddy TLS, whole-host resource capacity or operational alerting. Docker Compose **ignores `uid/gid/mode`** attributes for `file:` secrets because they are bind-mounted; enforce the already documented restrictive host files/parents and confirm mounted file metadata and UID-10001 access on the actual deployment host. Source: [Docker Compose service secrets](https://docs.docker.com/reference/compose-file/services/). The P8 simulation Dockerfile is a separate historical configuration with toolchain/cache reproducibility questions; do not promote it to P14 production.
+
 ## Images and secrets
 
 Set all image variables in a root-owned deployment environment file from
@@ -61,7 +63,7 @@ revision `093f1d69f47027ca5f0676cba7df42e1e5602866`. It is useful integration
 evidence, but is **not** an actual-VPS test or authorization to expose public
 traffic.
 
-- The Rust API image built from `imgengine/rust/Dockerfile` and started as
+- The Rust API image built from `backend/Dockerfile` and started as
   UID/GID `10001` with a read-only root, bounded `/tmp`, and an API key read
   from a mounted secret file. Its readiness endpoint returned success and an
   authenticated real-JPEG render returned HTTP 200.

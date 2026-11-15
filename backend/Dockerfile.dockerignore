@@ -1,0 +1,31 @@
+# Dockerfile-specific ignore policy for backend/Dockerfile.
+# Build context is the repository root, but the API builder needs ONLY the C17
+# engine and Rust backend. Do not send legacy Python, the frontend, local data,
+# account secrets or unrelated infrastructure into this build context.
+# Dockerfile-specific ignore files take precedence over root .dockerignore.
+**
+!backend
+!backend/**
+!imgengine
+!imgengine/**
+
+# Security exclusions remain in effect even inside permitted source trees.
+**/.git
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/.ssh
+**/data
+**/target
+**/build
+**/build-*
+**/.venv
+**/__pycache__
+**/node_modules
+**/.cache
+**/*.log
+**/*.profraw
+**/*.profdata

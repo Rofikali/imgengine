@@ -1,6 +1,18 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
-## 1. Purpose
+> **Proposed platform/business/performance direction (2026-11-15; documentation only):** For future agent or human product planning, consult [IMGENGINE Platform & Business Strategy](docs/IMGENGINE_PLATFORM_PRODUCT_BUSINESS_STRATEGY_2026-11-15.md), [Performance, C ABI, Rust/Wasm/API/Desktop Architecture](docs/IMGENGINE_PERFORMANCE_AND_MULTICHANNEL_ARCHITECTURE_2026-11-15.md), and [STRAT-00 Agent First-Move Brief](docs/IMGENGINE_STRATEGY_AGENT_START_2026-11-15.md). Free local browser utilities, validated paid studio workflows, future metered API and optional desktop/SDK are **proposals**, not launched features or accepted prices. First reconcile the existing M1→M2 browser priority through a reviewed ADR. Keep existing C-A0 P0 safety, C17/ABI/Rust boundaries and P14 release requirements; no new Python or unapproved merge/deployment/spending.
+
+> **Seven-level engineering and cross-functional reviews (2026-11-15):** Use the [Seven-Level Engineering Operating Model](docs/SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) for proportional Junior → Mid-Level → Senior → Staff → Senior Staff → Principal → Distinguished review, plus security/SRE/product/CA-MBA management checks. For bounded Astra/Codex tasks use the [Agent Milestone Handoff Template](docs/AGENT_MILESTONE_HANDOFF_TEMPLATE.md). This adds a decision/review process, **not** seven autonomous agents or permission to change architecture, merge, deploy, spend money or bypass existing tests. Root and deeper scoped AGENTS, current contracts, and [next.md](next.md) remain authoritative.
+
+> **Binding product-stack decision (2026-11-14):** For **all new IMGENGINE product/backend development**, use **C17 native core + Rust/Tokio/Axum HTTP/application layer + safe C FFI + existing Nuxt/Vue/TypeScript frontend**. **No new Python, FastAPI, Django/DRF, Flask, Celery, Redis, PostgreSQL, or Python-based tooling** for the target architecture; do not substitute a new queue/database automatically. Existing legacy Python/services and Python verification scripts remain temporarily only for safe maintenance and migration. **Changing this decision requires the user's explicit approval and a new ADR.** See [approved technology and repository structure](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](backend/AGENTS.md). A new Rust service belongs under `backend/`, not the legacy `imgengine-saas/backend/` tree.
+
+> **Current repository-status checkpoint (2026-11-14):** The Rust backend migration [PR #37](https://github.com/Rofikali/imgengine/pull/37) is **merged** and [7/7 CI checks passed](https://github.com/Rofikali/imgengine/actions/runs/43618598771) at its PR-head revision. C17 remains in `imgengine/`, Rust/Axum in `backend/`, Nuxt in `imgengine-saas/frontend/`, and Python backend in retained legacy `imgengine-saas/backend/`. Previous “complete/validated” milestone claims are scoped to their dated test evidence, **not blanket production/security approval**. Begin bounded Astra work from [the engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) and [next.md](next.md); do not assume P13 crop or P14 VPS release is finished.
+
+> **Infrastructure scope checkpoint (2026-11-15):** For `infra/` configuration, scripts, Caddy, Compose and P14 deployment governance, follow [infra/AGENTS.md](infra/AGENTS.md), [infra security/operations audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [P14 runbook](docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), and [next.md](next.md). Static hardening is **not** real-host deployment evidence. The separate `imgengine-saas/infra/` tree is retained legacy. No new Python tooling; existing `infra/scripts/verify-production-compose.py` remains until parity-preserving replacement. Do not deploy, rotate secrets or change DNS without explicit approval.
+
+> **Native C17 principal audit checkpoint (2026-11-15):** The [C17 source/LLD/DSA/security audit](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native README](imgengine/README.md) describe implemented C ABI/algorithms, source-backed concurrency/metrics review findings and the first bounded Astra C-A0 task. For C work also follow [native AGENTS](imgengine/AGENTS.md). Do not mistake historical design-pattern sketches, 2-ms targets or previously passing limited tests for blanket race-freedom, cross-platform portability or production release. No C source change is authorized solely by this docs audit.
+
+# 1. Purpose
 
 This file defines the global engineering rules for the IMGENGINE repository.
 
@@ -32,7 +44,7 @@ The goal is:
 The proven architecture and implemented first-slice transport boundary are:
 
 ```
-Nuxt 4/5 + Vue + TypeScript
+Nuxt 4 + Vue + TypeScript (P5/P8/P12 current)
                 |
                 v
 Rust HTTP/application layer (implemented P5 Axum adapter; production not claimed)
@@ -56,7 +68,7 @@ Rust HTTP/application layer (implemented P5 Axum adapter; production not claimed
                 +--> TurboJPEG
                 +--> decoding
                 +--> layout/rendering
-                +--> JPEG/PDF encoding
+                +--> JPEG output; PDF encoder remains internal/not public P12
 ```
 
 The C scheduler and C engine remain the performance-critical execution plane.
@@ -91,12 +103,12 @@ The following are legacy technologies and must not be reintroduced into the targ
 * FastAPI
 * Celery
 * Redis
-* PostgreSQL for job-only persistence
+* PostgreSQL for any new target-product persistence (not just job-only persistence)
 * permanent image storage
 * S3/MinIO for the MVP image path
 * unnecessary ELK/Jaeger infrastructure
 
-Existing legacy code may remain temporarily during migration.
+Existing legacy code and historical Python-based verification helpers may remain temporarily during migration; this is not authorization to use them for new backend work. Do not remove required verification tools until an equivalent non-Python replacement has proven CI/release parity.
 
 Do not remove legacy components merely because the target architecture says they will eventually disappear.
 
@@ -170,7 +182,7 @@ HTTP.
 Implemented: the smallest authenticated Axum adapter around the lifecycle
 contract, with P6 transport/limit evidence. Planned: production-service
 evidence and contract expansion, legacy retirement after a rollback window,
-Nuxt modernization, and measured production economics/scale. Do not mark those
+P13 accessible crop completion, and measured production economics/scale. Do not mark those
 planned phases as implemented merely because the first vertical slice exists.
 
 ---
@@ -478,11 +490,7 @@ For production-impacting work, Definition of Done normally includes:
 
 # 13. Git Policy
 
-Current repository branch:
-
-```
-codex/fix-saas-candidate-fixtures
-```
+The current branch is **not fixed by this document**. Inspect `git status -sb`, current HEAD SHA, worktree cleanliness, remotes and open PRs before making changes.
 
 Remote:
 
@@ -676,7 +684,7 @@ Scale architecture should be designed intelligently, but infrastructure should b
 
 # 20. Documentation Rules
 
-Canonical product/engineering behavior belongs in `docs/`.
+Canonical product/engineering behavior belongs in `docs/`. Read [the Astra start guide](docs/ASTRA_ENGINEERING_START_HERE.md) for the current three-track frontend/Rust/C17 source/contract/test handoff. Legacy `docs/PRD.md`, `docs/SAAS_CONTRACT.md`, `docs/OBSERVABILITY.md`, and `docs/RELEASE_CHECKLIST.md` belong to the older asynchronous Python product generation; the current Rust/Nuxt first-MVP follows versioned [API](docs/api.md), [P12](docs/P12_PHYSICAL_SHEET_CONTRACT.md), [P13](docs/P13_INTERACTIVE_CROP_CONTRACT.md) and [release checklist](docs/MVP_RELEASE_CHECKLIST.md).
 
 Important documentation currently includes:
 
@@ -811,3 +819,13 @@ Profitability
 The best implementation is not the one with the most technology.
 
 It is the smallest system that satisfies the real requirements with strong evidence.
+
+For the native C17 and Rust implementation, the [contract-to-evidence matrix](docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) provides a source-linked subsystem/ownership/algorithm/security/performance checklist. It supplements the existing [documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md), and does not authorize code changes or waive required CI.
+
+## Frontend and legacy backend documentation handoff (2026-11-14)
+
+For files inside `imgengine-saas/frontend/` and `imgengine-saas/backend/`, read their **respective scoped AGENTS.md** and the [current frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). The legacy backend AGENTS.md describes Rust as a *target design* while its directory contains Python/Celery code; the current Rust code lives under `backend/` and follows [backend AGENTS](backend/AGENTS.md) plus root policy; native C ABI rules are under [native AGENTS](imgengine/AGENTS.md). Review [skills.md](skills.md) and [next.md](next.md) for bounded testing and status. Do not confuse source presence, prior CI evidence, browser abort, or local Docker rehearsal with production security or native cancellation.
+
+## Native C/Rust documentation audit handoff (2026-11-14)
+
+For tasks touching `imgengine/` native C, the installed public ABI or `backend/`, first read [the native/Rust documentation map](docs/NATIVE_C_RUST_DOCS_MAP.md) and [dated audit](docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) **after** this policy and the relevant nested AGENTS.md. Use [next.md](next.md) for task state and [skills.md](skills.md) for optional task recipes. These are **evidence/navigation aids**, not a replacement for actual source review, current API contracts or release checks. Do not treat historical PRD, HLD, LLD or v2 RFC proposals as shipped features or measured performance. No native source change is authorized by a documentation finding alone.

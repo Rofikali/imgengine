@@ -1,5 +1,11 @@
 # AGENTS.md — IMGENGINE Native C Engine
 
+> **Rust scope and selected stack (2026-11-14):** Code under top-level `backend/` follows [the backend AGENTS.md](../backend/AGENTS.md). The accepted new-product backend is **Rust/Axum**, not Python/FastAPI, Celery, Redis or PostgreSQL. The current C17 scheduler and public ABI remain the native execution plane. Consult [binding technology/structure ADR](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md); historical “do not introduce a full Rust backend” instructions for a *focused C ABI task* must not be interpreted as prohibiting the already-implemented Rust API. No automatic native C tests for Rust-only docs/frontend changes; existing required CI gates remain.
+
+> **Astra native C start:** Use [three-track engineering handoff, Track C](../docs/ASTRA_ENGINEERING_START_HERE.md) for an evidence-first C17/ABI/security/DSA/performance review. The existing metrics-concurrency question, total RSS accounting and sandbox reachability are **review items, not confirmed exploits**. Keep C17/C11/ABI compatibility and required safety gates. No frontend, Rust HTTP or unrelated C feature rewrite during a native-only review.
+
+> **2026-11-15 source audit and Astra C-A0 gate:** Before editing native queues, worker execution, allocators, public ABI, SIMD, decoder security or metrics, read the [new C17 A–Z source/LLD/DSA/security audit](../docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native core README](README.md). Current priority is a **read-only exact-source concurrency and resource review**: SPSC queue consumer ownership vs work stealing, mixed metrics synchronization, aggregate memory limits, seccomp/build portability and static SDK packaging. These are review findings, not confirmed user-visible exploits. Propose a minimal test/reproducer before any core rewrite. A docs-only change does not require manual CMake, sanitizer or fuzz runs; required CI/release checks remain mandatory.
+
 ## 1. Scope
 
 These instructions apply to:
@@ -595,3 +601,9 @@ The native engine should become:
 Rust should eventually be able to treat it as a dependable component rather than knowing its internal implementation.
 
 That is the objective of the stable ABI.
+
+Native/Rust reviewers must also consult [the operation contract-to-evidence matrix](../docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md) for source-linked HLD/LLD, allocator/queue/FFI lifetime, decoder trust, metrics-race investigation and benchmark unit policy. This matrix is an audit navigation aid, not executable test evidence.
+
+## Native and Rust documentation evidence protocol (2026-11-14)
+
+When working in `imgengine/` (native C17), follow the [native C/Rust document map](../docs/NATIVE_C_RUST_DOCS_MAP.md), [source-backed documentation audit](../docs/NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md), and [change-scoped verification policy](../docs/CHANGE_SCOPED_VERIFICATION.md). The installed public ABI and exports, C/Rust implementation, and exact-revision tests take priority over historical RFC/HLD sketches. Record security trust boundaries, buffer lifetimes, worker/queue/atomic synchronization, resource bounds, fallback correctness and a benchmark's *exact timed region*. Nanosecond/microsecond goals apply to measured small primitives, never as unverified whole-image guarantees. Documentation-only work requires link/status/diff checks and must not manually rebuild C or run ASan/UBSan/fuzz unless a changed boundary justifies it. Never weaken mandatory integration/release gates.

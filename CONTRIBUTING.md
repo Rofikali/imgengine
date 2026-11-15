@@ -2,6 +2,8 @@
 
 Thank you for contributing to `imgengine`.
 
+> **New-contributor technology gate (2026-11-14):** Read [approved IMGENGINE stack and directory policy](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), root [AGENTS](AGENTS.md), scoped [Rust AGENTS](backend/AGENTS.md), and [next.md](next.md). **New backend = Rust/Axum**, not Python/FastAPI, Django/DRF, Flask, Celery, Redis, PostgreSQL or new Python scripts. The existing Python directory is legacy and may receive only separately authorized migration/security maintenance. No speculative folder moves, database or queue adoption without an approved ADR.
+
 ## Engineering standard
 
 Changes should be small, reviewable, and backed by evidence. For native-code changes, correctness and memory safety come before performance claims.

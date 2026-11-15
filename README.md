@@ -1,5 +1,13 @@
 # imgengine
 
+> **Technology decision (2026-11-14):** All **new** IMGENGINE backend code uses **Rust/Axum**, with C17 native execution, safe Rust FFI and the existing Nuxt/Vue/TypeScript frontend. **No new Python/FastAPI/Flask/Django/DRF, Celery, Redis, PostgreSQL, or Python tooling.** The tracked Python-based backend and older helper scripts are legacy/existing and retained only until verified migration or tooling replacement. The current Rust backend lives in `backend/`; `imgengine-saas/backend/` is **legacy Python**. Read [approved technology/folder ADR](docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md) before proposing new infrastructure or folder moves.
+
+**Infrastructure reviewers:** [infra AGENTS](infra/AGENTS.md), [infra README](infra/README.md), and [2026-11-15 infrastructure audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) define current Caddy/Docker/secret/observability and VPS-release evidence boundaries. This does not authorize production changes.
+
+**C17 native-core deep audit:** [Principal source/LLD/design patterns/DSA/security review](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native core README](imgengine/README.md) identify implemented ABI/algorithms and high-priority concurrent SPSC consumer/metrics and resource-budget questions. These require exact-revision proofs, **not** broad rewrites or unverified nanosecond claims.
+
+**Starting Astra or another engineering agent?** Read [Astra engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) before choosing frontend, Rust backend or C17 native work. [next.md](next.md) is the living status board; current scoped [Rust AGENTS](backend/AGENTS.md), [native AGENTS](imgengine/AGENTS.md) and [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) define boundaries. Merged PR #37 relocated Rust to `backend/` with [seven passing CI jobs](https://github.com/Rofikali/imgengine/actions/runs/43618598771), **not** a production release.
+
 ## Current application path
 
 The verified synchronous, ephemeral application path is:
@@ -23,13 +31,15 @@ has not been silently deleted or declared retired. See
 and [`docs/MVP_RELEASE_CHECKLIST.md`](docs/MVP_RELEASE_CHECKLIST.md) for the
 current contract, migration status, and open release gates.
 
+The scoped frontend and retained Python backend engineering records are indexed in the [frontend/legacy backend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md). Follow the respective `imgengine-saas/frontend/AGENTS.md` and `imgengine-saas/backend/AGENTS.md`; the active Rust implementation follows `backend/AGENTS.md`.
+
 For a local Windows 11/Docker Desktop rehearsal of the current Rust/Nuxt P12
 candidate, use [`docs/LOCAL_DOCKER_REHEARSAL.md`](docs/LOCAL_DOCKER_REHEARSAL.md).
 It is local integration evidence only, not actual-VPS or production evidence.
 
 > A native, high-performance image layout engine for print-ready photo sheets — built in C with a stable public API and a Rust-backed application path.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+**License/provenance:** No root `LICENSE` file was present in the audited Git tree. The earlier MIT badge was removed pending an explicit, owner-approved license and third-party provenance decision; this statement grants no license. See [project status](docs/PROJECT_STATUS_AND_DECISION_REGISTER.md).
 [![Language](https://img.shields.io/badge/core-C17-00599C.svg)](https://en.wikipedia.org/wiki/C17_(C_standard_revision))
 [![Build](https://img.shields.io/badge/build-CMake-064F8C.svg)](https://cmake.org/)
 [![Focus](https://img.shields.io/badge/focus-systems%20%2B%20image%20processing-111827.svg)](#)

@@ -66,7 +66,7 @@ jobs:
           python3 infra/scripts/verify-production-compose.py "$ARTIFACT_DIR/production.compose.json"
       - name: Build candidate runtime images
         run: |
-          docker build --file imgengine/rust/Dockerfile --tag "$API_IMAGE" imgengine
+          docker build --file backend/Dockerfile --tag "$API_IMAGE" .
           docker build --file imgengine-saas/frontend/Dockerfile --tag "$WEB_IMAGE" imgengine-saas/frontend
       - name: Start hardened isolated candidate containers
         shell: bash

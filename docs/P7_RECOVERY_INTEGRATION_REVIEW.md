@@ -1,5 +1,7 @@
 # P7 Recovery Integration Review
 
+> **Historical worktree evidence (2026-11-14 reconciliation):** This record describes a specific recovered P7 payload and Windows worktree from October 2026. It does not establish the current Nuxt/Rust feature state or prove that any separate local worktree has no uncommitted changes. See [current frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md).
+
 ## Scope and provenance
 
 This review records the exact uncommitted P7 payload recovered in the linked

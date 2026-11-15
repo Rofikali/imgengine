@@ -1,5 +1,7 @@
 # IMGENGINE Engineering Playbook
 
+> **Generation and scope notice (2026-11-14):** This playbook contains useful general engineering rules and older SaaS/durable-job implementation loops. Their FastAPI/Celery/Redis/PostgreSQL milestones are **legacy historical work**, not a mandate to reintroduce those components into the active Rust/Axum/C17 product. For current frontend/backend source status and bounded tests use [frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md), [current API](api.md), [change-scoped verification](CHANGE_SCOPED_VERIFICATION.md), [next](../next.md) and [skills](../skills.md).
+
 ## 1. Loop Engineering
 
 One loop owns one user-visible outcome. It starts with a contract change and finishes only with executable evidence. Do not combine unrelated native, API, UI, and infrastructure refactors in one loop.
@@ -36,6 +38,8 @@ Before modifying a subsystem, answer:
 - Keep the hot path free of allocation, I/O, locks, and logging.
 - Test scalar fallback and any SIMD leaf independently.
 - Run sanitizer, ABI, regression, and benchmark gates on the supported Linux toolchain.
+
+> **Target-product scope rule (2026-11-14):** Only the accepted **Rust/Axum** backend may receive new product features. Any Pydantic, Python worker, Redis/PostgreSQL, Celery or database-migration instructions below apply **solely to retained legacy work**, not the new product. The new Rust feature loop is contract → focused Rust tests → safe FFI/native gates if affected → evidence → `next.md` update. See [approved stack ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md) and [Rust-scoped AGENTS](../imgengine/rust/AGENTS.md). No new Python tooling.
 
 ## 4. SaaS Change Checklist
 

@@ -1,5 +1,7 @@
 # P13 Interactive Crop Editor: Contract and Implementation Plan
 
+> **Status reconciliation (2026-11-14):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26); the complete Rust FFI/Axum/proxy and accessible interaction workflow is **not yet established**. The original proposal status below is historical, not a denial of the native implementation. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md). 
+
 ## Status
 
 **Transport implementation: implemented and validated by M1.1; browser editor: planned.**

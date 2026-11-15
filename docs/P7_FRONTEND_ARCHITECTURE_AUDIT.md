@@ -1,5 +1,7 @@
 # P7.0 Frontend Architecture Audit
 
+> **2026-11-14 supersession note:** The old Nuxt 3, job-polling, missing-typed-client and legacy-password concerns below describe the original P7.0 audit baseline, **not current `main`**. The frontend is now Nuxt 4.6.4 with typed P5/P8/P12 same-origin proxies and a P12 image-sheet panel. P13 interactive crop and production release remain incomplete. See [current frontend/legacy backend audit](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) and [P14 dated build/security evidence](P14_PRODUCTION_BASELINE.md). Historical findings remain intact.
+
 **Status:** HISTORICAL AUDIT — its P7.2.0 active-flow recommendation is implemented and verified separately.
 
 **Base:** `main` after merged P6 request-lifecycle work.

@@ -1,5 +1,9 @@
 # Low-Level Design (LLD) — imgengine
 
+> **Status: implementation mapping with conceptual v2 RFC sketches; not authoritative public ABI declarations.** For installed public headers use `imgengine/include/imgengine/api/v1` and `v2`, [ABI.md](ABI.md) and the exported symbol map. Older `include/api/v1` references below describe historical/internal code. See [Native/Rust audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md). 
+
+> **Current-source LLD reconciliation (2026-11-15):** For implemented ownership, exact public ABI, scheduler/queue concurrency invariants, algorithms/complexities, test gaps and status at `ff5dd06755069d170d97c9ab323a2fa52915aa68`, use the [principal C17 source audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md). The existing conceptual v2 template/decode/pattern sketches and older `include/api/v1` paths below are **historical/illustrative**, not new stable SDK claims; the installed public C ABI is `include/imgengine/api/v1` and `v2`. Avoid labeling this conceptual mapping 'production-ready' without exact-revision source/tests.
+
 ## Purpose
 
 This document maps the major headers in `include/` to their implementing sources in `src/`, outlines the main call flows, and highlights key files to inspect when working on a subsystem.
@@ -11,8 +15,8 @@ This document is an expanded, production-ready mapping derived from the v2.0 RFC
 
 ## Navigation cheat-sheet (where to look)
 
-- Public API surface: `include/api/v1` → implementations under `src/api/` (e.g. [src/api/api_init.c](src/api/api_init.c#L1)).
-- Core/context & buffers: `include/core/*` → `src/core/*` (e.g. `include/core/buffer.h` → [src/core/buffer_lifecycle.c](src/core/buffer_lifecycle.c#L1)).
+- Public API surface: `include/api/v1` → implementations under `src/api/` (e.g. [src/api/api_init.c](../imgengine/src/api/api_init.c)).
+- Core/context & buffers: `include/core/*` → `src/core/*` (e.g. `include/core/buffer.h` → [src/core/buffer_lifecycle.c](../imgengine/src/core/buffer_lifecycle.c)).
 - Pipeline engine: `include/pipeline/*` → `src/pipeline/*` (jump-table, fused kernels, pipeline executor).
 - IO layer: `include/io/*` → `src/io/decoder/*`, `src/io/encoder/*`, `src/io/vfs/*`.
 - Memory allocators: `include/memory/*` → `src/memory/*` (slab, arena, numa, hugepage).
@@ -21,12 +25,12 @@ This document is an expanded, production-ready mapping derived from the v2.0 RFC
 
 ## Representative mappings and key symbols
 
-- `img_api_init` — [src/api/api_init.c](src/api/api_init.c#L9)
-- `img_api_shutdown` — [src/api/api_shutdown.c](src/api/api_shutdown.c#L6)
-- `img_api_run_job_impl` — [src/api/api_job_run.c](src/api/api_job_run.c#L99)
-- `g_jump_table` — [src/pipeline/jump_table_register.c](src/pipeline/jump_table_register.c#L4)
-- `img_register_op` — [src/pipeline/jump_table_register.c](src/pipeline/jump_table_register.c#L7)
-- `img_slab_alloc` / `img_slab_free` — [src/memory/slab_hot.c](src/memory/slab_hot.c#L1)
+- `img_api_init` — [src/api/api_init.c](../imgengine/src/api/api_init.c)
+- `img_api_shutdown` — [src/api/api_shutdown.c](../imgengine/src/api/api_shutdown.c)
+- `img_api_run_job_impl` — [src/api/api_job_run.c](../imgengine/src/api/api_job_run.c)
+- `g_jump_table` — [src/pipeline/jump_table_register.c](../imgengine/src/pipeline/jump_table_register.c)
+- `img_register_op` — [src/pipeline/jump_table_register.c](../imgengine/src/pipeline/jump_table_register.c)
+- `img_slab_alloc` / `img_slab_free` — [src/memory/slab_hot.c](../imgengine/src/memory/slab_hot.c)
 
 ## Data structures (conceptual LLD)
 
@@ -51,7 +55,7 @@ Responsibilities:
 - pre-populated job templates with safe defaults
 - thread-local overrides applied at submit time
 
-Relevant files: [src/pipeline/fused_registry.c](src/pipeline/fused_registry.c#L1)
+Relevant files: [src/pipeline/fused_registry.c](../imgengine/src/pipeline/fused_registry.c)
 
 ### Prepared decoder
 
@@ -70,7 +74,7 @@ APIs:
 - `img_api_prepare_decoder(engine, &decoder)` — prepare decoder state for a thread
 - `img_api_decode_prepared(&decoder, input, size, &out)` — decode using prepared state
 
-Relevant files: [src/api/api_process_fast_decode.c](src/api/api_process_fast_decode.c#L1)
+Relevant files: [src/api/api_process_fast_decode.c](../imgengine/src/api/api_process_fast_decode.c)
 
 ### Jump-table and Dispatch
 
@@ -89,7 +93,7 @@ Properties:
 - branch-free selection when combined with preselected jump-table index
 - jump-table populated at deterministic startup via `img_register_op`
 
-Files: [src/pipeline/jump_table_register.c](src/pipeline/jump_table_register.c#L1), [src/pipeline/jump_table_init.c](src/pipeline/jump_table_init.c#L1)
+Files: [src/pipeline/jump_table_register.c](../imgengine/src/pipeline/jump_table_register.c), [src/pipeline/jump_table_init.c](../imgengine/src/pipeline/jump_table_init.c)
 
 ### SPSC queue (hot path messaging)
 
@@ -107,7 +111,7 @@ typedef struct {
 } spsc_queue_t;
 ```
 
-Files: [src/runtime/queue_spsc.c](src/runtime/queue_spsc.c#L1)
+Files: [src/runtime/queue_spsc.c](../imgengine/src/runtime/queue_spsc.c)
 
 ### Slab allocator (hot path)
 
@@ -125,7 +129,7 @@ Properties:
 - No locking when used thread-locally
 - Owned by a thread-local arena or global NUMA pool
 
-Files: [src/memory/slab_create.c](src/memory/slab_create.c#L1), [src/memory/slab_hot.c](src/memory/slab_hot.c#L1)
+Files: [src/memory/slab_create.c](../imgengine/src/memory/slab_create.c), [src/memory/slab_hot.c](../imgengine/src/memory/slab_hot.c)
 
 ## Call flows (detailed)
 
