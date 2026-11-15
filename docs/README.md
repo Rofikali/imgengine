@@ -24,6 +24,7 @@ For the **source-backed policy reconciliation and exact inventory of existing Py
 
 | Document | Purpose | Audience |
 | --- | --- | --- |
+| [Infrastructure Audit (2026-11-15)](INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) | Active P7/P8/P12/P14 Docker/Caddy source inventory, static/live control boundaries, actual-VPS blockers, secrets, supply chain, operations and CA/MBA economics. | Infra, security, SRE, release, Astra reviewers |
 | [Frontend and Legacy Backend Audit (2026-11-14)](FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) | Implemented Nuxt P5/P8/P12, incomplete crop/production, retained FastAPI/Celery, security/operations gaps and agent scopes. | Frontend, legacy/backend, security, product owners |
 | [Native C/Rust Documentation Audit (2026-11-14)](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) | Source-backed security, observability, HLD/LLD, FFI, performance and documentation conflicts with status/evidence. | Native C and Rust reviewers |
 | [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) | Original dated 81-document classification; historical snapshot rather than the complete current index. | All contributors |
