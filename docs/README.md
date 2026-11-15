@@ -22,6 +22,8 @@ For the **source-backed policy reconciliation and exact inventory of existing Py
 
 **Seven-level engineering governance:** [Seven-Level Engineering Operating Model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) gives an agent-neutral Junior-to-Distinguished technical review and security/SRE/CA/MBA management framework; [Agent Milestone Handoff Template](AGENT_MILESTONE_HANDOFF_TEMPLATE.md) gives bounded inputs, acceptance/evidence requirements and copy-paste Astra/Codex instructions. These are documentation-only governance artifacts, not feature completion or production evidence.
 
+**Product/business/performance strategy proposal (2026-11-15):** [Platform Product & Business Strategy](IMGENGINE_PLATFORM_PRODUCT_BUSINESS_STRATEGY_2026-11-15.md) covers free-versus-paid, Studio workflow, later API/Desktop/SDK channels, customer discovery, finance/CA-MBA and market hypotheses. [C17/Rust/Wasm/API/Desktop Performance Plan](IMGENGINE_PERFORMANCE_AND_MULTICHANNEL_ARCHITECTURE_2026-11-15.md) defines workload-specific measurements, C concurrency/RSS safeguards, target-specific code architecture and release gates. [STRAT-00 Agent First Move](IMGENGINE_STRATEGY_AGENT_START_2026-11-15.md) supplies a read-only Astra/Codex/human-engineer brief. **No pricing, new priorities, implementation milestones or production statuses were automatically approved by these docs.**
+
 ## Start Here
 
 **For an AI coding/review agent such as Astra, start with [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).** It defines source-backed scope, three bounded C17/Rust/Nuxt tracks, P13 sequencing, security and performance gates, and business review criteria.

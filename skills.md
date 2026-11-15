@@ -148,3 +148,14 @@ Use the [Seven-Level Engineering Operating Model](docs/SEVEN_LEVEL_ENGINEERING_O
 4. Run the change-scoped tests and preserve mandatory CI. Separate **NOT RUN**, historical evidence and tests executed at the exact revision. Benchmark correctness and total resources before claiming performance savings.
 5. Include variable cost per successful job, customer value, opportunity cost, support burden, privacy and infrastructure assumptions; mark unknowns explicitly and never fabricate sales/profits.
 6. Deliver the template's report with changed paths, SHA, status, risks, user decisions and one next milestone. Do not merge, deploy, rotate secrets, spend money or retire legacy without separate explicit authorization.
+
+## Skill 13 — Product portfolio, C17/Rust performance and sustainable business planning
+
+Use the proposed [platform/product/business strategy](docs/IMGENGINE_PLATFORM_PRODUCT_BUSINESS_STRATEGY_2026-11-15.md), [C17/Rust/Wasm/API/desktop performance architecture](docs/IMGENGINE_PERFORMANCE_AND_MULTICHANNEL_ARCHITECTURE_2026-11-15.md), [STRAT-00 first-move agent prompt](docs/IMGENGINE_STRATEGY_AGENT_START_2026-11-15.md), [seven-level engineering model](docs/SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) and current `next.md`.
+
+1. Define **one** buyer/user job before adding image tools; test pricing against genuine repeated time-saving or server costs, not a hypothetical valuation.
+2. Classify free browser-local tools vs paid studio workflows vs later metered public API/SDK/desktop. Default free tools do not upload image bytes; backend fallbacks require explicit opt-in. No database/billing/auth/queue without separate ADR.
+3. Make all speed claims workload-specific: pure geometry vs prepared pixel kernels vs decode+render+encode vs Rust HTTP vs browser/desktop start-to-finish. Include input, revision, CPU, memory, cold/warm and correctness. No universal microseconds.
+4. First source-trace the native C-A0 queue/metrics concerns, public ABI operation lock and aggregate RSS; review suspected security issues before optimizing concurrency. Do not treat suspected findings as confirmed.
+5. For a frontend-first prioritization change, draft a reviewed ADR reconciling existing P13 M1 and browser Wasm M2 sequencing, preserving security/release gates and stable C ABI.
+6. Delegate STRAT-00 as read-only architecture/product/business discovery with a **draft docs PR**; use the task-specific agent template to decide the next one bounded implementation PR. Keep source evidence, scope, human approval and costs explicit.
