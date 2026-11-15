@@ -181,6 +181,8 @@ Do not add a state-management library, UI framework, upload library, or HTTP abs
 
 ## 11. Testing
 
+**CI-first output requirement:** Use [minimal-AI-context test-log policy](../../docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md) and [change-scoped verification](../../docs/CHANGE_SCOPED_VERIFICATION.md). For Nuxt UI, run relevant local component/browser/a11y tests and avoid manual native re-verification without a shared C/FFI change; when a PR is published, let existing GitHub Actions run all seven jobs and read only their exact-SHA statuses or focused failed-step excerpts. A local unpushed test report is not GitHub CI evidence.
+
 Frontend changes should use layered verification appropriate to the change:
 
 - type checking

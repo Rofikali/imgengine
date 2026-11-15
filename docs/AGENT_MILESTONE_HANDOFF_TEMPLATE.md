@@ -2,6 +2,8 @@
 
 **Status:** Reusable task template, not a record of completed implementation (2026-11-15). Use with [Seven-Level Engineering Operating Model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md), [root AGENTS](../AGENTS.md), [Astra start guide](ASTRA_ENGINEERING_START_HERE.md), [technology ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md), [change-scoped verification](CHANGE_SCOPED_VERIFICATION.md) and affected scoped AGENTS.
 
+**Universal CI/log output instruction:** For every milestone, apply [CI-first minimal-AI-context testing](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md): full logs remain outside the AI conversation, successful CI is reported by name/outcome/tested SHA/URL only, errors are diagnosed from bounded failed-step excerpts, and no NOT RUN/SKIPPED/PENDING state is presented as PASS. No manual duplication of GitHub's full seven-job CI merely to produce text; all required tests remain mandatory.
+
 **Purpose:** Give Astra, Codex or another coding/review agent one bounded task at a time. It is **not** an automatically installed agent or skill; the operator must direct the model to read this file. Source, contracts and tests at the current SHA are authoritative, not the contents of an old prompt.
 
 ## A. Fill this before delegation
