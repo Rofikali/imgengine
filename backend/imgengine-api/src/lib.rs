@@ -14,9 +14,9 @@ use axum::{Json, Router};
 use imgengine_supervisor::{
     AdmissionController, AdmissionExecutionObserver, AdmissionMetricsSnapshot, AdmissionOptions,
     AdmittedWaitOutcome, ApplicationError, ApplicationFailure, GeometryError, IncomingRequest,
-    LayoutPlan, LifecycleMetricsSnapshot, MvpLayoutInput, MvpLayoutPlan, RequestLifecycleService,
-    RequestPolicy, ResponseAbandonmentObserver, SheetPlan, mm_spacing_to_px, mm_to_px,
-    ResponseAbandonmentSignal, SupervisorOptions,
+    LayoutPlan, LifecycleMetricsSnapshot, MvpLayoutInput, MvpLayoutPlan, NormalizedCrop,
+    RequestLifecycleService, RequestPolicy, ResponseAbandonmentObserver, SheetPlan,
+    mm_spacing_to_px, mm_to_px, ResponseAbandonmentSignal, SupervisorOptions,
 };
 use std::env;
 use std::path::PathBuf;
@@ -247,9 +247,10 @@ impl ApiState {
         &self,
         request: IncomingRequest,
         plan: SheetPlan,
+        crop: Option<NormalizedCrop>,
     ) -> Option<Result<imgengine_supervisor::AdmittedRequest, ApplicationFailure>> {
         self.runtime
-            .admit_if_running(|| self.lifecycle.admit_sheet(request, plan))
+            .admit_if_running(|| self.lifecycle.admit_sheet_with_crop(request, plan, crop))
     }
 }
 
@@ -528,6 +529,10 @@ async fn sheet_render(State(state): State<ApiState>, request: Request) -> Respon
                 | "gap_x_mm"
                 | "gap_y_mm"
                 | "output_format"
+                | "crop_x"
+                | "crop_y"
+                | "crop_width"
+                | "crop_height"
         ) {
             if values.contains_key(&name) {
                 return problem(
@@ -593,9 +598,21 @@ async fn sheet_render(State(state): State<ApiState>, request: Request) -> Respon
             )
         }
     };
+    let crop = match parse_sheet_crop(&values) {
+        Ok(crop) => crop,
+        Err(()) => {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_request",
+                "Invalid physical-sheet crop",
+                fallback_request_id,
+            )
+        }
+    };
     let accepted = match state.admit_sheet_if_running(
         IncomingRequest::new(content_type, body),
         plan,
+        crop,
     ) {
         Some(Ok(accepted)) => accepted,
         Some(Err(failure)) => return lifecycle_problem(failure),
@@ -1009,6 +1026,40 @@ fn parse_sheet_plan(
         _ => SheetInputError::Invalid,
     })?;
     Ok(SheetPlan::from(&plan))
+}
+
+/// Parses the complete optional ABI 2.3 normalized crop representation.
+/// Source dimensions are deliberately not accepted: the native renderer
+/// validates aspect compatibility against the decoded image in its one decode.
+fn parse_sheet_crop(
+    values: &std::collections::BTreeMap<String, String>,
+) -> Result<Option<NormalizedCrop>, ()> {
+    const CROP_FIELDS: [&str; 4] = ["crop_x", "crop_y", "crop_width", "crop_height"];
+    let present = CROP_FIELDS
+        .iter()
+        .map(|name| values.contains_key(*name))
+        .collect::<Vec<_>>();
+    if present.iter().all(|present| !present) {
+        return Ok(None);
+    }
+    if present.iter().any(|present| !present) {
+        return Err(());
+    }
+    let parse = |name: &str| -> Result<u32, ()> {
+        let value = values.get(name).ok_or(())?;
+        if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) {
+            return Err(());
+        }
+        value.parse::<u32>().map_err(|_| ())
+    };
+    NormalizedCrop::new(
+        parse("crop_x")?,
+        parse("crop_y")?,
+        parse("crop_width")?,
+        parse("crop_height")?,
+    )
+    .map(Some)
+    .map_err(|_| ())
 }
 
 fn parse_sheet_decimal(value: &str, allow_zero: bool) -> Result<f64, SheetInputError> {
@@ -1935,6 +1986,155 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn physical_sheet_route_accepts_complete_user_crop_without_changing_centered_fill() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let (app, root) = app("physical-sheet-user-crop", "test-key");
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &[
+                    ("file", "image/png", REAL_PNG),
+                    ("sheet_width_mm", "text/plain", b"10"),
+                    ("sheet_height_mm", "text/plain", b"10"),
+                    ("photo_width_mm", "text/plain", b"2"),
+                    ("photo_height_mm", "text/plain", b"2"),
+                    ("dpi", "text/plain", b"100"),
+                    ("copies", "text/plain", b"1"),
+                    ("margin_mm", "text/plain", b"0"),
+                    ("gap_x_mm", "text/plain", b"0"),
+                    ("gap_y_mm", "text/plain", b"0"),
+                    ("output_format", "text/plain", b"jpeg"),
+                    ("crop_x", "text/plain", b"0"),
+                    ("crop_y", "text/plain", b"0"),
+                    ("crop_width", "text/plain", b"1000000"),
+                    ("crop_height", "text/plain", b"1000000"),
+                ],
+                Some("test-key"),
+            ))
+            .await
+            .expect("response");
+        assert_eq!(response.status(), StatusCode::OK);
+        let output = response_bytes(response).await;
+        let mut decoder = jpeg_decoder::Decoder::new(output.as_slice());
+        decoder.decode().expect("decode user-crop sheet JPEG");
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
+    async fn physical_sheet_route_rejects_invalid_and_aspect_incompatible_crops() {
+        let _engine = ENGINE_LOCK
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let (app, root) = app("physical-sheet-invalid-crop", "test-key");
+        let base = [
+            // Use a non-square decoded source: a 1x1 fixture is within the
+            // native one-pixel rounding envelope for every target aspect.
+            ("file", "image/jpeg", REAL_JPEG),
+            ("sheet_width_mm", "text/plain", b"10" as &[u8]),
+            ("sheet_height_mm", "text/plain", b"10"),
+            ("photo_width_mm", "text/plain", b"2"),
+            ("photo_height_mm", "text/plain", b"3"),
+            ("dpi", "text/plain", b"100"),
+            ("copies", "text/plain", b"1"),
+            ("margin_mm", "text/plain", b"0"),
+            ("gap_x_mm", "text/plain", b"0"),
+            ("gap_y_mm", "text/plain", b"0"),
+            ("output_format", "text/plain", b"jpeg"),
+        ];
+        let partial = [&base[..], &[("crop_x", "text/plain", b"0" as &[u8])]].concat();
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &partial,
+                Some("test-key"),
+            ))
+            .await
+            .expect("partial response");
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let malformed = [
+            &base[..],
+            &[
+                ("crop_x", "text/plain", b"-1" as &[u8]),
+                ("crop_y", "text/plain", b"0"),
+                ("crop_width", "text/plain", b"1000000"),
+                ("crop_height", "text/plain", b"1000000"),
+            ],
+        ]
+        .concat();
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &malformed,
+                Some("test-key"),
+            ))
+            .await
+            .expect("malformed response");
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let duplicate = [
+            &base[..],
+            &[
+                ("crop_x", "text/plain", b"0" as &[u8]),
+                ("crop_x", "text/plain", b"0"),
+                ("crop_y", "text/plain", b"0"),
+                ("crop_width", "text/plain", b"1000000"),
+                ("crop_height", "text/plain", b"1000000"),
+            ],
+        ]
+        .concat();
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &duplicate,
+                Some("test-key"),
+            ))
+            .await
+            .expect("duplicate response");
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let aspect_incompatible = [
+            &base[..],
+            &[
+                ("crop_x", "text/plain", b"0" as &[u8]),
+                ("crop_y", "text/plain", b"0"),
+                ("crop_width", "text/plain", b"1000000"),
+                ("crop_height", "text/plain", b"1000000"),
+            ],
+        ]
+        .concat();
+        let response = app
+            .clone()
+            .oneshot(request_to(
+                "/api/v2/sheet-render",
+                &aspect_incompatible,
+                Some("test-key"),
+            ))
+            .await
+            .expect("aspect response");
+        assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let body = String::from_utf8(response_bytes(response).await).expect("problem JSON");
+        assert!(body.contains("resource_limit"));
+        drop(app);
+        assert!(fs::read_dir(&root)
+            .expect("read workspace root")
+            .next()
+            .is_none());
+        fs::remove_dir_all(root).expect("remove root");
+    }
+
+    #[tokio::test]
     async fn layout_output_budget_is_server_owned_and_maps_to_resource_limit() {
         let _engine = ENGINE_LOCK
             .lock()
@@ -2064,6 +2264,33 @@ mod tests {
             super::parse_sheet_plan(&overflow),
             Err(super::SheetInputError::DoesNotFit)
         );
+    }
+
+    #[test]
+    fn physical_sheet_crop_parser_requires_complete_bounded_integer_rectangle() {
+        let complete = std::collections::BTreeMap::from([
+            ("crop_x".to_owned(), "0".to_owned()),
+            ("crop_y".to_owned(), "0".to_owned()),
+            ("crop_width".to_owned(), "1000000".to_owned()),
+            ("crop_height".to_owned(), "1000000".to_owned()),
+        ]);
+        assert!(super::parse_sheet_crop(&complete)
+            .expect("valid crop")
+            .is_some());
+
+        let mut partial = complete.clone();
+        partial.remove("crop_height");
+        assert_eq!(super::parse_sheet_crop(&partial), Err(()));
+        let mut negative = complete.clone();
+        negative.insert("crop_x".to_owned(), "-1".to_owned());
+        assert_eq!(super::parse_sheet_crop(&negative), Err(()));
+        let mut overflow = complete.clone();
+        overflow.insert("crop_width".to_owned(), "4294967296".to_owned());
+        assert_eq!(super::parse_sheet_crop(&overflow), Err(()));
+        let mut out_of_range = complete;
+        out_of_range.insert("crop_x".to_owned(), "500000".to_owned());
+        out_of_range.insert("crop_width".to_owned(), "500001".to_owned());
+        assert_eq!(super::parse_sheet_crop(&out_of_range), Err(()));
     }
 
     #[tokio::test]

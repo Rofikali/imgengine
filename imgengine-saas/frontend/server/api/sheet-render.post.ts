@@ -1,10 +1,12 @@
 import type { RenderProblem } from '~/types/api'
 import type { H3Event } from 'h3'
+import { hasValidOptionalSheetCrop, SHEET_CROP_FIELDS } from '~/utils/sheet-crop'
 
 const MAX_PROXY_REQUEST_BYTES = 1_048_576
 const expectedFields = new Set([
   'file', 'sheet_width_mm', 'sheet_height_mm', 'photo_width_mm', 'photo_height_mm',
   'dpi', 'copies', 'margin_mm', 'gap_x_mm', 'gap_y_mm', 'output_format',
+  ...SHEET_CROP_FIELDS,
 ])
 const requiredFields = [
   'sheet_width_mm', 'sheet_height_mm', 'photo_width_mm', 'photo_height_mm',
@@ -87,7 +89,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const entries = [...incoming.entries()]
-  if (entries.length < 10 || entries.length > 11 || entries.some(([name]) => !expectedFields.has(name))) {
+  if (entries.length < 10 || entries.length > 15 || entries.some(([name]) => !expectedFields.has(name))) {
     return proxyProblem(event, 400, 'invalid_request', 'Invalid physical-sheet request')
   }
   const fields = new Map<string, FormDataEntryValue>()
@@ -103,6 +105,9 @@ export default defineEventHandler(async (event) => {
   if (fields.has('dpi') && typeof fields.get('dpi') !== 'string') {
     return proxyProblem(event, 400, 'invalid_request', 'Invalid physical-sheet request')
   }
+  if (!hasValidOptionalSheetCrop(fields)) {
+    return proxyProblem(event, 400, 'invalid_request', 'Invalid physical-sheet crop')
+  }
 
   const body = new FormData()
   // Do not propagate a user's local filename to the rendering service.
@@ -110,6 +115,7 @@ export default defineEventHandler(async (event) => {
   for (const name of [
     'sheet_width_mm', 'sheet_height_mm', 'photo_width_mm', 'photo_height_mm',
     'dpi', 'copies', 'margin_mm', 'gap_x_mm', 'gap_y_mm', 'output_format',
+    ...SHEET_CROP_FIELDS,
   ]) {
     const value = fields.get(name)
     if (typeof value === 'string') body.append(name, value)

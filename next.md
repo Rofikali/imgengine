@@ -20,7 +20,7 @@
 
 | Priority / ID | Area and status | Next bounded action and completion evidence | Governed by |
 | --- | --- | --- | --- |
-| **P0 / H01** | **P13 interactive crop — HALF IMPLEMENTED**: C ABI 2.3 done; Rust/Axum/Nuxt path and UI not done | M1.1 safe Rust FFI→HTTP→typed proxy; M1.2 keyboard/drag UI; M1.3 exact-image parity and P12 backward compatibility | [Rust backend AGENTS](backend/AGENTS.md), [Frontend AGENTS](imgengine-saas/frontend/AGENTS.md), [P13 contract](docs/P13_INTERACTIVE_CROP_CONTRACT.md) |
+| **P0 / H01** | **P13 interactive crop — PARTIAL**: C ABI 2.3 plus M1.1 safe Rust FFI, Axum, bounded-admission, and typed Nuxt-proxy transport are implemented and verified at `7ef95249a9068987338689eb6c665f5d876f8edc`; no browser crop editor or browser parity evidence | M1.2 keyboard/drag/zoom/reset UI; M1.3 exact-image browser/native parity and P12 backward-compatibility review | [Rust backend AGENTS](backend/AGENTS.md), [Frontend AGENTS](imgengine-saas/frontend/AGENTS.md), [P13 contract](docs/P13_INTERACTIVE_CROP_CONTRACT.md) |
 | **P0 / FE-A03** | **Frontend release checks — OPEN**: P5/P8/P12 source implemented, production accessibility/E2E and current dependency disposition open | Verify keyboard/mobile and critical browser flows, dependency audit at release SHA, errors/response memory and production behavior | [Frontend AGENTS](imgengine-saas/frontend/AGENTS.md), [frontend audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) |
 | **P0 / BE-A02** | **Retained Python backend security — REVIEW OPEN** (not proven exploits) | Assess internal-token comparison, supplied request IDs, metrics network reachability, prod-secret rejection and log redaction; **do not** migrate or delete legacy automatically | [Legacy backend AGENTS](imgengine-saas/backend/AGENTS.md), [legacy audit](docs/FRONTEND_LEGACY_BACKEND_AUDIT_2026-11-14.md) |
 | **P0 / C-A0** | **C17 owner/thief SPSC + metrics concurrency — REVIEW OPEN**: native worker steals call the owner queue's SPSC pop; metrics mix atomic and ordinary accesses, caller reachability incomplete | Source-trace 2–8 worker interleavings and metric readers; propose deterministic exactly-once/concurrency tests **before** approving any C fix | [Principal source audit](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md), [native AGENTS](imgengine/AGENTS.md) |
@@ -73,7 +73,7 @@
 
 | ID | Feature | Completed part | Outstanding part | Next action |
 | --- | --- | --- | --- | --- |
-| H01 | **P13 interactive user crop** | C crop geometry + ABI 2.3 and tests | Safe Rust FFI adapter, Axum contract, Nuxt proxy, drag/zoom/keyboard frontend, parity and lifecycle tests | **M1.1 → M1.2 → M1.3**, do not change ABI 2.2 centered-fill |
+| H01 | **P13 interactive user crop** | C crop geometry + ABI 2.3 plus M1.1 Rust FFI, Axum, bounded-admission, and Nuxt-proxy transport; Ubuntu 24.04 verification passed at `7ef95249a9068987338689eb6c665f5d876f8edc` | Drag/zoom/keyboard frontend, browser image-parity evidence, and final P12 compatibility review | **M1.2 → M1.3**, do not change ABI 2.2 centered-fill |
 | H02 | **P12/P14 server-backed MVP launch** | Local JPEG sheet, private Compose, Caddy/Rust/Nuxt paths | Exact release candidate, real host capacity, TLS/DNS/firewall, monitoring, restart/drain/rollback, canary, go/no-go | Follow `docs/MVP_RELEASE_CHECKLIST.md` and `docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md` |
 | H03 | **Legacy async → synchronous Rust product transition** | Rust/Axum synchronous path exists | Evaluate old feature/API parity, migration decisions, rollback, then controlled retirement | Do not delete Python/Celery/Redis/Postgres without explicit closure |
 | H04 | **Security and tenancy** | API-key boundary, native limits, private proxy, Compose hardening | Paid tenants, API-key lifecycle, quotas, metering, abuse prevention, full memory accounting | Threat model per new paid boundary |
@@ -125,9 +125,9 @@ For precise dependencies, routes, business model and milestones, use `docs/PRODU
 ## E. Next execution order
 
 1. **Documentation reconciliation**: review this inventory and `skills.md` if adopted; preserve old worktrees and historical contracts.
-2. **M1.1** native crop ABI 2.3 → Rust FFI → Axum → Nuxt proxy, with focused interface tests.
+2. **M1.1 — COMPLETE / VERIFIED at `7ef95249a9068987338689eb6c665f5d876f8edc`**: native crop ABI 2.3 → Rust FFI → Axum → bounded admission → Nuxt proxy, with focused interface tests and full Ubuntu 24.04 verification.
 3. **M1.2** accessible manual crop UI, drag/zoom/reset/keyboard and safe local preview.
-4. **M1.3** image parity, invalid cases, P12 backward compatibility; review and merge.
+4. **M1.3** browser/native image parity, invalid cases, P12 backward compatibility; review and merge.
 5. **M2** Astra-led Worker/Wasm design and small geometry prototype; first decide Rust-only, C17-Wasm, browser-native codec, or hybrid using measurements.
 6. **M3–M5** local crop/resize/convert, target-KB compression, local photo sheets and presets, each in small PRs.
 7. **Commercial workflow**: validate customer usefulness, local batch and paid studio convenience, then B2B only if economics work.

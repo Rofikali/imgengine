@@ -14,6 +14,7 @@ pub use admission::{
     AdmissionController, AdmissionError, AdmissionExecutionObserver, AdmissionMetricsSnapshot,
     AdmissionOptions, AdmissionRequest,
 };
+pub use imgengine::NormalizedCrop;
 pub use request_lifecycle::{
     AdmittedRequest, AdmittedWaitOutcome, ApplicationError, ApplicationFailure,
     ApplicationResponse, ContentType, IncomingRequest, LifecycleMetricsSnapshot, RequestEvent,
@@ -435,12 +436,26 @@ impl Supervisor {
         })
     }
 
-    /// Runs the additive ABI 2.2 centered-fill sheet operation in an isolated
-    /// request workspace. The existing FIT-only path remains separate.
+    /// Runs the ABI 2.2 centered-fill sheet operation in an isolated request
+    /// workspace. The existing FIT-only path remains separate.
     pub fn process_sheet(
         &mut self,
         input: &[u8],
         plan: &SheetPlan,
+        deadline: Option<Duration>,
+    ) -> Result<ProcessReport, SupervisorError> {
+        self.process_sheet_with_crop(input, plan, None, deadline)
+    }
+
+    /// Runs the additive ABI 2.3 explicit-crop sheet operation when `crop` is
+    /// present, otherwise preserving ABI 2.2 centered-fill behavior. The crop
+    /// is value-owned by the caller; input and placements are borrowed only for
+    /// this synchronous worker call.
+    pub fn process_sheet_with_crop(
+        &mut self,
+        input: &[u8],
+        plan: &SheetPlan,
+        crop: Option<NormalizedCrop>,
         deadline: Option<Duration>,
     ) -> Result<ProcessReport, SupervisorError> {
         if matches!(deadline, Some(limit) if limit.is_zero()) {
@@ -452,10 +467,19 @@ impl Supervisor {
             .create_request_workspace()
             .map_err(SupervisorError::Workspace)?;
         let request = plan.native_request()?;
-        let output = self
-            .engine
-            .render_sheet_jpeg_bounded(input, &request, self.sheet_max_output_bytes)
-            .map_err(SupervisorError::Engine);
+        let output = match crop {
+            Some(crop) => self.engine.render_sheet_jpeg_with_crop_bounded(
+                input,
+                &request,
+                crop,
+                self.sheet_max_output_bytes,
+            ),
+            None => {
+                self.engine
+                    .render_sheet_jpeg_bounded(input, &request, self.sheet_max_output_bytes)
+            }
+        }
+        .map_err(SupervisorError::Engine);
         let duration = started.elapsed();
         let cleanup = workspace.close();
         if let Err(error) = cleanup {
