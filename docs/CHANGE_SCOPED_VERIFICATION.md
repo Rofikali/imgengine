@@ -1,6 +1,6 @@
 # IMGENGINE — Change-scoped testing and token/time budget policy
 
-**Status:** Proposed contributor policy. This document does **not** change existing GitHub Actions workflows, release gates, or authoritative `imgengine/scripts/verify_linux.sh`. No tests are disabled by this documentation PR.
+**Status:** Proposed contributor policy, expanded by [Test Lanes, Milestone Gates & AI-Agent Budget (2026-11-15)](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) and the proposed [Astra CI-SCOPE-01 handoff](ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md). This document does **not** change existing GitHub Actions workflows, release gates, or authoritative `imgengine/scripts/verify_linux.sh`. No tests are disabled by this documentation PR. The actual `.github/workflows/ci.yml` currently runs **seven unconditional jobs** for all PRs, including docs/UI-only PRs; do not duplicate them manually.
 
 ## Goal
 Reduce repeated local compilation, sanitizer/fuzz time, and AI-agent context/token consumption **without** suppressing required checks for changed boundaries or shipping unverified code. The AI agent must not execute a full native rebuild merely because a frontend-only milestone begins.
@@ -16,6 +16,8 @@ Reduce repeated local compilation, sanitizer/fuzz time, and AI-agent context/tok
 | Docker/CI/deployment/resource limits | Config/lint, image build, policy checks | Controlled host characterization and rollback | Release/deployment gates appropriate to risk |
 | Release candidate or dependency/security change | All relevant gates for the exact release revision | Actual host and canary evidence | Never waive security/release checks to save tokens |
 
+**Practical risk split:** Distinguish (a) isolated Nuxt UI/CSS, (b) browser-facing typed form/proxy/HTTP contract, (c) isolated future Rust/Wasm Worker, (d) Rust FFI/C ABI/native C, (e) Docker/infra/CI policies and (f) release candidates. A frontend **form/proxy** edit must run relevant Rust/proxy contract tests, even if it touches only `imgengine-saas/frontend/`. Browser-local Rust/Wasm is not implemented yet, so do not assume an isolated manifest/build target exists. Native/ABI/FFI changes require full relevant native safety evidence. If classification is uncertain, expand validation rather than optimizing it away. The detailed commands, examples and future CI required-gate design live in the [test-lanes runbook](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md).
+
 ## AI-agent operating rules
 1. Start with `git diff --name-only` (against merge base), classify impacted boundaries, and name the exact commands **before running** them.
 2. For a pure frontend/Wasm change, **do not manually run CMake, full native build, ASan, UBSan, or native fuzz**. Reuse existing exact-SHA CI evidence where applicable; never claim a new SHA is validated by old SHA results.
@@ -27,6 +29,8 @@ Reduce repeated local compilation, sanitizer/fuzz time, and AI-agent context/tok
 8. Never infer that a browser worker is secure merely because it runs locally. Test untrusted inputs, resource ceilings, cancellation, and object URL/buffer cleanup.
 9. On a failing test, report failure and stop the affected gate; never present an incomplete run as passing.
 10. Preserve separate dirty worktrees and ask before modifying or cleaning them.
+
+**Current vs future:** The existing PR workflow still launches **native-build-test, native-sanitizers, native-fuzz, saas-integration, frontend-verification, rust-api-container and docker-linux-verification** on every PR. Selective CI with a change detector and fail-closed required aggregate gate is a **separate future implementation milestone**. Do not add top-level `paths` filters to required workflows: skipped required workflows can remain Pending; conditionally skipped jobs can appear green without running. Follow [CI-SCOPE-01](ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md) only after appropriate security/Principal review and owner approval.
 
 ## Suggested staged workflow (future CI optimization, not implemented)
 - PR fast lane: change classification, frontend/Wasm focused checks, contract tests when affected.
