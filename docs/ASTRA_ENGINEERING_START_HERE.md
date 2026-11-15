@@ -17,6 +17,10 @@
 
 The older `imgengine-saas/backend/` and its [AGENTS](../imgengine-saas/backend/AGENTS.md) govern **retained Python legacy**, not Rust. Legacy [PRD](PRD.md), [SRE](SRE.md), [database recovery](DATABASE_RECOVERY.md) and [observability](OBSERVABILITY.md) are historical/legacy-scoped; do not use their FastAPI/worker/SQL instructions as the target architecture.
 
+### Track D — Infrastructure (additional independent review-only workstream)
+
+Astra can review **active `infra/`** without waiting for Rust P13 work, but should not change live deployments or unrelated code. Read [infra AGENTS](../infra/AGENTS.md), [infra README](../infra/README.md), [dated infrastructure audit](INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [P14 runbook](P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), and actual `infra/docker-compose.production.yml`, `infra/Caddyfile.production` and `infra/scripts/verify-production-compose.py`. Review **INFRA-01** file-backed secret permission semantics and **INFRA-06** static-verifier blind spots first; then app abuse/rate control, aggregate VPS memory, P8 reproducibility, TLS/ACME, alerts, rollback and cost per successful job. Deliver a **source-backed HLD/LLD threat/evidence matrix and focused non-deploy fix plan**. Any changes to config/CI/services need their own approved implementation PR and required tests. No real-host action without explicit go/no-go. The separate `imgengine-saas/infra/` remains legacy.
+
 ## 2. Source-backed readiness at the audited baseline
 
 | Capability | Status | Verified/observed scope | Missing before claim of completion |
