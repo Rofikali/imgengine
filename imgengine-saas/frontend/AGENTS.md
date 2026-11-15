@@ -28,8 +28,10 @@ FIT-only grid -> completed JPEG + native plan accounting
 POST /api/v2/sheet-render
 multipart/form-data: file, sheet_width_mm, sheet_height_mm,
   photo_width_mm, photo_height_mm, dpi?, copies, margin_mm,
-  gap_x_mm, gap_y_mm, output_format
-physical sheet + centered crop-to-fill -> completed JPEG + native plan accounting
+  gap_x_mm, gap_y_mm, output_format,
+  crop_x?, crop_y?, crop_width?, crop_height?  # ALL FOUR or NONE
+physical sheet: omitted crop = P12 centered-fill; complete crop = P13 selected crop (ABI 2.3)
+completed JPEG + native plan accounting
 ```
 
 All three routes require server-side `X-API-Key` authentication and run synchronously through the Rust request lifecycle and bounded admission path. They are ephemeral; the API does not create durable jobs or output URLs.
