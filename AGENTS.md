@@ -4,6 +4,8 @@
 
 > **Current repository-status checkpoint (2026-11-14):** The Rust backend migration [PR #37](https://github.com/Rofikali/imgengine/pull/37) is **merged** and [7/7 CI checks passed](https://github.com/Rofikali/imgengine/actions/runs/43618598771) at its PR-head revision. C17 remains in `imgengine/`, Rust/Axum in `backend/`, Nuxt in `imgengine-saas/frontend/`, and Python backend in retained legacy `imgengine-saas/backend/`. Previous “complete/validated” milestone claims are scoped to their dated test evidence, **not blanket production/security approval**. Begin bounded Astra work from [the engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) and [next.md](next.md); do not assume P13 crop or P14 VPS release is finished.
 
+> **Infrastructure scope checkpoint (2026-11-15):** For `infra/` configuration, scripts, Caddy, Compose and P14 deployment governance, follow [infra/AGENTS.md](infra/AGENTS.md), [infra security/operations audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [P14 runbook](docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), and [next.md](next.md). Static hardening is **not** real-host deployment evidence. The separate `imgengine-saas/infra/` tree is retained legacy. No new Python tooling; existing `infra/scripts/verify-production-compose.py` remains until parity-preserving replacement. Do not deploy, rotate secrets or change DNS without explicit approval.
+
 # 1. Purpose
 
 This file defines the global engineering rules for the IMGENGINE repository.
