@@ -26,6 +26,8 @@ For the **source-backed policy reconciliation and exact inventory of existing Py
 
 **Astra frontend-ready after merged PR #43 (2026-11-15):** The [P13 M1.2 frontend implementation handoff](ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md) identifies the validated Rust/Axum/Nuxt proxy M1.1 transport and the remaining browser form, type, workflow, editor and accessibility gaps. M1.3 parity and public release remain separate. Recorded CI: [7 jobs successful at PR head](https://github.com/Rofikali/imgengine/actions/runs/43683324448); this documentation update runs no UI/native tests.
 
+**Cost-aware engineering checks (2026-11-15):** [Test Lanes, Change-Scoped PR/Milestone Gates & Agent Budget](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) documents the **existing seven unconditional PR jobs**, focused Nuxt/HTTP/Wasm/native testing, compact AI logs, exact-SHA release gates and a separately reviewed path-aware CI design. [Astra CI-SCOPE-01 handoff](ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md) provides the dry-run classifier plan and safe rollout dependencies. **These are documentation proposals, not workflow modifications or permission to skip current checks.**
+
 ## Start Here
 
 **For an AI coding/review agent such as Astra, start with [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).** It defines source-backed scope, three bounded C17/Rust/Nuxt tracks, P13 sequencing, security and performance gates, and business review criteria.
