@@ -4,6 +4,8 @@
 
 This HLD captures the v2.0 RFC's intent and translates it into a concrete, reviewable architecture suitable for a kernel-grade, deterministic execution engine. It is meant to be the authoritative reference for system-level decisions, runtime constraints, and production policies.
 
+> **C17 current-source note (2026-11-15):** The [principal C17 source audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) supplements this **historical aspirational HLD**. Its 2-ms/100K ops/sec, universal “zero allocation/branchless/pure pipeline” and “production-ready” phrases are RFC targets, **not** verified universal properties. The live C ABI serializes operations; the observed worker-stealing/SPSC and metrics synchronization contracts need targeted concurrency review. Do not apply this document as a blanket code-rewrite mandate.
+
 ## 0. System Definition (one line)
 
 `A Kernel-Grade, Deterministic, Data-Oriented, SIMD-Fused, Zero-Allocation Execution Engine with Auto-Generated Pipelines`
