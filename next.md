@@ -10,6 +10,8 @@
 
 **C17 CORE SOURCE AUDIT (2026-11-15):** [Principal LLD/DSA/security/performance report](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) at source baseline `ff5dd06755069d170d97c9ab323a2fa52915aa68`. **C-A0 P0 REVIEW OPEN:** work-stealing may concurrently consume an SPSC ring alongside its owner; native metrics mix atomic counters with ordinary reads/max/min; prove caller reachability and exactly-once/error behavior before a code fix. **P0 RESOURCE EVIDENCE:** whole-request decoded/canvas/stb-copy/scratch/output/Rust memory under concurrency. **P1:** opt-in seccomp vs actual runtime, ARM64/portable build, public static `.a` SDK, internal PDF error handling. No runtime reproduction, merge or safety remediation was performed by this docs audit.
 
+**Engineering-agent operating rules (docs-only):** The [Seven-Level Engineering Operating Model](docs/SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) and [Agent Milestone Handoff Template](docs/AGENT_MILESTONE_HANDOFF_TEMPLATE.md) define proportionate Junior-to-Distinguished review lenses, security/SRE/CA-MBA business gates, and an exact-SHA evidence handoff for Astra/Codex. These are **governance guidance**, not proof that P13, C-A0 or P14 changed status. Existing P0 priorities, human approval and release blockers below remain unchanged.
+
 ## 0. Current status and next-action board
 
 **Purpose of this file:** track **what is done, what is half-done, what has not started, what is blocked and exactly what happens next**. Do **not** copy full HLD/LLD, API specifications, agent rules or test logs here; link to canonical documents. The A–D inventory below retains finished work and long-term plans.

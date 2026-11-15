@@ -20,6 +20,8 @@ For the **source-backed policy reconciliation and exact inventory of existing Py
 
 **Latest C17 deep source audit:** [C17 Core Principal Source, LLD, Design Patterns, DSA and Security Audit (2026-11-15)](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native C core README](../imgengine/README.md). The report traces actual ABI/allocator/queue/worker/codec/resize code and ranks new concurrency, resource, sandbox, portability and SDK findings without claiming tests were rerun. Historical HLD/LLD and pattern suggestions are not current source truth.
 
+**Seven-level engineering governance:** [Seven-Level Engineering Operating Model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md) gives an agent-neutral Junior-to-Distinguished technical review and security/SRE/CA/MBA management framework; [Agent Milestone Handoff Template](AGENT_MILESTONE_HANDOFF_TEMPLATE.md) gives bounded inputs, acceptance/evidence requirements and copy-paste Astra/Codex instructions. These are documentation-only governance artifacts, not feature completion or production evidence.
+
 ## Start Here
 
 **For an AI coding/review agent such as Astra, start with [Astra engineering start guide](ASTRA_ENGINEERING_START_HERE.md).** It defines source-backed scope, three bounded C17/Rust/Nuxt tracks, P13 sequencing, security and performance gates, and business review criteria.
