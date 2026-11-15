@@ -63,6 +63,8 @@ The public ABI, not a private C header or historical RFC, defines an SDK consume
 
 Potential vulnerabilities listed here are **audit hypotheses**, not proof of an exploit. Separate recorded mitigations from pending runtime evidence.
 
+> **Follow-up C17 source review (2026-11-15):** [Principal C17 source audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) traces actual SPSC/MPMC/work stealing and metrics source and adds **new review tasks** for owner-plus-thief consumer semantics, mixed-atomic metrics and aggregate memory. These source observations are not newly executed C/TSan test evidence and do not retroactively invalidate narrower P7.4 permitted-use test reports.
+
 ## Native C vs Rust observability contract proposal
 
 | Signal | Responsible layer | Unit / capture boundary | Do not log |
