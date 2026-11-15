@@ -6,7 +6,7 @@
 
 ## 1. Authority and document navigation
 
-**Do not paste the whole documentation tree into one agent context** (91 Markdown files in `docs/` on this infra-audit branch). Read this concise index, root [AGENTS](../AGENTS.md), [next.md](../next.md), [skills](../skills.md), and [approved stack](TECHNOLOGY_AND_REPOSITORY_POLICY.md). Then read only the affected scoped AGENTS, source, versioned API/ABI and design/evidence documents. The source and exact-revision tests outrank old plans and aspirational HLD. A root `skills.md` is a playbook, **not automatically installed as a model skill**.
+**Do not paste the whole documentation tree into one agent context** (92 Markdown files under `docs/` on this C17 audit branch); follow the selected scoped agent and current source. Read this concise index, root [AGENTS](../AGENTS.md), [next.md](../next.md), [skills](../skills.md), and [approved stack](TECHNOLOGY_AND_REPOSITORY_POLICY.md). Then read only the affected scoped AGENTS, source, versioned API/ABI and design/evidence documents. The source and exact-revision tests outrank old plans and aspirational HLD. A root `skills.md` is a playbook, **not automatically installed as a model skill**.
 
 | Track | Mandatory scoped files | Relevant canonical technical contracts |
 | --- | --- | --- |
@@ -61,6 +61,8 @@ Astra can review **active `infra/`** without waiting for Rust P13 work, but shou
 **Astra's deliverables:** interaction state contract for keyboard/touch/mouse drag, bounded zoom, reset, deterministic crop coordinates, accessible labels/focus/live errors; safe preview URL cleanup and no secret exposure; P12 default still centered-fill. Then one small UI implementation PR with component and browser/a11y tests. No image-data telemetry and no claim that browser abort cancels C processing.
 
 **Pass:** correct P13 geometry and pixel parity vs native fixture oracles; mobile/touch/keyboard work; files and URL memory freed; invalid inputs and request failure states covered; Nuxt unit/typecheck/build plus relevant browser tests and exact-revision CI. **Do not run manual native ASan/fuzz for a pure UI change** unless shared ABI/FFI code was touched.
+
+> **2026-11-15 Track C deep source update:** Begin with the [principal C17 source/LLD/DSA/security audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md), [native README](../imgengine/README.md), and exact current source. First deliverable is C-A0 **read-only** concurrency reachability/test design for SPSC owner+thief and mixed-atomic metrics, plus aggregate resource accounting; do not prescribe a scheduler rewrite without a verified reproducible failure. Existing C11/C17/ABI tests and past fuzz results do not prove all interleavings. This is independent of the Rust P13 integration task.
 
 ### Track C — Native C17 security and SDK hardening: evidence-first review
 

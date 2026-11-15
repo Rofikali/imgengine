@@ -4,6 +4,8 @@
 
 **Infrastructure reviewers:** [infra AGENTS](infra/AGENTS.md), [infra README](infra/README.md), and [2026-11-15 infrastructure audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) define current Caddy/Docker/secret/observability and VPS-release evidence boundaries. This does not authorize production changes.
 
+**C17 native-core deep audit:** [Principal source/LLD/design patterns/DSA/security review](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native core README](imgengine/README.md) identify implemented ABI/algorithms and high-priority concurrent SPSC consumer/metrics and resource-budget questions. These require exact-revision proofs, **not** broad rewrites or unverified nanosecond claims.
+
 **Starting Astra or another engineering agent?** Read [Astra engineering start guide](docs/ASTRA_ENGINEERING_START_HERE.md) before choosing frontend, Rust backend or C17 native work. [next.md](next.md) is the living status board; current scoped [Rust AGENTS](backend/AGENTS.md), [native AGENTS](imgengine/AGENTS.md) and [frontend AGENTS](imgengine-saas/frontend/AGENTS.md) define boundaries. Merged PR #37 relocated Rust to `backend/` with [seven passing CI jobs](https://github.com/Rofikali/imgengine/actions/runs/43618598771), **not** a production release.
 
 ## Current application path

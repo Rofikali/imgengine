@@ -4,6 +4,8 @@
 
 This HLD captures the v2.0 RFC's intent and translates it into a concrete, reviewable architecture suitable for a kernel-grade, deterministic execution engine. It is meant to be the authoritative reference for system-level decisions, runtime constraints, and production policies.
 
+> **C17 current-source note (2026-11-15):** The [principal C17 source audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) supplements this **historical aspirational HLD**. Its 2-ms/100K ops/sec, universal “zero allocation/branchless/pure pipeline” and “production-ready” phrases are RFC targets, **not** verified universal properties. The live C ABI serializes operations; the observed worker-stealing/SPSC and metrics synchronization contracts need targeted concurrency review. Do not apply this document as a blanket code-rewrite mandate.
+
 ## 0. System Definition (one line)
 
 `A Kernel-Grade, Deterministic, Data-Oriented, SIMD-Fused, Zero-Allocation Execution Engine with Auto-Generated Pipelines`
@@ -29,7 +31,7 @@ High level layers (strict downward dependencies):
 
 Execution is modelled as a strict DAG from job submission to SIMD fused kernel execution and output.
 
-See repository layout for canonical locations: [CMakeLists-Instructions.md](CMakeLists-Instructions.md) and the `src/` layout.
+See repository layout for canonical locations: [CMakeLists-Instructions.md](../imgengine/CMakeLists-Instructions.md) and the `src/` layout.
 
 ## 3. Execution Flow (Strict DAG)
 
@@ -97,7 +99,7 @@ Prepared Decode State
 Pipeline / Arch Dispatch
 ```
 
-Files: [src/pipeline/jump_table_register.c](src/pipeline/jump_table_register.c#L1), [src/pipeline/fused_registry.c](src/pipeline/fused_registry.c#L1)
+Files: [src/pipeline/jump_table_register.c](../imgengine/src/pipeline/jump_table_register.c), [src/pipeline/fused_registry.c](../imgengine/src/pipeline/fused_registry.c)
 
 ## 7. Raw Frame Ingress (decode bypass)
 
@@ -116,7 +118,7 @@ Use cases: upstream producers (camera, pre-decode pipelines) requiring strict lo
 - Codegen may be used but must emit reviewed C committed to the repo or gated behind an opt-in CMake flag.
 - The runtime must never parse DSL files at startup; DSL is a build-time convenience only.
 
-Guidance and files of interest: [include/pipeline/job_presets.h](include/pipeline/job_presets.h), [include/pipeline/job_templates.h](include/pipeline/job_templates.h), [src/pipeline/jump_table_register.c](src/pipeline/jump_table_register.c#L1)
+Guidance and files of interest: [include/pipeline/job_presets.h](../imgengine/include/pipeline/job_presets.h), [include/pipeline/job_templates.h](../imgengine/include/pipeline/job_templates.h), [src/pipeline/jump_table_register.c](../imgengine/src/pipeline/jump_table_register.c)
 
 ## 9. SIMD Strategy & Execution
 
@@ -124,7 +126,7 @@ Guidance and files of interest: [include/pipeline/job_presets.h](include/pipelin
 - AVX2 and AVX-512 fused kernels are the production execution path for resize, color, and fused operations.
 - Assembly limited to validated leaf kernels (rep movsb, rep stosb) and must not contain policy or allocation.
 
-Kernel ABI and placement examples: [src/arch/x86_64/avx2/resize_avx2.c](src/arch/x86_64/avx2/resize_avx2.c#L1), [src/arch/x86_64/avx512/avx512.c](src/arch/x86_64/avx512/avx512.c#L1)
+Kernel ABI and placement examples: [src/arch/x86_64/avx2/resize_avx2.c](../imgengine/src/arch/x86_64/avx2/resize_avx2.c), [src/arch/x86_64/avx512/avx512.c](../imgengine/src/arch/x86_64/avx512/avx512.c)
 
 ## 10. Memory Model & Locality
 
@@ -142,7 +144,7 @@ decoded / prepared buffers
 - Slab allocator for hot buffers and O(1) allocation semantics.
 - 64-byte alignment and prefetch hints to avoid false sharing and improve cache-line access.
 
-See: [src/memory/slab_create.c](src/memory/slab_create.c#L1), [src/memory/numa.c](src/memory/numa.c#L1)
+See: [src/memory/slab_create.c](../imgengine/src/memory/slab_create.c), [src/memory/numa.c](../imgengine/src/memory/numa.c)
 
 ## 11. Runtime & Scheduling
 
@@ -150,7 +152,7 @@ See: [src/memory/slab_create.c](src/memory/slab_create.c#L1), [src/memory/numa.c
 - Global MPMC submit path for API submissions; workers use `img_scheduler_steal` for load balancing.
 - Backpressure and batching to honor latency and throughput budgets.
 
-See: [src/runtime/scheduler.c](src/runtime/scheduler.c#L1), [src/runtime/queue_spsc.c](src/runtime/queue_spsc.c#L1)
+See: [src/runtime/scheduler.c](../imgengine/src/runtime/scheduler.c), [src/runtime/queue_spsc.c](../imgengine/src/runtime/queue_spsc.c)
 
 ## 12. Latency Budget & Performance Targets
 

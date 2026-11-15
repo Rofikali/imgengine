@@ -1,5 +1,7 @@
 # Design Patterns — Kernel-grade Guidance ( GoF (Gang of Four) patterns )
 
+> **Pattern evidence disclaimer (2026-11-15):** This file contains **recommendations and C sketches**, not a certification that all GoF patterns are implemented. The [source-backed C17 LLD/DSA/pattern audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) identifies implemented strategy/dispatch, vtable adapters, slab pools and limited registries, and distinguishes hypothetical Factory/Observer/Decorator additions. No DDD, event bus, decorator framework or microservice should be introduced merely to claim pattern coverage. First verify real changeability, correctness and ownership benefit.
+
 This document provides concise pattern recommendations, short C sketches, and concrete places in the repository to apply them. These patterns aim to meet the hard rules in the HLD (no heap in hot path, deterministic hot kernels, stable init order, zero-copy contracts).
 
 1) Strategy — runtime algorithm selection

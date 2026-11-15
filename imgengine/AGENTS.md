@@ -4,6 +4,8 @@
 
 > **Astra native C start:** Use [three-track engineering handoff, Track C](../docs/ASTRA_ENGINEERING_START_HERE.md) for an evidence-first C17/ABI/security/DSA/performance review. The existing metrics-concurrency question, total RSS accounting and sandbox reachability are **review items, not confirmed exploits**. Keep C17/C11/ABI compatibility and required safety gates. No frontend, Rust HTTP or unrelated C feature rewrite during a native-only review.
 
+> **2026-11-15 source audit and Astra C-A0 gate:** Before editing native queues, worker execution, allocators, public ABI, SIMD, decoder security or metrics, read the [new C17 A–Z source/LLD/DSA/security audit](../docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native core README](README.md). Current priority is a **read-only exact-source concurrency and resource review**: SPSC queue consumer ownership vs work stealing, mixed metrics synchronization, aggregate memory limits, seccomp/build portability and static SDK packaging. These are review findings, not confirmed user-visible exploits. Propose a minimal test/reproducer before any core rewrite. A docs-only change does not require manual CMake, sanitizer or fuzz runs; required CI/release checks remain mandatory.
+
 ## 1. Scope
 
 These instructions apply to:
