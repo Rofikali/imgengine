@@ -62,6 +62,8 @@ Astra can review **active `infra/`** without waiting for Rust P13 work, but shou
 
 **Pass:** correct P13 geometry and pixel parity vs native fixture oracles; mobile/touch/keyboard work; files and URL memory freed; invalid inputs and request failure states covered; Nuxt unit/typecheck/build plus relevant browser tests and exact-revision CI. **Do not run manual native ASan/fuzz for a pure UI change** unless shared ABI/FFI code was touched.
 
+> **2026-11-15 Track C deep source update:** Begin with the [principal C17 source/LLD/DSA/security audit](C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md), [native README](../imgengine/README.md), and exact current source. First deliverable is C-A0 **read-only** concurrency reachability/test design for SPSC owner+thief and mixed-atomic metrics, plus aggregate resource accounting; do not prescribe a scheduler rewrite without a verified reproducible failure. Existing C11/C17/ABI tests and past fuzz results do not prove all interleavings. This is independent of the Rust P13 integration task.
+
 ### Track C — Native C17 security and SDK hardening: evidence-first review
 
 **Can begin independently of Track A/B as a review-only workstream.** Do not make broad C and Rust/FE changes in one PR.
