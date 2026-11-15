@@ -2,6 +2,8 @@
 
 This directory contains current contracts, dated evidence, proposed designs, and legacy/historical records. A requirement is binding only within its named product and versioned scope: current public ABI/API source and approved contracts take precedence over historical PRDs or RFCs. Use the [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) for the source-of-truth hierarchy.
 
+**Universal AI-testing output rule:** [CI-first Minimal AI Context Policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md) explains how Astra/Codex/humans preserve all CI, native, sanitizer/fuzz and release verification while keeping successful logs out of model context and only pulling failed-step excerpts. The [test-lanes runbook](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) determines test scope. These are docs-only policies, not CI workflow changes.
+
 The root [next.md](../next.md) is the execution/status dashboard. The optional [skills.md](../skills.md) supplies reusable task recipes; root and nested AGENTS.md files remain authoritative instructions.
 
 **Cost-aware engineering checks (2026-11-15):** [Test Lanes, Change-Scoped PR/Milestone Gates & Agent Budget](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) documents the **existing seven unconditional PR jobs**, focused Nuxt/HTTP/Wasm/native testing, compact AI logs, exact-SHA release gates and a separately reviewed path-aware CI design. [Astra CI-SCOPE-01 handoff](ASTRA_CI_SCOPE_01_IMPLEMENTATION_HANDOFF_2026-11-15.md) provides the dry-run classifier plan and safe rollout dependencies. **These are documentation proposals, not workflow modifications or permission to skip current checks.**
