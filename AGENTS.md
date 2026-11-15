@@ -6,6 +6,8 @@
 
 > **Infrastructure scope checkpoint (2026-11-15):** For `infra/` configuration, scripts, Caddy, Compose and P14 deployment governance, follow [infra/AGENTS.md](infra/AGENTS.md), [infra security/operations audit](docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [P14 runbook](docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), and [next.md](next.md). Static hardening is **not** real-host deployment evidence. The separate `imgengine-saas/infra/` tree is retained legacy. No new Python tooling; existing `infra/scripts/verify-production-compose.py` remains until parity-preserving replacement. Do not deploy, rotate secrets or change DNS without explicit approval.
 
+> **Native C17 principal audit checkpoint (2026-11-15):** The [C17 source/LLD/DSA/security audit](docs/C17_CORE_PRINCIPAL_SOURCE_LLD_DSA_SECURITY_AUDIT_2026-11-15.md) and [native README](imgengine/README.md) describe implemented C ABI/algorithms, source-backed concurrency/metrics review findings and the first bounded Astra C-A0 task. For C work also follow [native AGENTS](imgengine/AGENTS.md). Do not mistake historical design-pattern sketches, 2-ms targets or previously passing limited tests for blanket race-freedom, cross-platform portability or production release. No C source change is authorized solely by this docs audit.
+
 # 1. Purpose
 
 This file defines the global engineering rules for the IMGENGINE repository.
