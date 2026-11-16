@@ -147,9 +147,9 @@ Break-even paid developer customers =
 | --- | --- | --- |
 | API-00 | Customer discovery, measured benchmark, cost envelope | Customer requirements + recorded exact-hardware cost metrics |
 | API-01 | Reviewed API/tenant/contract design and private sandbox | Tests for validation/auth/quotas, versioned docs, synthetic test keys and private access; reviewed PR |
-| API-02 | Durable metering/idempotency and approved storage/payment ADR | Crash/race/webhook reconciliation tests, schema migration/backup, real invoice and credit ledger audit |
-| API-03 | Private partner beta | Revocable keys, caps, consent/privacy, real load/security/operational measurements and correction support |
-| API-04 | Pricing/business release signoff | Unit economics, taxes/refunds/terms, independent security review, actual host release proof |
+| API-02 | Tenancy, scoped keys, server-side quotas and resource admission | Security/abuse review, isolation, concurrent quota and 429 tests, revocation and cost caps |
+| API-03 | Durable metering/idempotency plus approved storage/payment ADR | Crash/race/webhook reconciliation tests, migrations/backup, true invoice and credit ledger audit |
+| API-04 | Private partner beta plus price/signoff preparation | Revocable keys, caps, real load/security measurements, support corrections, economics and legal review |
 | API-05 | Public paid API (separate owner-go/no-go) | All exact-SHA CI/P14 + rate-limit, cost/abuse, payment and rollback approval |
 
 **Next code milestone remains F1 Free resize, not API-01.** Drafting this Developer API plan is not permission to open a payment account, introduce a database, purchase hosting, run production traffic, merge or deploy. Preserve the owner-selected four-product portfolio, keep one small PR per implementation milestone, and update [the live queue](../next.md) with only verified state.
