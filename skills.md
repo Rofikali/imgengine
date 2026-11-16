@@ -194,3 +194,13 @@ Use the [root Makefile](Makefile) as the entry point, plus [its engineering guid
 4. **Native:** `make native-test`; for affected C11/unsafe ABI/security risk add `make native-c11`, `make native-sanitize`, `make native-fuzz`, and full gate `make verify-linux CONFIRM_FULL=YES` if warranted. Bounded `JOBS=2` by default.
 5. **Docker/full:** `make verify-docker CONFIRM_FULL=YES` is an intentionally expensive Ubuntu 24.04 native verifier, **not** equivalent to all seven GitHub CI jobs. Keep existing full CI/release gates.
 6. **Evidence:** follow [minimal-AI-context log policy](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md); full-verifier logs stay under ignored `build/make-logs/`. Never claim a target passed without running it, or infer public release approval.
+
+## Skill 17 — P8 simulation: P12/P13 HTTP smoke, resources and truthful evidence
+
+For local Ubuntu Docker engine P8 simulation changes, follow [P8-SIM-02 suite and resource guide](docs/P8_SIM_02_SHEET_CROP_RESOURCE_EVIDENCE.md), [infra AGENTS](infra/AGENTS.md), and [P8-SIM-01 runtime handoff](docs/P8_SIM_01_RUNTIME_REPRODUCIBILITY.md).
+
+1. Select only a disposable isolated checkout and ensure non-production secrets/fixtures. Run the existing `./infra/scripts/run-p8-vps-sim.ps1 -Build` harness where PowerShell and Docker are available.
+2. Confirm original P8 FIT tests pass and `workload.sheet_crop` reports P12 omitted crop, P13 selected crop, negative-input status checks, JPEG dimensions and executed placement count. This does **not** prove per-pixel parity or EXIF; use the separate [M1.3 suite](docs/P13_M1_3_CROP_PARITY.md).
+3. Record exact SHA, image IDs, health, cgroup version, actual cgroup `memory.peak` and `memory.events` when available, restart/OOM state, JSON report and workspace cleanup. `unavailable` is NOT a measured zero or PASS.
+4. Use concise logs following [CI-first policy](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md); required seven GitHub jobs remain mandatory, yet they do **not** replace the dedicated P8 simulator.
+5. Do not merge/deploy, change production Compose or use real secrets. Explicit owner approval and P14 actual-host security/cost gates still apply.

@@ -13,8 +13,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY infra/scripts/run-p8-vps-workload.sh /usr/local/bin/run-p8-vps-workload
+COPY infra/scripts/run-p8-vps-sheet-crop-workload.sh /usr/local/bin/run-p8-vps-sheet-crop-workload
 COPY imgengine/tests/fixtures/cc0_camera_landscape.jpg /opt/imgengine-fixtures/cc0_camera_landscape.jpg
-RUN chmod 0555 /usr/local/bin/run-p8-vps-workload \
+RUN chmod 0555 /usr/local/bin/run-p8-vps-workload /usr/local/bin/run-p8-vps-sheet-crop-workload \
     && test -s /opt/imgengine-fixtures/cc0_camera_landscape.jpg
 
 WORKDIR /tmp
