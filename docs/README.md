@@ -1,5 +1,7 @@
 # IMGENGINE Documentation
 
+**New developer command interface:** [Root Makefile Engineering Guide](ROOT_MAKEFILE_ENGINEERING_GUIDE.md) describes the safe root `Makefile`, native/Rust/Nuxt targets, browser and full Docker verification, bounded parallelism and minimal-context CI reporting. The native-only `imgengine/Makefile` remains intact; this proposal changes no GitHub CI workflows.
+
 **Agent autonomy and human approval:** [Milestone Continuation & New-Session Recovery](AGENT_MILESTONE_CONTINUATION_RUNBOOK.md) is the standing process for Astra/Codex engineers to choose the next READY task, advance small review PRs, checkpoint status and resume from a new session or separately configured agent runner. The document **cannot restart a stopped session or waive merge/deployment approval**.
 
 This directory contains current contracts, dated evidence, proposed designs, and legacy/historical records. A requirement is binding only within its named product and versioned scope: current public ABI/API source and approved contracts take precedence over historical PRDs or RFCs. Use the [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) for the source-of-truth hierarchy.

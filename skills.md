@@ -183,3 +183,14 @@ Use the proposed [platform/product/business strategy](docs/IMGENGINE_PLATFORM_PR
 4. CI PASS means `READY_FOR_REVIEW`, **not automatically MERGED**. A confirmed merge event moves status to `MERGED`. Select a next independent authorized task only if the runner is still active and owner approval boundaries permit.
 5. When stopped, write a short checkpoint with main SHA, task/PR, tested SHA, risks, next eligible task and owner decision. **Do not pretend Markdown instructions launch a new model session.** Resume with the runbook's one-line bootstrap, or use a separately configured and approved coding-agent runner/event automation.
 6. Never automatically merge, deploy, change DNS/secrets, buy services, modify public ABI incompatibly or invent new product milestones. Escalate unresolved high-risk decisions and stop affected work.
+
+## Skill 16 — Root Makefile: consistent safe command menu
+
+Use the [root Makefile](Makefile) as the entry point, plus [its engineering guide](docs/ROOT_MAKEFILE_ENGINEERING_GUIDE.md). Unlike the existing C-only `imgengine/Makefile`, root `make` covers Nuxt, Rust and C17, but delegates all real build/test behavior to CMake, Cargo, pnpm, Playwright and `verify_linux.sh`.
+
+1. **Default safe:** `make` or `make help` prints the command menu; `make self-check` safely verifies menu/dry-run/refusal behavior without building; `make status` shows local branch/SHA/dirty paths. Do not run `make clean` without `CONFIRM_CLEAN=YES`.
+2. **Nuxt-only:** `make frontend-test`, `make frontend-check`, `make frontend-browser` (requires built Nuxt and Playwright browser). Live HTTP flow: `make frontend-browser-live` only when services/fixtures/credentials are ready.
+3. **Rust:** `make rust-test RUST_CRATE=imgengine-api` (builds/link native C prerequisite); `make rust-fmt-check` for formatting. Pick the affected crate; do not automatically run all native sanitizers/fuzz for Rust API-only changes.
+4. **Native:** `make native-test`; for affected C11/unsafe ABI/security risk add `make native-c11`, `make native-sanitize`, `make native-fuzz`, and full gate `make verify-linux CONFIRM_FULL=YES` if warranted. Bounded `JOBS=2` by default.
+5. **Docker/full:** `make verify-docker CONFIRM_FULL=YES` is an intentionally expensive Ubuntu 24.04 native verifier, **not** equivalent to all seven GitHub CI jobs. Keep existing full CI/release gates.
+6. **Evidence:** follow [minimal-AI-context log policy](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md); full-verifier logs stay under ignored `build/make-logs/`. Never claim a target passed without running it, or infer public release approval.
