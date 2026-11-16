@@ -1,15 +1,15 @@
-# Standalone, production-style resource simulation for P8. It is intentionally
-# separate from the bind-mounted P7 development stack and from the authoritative
-# Ubuntu native verifier.
+# Local resource-constrained P8 rehearsal; NOT a production deployment or
+# proof of a 1 GiB VPS. Rust and Nuxt use maintained minimal runtime images.
+# No P7 development-image inheritance or untracked local Cargo cache.
 name: imgengine-p8-vps-sim
 
 services:
   rust-api:
     build:
       context: ..
-      dockerfile: infra/Dockerfile.p8-vps-runtime
+      dockerfile: backend/Dockerfile
       target: runtime
-    image: imgengine-p8-vps-runtime:local
+    image: imgengine-p8-vps-rust-api:local
     environment:
       IMGENGINE_API_BIND: 0.0.0.0:8000
       IMGENGINE_API_KEYS: ${IMGENGINE_VPS_SIM_API_KEY:?set only by the simulation harness}
@@ -28,9 +28,8 @@ services:
       - /tmp/imgengine-workspaces:rw,nosuid,nodev,noexec,mode=0700,uid=10001,gid=10001,size=48m
     stop_grace_period: 30s
     healthcheck:
-      # No health route exists yet. This reaches the live Axum router without
-      # authentication and is intentionally documented as a reachability check.
-      test: ["CMD-SHELL", "test \"$$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/v1/render)\" = 405"]
+      # Check actual Rust readiness rather than a router's HTTP 405.
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/readyz"]
       interval: 5s
       timeout: 3s
       retries: 12
@@ -38,9 +37,8 @@ services:
 
   frontend:
     build:
-      context: ..
-      dockerfile: infra/Dockerfile.p8-vps-runtime
-      target: frontend-runtime
+      context: ../imgengine-saas/frontend
+      dockerfile: Dockerfile
     image: imgengine-p8-vps-frontend:local
     depends_on:
       rust-api:
@@ -68,7 +66,8 @@ services:
       - "127.0.0.1:3000:3000"
     stop_grace_period: 20s
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/ >/dev/null"]
+      # Node is present in the frontend image; curl is not required.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 5s
       timeout: 3s
       retries: 12
@@ -77,8 +76,7 @@ services:
   workload:
     build:
       context: ..
-      dockerfile: infra/Dockerfile.p8-vps-runtime
-      target: workload
+      dockerfile: infra/Dockerfile.p8-vps-workload
     image: imgengine-p8-vps-workload:local
     profiles: [workload]
     environment:
@@ -90,6 +88,7 @@ services:
     memswap_limit: 128m
     cpus: "0.25"
     pids_limit: 64
+    user: "10001:10001"
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
