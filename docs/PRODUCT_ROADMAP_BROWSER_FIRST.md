@@ -1,6 +1,6 @@
 # IMGENGINE — Browser-first image product roadmap
 
-**Sequencing reconciliation (F0 review, 2026-11-16):** STRAT-00 browser-first priority is owner-approved. [ADR-F0](F0_BROWSER_FIRST_SEQUENCING_ADR.md) defines F1 browser-native local resize after F0 merge, before optional measured Worker/Rust-Wasm adoption. P13 M1.2 and bounded M1.3 are merged (PRs #47 and #49). The sequence below is retained as historical planning; use the [live NOW / NEXT / LATER board](../next.md), not stale readiness labels. F0 is not yet merged and F1 is not implemented.
+**Sequencing reconciliation (2026-11-16):** STRAT-00 browser-first priority is owner-approved and [ADR-F0](F0_BROWSER_FIRST_SEQUENCING_ADR.md) **MERGED in PR #55**. F1 browser-native local resize is the next ready product task, before optional measured Worker/Rust-Wasm. P13 M1.2 and bounded M1.3 merged in PRs #47 and #49. **The older M-stage table below is historical planning**, not a second live task queue. The first IMGENGINE Free product is exactly **Crop, Resize, Compress, Rotate, Convert**; print sheets, Flip and other tools are later. See the [canonical four-product portfolio](IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md) and [live NOW / NEXT / LATER board](../next.md). F1/paid features/Free public launch have **not** been implemented or released.
 
 **Status:** Product strategy and proposed sequence; not a claim that listed routes or features exist. The canonical P8/P12/P13 contracts govern current behavior. This roadmap does not supersede release/security requirements.
 
