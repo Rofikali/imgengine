@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { CLIENT_RENDER_FILE_LIMIT_BYTES } from './useRenderWorkflow'
-import { createSheetRenderWorkflow } from './useSheetRenderWorkflow'
+import { createSheetRenderWorkflow as createWorkflow } from './useSheetRenderWorkflow'
 import { ImgengineRenderError } from './useImgengineApi'
 import type { SheetRenderInput } from '~/types/api'
+import type { CropPreview } from '~/utils/crop-preview'
+
+const createSheetRenderWorkflow = (render: Parameters<typeof createWorkflow>[0]) => createWorkflow(render, async () => ({ width: 400, height: 200, url: 'blob:source', dispose: vi.fn() }))
 
 function image(type = 'image/jpeg', size = 5) {
   return new File([new Uint8Array(size)], 'source-image', { type })
@@ -23,9 +26,9 @@ const input = {
 }
 
 describe('P12 physical-sheet workflow', () => {
-  it.each(['image/jpeg', 'image/png'])('accepts a valid %s selection', (type) => {
+  it.each(['image/jpeg', 'image/png'])('accepts a valid %s selection', async (type) => {
     const workflow = createSheetRenderWorkflow(vi.fn())
-    workflow.select(image(type))
+    await workflow.select(image(type))
     expect(workflow.status.value).toBe('ready')
     expect(workflow.failure.value).toBeNull()
   })
@@ -33,11 +36,11 @@ describe('P12 physical-sheet workflow', () => {
   it('rejects missing, unsupported, and oversized files before a request', async () => {
     const render = vi.fn()
     const workflow = createSheetRenderWorkflow(render)
-    workflow.select(null)
+    await workflow.select(null)
     expect(workflow.failure.value?.message).toMatch(/Choose a JPEG or PNG/)
-    workflow.select(image('image/gif'))
+    await workflow.select(image('image/gif'))
     expect(workflow.failure.value?.message).toMatch(/not supported/)
-    workflow.select(image('image/jpeg', CLIENT_RENDER_FILE_LIMIT_BYTES + 1))
+    await workflow.select(image('image/jpeg', CLIENT_RENDER_FILE_LIMIT_BYTES + 1))
     expect(workflow.failure.value?.message).toMatch(/under about 1 MB/)
     await workflow.submit()
     expect(render).not.toHaveBeenCalled()
@@ -65,7 +68,7 @@ describe('P12 physical-sheet workflow', () => {
     const create = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:sheet')
     const revoke = vi.spyOn(URL, 'revokeObjectURL')
     const workflow = createSheetRenderWorkflow(render)
-    workflow.select(image())
+    await workflow.select(image())
     const submission = workflow.submit()
     expect(workflow.status.value).toBe('uploading')
     await nextTick()
@@ -98,7 +101,7 @@ describe('P12 physical-sheet workflow', () => {
         message: 'The requested number of copies does not fit on this sheet.',
       })
     })
-    workflow.select(image())
+    await workflow.select(image())
     await workflow.submit()
     expect(workflow.status.value).toBe('error')
     expect(workflow.failure.value).toMatchObject({ detail: { kind: 'does_not_fit', status: 422 } })
@@ -115,7 +118,7 @@ describe('P12 physical-sheet workflow', () => {
       executedCount: 8,
     })
     const workflow = createSheetRenderWorkflow(render)
-    workflow.select(image())
+    await workflow.select(image())
     await workflow.submit()
     expect(render).toHaveBeenCalledWith(expect.any(File), input, expect.objectContaining({ signal: expect.any(AbortSignal) }))
   })
@@ -144,7 +147,7 @@ describe('P12 physical-sheet workflow', () => {
         complete = resolve
       }))
     const workflow = createSheetRenderWorkflow(render)
-    workflow.select(image())
+    await workflow.select(image())
     const submission = workflow.submit()
     await nextTick()
     expect(signal?.aborted).toBe(false)
@@ -165,4 +168,69 @@ describe('P12 physical-sheet workflow', () => {
     expect(workflow.previewUrl.value).toBeNull()
   })
 
+})
+
+describe('P13 preview and selection lifecycle', () => {
+  it('does not expose unexpected decoder diagnostics and preserves P12 fallback', async () => {
+    const workflow = createWorkflow(vi.fn(), async () => { throw new Error('private decoder diagnostic') })
+    await workflow.select(image())
+    expect(workflow.previewError.value).not.toContain('private')
+    expect(workflow.previewLoading.value).toBe(false)
+    expect(workflow.cropSelected.value).toBe(false)
+    expect(workflow.sourcePreview.value).toBeNull()
+  })
+  it('disposes stale decodes on replacement/reset and prevents submission during loading', async () => {
+    const pending: Array<(preview: CropPreview) => void> = []
+    const render = vi.fn()
+    const workflow = createWorkflow(render, () => new Promise(resolve => pending.push(resolve)))
+    const first = workflow.select(image())
+    await workflow.submit()
+    expect(render).not.toHaveBeenCalled()
+    const second = workflow.select(image())
+    const stale = { width: 400, height: 200, url: 'blob:stale', dispose: vi.fn() }
+    pending[0]!(stale); await first
+    expect(stale.dispose).toHaveBeenCalledOnce()
+    expect(workflow.sourcePreview.value).toBeNull()
+    const latest = { ...stale, url: 'blob:latest', dispose: vi.fn() }
+    pending[1]!(latest); await second
+    workflow.reset()
+    expect(latest.dispose).toHaveBeenCalledOnce()
+    expect(workflow.sourcePreview.value).toBeNull()
+  })
+
+  it('snapshots selected crop and blocks repeated submit; reset/aspect changes omit it', async () => {
+    const render = vi.fn().mockRejectedValue(new Error('network'))
+    const workflow = createSheetRenderWorkflow(render)
+    await workflow.select(image())
+    expect(workflow.cropSelected.value).toBe(false)
+    workflow.changeCrop({ x: 100, y: 50, zoom: 2 })
+    const crop = { ...workflow.crop.value! }
+    const request = workflow.submit()
+    await workflow.submit()
+    await request
+    expect(render).toHaveBeenCalledOnce()
+    expect(render.mock.calls[0]![1].crop).toEqual(crop)
+    expect(workflow.sourcePreview.value).toBeNull()
+    expect(workflow.cropSelected.value).toBe(false)
+    await workflow.select(image())
+    workflow.changeCrop({ x: 0, y: 0, zoom: 3 })
+    workflow.sheet.value.photoWidthMm = '45'
+    expect(workflow.cropSelected.value).toBe(false)
+    workflow.changeCrop({ x: 0, y: 0, zoom: 3 })
+    workflow.resetCrop()
+    await workflow.submit()
+    expect(render.mock.calls[1]![1].crop).toBeUndefined()
+  })
+
+  it.each([400, 413])('retains safe %i server status and releases crop on failure', async (status) => {
+    const workflow = createSheetRenderWorkflow(async () => { throw new ImgengineRenderError({
+      kind: status === 400 ? 'invalid_request' : 'request_too_large', status, requestId: null,
+      message: 'Choose another crop or photo.',
+    }) })
+    await workflow.select(image())
+    workflow.changeCrop({ x: 0, y: 0, zoom: 2 })
+    await workflow.submit()
+    expect(workflow.failure.value?.detail?.status).toBe(status)
+    expect(workflow.sourcePreview.value).toBeNull()
+  })
 })

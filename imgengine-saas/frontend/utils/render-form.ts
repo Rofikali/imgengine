@@ -1,4 +1,5 @@
 import type { LayoutRenderInput, SheetRenderInput } from '~/types/api'
+import { hasValidOptionalSheetCrop, SHEET_CROP_FIELDS } from './sheet-crop'
 
 /** The Rust P5/P6 endpoint accepts exactly one multipart field: `file`. */
 export function createRenderForm(file: File): FormData {
@@ -21,6 +22,12 @@ export function createSheetRenderForm(file: File, input: SheetRenderInput): Form
   form.append('gap_x_mm', input.gapXmm)
   form.append('gap_y_mm', input.gapYmm)
   form.append('output_format', input.outputFormat)
+  if (input.crop !== undefined) {
+    const values = [input.crop.x, input.crop.y, input.crop.width, input.crop.height]
+    const fields = new Map(SHEET_CROP_FIELDS.map((name, index) => [name, String(values[index])]))
+    if (!hasValidOptionalSheetCrop(fields)) throw new Error('Invalid crop rectangle')
+    for (const [name, value] of fields) form.append(name, value)
+  }
   return form
 }
 
