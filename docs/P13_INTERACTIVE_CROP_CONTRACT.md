@@ -1,10 +1,10 @@
 # P13 Interactive Crop Editor: Contract and Implementation Plan
 
-> **Status reconciliation (2026-11-15):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26). M1.1 now adds the safe Rust FFI, Axum, bounded-admission, and same-origin Nuxt-proxy transport, verified by the Ubuntu 24.04 gate at `7ef95249a9068987338689eb6c665f5d876f8edc`. M1.2 now implements the browser editor, typed serialization and scoped tests locally; review/CI, comprehensive image parity and production release remain open. See [M1.2 implementation and limitations](P13_M1_2_FRONTEND_IMPLEMENTATION.md). The original proposal status below is historical, not a denial of either completed layer. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md).
+> **Status reconciliation (2026-11-15):** The original P13 document below began as a design proposal. **Native normalized crop geometry and additive C ABI 2.3 are implemented** (PRs #24–26). M1.1 now adds the safe Rust FFI, Axum, bounded-admission, and same-origin Nuxt-proxy transport, verified by the Ubuntu 24.04 gate at `7ef95249a9068987338689eb6c665f5d876f8edc`. M1.2 merged in PR #47 as de8b1708ba4e54cd219c93cc15f7923773ce8c9e; all seven CI jobs passed at b3aa42c2b89b0831a48448e8c4529cd67131ed75. M1.3 scoped parity evidence is documented in [the parity report](P13_M1_3_CROP_PARITY.md); review and production release remain separate gates. See [M1.2 implementation and limitations](P13_M1_2_FRONTEND_IMPLEMENTATION.md). The original proposal status below is historical, not a denial of either completed layer. See [native audit](NATIVE_C_RUST_DOCUMENTATION_AUDIT_2026-11-14.md) and [next.md](../next.md).
 
 ## Status
 
-**Transport: implemented by M1.1; browser editor: implemented locally by M1.2 with stored-raster orientation support and review/CI pending.**
+**Transport: implemented by M1.1; browser editor: merged in PR #47 with stored-raster orientation support.**
 The additive ABI 2.3 normalized-crop operation and its Rust/Axum/Nuxt proxy
 transport are implemented. The M1.2 browser editor is described below; this is not a
 production-readiness claim, or release claim. P13 remains intentionally
@@ -107,7 +107,7 @@ The coordinate scale is fixed at 1,000,000 and is not a request field.
 - API key remains server-side; the browser continues using the same-origin proxy.
 - No crop metadata is persisted by the server after the request.
 
-## 5. Frontend behavior — M1.2 implemented locally
+## 5. Frontend behavior — M1.2 merged
 
 The P13 UI adds a crop step before sheet rendering. [M1.2 details](P13_M1_2_FRONTEND_IMPLEMENTATION.md) define preview bounds, lifecycle, tests and the stored-raster orientation contract. M1.3 parity remains open:
 
@@ -169,7 +169,7 @@ The preview is an approximation for interaction. The server-rendered JPEG remain
 2. Add native geometry helper + unit/property tests, without touching P12 centered-fill.
 3. Add additive ABI 2.3 request/symbol + export/version audit.
 4. Add safe Rust FFI wrapper plus Axum/Nuxt proxy validation and integration tests. **Completed by M1.1.**
-5. Add Nuxt crop editor with local preview and accessible controls. **Implemented locally by M1.2; review/CI remain open.**
+5. Add Nuxt crop editor with local preview and accessible controls. **Merged in PR #47; M1.3 evidence remains separately scoped.**
 6. Add end-to-end tests proving UI crop parameters reach the native renderer correctly.
 7. Run the full CI matrix and review the ABI/security diff.
 8. Merge in small PRs: native contract, API integration, frontend editor, release verification.
@@ -201,5 +201,5 @@ The first crop-aware public operation is additive:
 M1.1 wires the safe Rust FFI, bounded supervisor queue, Axum endpoint, and
 same-origin Nuxt proxy to ABI 2.3. When crop fields are absent, it deliberately
 continues to call the ABI 2.2 centered-fill operation. The interactive crop
-editor, preview and keyboard controls are now implemented locally by M1.2.
+editor, preview and keyboard controls are merged in PR #47.
 Comprehensive M1.3 parity and production release remain separate work.
