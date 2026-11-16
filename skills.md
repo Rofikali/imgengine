@@ -188,7 +188,7 @@ Use the proposed [platform/product/business strategy](docs/IMGENGINE_PLATFORM_PR
 
 Use the [root Makefile](Makefile) as the entry point, plus [its engineering guide](docs/ROOT_MAKEFILE_ENGINEERING_GUIDE.md). Unlike the existing C-only `imgengine/Makefile`, root `make` covers Nuxt, Rust and C17, but delegates all real build/test behavior to CMake, Cargo, pnpm, Playwright and `verify_linux.sh`.
 
-1. **Default safe:** `make` or `make help` prints the command menu; `make status` shows local branch/SHA/dirty paths. Do not run `make clean` without `CONFIRM_CLEAN=YES`.
+1. **Default safe:** `make` or `make help` prints the command menu; `make self-check` safely verifies menu/dry-run/refusal behavior without building; `make status` shows local branch/SHA/dirty paths. Do not run `make clean` without `CONFIRM_CLEAN=YES`.
 2. **Nuxt-only:** `make frontend-test`, `make frontend-check`, `make frontend-browser` (requires built Nuxt and Playwright browser). Live HTTP flow: `make frontend-browser-live` only when services/fixtures/credentials are ready.
 3. **Rust:** `make rust-test RUST_CRATE=imgengine-api` (builds/link native C prerequisite); `make rust-fmt-check` for formatting. Pick the affected crate; do not automatically run all native sanitizers/fuzz for Rust API-only changes.
 4. **Native:** `make native-test`; for affected C11/unsafe ABI/security risk add `make native-c11`, `make native-sanitize`, `make native-fuzz`, and full gate `make verify-linux CONFIRM_FULL=YES` if warranted. Bounded `JOBS=2` by default.
