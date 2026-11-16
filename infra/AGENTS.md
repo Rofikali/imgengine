@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE active infrastructure
 
+> **P8-SIM-02:** [Sheet/crop and cgroup evidence runbook](../docs/P8_SIM_02_SHEET_CROP_RESOURCE_EVIDENCE.md) adds a bounded Nuxt→Rust→native P12/P13 fixture suite to the P8 simulation, preserves original P8 workload, and records cgroup peak/events when available. Full Docker execution at exact SHA is required before claiming success. M1.3 pixel parity, native verification and P14 actual host release are separate gates. No automatic deployment, production-secret use or merge.
+
 **Scope:** `infra/` and all child files. Follow [root AGENTS](../AGENTS.md), the [approved Rust/C17/Nuxt stack](../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [source-backed infra audit](../docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [P14 release checklist](../docs/MVP_RELEASE_CHECKLIST.md), [actual-VPS runbook](../docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), [Astra start guide](../docs/ASTRA_ENGINEERING_START_HERE.md) and [next.md](../next.md). These are task rules, **not** permission to deploy.
 
 ## 1. Scope, ownership and environments
