@@ -121,6 +121,23 @@ try {
     limitation = 'Docker Desktop/VM and host capacity depend on this runner. Container memory ceilings and 500 ms docker stats samples are not exact RSS peaks or proof of 1 GiB VPS behavior.'
   }
   $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ResultsPath -Encoding utf8
+  # Persist the report before failing the gate; cgroup counters are since the
+  # container started. Unsupported environments record "unavailable" above.
+  foreach ($events in @($apiMemoryEvents, $frontendMemoryEvents)) {
+    if ($events -match '(?m)^oom(?:_kill)?\s+[1-9][0-9]*\s*}
+finally {
+  if ($statsJob) { Stop-Job $statsJob -ErrorAction SilentlyContinue; Remove-Job $statsJob -Force -ErrorAction SilentlyContinue }
+  if ($started) { & docker compose --project-name $project -f $simCompose down --remove-orphans | Out-Host }
+  if ($null -eq $originalKey) { Remove-Item Env:IMGENGINE_VPS_SIM_API_KEY -ErrorAction SilentlyContinue } else { $env:IMGENGINE_VPS_SIM_API_KEY = $originalKey }
+  Pop-Location -ErrorAction SilentlyContinue
+}
+) {
+      throw "P8 VPS simulation recorded a nonzero container OOM event; inspect report: $ResultsPath"
+    }
+  }
+  if (@($inspect | Where-Object { $_.State.OOMKilled }).Count -gt 0) {
+    throw "P8 VPS simulation recorded a Docker OOMKilled state; inspect report: $ResultsPath"
+  }
   Write-Output "P8 VPS simulation results: $ResultsPath"
 }
 finally {
