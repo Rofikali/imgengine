@@ -15,7 +15,7 @@
 | **IMGENGINE Studio** | Computer shops, photo studios, print/application agents | Reliable operator flow and print sheets for paying customers | Studio seat/shop subscription or job-pack **hypothesis** | **Planned; existing P12/P13 server foundation is NOT a paid Studio product** |
 | **IMGENGINE Developer API** | Software developers, SaaS/e-commerce integrators | Automate image jobs in their applications via stable HTTP APIs | Metered successful work with quotas, prepaid or subscription + overage **hypothesis** | **Planned; existing private Rust API is NOT a metered multi-tenant public API** |
 
-Keep offers distinct. Pro pays for personal/professional repeatability; Studio pays for *print/shop* accuracy and operator productivity; API pays for *integrated server compute*. Studio does **not** silently include unrestricted API usage. Free does **not** become an email/phone collection funnel. All product prices, entitlements, credit weights, tax treatments and launch dates require separately recorded owner decisions and customer evidence.
+Keep offers distinct. **Pro includes the five Free tools** and adds repeatable creator workflows. **Studio includes the five Free tools** and adds dedicated print/shop workflows; whether the final Studio SKU also bundles all Pro batch/recipe entitlements is a **separate pricing/entitlement decision**, not an automatic claim. API pays for *integrated server compute* and is a separate product. Studio does **not** silently include unrestricted API usage. Free does **not** become an email/phone collection funnel. All product prices, entitlements, credit weights, tax treatments and launch dates require separately recorded owner decisions and customer evidence.
 
 ### Differentiation and product positioning
 
