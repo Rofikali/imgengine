@@ -21,6 +21,7 @@ For a multi-language product, `make` should be a **command menu, not another bui
 | Change or goal | Root command | Notes |
 | --- | --- | --- |
 | What commands exist? | `make help` | Safe default |
+| Quick build-menu safety smoke | `make self-check` | Validates help/dry runs, invalid arguments and opt-in refusal **without compiling** |
 | Baseline before work | `make status` | Local SHA/branch/dirty files; fetch latest remote separately |
 | First frontend environment | `make frontend-setup` | Explicit frozen pnpm install, not automatic on every iteration |
 | UI/unit code | `make frontend-test` | Vitest tests; avoid C rebuild |
@@ -86,7 +87,7 @@ Follow [CI-first log policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), [test lanes
 
 ## 6. Review and verification rules for this Makefile change
 
-- **The proposed Makefile is new execution logic.** The PR should receive real GNU Make syntax/help/dry-run smoke validation in Ubuntu/Linux, not just Markdown link checks, before being considered accepted. Verify opt-in refusal for `verify-linux`, `verify-docker` and `clean`; invalid `JOBS`/Rust crate rejection; output placement; and existing required CI. No real full verifier is necessary just to inspect help parsing, but current GitHub CI still executes automatically.
+- **The proposed Makefile is new execution logic.** Run `make self-check` in a real GNU Make/Ubuntu checkout; it checks help, dry-run targets, invalid arguments and refusal gates without compiling. The PR should receive real GNU Make smoke evidence, not just Markdown link checks, before being considered accepted. Verify opt-in refusal for `verify-linux`, `verify-docker` and `clean`; invalid `JOBS`/Rust crate rejection; output placement; and existing required CI. No real full verifier is necessary just to inspect help parsing, but current GitHub CI still executes automatically.
 - Because the GitHub connector cannot execute arbitrary new Make targets in a local repo, **do not present unchecked `make help` as PASS**. A coding runner or reviewer with repo checkout should validate those commands and report the actual SHA.
 - Full Docker verifier builds the Ubuntu verification image again; it is intentionally opt-in and expensive. Docker must be available and `$(CURDIR)` must map correctly to a Linux filesystem directory. Windows PowerShell should run commands **inside Ubuntu 24.04 Docker/WSL**, not with a native Windows-host GNU Make setup.
 - Release/deployment still requires the [P14 runbook](P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md), actual security/capacity evidence, and owner approval.
