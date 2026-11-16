@@ -81,6 +81,7 @@ services:
     profiles: [workload]
     environment:
       P8_LAYOUT_URL: http://frontend:3000/api/layout-render
+      P8_SHEET_URL: http://frontend:3000/api/sheet-render
     depends_on:
       frontend:
         condition: service_healthy
