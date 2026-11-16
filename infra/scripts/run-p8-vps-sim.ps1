@@ -29,6 +29,8 @@ function Invoke-Compose([string[]]$Arguments) {
 
 try {
   Push-Location $repoRoot
+  # Fail before any build/service start if the compose profile is malformed.
+  Invoke-Compose @('--profile', 'workload', 'config', '--quiet')
   if ($Build) { Invoke-Compose @('--profile', 'workload', 'build') }
   $startupStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
   Invoke-Compose @('up', '-d', '--no-build')
@@ -89,6 +91,9 @@ try {
     git_head = (& git rev-parse HEAD).Trim()
     docker_version = (& docker version --format '{{.Server.Version}}').Trim()
     compose_version = (& docker compose version --short).Trim()
+    # Record the actual Docker engine setting, not an assumed Docker Desktop
+    # VM memory allocation or cgroup version from an older author's machine.
+    cgroup_version = (& docker info --format '{{.CgroupVersion}}').Trim()
     startup_seconds = [Math]::Round($startupStopwatch.Elapsed.TotalSeconds, 3)
     containers = @($inspect | ForEach-Object {
       [ordered]@{ name=$_.Name; image=$_.Image; memory_bytes=$_.HostConfig.Memory; memory_swap_bytes=$_.HostConfig.MemorySwap; nano_cpus=$_.HostConfig.NanoCpus; pids_limit=$_.HostConfig.PidsLimit; tmpfs=$_.HostConfig.Tmpfs }
@@ -96,7 +101,7 @@ try {
     workload = ($workloadJson | ConvertFrom-Json)
     cleanup = [ordered]@{ workspace_entries_after_workload=[int]$workspaceEntries; status='pass' }
     docker_stats_sampling = [ordered]@{ interval_ms=500; samples=$statsSampleCount; path=$statsPath; limitation='periodic docker stats samples are not exact memory peaks' }
-    limitation = 'Docker Desktop Linux VM has its own 4 GiB allocation and cgroup v1. Service limits do not prove total 1 GiB VPS behavior.'
+    limitation = 'Docker Desktop/VM and host capacity depend on this runner. Container memory ceilings and 500 ms docker stats samples are not exact RSS peaks or proof of 1 GiB VPS behavior.'
   }
   $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ResultsPath -Encoding utf8
   Write-Output "P8 VPS simulation results: $ResultsPath"

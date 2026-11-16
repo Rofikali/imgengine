@@ -1,9 +1,10 @@
-# Build artifacts outside the constrained runtime containers. The runtime image
-# contains no source tree, compiler, Cargo cache, npm cache, bind mount, or key.
-# The existing P7 Ubuntu 24.04 development image supplies the already verified
-# native/Rust/Node toolchain. Reusing it makes a source/build measurement
-# independent of an intermittent package-mirror transfer; it is a build base,
-# not the runtime configuration under test.
+# HISTORICAL / DEPRECATED P8 Dockerfile — NOT referenced by active P8 Compose.
+# This older build inherits a mutable P7 development image and an untracked
+# Cargo registry cache. Its runtime also inherits developer tools; do not
+# build or promote it to production. Retained solely to document the former
+# simulation approach until its callers/rollback expectations are reviewed.
+# Current P8: backend/Dockerfile, imgengine-saas/frontend/Dockerfile and
+# infra/Dockerfile.p8-vps-workload. See docs/P8_SIM_01_RUNTIME_REPRODUCIBILITY.md.
 FROM imgengine-p7-dev-rust-api:latest AS build-base
 WORKDIR /src
 COPY . .

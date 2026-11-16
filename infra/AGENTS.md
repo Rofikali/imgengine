@@ -22,7 +22,7 @@
 ## 3. Reproducibility and source of truth
 
 - P7 dev: `docker-compose.p7-frontend-dev.yml`, `Dockerfile.p7-frontend-dev`; bind-mounted source and mutable developer tools are **not deployable**.
-- P8 simulation: `docker-compose.p8-vps-sim.yml`, `Dockerfile.p8-vps-runtime`, `run-p8-vps-sim.ps1`. It uses a mutable external local dev image and a `COPY .docker/.cargo/registry` cache path absent from the audited tracked tree; do **not** assume a clean checkout can build it. Its runtime also inherits build tooling; never promote it to production without a separate validated refactor.
+- P8 simulation: `docker-compose.p8-vps-sim.yml`, maintained `../backend/Dockerfile` and `../imgengine-saas/frontend/Dockerfile`, standalone `Dockerfile.p8-vps-workload`, and `run-p8-vps-sim.ps1`. P8-SIM-01 proposes replacing previous P7-development-image inheritance with independent runtime stages. The old `Dockerfile.p8-vps-runtime` is deprecated and historical; consult [P8-SIM-01 runbook](../docs/P8_SIM_01_RUNTIME_REPRODUCIBILITY.md). **Do not assert clean-checkout reproducibility, minimal deployed dependencies, or 1 GiB host fitness until fresh Docker build, inspect and workload evidence exists.**
 - P14 production: `docker-compose.production.yml`, `production.env.example`, `Caddyfile.production`, `verify-production-compose.py`; **no build** or database/queue services in the deployment Compose. Verify rendered config plus actual image manifests, secret permissions, network and runtime evidence before deployment.
 - Keep versioned `infra/` docs close to source changes; [infra README](README.md) and [audit](../docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md) distinguish implemented configuration, historical recorded checks, partial, planned and blocked.
 

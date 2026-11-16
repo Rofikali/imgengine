@@ -1,0 +1,22 @@
+# P8-only workload probe. NOT a production service image.
+# Rust API and Nuxt are built from backend/Dockerfile and the frontend Dockerfile.
+# This isolated image needs curl, ImageMagick and bash for existing P8 fixtures.
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bash \
+        ca-certificates \
+        curl \
+        imagemagick \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY infra/scripts/run-p8-vps-workload.sh /usr/local/bin/run-p8-vps-workload
+COPY imgengine/tests/fixtures/cc0_camera_landscape.jpg /opt/imgengine-fixtures/cc0_camera_landscape.jpg
+RUN chmod 0555 /usr/local/bin/run-p8-vps-workload \
+    && test -s /opt/imgengine-fixtures/cc0_camera_landscape.jpg
+
+WORKDIR /tmp
+USER 10001:10001
+ENTRYPOINT ["/usr/local/bin/run-p8-vps-workload"]
