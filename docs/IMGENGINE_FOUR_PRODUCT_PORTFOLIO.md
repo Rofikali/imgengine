@@ -93,7 +93,7 @@ Keep offers distinct. Pro pays for personal/professional repeatability; Studio p
 
 **Billing:** start with a small, auditable product contract such as prepaid units or a base allowance with measured overages; **one billing unit is not necessarily one HTTP request**. Determine image complexity weights using measured decoded pixels, codec and CPU/memory/egress costs. Invalid/overloaded/failed requests should not be billed as successful completed transformations; document network loss and retry/idempotency semantics. Implement usage accounting in Rust/application policy or an approved managed provider, **never inside C**. See [API metering/capacity blueprint](IMGENGINE_DEVELOPER_API_USAGE_BILLING_CAPACITY_BLUEPRINT.md).
 
-**Existing reality:** Rust/Axum provides protected server-side rendering and binary JPEG/problemdetails responses through a private Nuxt proxy. It is **not yet** a productized public multi-tenant, metered, customer-self-service API; current formats/endpoints cannot be advertised as future capabilities without proof. Do not promise WebP API, async queues, PDF, streaming, webhook delivery, SDKs or bulk processing until designed and tested.
+**Existing reality:** Rust/Axum provides protected server-side rendering and binary JPEG / problem-details JSON responses through a private Nuxt proxy. It is **not yet** a productized public multi-tenant, metered, customer-self-service API; current formats/endpoints cannot be advertised as future capabilities without proof. Do not promise WebP API, async queues, PDF, streaming, webhook delivery, SDKs or bulk processing until designed and tested.
 
 ## 6. Shared HLD and clear Hexagonal/DDD boundaries
 
