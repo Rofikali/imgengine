@@ -7,11 +7,13 @@
 | Purpose | Files | Do not infer |
 | --- | --- | --- |
 | **P7 local developer integration** | `Dockerfile.p7-frontend-dev`, `docker-compose.p7-frontend-dev.yml`, `p7-frontend-dev.env.example`, `scripts/run-p7-*.sh` and `scripts/verify-p7-frontend-stack.*` | Not production image, public TLS or hardening evidence |
-| **P8 Docker Desktop VPS simulation** | `Dockerfile.p8-vps-runtime`, `docker-compose.p8-vps-sim.yml`, `scripts/run-p8-vps-sim.ps1`, `scripts/run-p8-vps-workload.sh` | Not a real 1 GiB host, precise RSS peak, or clean-clone build guarantee |
+| **P8 Docker Desktop VPS simulation** | `docker-compose.p8-vps-sim.yml`, `backend/Dockerfile`, `imgengine-saas/frontend/Dockerfile`, `Dockerfile.p8-vps-workload`, `scripts/run-p8-vps-sim.ps1`, `scripts/run-p8-vps-workload.sh` | Not a real 1 GiB host, precise RSS peak, or public release; clean-checkout runtime builds need live verification |
 | **P12 disposable candidate rehearsal** | `scripts/run-p12-local-candidate.ps1` | No Caddy/TLS, live host, public secrets or go/no-go |
 | **P14 single-host production *configuration*** | `docker-compose.production.yml`, `Caddyfile.production`, `production.env.example`, existing `scripts/verify-production-compose.py` | No live TLS, public monitoring, actual VPS capacity or release approval |
 
 The **active API** is Rust/Axum under `../backend/`, native C17 is `../imgengine/`, and frontend/Nuxt is `../imgengine-saas/frontend/`. The separate `../imgengine-saas/infra/` contains **retained legacy Python/worker/database and observability** configurations. Never combine the two Compose generations or add a Python/FastAPI/Celery/Redis/PostgreSQL service for the target product.
+
+**P8-SIM-01 candidate:** [runtime/build reproducibility and acceptance gates](../docs/P8_SIM_01_RUNTIME_REPRODUCIBILITY.md) explain the new independent Rust/Nuxt/workload images and exact tests. The former `Dockerfile.p8-vps-runtime` remains **deprecated/historical**, not part of active P8 Compose. Runtime images no longer inherit the P7 development toolchain by design; fresh Docker builds and runtime behavior still require actual evidence.
 
 ## Before approving any infrastructure change
 
