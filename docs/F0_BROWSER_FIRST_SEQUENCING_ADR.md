@@ -1,7 +1,7 @@
 # ADR-F0: browser-local resize before optional Wasm
 
-Date: 2026-11-16. Direction: **STRAT-00 OWNER_APPROVED**. ADR delivery:
-**proposed for review; becomes the sequencing baseline on F0 merge**.
+Date: 2026-11-16. Direction: **STRAT-00 OWNER APPROVED**. ADR delivery:
+**ACCEPTED / MERGED in [PR #55](https://github.com/Rofikali/imgengine/pull/55) as `e26a9194a3c9f58059fcd81c8bd78cffd2199c33`; final PR-head CI succeeded at `073a16ab84901f67d78f5964622aed524adbc089`.**
 Source baseline: `67f6bbb2e9e9f80198a10e204fcbcc252db37fc8`.
 The [live board](../next.md) governs delivery state; this document is not a
 feature implementation, release, or permission to merge/deploy.
