@@ -29,6 +29,8 @@ function Invoke-Compose([string[]]$Arguments) {
 
 try {
   Push-Location $repoRoot
+  # Fail before any build/service start if the compose profile is malformed.
+  Invoke-Compose @('--profile', 'workload', 'config', '--quiet')
   if ($Build) { Invoke-Compose @('--profile', 'workload', 'build') }
   $startupStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
   Invoke-Compose @('up', '-d', '--no-build')
