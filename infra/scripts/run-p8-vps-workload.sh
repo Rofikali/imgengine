@@ -71,6 +71,11 @@ expect_status malformed 422
 expect_status excessive_plan 413
 expect_status missing_required 400
 
+# P8-SIM-02 executes the sheet/crop suite in this same container and preserves
+# only aggregate pass counts; request/response bodies remain in private /tmp.
+sheet_report="$workdir/sheet-crop.json"
+/usr/local/bin/run-p8-vps-sheet-crop-workload "$sheet_report" "$workdir/input.jpg"
+
 for index in $(seq 1 10); do
   request "warm_${index}" "$workdir/input.jpg" image/jpeg "${layout_fields[@]}"
 done
@@ -117,6 +122,7 @@ percentile() {
 
 {
   printf '{\n'
+  printf '  "sheet_crop": %s,\n' "$(cat "$sheet_report")"
   printf '  "request_count": %d,\n' "${#labels[@]}"
   printf '  "success_count": %d,\n' "$success"
   printf '  "rejected_count": %d,\n' "$rejected"
