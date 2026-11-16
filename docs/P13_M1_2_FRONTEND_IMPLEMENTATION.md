@@ -2,8 +2,7 @@
 
 Implementation branch: `codex/p13-m1-2-crop-editor`, based on
 `d73e321566c1cd58854a03b4ea051a6a9f3cb322` (PR #45 merged).
-Status: implemented locally with scoped verification; remote CI/review and
-the release gates below remain open. This is not a production release.
+Status: merged in PR #47 as `de8b1708ba4e54cd219c93cc15f7923773ce8c9e`. All seven CI jobs passed at PR head `b3aa42c2b89b0831a48448e8c4529cd67131ed75` ([CI](https://github.com/Rofikali/imgengine/actions/runs/43808582807)). This is not a production release.
 The final handoff records the exact tested implementation SHA and log location.
 
 ## Design and ownership
