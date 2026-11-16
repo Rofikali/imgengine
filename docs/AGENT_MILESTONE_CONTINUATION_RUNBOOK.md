@@ -1,6 +1,6 @@
 # IMGENGINE — Milestone Continuation and New-Session Recovery Runbook
 
-**Status:** Proposed standing procedure (2026-11-16); documentation only. This is not a running agent service, an installed automation, a workflow change or a grant to merge/deploy. It supplements [root AGENTS](../AGENTS.md), [skills](../skills.md), [next.md](../next.md), [milestone handoff](AGENT_MILESTONE_HANDOFF_TEMPLATE.md), [minimal-context CI policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), and [seven-level engineering model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md).
+**Status:** Standing repository workflow, owner reaffirmed 2026-11-16; documentation only. This is not a running agent service, an installed automation, a workflow change or a grant to merge/deploy. It supplements [root AGENTS](../AGENTS.md), [skills](../skills.md), [next.md](../next.md), [milestone handoff](AGENT_MILESTONE_HANDOFF_TEMPLATE.md), [minimal-context CI policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), and [seven-level engineering model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md).
 
 ## The one crucial distinction
 
@@ -20,6 +20,16 @@
 - A task is **READY** only when all prerequisites are truly met, its scope/contract is understood, and it does not require an undecided owner/security/ABI decision.
 - Priorities: confirmed P0 safety/security defects and release-blocking risk first where relevant; then critical in-progress customer workflows and dependencies; then measurable customer value. A speculative feature does not displace a known blocker by default.
 - Keep `next.md` a dashboard, not a new duplicate HLD/LLD. Detailed requirements and fixtures go in the versioned contracts/docs.
+
+### Mandatory persistent milestone-status transaction (no repeated work)
+
+For each task and **every** bounded engineering session: inspect fresh GitHub main/PR/check state; reconcile the **live NOW / NEXT / LATER** board in [`next.md`](../next.md) before selecting a new task. This board outranks dated/historical “next” paragraphs. The owner approved STRAT-00 browser-first *priority* on 2026-11-16; do **not** ask for that same decision again or call it an implemented feature.
+
+- **Decision status is not delivery status:** `OWNER_APPROVED` authorizes direction only. A task moves from `READY` to `IN_PROGRESS` when work starts, then `PR_OPEN/CI_PENDING`, then `READY_FOR_REVIEW` only when exact-head required tests/CI pass. `MERGED` requires a GitHub merge SHA. `RELEASED` requires a real separately authorized launch.
+- **Every bounded PR must propose an evidence-backed `next.md` status edit**, with task ID, current state, PR URL (when assigned), exact tested SHA, CI outcomes/links, remaining risks and *one next eligible task*. Record `NOT RUN` and `PENDING` rather than assuming PASS. Keep full logs elsewhere.
+- **After PR creation** add the real PR number and check/run link to the branch documentation when available; do not fabricate PR identities before publication.
+- **After an external merge**, a previous PR cannot retroactively edit `main` to write its own merge SHA. The next active Astra/Codex session must detect the merge in GitHub and include a small reconciliation update in its next authorized PR, without redoing already merged code. Reconcile independently merged/open PRs before claiming something still needs implementing.
+- Do not overwrite other contributors' dirty worktrees, discard original milestone evidence or bypass human approval to merge, deploy, pay for cloud, publish credentials or remove security gates.
 
 ## 2. On agent start or after any milestone
 
