@@ -33,7 +33,19 @@ endif
 .PHONY: help status frontend-setup frontend-test frontend-check \
  frontend-browser frontend-browser-live native-debug native-test native-release \
  native-c11 native-sanitize native-fuzz rust-test rust-fmt-check \
- verify-linux verify-docker clean
+ verify-linux verify-docker clean self-check
+
+# Cheap self-check: parses/dry-runs targets and asserts dangerous actions refuse
+# execution without explicit confirmation. Does not build or clean anything.
+self-check:
+	@$(MAKE) --no-print-directory -s help >/dev/null
+	@$(MAKE) --no-print-directory -n frontend-check native-test native-c11 native-sanitize native-fuzz rust-test verify-docker >/dev/null
+	@if $(MAKE) --no-print-directory -s help JOBS=0 >/dev/null 2>&1; then echo 'FAIL: invalid JOBS accepted' >&2; exit 1; fi
+	@if $(MAKE) --no-print-directory -s help RUST_CRATE=unknown >/dev/null 2>&1; then echo 'FAIL: unknown Rust crate accepted' >&2; exit 1; fi
+	@if $(MAKE) --no-print-directory -s verify-linux CONFIRM_FULL=NO >/dev/null 2>&1; then echo 'FAIL: full Linux verifier not gated' >&2; exit 1; fi
+	@if $(MAKE) --no-print-directory -s verify-docker CONFIRM_FULL=NO >/dev/null 2>&1; then echo 'FAIL: Docker verifier not gated' >&2; exit 1; fi
+	@if $(MAKE) --no-print-directory -s clean CONFIRM_CLEAN=NO >/dev/null 2>&1; then echo 'FAIL: cleanup not gated' >&2; exit 1; fi
+	@echo 'PASS | Makefile help, target dry-runs, input checks and safety gates'
 
 help:
 	@printf '%s\n' \
@@ -41,6 +53,7 @@ help:
 	 '' \
 	 'make                         Safe help (no builds)' \
 	 'make status                  Git status, branch and SHA' \
+	 'make self-check              Safe menu/dry-run/refusal checks' \
 	 'make frontend-setup          Frozen pnpm dependency install' \
 	 'make frontend-test           Nuxt unit tests' \
 	 'make frontend-check          Nuxt unit + typecheck + build' \
