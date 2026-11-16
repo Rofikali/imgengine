@@ -83,6 +83,16 @@ try {
   }
   $statsSampleCount = if (Test-Path -LiteralPath $statsPath) { @(Get-Content -LiteralPath $statsPath).Count } else { 0 }
 
+  # cgroup v2 memory.peak is the kernel high-water mark since container start.
+  # Older cgroup setups may not provide it; record unavailable, never "0".
+  $apiPeakBytes = (& docker exec $api sh -c 'if [ -r /sys/fs/cgroup/memory.peak ]; then cat /sys/fs/cgroup/memory.peak; else printf unavailable; fi').Trim()
+  if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect Rust cgroup memory peak.' }
+  $frontendPeakBytes = (& docker exec $frontend sh -c 'if [ -r /sys/fs/cgroup/memory.peak ]; then cat /sys/fs/cgroup/memory.peak; else printf unavailable; fi').Trim()
+  if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect Nuxt cgroup memory peak.' }
+  $apiMemoryEvents = @(& docker exec $api sh -c 'if [ -r /sys/fs/cgroup/memory.events ]; then cat /sys/fs/cgroup/memory.events; else printf unavailable; fi') -join [Environment]::NewLine
+  if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect Rust cgroup memory events.' }
+  $frontendMemoryEvents = @(& docker exec $frontend sh -c 'if [ -r /sys/fs/cgroup/memory.events ]; then cat /sys/fs/cgroup/memory.events; else printf unavailable; fi') -join [Environment]::NewLine
+  if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect Nuxt cgroup memory events.' }
   $inspect = & docker inspect $frontend $api | ConvertFrom-Json
   $result = [ordered]@{
     schema = 'imgengine.p8.vps-sim.v1'
@@ -96,11 +106,18 @@ try {
     cgroup_version = (& docker info --format '{{.CgroupVersion}}').Trim()
     startup_seconds = [Math]::Round($startupStopwatch.Elapsed.TotalSeconds, 3)
     containers = @($inspect | ForEach-Object {
-      [ordered]@{ name=$_.Name; image=$_.Image; memory_bytes=$_.HostConfig.Memory; memory_swap_bytes=$_.HostConfig.MemorySwap; nano_cpus=$_.HostConfig.NanoCpus; pids_limit=$_.HostConfig.PidsLimit; tmpfs=$_.HostConfig.Tmpfs }
+      [ordered]@{ name=$_.Name; image=$_.Image; memory_bytes=$_.HostConfig.Memory; memory_swap_bytes=$_.HostConfig.MemorySwap; nano_cpus=$_.HostConfig.NanoCpus; pids_limit=$_.HostConfig.PidsLimit; tmpfs=$_.HostConfig.Tmpfs; oom_killed=$_.State.OOMKilled; exit_code=$_.State.ExitCode }
     })
     workload = ($workloadJson | ConvertFrom-Json)
     cleanup = [ordered]@{ workspace_entries_after_workload=[int]$workspaceEntries; status='pass' }
     docker_stats_sampling = [ordered]@{ interval_ms=500; samples=$statsSampleCount; path=$statsPath; limitation='periodic docker stats samples are not exact memory peaks' }
+    cgroup_memory = [ordered]@{
+      api_peak_bytes = $apiPeakBytes
+      frontend_peak_bytes = $frontendPeakBytes
+      api_memory_events = $apiMemoryEvents
+      frontend_memory_events = $frontendMemoryEvents
+      limitation = 'cgroup v2 memory.peak is a container-lifetime high-water mark including idle/startup; unavailable means unsupported, not zero. A host-wide 1GiB capacity test is still outstanding.'
+    }
     limitation = 'Docker Desktop/VM and host capacity depend on this runner. Container memory ceilings and 500 ms docker stats samples are not exact RSS peaks or proof of 1 GiB VPS behavior.'
   }
   $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ResultsPath -Encoding utf8
