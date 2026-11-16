@@ -172,3 +172,14 @@ Use the proposed [platform/product/business strategy](docs/IMGENGINE_PLATFORM_PR
 4. **L2 release/native safety:** full relevant C17/C11/ABI/ASan/UBSan/fuzz/Rust/container tests and exact candidate/host release evidence when risk warrants. No prior-commit or skipped-check PASS claim.
 5. **CI-first minimal-context execution:** apply the [dedicated policy](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md); retain local exit codes and full logs off-chat. After PR publication, retrieve only the exact-SHA CI check conclusions/URLs (no full successful logs); inspect just the failed step if red. Summarize <=12 lines, including PASS/FAIL/NOT RUN/PENDING/SKIPPED and actionable next action. Failure is never ignored to save tokens.
 6. Automatic selective GitHub job execution remains **CI-SCOPE-01 PROPOSED**, with a dry-run path classifier, fail-closed unknown changes, always-on required aggregate gate, branch-rule review and separate human-approved CI PR. Do not touch `.github/workflows/ci.yml`, skip tests, merge or deploy just to reduce compute.
+
+## Skill 15 — Autonomous milestone selection and safe agent resume
+
+**Standing runbook:** [Milestone Continuation and New-Session Recovery](docs/AGENT_MILESTONE_CONTINUATION_RUNBOOK.md). Use for Astra, Codex, human engineers and every new task; do not require the owner to paste old milestone reports and write a new prompt each time.
+
+1. Inspect latest `main`, current worktree, merged/open PRs, exact-SHA CI and `next.md`. Reconcile stale status before deciding "what next"; don't rewrite history or uncommitted work.
+2. Select highest-priority **READY**, dependency-satisfied, authorized task. Respect P0 security blockers, versioned API/ABI, user/customer value and cross-workstream boundaries.
+3. Deliver one bounded PR with focused checks and existing required GitHub CI, following [minimal-context test policy](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md); do not fetch successful full logs.
+4. CI PASS means `READY_FOR_REVIEW`, **not automatically MERGED**. A confirmed merge event moves status to `MERGED`. Select a next independent authorized task only if the runner is still active and owner approval boundaries permit.
+5. When stopped, write a short checkpoint with main SHA, task/PR, tested SHA, risks, next eligible task and owner decision. **Do not pretend Markdown instructions launch a new model session.** Resume with the runbook's one-line bootstrap, or use a separately configured and approved coding-agent runner/event automation.
+6. Never automatically merge, deploy, change DNS/secrets, buy services, modify public ABI incompatibly or invent new product milestones. Escalate unresolved high-risk decisions and stop affected work.
