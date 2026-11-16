@@ -1,5 +1,7 @@
 # IMGENGINE Documentation
 
+**Agent autonomy and human approval:** [Milestone Continuation & New-Session Recovery](AGENT_MILESTONE_CONTINUATION_RUNBOOK.md) is the standing process for Astra/Codex engineers to choose the next READY task, advance small review PRs, checkpoint status and resume from a new session or separately configured agent runner. The document **cannot restart a stopped session or waive merge/deployment approval**.
+
 This directory contains current contracts, dated evidence, proposed designs, and legacy/historical records. A requirement is binding only within its named product and versioned scope: current public ABI/API source and approved contracts take precedence over historical PRDs or RFCs. Use the [Native C/Rust Documentation Map](NATIVE_C_RUST_DOCS_MAP.md) for the source-of-truth hierarchy.
 
 **Universal AI-testing output rule:** [CI-first Minimal AI Context Policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md) explains how Astra/Codex/humans preserve all CI, native, sanitizer/fuzz and release verification while keeping successful logs out of model context and only pulling failed-step excerpts. The [test-lanes runbook](TEST_LANES_CI_OPTIMIZATION_AND_AGENT_BUDGET_2026-11-15.md) determines test scope. These are docs-only policies, not CI workflow changes.
