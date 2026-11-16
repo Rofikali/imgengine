@@ -178,13 +178,22 @@ jobs:
     name: Nuxt frontend verification
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Enable pinned pnpm
         run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Test dry-run change classifier
+        run: node --test scripts/ci-scope.test.mjs
+      - name: Report proposed scope (all seven jobs still run)
+        run: node scripts/ci-scope.mjs
       - name: Resolve and create pnpm store
         id: pnpm-store
         working-directory: imgengine-saas/frontend
