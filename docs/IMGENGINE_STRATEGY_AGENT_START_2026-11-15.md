@@ -1,5 +1,7 @@
 # IMGENGINE — first move and Astra/Codex/human engineer operating brief
 
+**Sequencing reconciliation (F0 review, 2026-11-16):** STRAT-00 browser-first priority is owner-approved. [ADR-F0](F0_BROWSER_FIRST_SEQUENCING_ADR.md) defines F1 browser-native local resize after F0 merge, before optional measured Worker/Rust-Wasm adoption. P13 M1.2 and bounded M1.3 are merged (PRs #47 and #49). The sequence below is retained as historical planning; use the [live NOW / NEXT / LATER board](../next.md), not stale readiness labels. F0 is not yet merged and F1 is not implemented.
+
 **Status: task brief for the next human-approved milestone, NOT permission to implement every feature or deploy (2026-11-15).** Exact reviewed main base `acc29bbf002890471ba0a63f01f75a6fbcaa49f3`; always refresh HEAD before using. The proposed strategic goal is one privacy-first platform with free browser tools and validated paid studio/API/offline offerings, while maintaining existing C17/Rust production-candidate safety.
 
 ## 1. Mandatory read order (short path)

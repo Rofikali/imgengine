@@ -1,5 +1,7 @@
 # IMGENGINE — Browser-first image product roadmap
 
+**Sequencing reconciliation (F0 review, 2026-11-16):** STRAT-00 browser-first priority is owner-approved. [ADR-F0](F0_BROWSER_FIRST_SEQUENCING_ADR.md) defines F1 browser-native local resize after F0 merge, before optional measured Worker/Rust-Wasm adoption. P13 M1.2 and bounded M1.3 are merged (PRs #47 and #49). The sequence below is retained as historical planning; use the [live NOW / NEXT / LATER board](../next.md), not stale readiness labels. F0 is not yet merged and F1 is not implemented.
+
 **Status:** Product strategy and proposed sequence; not a claim that listed routes or features exist. The canonical P8/P12/P13 contracts govern current behavior. This roadmap does not supersede release/security requirements.
 
 ## North star
