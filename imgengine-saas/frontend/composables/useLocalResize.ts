@@ -2,8 +2,9 @@ import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
 import { inspectPreview, loadCropPreview, type CropPreview } from '~/utils/crop-preview'
 import { linkedEdge, MAX_LOCAL_BYTES, MAX_LOCAL_PIXELS, MAX_OUTPUT_EDGE, resizeDimensions } from '~/utils/local-resize'
 import { validatePixelCrop, type PixelCrop } from '~/utils/local-crop'
+import { rotatedSize, validateRightAngleRotation, type RightAngleRotation } from '~/utils/local-rotate'
 
-export function useLocalResize(cropSelection?: () => PixelCrop) {
+export function useLocalResize(cropSelection?: () => PixelCrop, rotationSelection?: () => RightAngleRotation, operation: 'resize' | 'rotate' = 'resize') {
   const source = shallowRef<CropPreview | null>(null)
   const result = ref(''), width = ref(''), height = ref(''), locked = ref(true)
   const busy = ref(false), error = ref(''), message = ref('Choose an image to begin.')
@@ -38,7 +39,7 @@ export function useLocalResize(cropSelection?: () => PixelCrop) {
       const scale = Math.min(1, MAX_OUTPUT_EDGE / preview.width, MAX_OUTPUT_EDGE / preview.height)
       width.value = String(Math.max(1, Math.floor(preview.width * scale)))
       height.value = String(Math.max(1, Math.floor(preview.height * scale)))
-      locked.value = true; message.value = 'Image ready. Set the output size.'
+      locked.value = true; message.value = operation === 'rotate' ? 'Image ready. Choose a rotation.' : 'Image ready. Set the output size.'
     } catch {
       if (current === generation) {
         error.value = 'Cannot open this image safely. Use a valid, still JPEG or PNG up to 4 MiB, 4 megapixels and 8192 pixels per side.'
@@ -59,10 +60,14 @@ export function useLocalResize(cropSelection?: () => PixelCrop) {
     if (!source.value || busy.value) return
     clearResult(); error.value = ''
     let crop: PixelCrop | undefined
+    let rotation: RightAngleRotation | undefined
     let outputSize: { width: number, height: number }
     try {
       crop = cropSelection ? validatePixelCrop(cropSelection(), source.value) : undefined
-      outputSize = crop ?? resizeDimensions(width.value, height.value)
+      rotation = rotationSelection ? validateRightAngleRotation(rotationSelection()) : undefined
+      if (crop && rotation !== undefined) throw Error('Choose either a crop or a rotation.')
+      outputSize = rotation === undefined ? (crop ?? resizeDimensions(width.value, height.value)) : rotatedSize(source.value, rotation)
+      resizeDimensions(String(outputSize.width), String(outputSize.height))
     } catch (e) { error.value = (e as Error).message; return }
     const current = ++generation, abort = new AbortController(); controller = abort
     busy.value = true; message.value = 'Processing on this device…'
@@ -77,14 +82,14 @@ export function useLocalResize(cropSelection?: () => PixelCrop) {
         stopWorker = () => finish()
         worker.onerror = () => finish()
         worker.onmessage = event => finish(event.data.blob instanceof Blob ? event.data.blob : undefined)
-        try { worker.postMessage({ blob, width: String(outputSize.width), height: String(outputSize.height), crop }) } catch { finish() }
+        try { worker.postMessage({ blob, width: String(outputSize.width), height: String(outputSize.height), crop, rotation }) } catch { finish() }
       })
       if (current !== generation) return
       result.value = URL.createObjectURL(output); message.value = `Ready: ${outputSize.width} × ${outputSize.height} pixels. Download your PNG.`
     } catch {
       if (current === generation) {
         error.value = 'Local image processing could not finish. Try a smaller image or a browser with Worker image support. Nothing was uploaded.'
-        message.value = 'Resize stopped.'
+        message.value = operation === 'rotate' ? 'Rotation stopped.' : 'Resize stopped.'
       }
     } finally { if (current === generation) busy.value = false }
   }
