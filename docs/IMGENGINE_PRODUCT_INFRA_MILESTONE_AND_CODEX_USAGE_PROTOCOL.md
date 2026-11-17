@@ -39,7 +39,7 @@
 
 ## 3. Codex VS Code Plus usage: controlled before/after comparison
 
-**Account facts user supplied (Nov 17 2026):** Codex in VS Code authenticated with **ChatGPT Plus** (not OpenAI API key); subscription ₹1,999/month; 5-hour remaining **0%** and weekly remaining **6%** at the supplied snapshot; additional credits **0**, automatic reload must not be enabled without explicit owner decision. Usage History may be incomplete/delayed. These values are **historical user-provided evidence**, not live account state or a repo-enforced setting. **No private billing dashboard or VS Code/Codex per-session metering was accessed.**
+**Privacy and account boundary:** This procedure applies to Codex in VS Code signed in with a ChatGPT plan, not an API-key billing arrangement. **Never commit the owner's account, subscription price, live remaining percentages, credit balance, screenshots, email, identifiers or payment settings to this public repository.** The account owner privately checks their Usage screen; any previous chat screenshot is historical, not a live usage API. Usage History can be delayed or incomplete, and this repository cannot read private plan-usage records. Do not enable credit auto-reload, buy credits or change account settings without explicit permission.
 
 ### Test only after both relevant allowances have enough room
 
