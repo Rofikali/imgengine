@@ -1,13 +1,15 @@
 import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
 import { inspectPreview, loadCropPreview, type CropPreview } from '~/utils/crop-preview'
 import { linkedEdge, MAX_LOCAL_BYTES, MAX_LOCAL_PIXELS, MAX_OUTPUT_EDGE, resizeDimensions } from '~/utils/local-resize'
+import { validatePixelCrop, type PixelCrop } from '~/utils/local-crop'
 
-export function useLocalResize() {
+export function useLocalResize(cropSelection?: () => PixelCrop) {
   const source = shallowRef<CropPreview | null>(null)
   const result = ref(''), width = ref(''), height = ref(''), locked = ref(true)
   const busy = ref(false), error = ref(''), message = ref('Choose an image to begin.')
   let generation = 0, controller: AbortController | undefined, stopWorker: (() => void) | undefined
   const clearResult = () => { if (result.value) URL.revokeObjectURL(result.value); result.value = '' }
+  function invalidate() { cancel(); clearResult(); error.value = ''; message.value = 'Selection changed. Create a new PNG.' }
   const dimensionsError = computed(() => {
     if (!source.value) return ''
     try { resizeDimensions(width.value, height.value); return '' } catch (e) { return (e as Error).message }
@@ -56,9 +58,14 @@ export function useLocalResize() {
   async function resize() {
     if (!source.value || busy.value) return
     clearResult(); error.value = ''
-    try { resizeDimensions(width.value, height.value) } catch { error.value = dimensionsError.value; return }
+    let crop: PixelCrop | undefined
+    let outputSize: { width: number, height: number }
+    try {
+      crop = cropSelection ? validatePixelCrop(cropSelection(), source.value) : undefined
+      outputSize = crop ?? resizeDimensions(width.value, height.value)
+    } catch (e) { error.value = (e as Error).message; return }
     const current = ++generation, abort = new AbortController(); controller = abort
-    busy.value = true; message.value = 'Resizing on this device…'
+    busy.value = true; message.value = 'Processing on this device…'
     try {
       // blob: is a local object URL, not an HTTP request or server fallback.
       const blob = await (await fetch(source.value.url, { signal: abort.signal })).blob()
@@ -70,17 +77,17 @@ export function useLocalResize() {
         stopWorker = () => finish()
         worker.onerror = () => finish()
         worker.onmessage = event => finish(event.data.blob instanceof Blob ? event.data.blob : undefined)
-        try { worker.postMessage({ blob, width: width.value, height: height.value }) } catch { finish() }
+        try { worker.postMessage({ blob, width: String(outputSize.width), height: String(outputSize.height), crop }) } catch { finish() }
       })
       if (current !== generation) return
-      result.value = URL.createObjectURL(output); message.value = `Ready: ${width.value} × ${height.value} pixels. Download your PNG.`
+      result.value = URL.createObjectURL(output); message.value = `Ready: ${outputSize.width} × ${outputSize.height} pixels. Download your PNG.`
     } catch {
       if (current === generation) {
-        error.value = 'Local resize could not finish. Try a smaller image or a browser with Worker image support. Nothing was uploaded.'
+        error.value = 'Local image processing could not finish. Try a smaller image or a browser with Worker image support. Nothing was uploaded.'
         message.value = 'Resize stopped.'
       }
     } finally { if (current === generation) busy.value = false }
   }
   onBeforeUnmount(reset)
-  return { source, result, width, height, locked, busy, error, message, dimensionsError, select, change, toggleLock, resize, cancel, reset }
+  return { source, result, width, height, locked, busy, error, message, dimensionsError, select, change, toggleLock, resize, cancel, reset, invalidate }
 }

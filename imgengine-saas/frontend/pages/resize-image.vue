@@ -42,7 +42,7 @@ useHead({ title: 'Resize an image locally — IMGENGINE' })
         <img :src="result" alt="Resized PNG preview">
         <a class="primary" :href="result" download="imgengine-resized.png">Download PNG</a>
       </section>
-      <p><NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
+      <p><NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
     </section>
   </main>
 </template>
