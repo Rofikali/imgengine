@@ -1,5 +1,7 @@
 # IMGENGINE active infrastructure
 
+> **2026-11-17 experiment and cost audit:** [Safe local P7/P8/P12/P14 experiment matrix and agent/CI-credit investigation](../docs/INFRA_EXPERIMENTS_AND_AI_CONTEXT_COST_AUDIT_2026-11-17.md). **P8-SIM HARNESS BLOCKED:** `scripts/run-p8-vps-sim.ps1` has a malformed OOM condition and duplicated `finally` at main SHA `1523d82f954` (lines 127–148). Do not execute P8 or claim runtime results until a separately reviewed INFRA-P8-01 script repair passes PowerShell parser and real local Docker tests. P7 dev and P12 disposable rehearsal remain candidates for local-only experimentation with synthetic credentials; P14 production configuration is static, not live-host evidence.
+
 **Read first:** [infra AGENTS](AGENTS.md), [dated source/security/operations audit](../docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [Astra handoff](../docs/ASTRA_ENGINEERING_START_HERE.md), [P14 release checklist](../docs/MVP_RELEASE_CHECKLIST.md), and [actual-VPS runbook](../docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md). **Status: local/release-candidate infrastructure exists, but public deployment is not approved or verified.**
 
 ## Select the right environment
