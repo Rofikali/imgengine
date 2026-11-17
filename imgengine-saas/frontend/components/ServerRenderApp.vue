@@ -115,4 +115,3 @@ async function renderAnother() {
     </section>
   </main>
 </template>
-
