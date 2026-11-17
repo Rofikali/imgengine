@@ -99,5 +99,5 @@ C-A0, dedicated P8 runtime and P14 release evidence remain separate open work.
 
 Rollback reverts this route/component extraction and its new local files; no
 native API or data migration exists. Next: review F1 evidence and obtain owner
-merge approval; after confirmed merge, select bounded F2 crop/rotate/flip under
+merge approval; after confirmed merge, select bounded F2a Crop under
 the live queue. Public launch and Wasm adoption require their separate gates.
