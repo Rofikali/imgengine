@@ -8,6 +8,8 @@
 
 > **Astra frontend M1.2 start — READY:** Read the [source-backed frontend editor task](../../docs/ASTRA_P13_M1_2_FRONTEND_READY_HANDOFF_2026-11-15.md) and [Astra Track B](../../docs/ASTRA_ENGINEERING_START_HERE.md). **M1.1 is already merged**; do not reimplement Rust/Axum/proxy transport. The four existing `crop_*` fields are documented in [P13](../../docs/P13_INTERACTIVE_CROP_CONTRACT.md). **Browser `SheetRenderInput` and `createSheetRenderForm` currently do not serialize them**; add typed all-or-none optional fields plus an accessible crop UI in a focused M1.2 PR. Omitted crop preserves P12 centered fill. Test keyboard/touch/mobile, validation, result preview cleanup, and report exact SHA/CI. M1.3 image parity remains later.
 
+**F2c browser-local Compress verification (2026-11-18):** Before implementing or declaring F2c complete, use the [canonical 12-gate F2c acceptance matrix](../../docs/FRONTEND_F2C_CI_QUALITY_GATES.md). Browser privacy/no-upload, EXIF/GPS stripping, decoded 4 MP and 4 MiB bounds, Worker cancellation/cleanup, JPEG quality and PNG-white-alpha behavior must have exact-SHA test evidence. Existing CI's frontend unit/typecheck/build does not yet run F2c Playwright tests; this pointer is documentation, not a CI implementation. Current feature state is only in [next.md](../../next.md).
+
 ## 1. Scope
 
 These instructions apply to `imgengine-saas/frontend` and supplement the repository-level `AGENTS.md`.
