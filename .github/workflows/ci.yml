@@ -11,6 +11,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  infra-p8-parser:
+    name: P8 simulation parser
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Parse P8 simulation harness without Docker execution
+        run: >-
+          docker run --rm --volume "$GITHUB_WORKSPACE:/workspace:ro"
+          --workdir /workspace mcr.microsoft.com/powershell:lts-ubuntu-22.04
+          pwsh -NoLogo -NonInteractive -File infra/scripts/test-run-p8-vps-sim-parser.ps1
+
   native-build-test:
     runs-on: ubuntu-24.04
     steps:
