@@ -1,6 +1,16 @@
 import { readFile } from 'node:fs/promises'
+import {
+  TEMPORARY_PICOMATCH_EXPIRES,
+  TEMPORARY_PICOMATCH_OPT_IN,
+  assessTemporaryPicomatchWaiver,
+} from './picomatch-temporary-waiver.mjs'
 
-const [reportPath] = process.argv.slice(2)
+const [reportPath, ...flags] = process.argv.slice(2)
+const temporarilyAllowPicomatch = flags.length === 1 && flags[0] === TEMPORARY_PICOMATCH_OPT_IN
+if (flags.length && !temporarilyAllowPicomatch) {
+  console.error('unrecognized audit option; refusing to skip the security gate')
+  process.exit(2)
+}
 if (!reportPath) {
   console.error('usage: check-production-audit.mjs AUDIT_REPORT.json')
   process.exit(2)
@@ -60,6 +70,14 @@ if (severeAdvisories.length > 12) {
   console.log(`Production advisory detail truncated: ${severeAdvisories.length} total high/critical advisory records`)
 }
 if (critical > 0 || high > 0) {
+  if (temporarilyAllowPicomatch) {
+    const decision = assessTemporaryPicomatchWaiver(report, { critical, high })
+    if (decision.allowed) {
+      console.warn(`TEMPORARY NON-PRODUCTION SECURITY EXCEPTION: picomatch GHSA-fc5q-39xc-vjpf remains VULNERABLE; allowed in this frontend CI job ONLY; expires ${TEMPORARY_PICOMATCH_EXPIRES}. No production release is approved.`)
+      process.exit(0)
+    }
+    console.error(`Temporary picomatch exception REJECTED: ${decision.reason}`)
+  }
   console.error('critical or high production dependency advisories require remediation or an approved release decision')
   process.exit(1)
 }
