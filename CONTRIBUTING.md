@@ -18,6 +18,8 @@ Before opening a pull request:
 6. Do not commit generated outputs, private images, credentials, or machine-specific paths.
 7. Update documentation when behavior, interfaces, limits, or operational requirements change.
 
+For an F2c Compress or related browser-local image-tool PR, follow the [F2c twelve-category CI acceptance contract](docs/FRONTEND_F2C_CI_QUALITY_GATES.md). Supply a G01–G12 evidence matrix with exact tested SHA, GitHub Actions links, no-upload and EXIF/metadata proof, browser/a11y results, measured performance and explicit NOT RUN/FAIL statuses. The existing seven jobs do not establish all twelve categories by themselves; do not mark requirements complete on documentation alone.
+
 ## Pull requests
 
 A useful pull request should explain:

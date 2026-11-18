@@ -193,6 +193,8 @@ Correctness is treated as a first-class feature. The native acceptance matrix co
 
 See [`docs/ENGINE_SPEC.md`](docs/ENGINE_SPEC.md) for the detailed contract.
 
+**F2c Compress CI acceptance (planned):** [12-category frontend quality-gate specification](docs/FRONTEND_F2C_CI_QUALITY_GATES.md) covers browser privacy, metadata/EXIF, a11y, Worker cleanup, cross-browser support, performance and regressions. Existing GitHub CI runs seven jobs and currently covers frontend unit/typecheck/build, **not** the full twelve F2c categories or F2c Playwright tests. Specifications are not tests; follow [next.md](next.md) for actual implementation, PR and CI status.
+
 ## Project direction
 
 The project is evolving from a native image-processing engine toward a low-cost, secure SaaS architecture:

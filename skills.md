@@ -267,3 +267,13 @@ For local Ubuntu Docker engine P8 simulation changes, follow [P8-SIM-02 suite an
 6. **Measure:** after 5-hour and weekly allowances reset, owner optionally shares private local-only vs GitHub-heavy matched read-only sessions, timestamps and usage % remaining. Account screenshots and payment details are **never** stored in public repository; see [experiment protocol](docs/IMGENGINE_PRODUCT_INFRA_MILESTONE_AND_CODEX_USAGE_PROTOCOL.md).
 
 **One-session report:** one READY task, local tests, exact GitHub PR/CI evidence, no invented results, no automatic merge or deploy; concise next action. Do not repeat work already merged in the four product parents or infra tracks.
+
+## Skill 23 — F2c twelve-gate frontend CI and acceptance verification
+
+**Use:** [F2c Compress quality matrix](docs/FRONTEND_F2C_CI_QUALITY_GATES.md); [scoped frontend AGENTS](imgengine-saas/frontend/AGENTS.md); [change-scoped verification](docs/CHANGE_SCOPED_VERIFICATION.md). This is a recipe, not an installed CI workflow or evidence that a test ran.
+
+1. Inspect current main, the full local F2c dirty worktree (staged/unstaged/untracked) and exact feature candidate SHA. Do not overwrite local F2c changes; differentiate local claims from GitHub facts.
+2. Run the pinned Node 24/Corepack/pnpm@10.34.9 locked frontend lane: `pnpm install --frozen-lockfile`, `pnpm exec nuxi prepare`, `pnpm test`, `pnpm run typecheck`, `pnpm run build`. If the toolchain is unavailable locally, use an approved CI/Linux runner rather than skipping checks.
+3. Build coverage for all twelve matrix rows. Existing `pnpm run test:browser` only selects sheet-crop via the present Playwright config; first implement F2c test discovery and actual Chromium/Firefox/WebKit execution before reporting browser PASS. Include Worker cancellation, privacy/GPS metadata, dimensions, a11y, resource and regression cases.
+4. Keep all seven existing GitHub required jobs intact. Implement/add a separately reviewed browser/12-gate CI layer; use named exact-SHA statuses, artifacts, and measured resource/performance evidence. No `continue-on-error`, `|| true`, unreviewed audit suppression, or fake test results.
+5. Report every G01–G12 as PASS/FAIL/SKIPPED/NOT RUN/N/A with rationale, workflow URL, tested commit, run counts and blockers; update `next.md` only after status evidence warrants it. Request security/architecture/CI review as applicable, and do not merge/release merely because docs were updated.
