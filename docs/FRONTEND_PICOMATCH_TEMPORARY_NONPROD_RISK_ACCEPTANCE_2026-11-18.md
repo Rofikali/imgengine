@@ -1,6 +1,6 @@
 # Temporary frontend-only security risk acceptance — Picomatch GHSA-fc5q-39xc-vjpf
 
-**Decision date:** 2026-11-18. **Status:** Owner-requested temporary *non-production* exception proposed in [frontend audit PR #65](https://github.com/Rofikali/imgengine/pull/65). **Expires automatically:** **2026-12-02 00:00 UTC**, or sooner if the advisory changes, the upstream audit lists a patched version, severity/count changes, or a new high/critical finding appears. **Scope:** only the `Nuxt frontend verification` job of `imgengine-native-ci` for IMGENGINE development PR/main tests. **Not approved for production deployment, customer traffic, a commercial release or any other CI job.** This is a documented *risk acceptance*, not a repaired vulnerability and not proof of no exploitability.
+**Decision date:** 2026-11-18. **Status:** Owner-requested temporary *non-production* exception **MERGED** in [PR #65](https://github.com/Rofikali/imgengine/pull/65), merge SHA `a9690d88ea7423b4fdd4ce8e54ba210c571d4fbf`. Exact PR head `ff9078025d4e265d561ecbb6b87bfacdcfa1468d` passed **7/7 required CI checks**. It remains an unpatched vulnerability, not production authorization. **Expires automatically:** **2026-12-02 00:00 UTC**, or sooner if the advisory changes, the upstream audit lists a patched version, severity/count changes, or a new high/critical finding appears. **Scope:** only the `Nuxt frontend verification` job of `imgengine-native-ci` for IMGENGINE development PR/main tests. **Not approved for production deployment, customer traffic, a commercial release or any other CI job.** This is a documented *risk acceptance*, not a repaired vulnerability and not proof of no exploitability.
 
 ## Observed evidence and why there is no quick upgrade
 
@@ -8,7 +8,7 @@
 - The advisory is [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) / CVE-2026-112366: picomatch through 4.0.7 may cause Node.js event-loop denial of service if an attacker can supply a specially crafted extglob pattern. **Do not claim attacker-controlled paths cannot reach the package without tracing the actual Nuxt runtime.**
 - As checked on 2026-11-18, `picomatch 4.0.7` is the current registry version; advisory reports **no patched version**. Forcing a fabricated version or blind transitive-major override is not an acceptable fix. Two moderate `glob`/`minimatch` findings remain visible and should receive a separate compatible patch review.
 
-## Exact technical exception contract (review before merge)
+## Exact technical exception contract (merged and time-boxed)
 
 - The main audit still runs `pnpm audit --prod --json`, still logs severity counts, and still fails by default on **any high or critical** finding. No `pnpm audit --ignore`, `--ignore-unfixable`, global advisory suppression, changing audit level, or disabling CI.
 - Only `imgengine-saas/frontend/scripts/check-production-audit.mjs` accepts the explicit `--allow-temporary-picomatch-in-frontend-ci` flag. `.github/workflows/ci.yml` supplies it **only to the Nuxt frontend verification job**. The checker validates `GITHUB_ACTIONS=true`, workflow `imgengine-native-ci`, job `frontend-verification` and `push`/`pull_request` event.
@@ -39,3 +39,5 @@
 5. If no patch is available before **2026-12-02 UTC**, frontend CI **fails closed again**. Any extension requires a NEW owner-approved security decision with explicit dates, evidence and PR review. No silent renewal.
 
 **Monitoring is not automatic:** documentation and this checker cannot watch new releases without a separate scheduled monitor/automation. The owner should review this at least daily during the exception, or opt into an alerting automation. **Owner approval to temporarily pass this exact development-only finding does not authorize merge, deploy, secret changes, cloud spending or public release.**
+
+**Post-merge follow-up:** Runner labels from [draft PR #64](https://github.com/Rofikali/imgengine/pull/64) are already merged via #65; do not duplicate them. The security waiver is still subject to automatic expiry and prompt patch removal. [Live security task](../next.md) owns ongoing state.
