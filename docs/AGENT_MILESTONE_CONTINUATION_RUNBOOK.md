@@ -2,6 +2,10 @@
 
 **Status:** Standing repository workflow, owner reaffirmed 2026-11-16; documentation only. This is not a running agent service, an installed automation, a workflow change or a grant to merge/deploy. It supplements [root AGENTS](../AGENTS.md), [skills](../skills.md), [next.md](../next.md), [milestone handoff](AGENT_MILESTONE_HANDOFF_TEMPLATE.md), [minimal-context CI policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), and [seven-level engineering model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md).
 
+## Post-merge documentation synchronization — owner-requested 2026-11-18
+
+A GitHub merge changes only files contained in that PR. It cannot automatically edit other Markdown or resume Codex. **Before every code, security or CI PR:** propose a truthful `next.md` milestone state and affected contract/status edits, with a check of README, skills, root/scoped AGENTS and docs indexes. **After an externally merged PR:** the next authorized small review PR must verify main merge SHA and exact-head check results, record MERGED and next READY in `next.md`, and correct changed facts in `README.md`, `skills.md`, `AGENTS.md`, `docs/README.md` and affected security/architecture/product docs. Preserve historical archives. Avoid duplicate live milestone queues across big docs. The [pull request template](../.github/pull_request_template.md) reminds reviewers; it is **not** automatic documentation generation or CI enforcement. Owner approval remains required for push/merge/deploy and security policy changes.
+
 ## The one crucial distinction
 
 **A persistent instruction is not a persistent process.** Writing "continue with the next milestone" in `AGENTS.md` helps any agent *that is running* choose correctly. **It cannot wake a finished Astra/Codex chat, launch another model invocation, monitor GitHub in the background or authorize a merge.** A stopped session only restarts via:
