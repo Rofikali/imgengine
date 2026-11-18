@@ -19,7 +19,7 @@ The **active API** is Rust/Axum under `../backend/`, native C17 is `../imgengine
 
 **P8-SIM-01 candidate:** [runtime/build reproducibility and acceptance gates](../docs/P8_SIM_01_RUNTIME_REPRODUCIBILITY.md) explain the new independent Rust/Nuxt/workload images and exact tests. The former `Dockerfile.p8-vps-runtime` remains **deprecated/historical**, not part of active P8 Compose. Runtime images no longer inherit the P7 development toolchain by design; fresh Docker builds and runtime behavior still require actual evidence.
 
-**P8-SIM-02 candidate:** [P12/P13 sheet/crop smoke and measured cgroup evidence](../docs/P8_SIM_02_SHEET_CROP_RESOURCE_EVIDENCE.md) runs through the same P8 Docker workload image. It does **not** replace M1.3 browser/native pixel parity or P14 real-host validation. Runtime outcome is **NOT RUN** until the full `run-p8-vps-sim.ps1 -Build` harness completes at the exact PR SHA.
+**P8-SIM-02 candidate:** [P12/P13 sheet/crop smoke and measured cgroup evidence](../docs/P8_SIM_02_SHEET_CROP_RESOURCE_EVIDENCE.md) runs through the same P8 Docker workload image. At `f8a03de8f784ac09cc19d1d1ac684b8a92c1a4d0`, the full isolated Docker Desktop harness passed: 21 workload requests (15 success, 6 expected rejections), P12/P13 smoke, zero residual workspaces and no Docker `OOMKilled` state. The host reported cgroup v1, so `memory.peak` and `memory.events` were **unavailable**; this is not precise peak RSS, a real 1 GiB host result, M1.3 pixel parity, or P14 validation.
 
 ## I01-I12 infrastructure verification matrix
 
