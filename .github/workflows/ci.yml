@@ -336,6 +336,10 @@ jobs:
         run: pnpm exec nuxi prepare && pnpm run build
       - name: Run local tool browser quality matrix
         working-directory: imgengine-saas/frontend
+        # Playwright image runs as root; GitHub's /github/home belongs to pwuser.
+        # Firefox refuses a root session using another owner's HOME.
+        env:
+          HOME: /root
         run: pnpm run test:browser:local-tools
       - name: Upload browser failure artifacts
         if: failure()
