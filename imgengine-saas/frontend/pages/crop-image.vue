@@ -22,11 +22,13 @@ function aspect(event: Event) { square.value = (event.target as HTMLSelectElemen
 function down(event: PointerEvent) {
   if (busy.value || !selection.value || !source.value || event.button !== 0) return
   const target = event.currentTarget as HTMLElement, box = target.getBoundingClientRect()
+  event.preventDefault()
   target.focus(); target.setPointerCapture(event.pointerId)
   drag = { id: event.pointerId, x: event.clientX, y: event.clientY, scaleX: source.value.width / box.width, scaleY: source.value.height / box.height, crop: selection.value }
 }
 function move(event: PointerEvent) {
   if (!drag || drag.id !== event.pointerId || busy.value || !source.value) return
+  event.preventDefault()
   setSelection(moveCrop(drag.crop, source.value, (event.clientX - drag.x) * drag.scaleX, (event.clientY - drag.y) * drag.scaleY))
 }
 function key(event: KeyboardEvent) {
