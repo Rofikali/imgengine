@@ -3,7 +3,7 @@ import config from './playwright.config'
 
 export default defineConfig({
   ...config,
-  testMatch: ['**/local-compress.spec.ts', '**/local-convert.spec.ts'],
+  testMatch: ['**/local-*.spec.ts', '**/tool-navigation.spec.ts'],
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'] } },
