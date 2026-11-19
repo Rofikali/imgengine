@@ -16,6 +16,10 @@
 **Milestone definition:** Feature `MERGED` ≠ product `RELEASED`. When all **mandatory** child features and independent gates pass, set parent `READY_FOR_RELEASE_REVIEW`; set `RELEASED` **only after actual owner-approved release**. Parent 3/5 means feature checklist count only, not 60% of readiness. Reconcile merge SHA and exact-CI outcome before updating any child or parent.
 
 ## B. Infrastructure/environment tracks (independent from products)
+### Proposed fifth product family — SDK/Desktop (documentation only, NOT READY)
+
+[ADR-PORTFOLIO-005](docs/ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md) + [release/compatibility matrix](docs/IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md) document a **proposal** for one additional family with two separate milestone parents: `PRODUCT-SDK-01` (public native C/Rust SDK packaging and optional HTTP client packages under API contracts) and `PRODUCT-DESKTOP-01` (offline-first desktop/Studio packaging candidate). **Both PROPOSED / LATER / NOT READY / NOT RELEASED**: no public `.a` SDK, signed installer, customer acceptance, tag or deployment is inferred from existing C17/Rust foundations. Validate licensing, demand, ABI/API compatibility, target OS, signing and economics first. Do not create five permanent branches, force a shared SemVer prefix, expand Free's initial five tools or displace **F2c Compress → F4 Convert → F5**. Independent implementation, security and release approval is required.
+
 
 | Environment | What to test | Verified state and next action |
 | --- | --- | --- |
