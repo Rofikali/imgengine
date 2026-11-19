@@ -122,17 +122,35 @@ jobs:
   native-fuzz:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install fuzzing dependencies
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - name: Install minimal fuzzing dependencies with bounded mirror retries
+        timeout-minutes: 14
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
+          set -euo pipefail
+          # Keep native Clang/libFuzzer/sanitizer dependencies. ImageMagick's
+          # optional font/ghostscript tree was only used to make a PNG seed.
+          # No hard 180-second download cutoff: the 14-minute step cap is
+          # the outer bound, while APT handles transient mirror failures.
           for attempt in 1 2 3; do
-            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
-              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y clang libclang-rt-dev cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev; then
+            if sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 update \
+              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 install -y --no-install-recommends \
+                clang libclang-rt-dev cmake ninja-build libturbojpeg-dev libnuma-dev liburing-dev; then
+              clang --version
+              cmake --version
+              ninja --version
               exit 0
+            fi
+            echo "::warning::APT dependency install attempt $attempt/3 failed; retrying only network/bootstrap step."
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Native fuzz prerequisites unavailable; fuzz gates remain FAILED/NOT RUN."
+              exit 1
             fi
             sleep $((attempt * 10))
           done
-          exit 1
       - name: Configure libFuzzer target
         run: |
           CC=clang cmake -S imgengine -B imgengine/build/fuzz-ci -G Ninja \
@@ -147,7 +165,11 @@ jobs:
         run: |
           mkdir -p /tmp/imgengine-fuzz-corpus
           cp imgengine/photo.jpg /tmp/imgengine-fuzz-corpus/seed.jpg
-          convert imgengine/photo.jpg -strip /tmp/imgengine-fuzz-corpus/seed.png
+          # Fixed synthetic 1x1 red RGB PNG (69 bytes, verified locally).
+          # Decodes with the image decoder; no ImageMagick/network needed.
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC' \
+            | base64 --decode > /tmp/imgengine-fuzz-corpus/seed.png
+          test "$(wc -c < /tmp/imgengine-fuzz-corpus/seed.png)" -eq 69
           imgengine/build/fuzz-ci/fuzz_decoder /tmp/imgengine-fuzz-corpus -max_total_time=60 -max_len=8388608
 
   saas-integration:
