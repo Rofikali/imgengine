@@ -23,5 +23,10 @@
 
 **After owner merge, sync needed:**
 
+## Selective CI verification (CI-SCOPE-02)
+- [ ] Record `CI scope selection (trusted base)` version/mode and selected lanes for this exact PR SHA; any fork, unknown, ABI/FFI, dependency or workflow change must fail closed to the full matrix.
+- [ ] Confirm the **`CI verification gate` actually passed** and that all selected jobs have real SUCCESS. A skipped job is N/A, **never** a passed test.
+- [ ] For release/readiness, verify full matrix at the exact candidate SHA; document branch protection/required-check status and any pending owner decision.
+
 ## Approval
 All seven CI jobs remain required. Pushing, merging, production deployment, billing, account or cloud settings and security policy changes need appropriate owner approval.

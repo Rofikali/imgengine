@@ -69,14 +69,20 @@ test('CLI missing event fails closed without credentials', () => {
   const result = JSON.parse(execFileSync(process.execPath, [fileURLToPath(new URL('./ci-scope.mjs', import.meta.url))], { env: { ...process.env, GITHUB_EVENT_PATH: 'nonexistent-event-fixture' }, encoding: 'utf8' }))
   assert.equal(result.full, true); assert.deepEqual(result.actualJobs, jobs)
 })
-test('workflow retains seven mandatory jobs and approved additive quality jobs without path filters', () => {
+test('CI-SCOPE-02 preserves nine established jobs plus always-on verifier', () => {
   const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
-  const jobSection = workflow.split('\njobs:')[1]
-  // Existing seven required jobs stay unconditional; the P8 parser and F2c
-  // browser-quality jobs are additive, not substitutes for any required gate.
-  const expected = [...jobs, 'infra-p8-parser', 'frontend-browser-quality']
-  assert.deepEqual([...jobSection.matchAll(/^  ([\w-]+):\r?$/gm)].map(m => m[1]).sort(), expected.sort())
+  const section = workflow.split('\njobs:')[1]
+  const required = [...jobs, 'infra-p8-parser', 'frontend-browser-quality']
+  const expected = [...required, 'ci-scope', 'ci-policy', 'ci-gate']
+  assert.deepEqual([...section.matchAll(/^  ([\w-]+):\r?$/gm)].map(m => m[1]).sort(), expected.sort())
   assert.doesNotMatch(workflow, /^\s+(paths|paths-ignore|pull_request_target):/m)
-  assert.doesNotMatch(jobSection, /^    (if|needs):/m)
-  assert.doesNotMatch(workflow, /needs\..*scope/)
+  assert.match(workflow, /  ci-gate:\n    name: CI verification gate\n    needs: \[/)
+  assert.match(workflow, /    if: \$\{\{ always\(\) \}\}/)
+  for (const job of required) {
+    const marker = `  ${job}:\n    needs: ci-scope\n    if: ${'$'}{{ needs.ci-scope.outputs.${job.replaceAll('-', '_')} == 'true' }}`
+    assert.ok(workflow.includes(marker), `missing fail-closed selection for ${job}`)
+  }
+  assert.match(workflow, /bootstrap-full-v1/)
+  assert.match(workflow, /ci-scope-select\.mjs/)
+  assert.match(workflow, /ci-scope-gate\.mjs/)
 })

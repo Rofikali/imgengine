@@ -5,13 +5,72 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["**"]
+  merge_group:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
+  ci-scope:
+    name: CI scope selection (trusted base)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.select.outputs.version }}
+      mode: ${{ steps.select.outputs.mode }}
+      infra_p8_parser: ${{ steps.select.outputs.infra_p8_parser }}
+      native_build_test: ${{ steps.select.outputs.native_build_test }}
+      native_sanitizers: ${{ steps.select.outputs.native_sanitizers }}
+      native_fuzz: ${{ steps.select.outputs.native_fuzz }}
+      saas_integration: ${{ steps.select.outputs.saas_integration }}
+      frontend_verification: ${{ steps.select.outputs.frontend_verification }}
+      frontend_browser_quality: ${{ steps.select.outputs.frontend_browser_quality }}
+      rust_api_container: ${{ steps.select.outputs.rust_api_container }}
+      docker_linux_verification: ${{ steps.select.outputs.docker_linux_verification }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Classify pull request using trusted base policy
+        id: select
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f scripts/ci-scope-select.mjs ]; then
+            node scripts/ci-scope-select.mjs
+          else
+            # First rollout: selector is absent from base main, so run ALL jobs.
+            echo 'version=bootstrap-full-v1' >> "$GITHUB_OUTPUT"
+            echo 'mode=full' >> "$GITHUB_OUTPUT"
+            echo 'reason=trusted-base-bootstrap' >> "$GITHUB_OUTPUT"
+            for job in infra_p8_parser native_build_test native_sanitizers native_fuzz saas_integration frontend_verification frontend_browser_quality rust_api_container docker_linux_verification; do
+              echo "$job=true" >> "$GITHUB_OUTPUT"
+            done
+          fi
+
+  ci-policy:
+    name: CI policy and diff validation
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Validate selector and fail-closed gate truth table
+        run: |
+          set -euo pipefail
+          node --test scripts/ci-scope-select.test.mjs scripts/ci-scope-gate.test.mjs scripts/ci-scope.test.mjs
+          git diff --check HEAD^ HEAD
+
   infra-p8-parser:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.infra_p8_parser == 'true' }}
     name: P8 simulation parser
     runs-on: ubuntu-24.04
     permissions:
@@ -27,6 +86,8 @@ jobs:
           pwsh -NoLogo -NonInteractive -File infra/scripts/test-run-p8-vps-sim-parser.ps1
 
   native-build-test:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.native_build_test == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
@@ -106,6 +167,8 @@ jobs:
         run: python3 imgengine/scripts/check_exported_symbols.py
 
   native-sanitizers:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.native_sanitizers == 'true' }}
     runs-on: ubuntu-24.04
     env:
       ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
@@ -160,6 +223,8 @@ jobs:
         run: cmake --build imgengine/build/sanitize-ci --target regression_security
 
   native-fuzz:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.native_fuzz == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
@@ -213,6 +278,8 @@ jobs:
           imgengine/build/fuzz-ci/fuzz_decoder /tmp/imgengine-fuzz-corpus -max_total_time=60 -max_len=8388608
 
   saas-integration:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.saas_integration == 'true' }}
     runs-on: ubuntu-latest
     env:
       API_KEYS: integration-test-key
@@ -252,6 +319,8 @@ jobs:
         working-directory: imgengine-saas/infra
         run: docker compose down --volumes --remove-orphans
   frontend-verification:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.frontend_verification == 'true' }}
     name: Nuxt frontend verification
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -269,7 +338,7 @@ jobs:
           node-version: 24
       - name: Test dry-run change classifier
         run: node --test scripts/ci-scope.test.mjs
-      - name: Report proposed scope (all seven jobs still run)
+      - name: Report historical CI-SCOPE-01 dry-run (not selection authority)
         run: node scripts/ci-scope.mjs
       - name: Resolve and create pnpm store
         id: pnpm-store
@@ -318,6 +387,8 @@ jobs:
         run: pnpm run build
 
   frontend-browser-quality:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.frontend_browser_quality == 'true' }}
     name: Nuxt local-tool browser quality
     runs-on: ubuntu-24.04
     # Version-matched official Ubuntu 24.04 + Node 24 + preinstalled browsers.
@@ -370,6 +441,8 @@ jobs:
           if-no-files-found: ignore
 
   rust-api-container:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.rust_api_container == 'true' }}
     name: Rust API container verification
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -453,6 +526,8 @@ jobs:
           sudo rmdir /tmp/imgengine-production-secrets 2>/dev/null || true
 
   docker-linux-verification:
+    needs: ci-scope
+    if: ${{ needs.ci-scope.outputs.docker_linux_verification == 'true' }}
     name: Ubuntu 24.04 Docker verification
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -470,3 +545,40 @@ jobs:
             --env IMGENGINE_FUZZ_RUNS=5000 \
             imgengine-verify:ci \
             bash scripts/verify_linux.sh
+
+  ci-gate:
+    name: CI verification gate
+    needs: [ci-scope, ci-policy, infra-p8-parser, native-build-test, native-sanitizers, native-fuzz, saas-integration, frontend-verification, frontend-browser-quality, rust-api-container, docker-linux-verification]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify every selected job actually passed
+        env:
+          CI_NEEDS_JSON: ${{ toJSON(needs) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f scripts/ci-scope-gate.mjs ]; then
+            node scripts/ci-scope-gate.mjs
+          else
+            # Bootstrap PR must pass all nine real checks; no selected skip.
+            node - <<'NODE'
+          const n = JSON.parse(process.env.CI_NEEDS_JSON ?? '{}')
+          const required = ["infra-p8-parser","native-build-test","native-sanitizers","native-fuzz","saas-integration","frontend-verification","frontend-browser-quality","rust-api-container","docker-linux-verification"]
+          if (n['ci-scope']?.result !== 'success' || n['ci-policy']?.result !== 'success' ||
+              n['ci-scope'].outputs?.version !== 'bootstrap-full-v1' ||
+              n['ci-scope'].outputs?.mode !== 'full') throw Error('bootstrap scope/policy failed')
+          for (const name of required) {
+            const flag = name.replaceAll('-', '_')
+            if (n['ci-scope'].outputs[flag] !== 'true' || n[name]?.result !== 'success')
+              throw Error('bootstrap missing required passing job: ' + name)
+          }
+          console.log('CI-SCOPE-02 bootstrap: all nine required checks PASS')
+          NODE
+          fi
