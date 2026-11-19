@@ -12,6 +12,7 @@
     "start": "node .output/server/index.mjs",
     "test": "vitest run",
     "test:browser": "playwright test",
+    "test:browser:local-tools": "playwright test --config playwright.local-tools.config.ts",
     "test:browser:live": "playwright test --config playwright.live.config.ts",
     "typecheck": "nuxi typecheck"
   },

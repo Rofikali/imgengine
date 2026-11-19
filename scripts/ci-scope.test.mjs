@@ -69,10 +69,13 @@ test('CLI missing event fails closed without credentials', () => {
   const result = JSON.parse(execFileSync(process.execPath, [fileURLToPath(new URL('./ci-scope.mjs', import.meta.url))], { env: { ...process.env, GITHUB_EVENT_PATH: 'nonexistent-event-fixture' }, encoding: 'utf8' }))
   assert.equal(result.full, true); assert.deepEqual(result.actualJobs, jobs)
 })
-test('workflow retains seven unconditional jobs and no path filters', () => {
+test('workflow retains seven mandatory jobs and approved additive quality jobs without path filters', () => {
   const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
   const jobSection = workflow.split('\njobs:')[1]
-  assert.deepEqual([...jobSection.matchAll(/^  ([\w-]+):\r?$/gm)].map(m => m[1]).sort(), [...jobs].sort())
+  // Existing seven required jobs stay unconditional; the P8 parser and F2c
+  // browser-quality jobs are additive, not substitutes for any required gate.
+  const expected = [...jobs, 'infra-p8-parser', 'frontend-browser-quality']
+  assert.deepEqual([...jobSection.matchAll(/^  ([\w-]+):\r?$/gm)].map(m => m[1]).sort(), expected.sort())
   assert.doesNotMatch(workflow, /^\s+(paths|paths-ignore|pull_request_target):/m)
   assert.doesNotMatch(jobSection, /^    (if|needs):/m)
   assert.doesNotMatch(workflow, /needs\..*scope/)

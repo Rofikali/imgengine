@@ -30,7 +30,7 @@ useHead({ title: 'Rotate an image locally — IMGENGINE' })
     <p class="status" role="status">{{ message }}</p><p v-if="error" class="error" role="alert">{{ error }}</p>
     <div v-if="source" class="result"><img :src="source.url" alt="Local source image"></div>
     <section v-if="result" class="result" aria-label="Rotated image"><img :src="result" alt="Rotated PNG preview"><a class="primary" :href="result" download="imgengine-rotated.png">Download PNG</a></section>
-    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
+    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/compress-image">Compress locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
   </section></main>
 </template>
 
