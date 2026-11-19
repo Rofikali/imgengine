@@ -1,6 +1,6 @@
 import { onBeforeUnmount, ref, shallowRef } from 'vue'
 import { inspectPreview, loadCropPreview, type CropPreview } from '~/utils/crop-preview'
-import { DEFAULT_JPEG_QUALITY, isLocalCompressBitmap, isLocalCompressSuccess, jpegQuality, type LocalCompressRequest, type LocalCompressResponse } from '~/utils/local-compress'
+import { DEFAULT_JPEG_QUALITY, isLocalCompressBitmap, isLocalCompressSuccess, jpegQuality, validCompressedJpeg, type LocalCompressRequest, type LocalCompressResponse } from '~/utils/local-compress'
 import { MAX_LOCAL_BYTES, MAX_LOCAL_PIXELS } from '~/utils/local-resize'
 
 export function useLocalCompress() {
@@ -9,6 +9,7 @@ export function useLocalCompress() {
   const busy = ref(false), error = ref(''), message = ref('Choose an image to begin.')
   let generation = 0, controller: AbortController | undefined, stopWorker: (() => void) | undefined
   const clearResult = () => { if (result.value) URL.revokeObjectURL(result.value); result.value = '' }
+
   function cancel() {
     generation++; controller?.abort(); stopWorker?.(); stopWorker = undefined; busy.value = false
     message.value = source.value ? 'Cancelled. Your image stays on this device.' : 'Choose an image to begin.'
@@ -40,46 +41,104 @@ export function useLocalCompress() {
       }
     } finally { if (current === generation) busy.value = false }
   }
+
   async function compress() {
-    if (!source.value || busy.value) return
+    const preview = source.value
+    if (!preview || busy.value) return
     clearResult(); error.value = ''
-    try { jpegQuality(quality.value) } catch (reason) { error.value = (reason as Error).message; return }
+    let outputQuality: number
+    try { outputQuality = jpegQuality(quality.value) } catch (reason) { error.value = (reason as Error).message; return }
     const current = ++generation, abort = new AbortController(); controller = abort
     busy.value = true; message.value = 'Compressing on this device…'
     try {
-      const blob = await (await fetch(source.value.url, { signal: abort.signal })).blob()
+      // The preview is already size-checked and has its EXIF orientation removed.
+      // Fetching its local blob: URL is not a request to Nuxt or the Rust backend.
+      const blob = await (await fetch(preview.url, { signal: abort.signal })).blob()
       if (current !== generation) return
       const output = await new Promise<Blob>((resolve, reject) => {
-        const worker = new Worker(new URL('../workers/local-compress.ts', import.meta.url), { type: 'module' })
-        const finish = (value?: Blob) => { clearTimeout(timer); worker.terminate(); stopWorker = undefined; value ? resolve(value) : reject(Error()) }
-        const encode = (bitmap: ImageBitmap, outputQuality: number) => {
-          const canvas = document.createElement('canvas')
-          canvas.width = bitmap.width; canvas.height = bitmap.height
-          const context = canvas.getContext('2d')
-          if (!context) { bitmap.close(); finish(); return }
-          context.drawImage(bitmap, 0, 0); bitmap.close()
-          canvas.toBlob(encoded => {
-            canvas.width = canvas.height = 0
-            if (!encoded || encoded.type !== 'image/jpeg' || !encoded.size || encoded.size > 20 * 1024 * 1024) { finish(); return }
-            finish(encoded)
-          }, 'image/jpeg', outputQuality / 100)
+        let worker: Worker | undefined, image: HTMLImageElement | undefined, canvas: HTMLCanvasElement | undefined
+        let timer: ReturnType<typeof setTimeout> | undefined
+        let settled = false, fallbackStarted = false
+
+        const arm = (milliseconds: number, onTimeout: () => void) => {
+          if (timer) clearTimeout(timer)
+          timer = setTimeout(onTimeout, milliseconds)
         }
-        const timer = setTimeout(() => finish(), 10_000)
+        const finish = (encoded?: Blob) => {
+          if (settled) return
+          settled = true
+          if (timer) clearTimeout(timer)
+          worker?.terminate(); worker = undefined
+          if (image) { image.onload = image.onerror = null; image.removeAttribute('src'); image = undefined }
+          if (canvas) { canvas.width = canvas.height = 0; canvas = undefined }
+          stopWorker = undefined
+          if (encoded && validCompressedJpeg(encoded) && current === generation && !abort.signal.aborted) resolve(encoded)
+          else reject(Error('Local compression did not produce a safe JPEG.'))
+        }
+        const encode = (drawable: CanvasImageSource, width: number, height: number, onError: () => void) => {
+          try {
+            if (width !== preview.width || height !== preview.height || width * height > MAX_LOCAL_PIXELS) throw Error()
+            canvas = document.createElement('canvas')
+            canvas.width = width; canvas.height = height
+            const context = canvas.getContext('2d')
+            if (!context) throw Error()
+            context.fillStyle = '#ffffff'
+            context.fillRect(0, 0, width, height)
+            context.drawImage(drawable, 0, 0)
+            canvas.toBlob(encoded => {
+              if (settled) return
+              if (!validCompressedJpeg(encoded)) { onError(); return }
+              finish(encoded)
+            }, 'image/jpeg', outputQuality / 100)
+          } catch { onError() }
+        }
+        // Some browsers accept JPEG in HTMLImageElement but cannot decode or
+        // transfer the same JPEG as an ImageBitmap in a Worker (notably Firefox).
+        // Use a bounded local-only fallback, never a server request.
+        const fallback = () => {
+          if (settled || fallbackStarted || current !== generation || abort.signal.aborted) { if (!settled) finish(); return }
+          fallbackStarted = true
+          worker?.terminate(); worker = undefined
+          arm(8500, () => finish())
+          try {
+            const img = new Image()
+            image = img
+            img.onload = () => {
+              if (settled || current !== generation || abort.signal.aborted) { finish(); return }
+              encode(img, img.naturalWidth, img.naturalHeight, () => finish())
+            }
+            img.onerror = () => finish()
+            img.src = preview.url
+          } catch { finish() }
+        }
         stopWorker = () => finish()
-        worker.onerror = () => finish()
-        worker.onmessage = (event: MessageEvent<LocalCompressResponse>) => {
-          if (isLocalCompressSuccess(event.data)) finish(event.data.blob)
-          else if (isLocalCompressBitmap(event.data)) encode(event.data.bitmap, event.data.quality)
-          else finish()
-        }
-        try { worker.postMessage({ blob, quality: quality.value } satisfies LocalCompressRequest) } catch { finish() }
+        arm(6000, fallback)
+        try {
+          worker = new Worker(new URL('../workers/local-compress.ts', import.meta.url), { type: 'module' })
+          worker.onerror = fallback
+          worker.onmessage = (event: MessageEvent<LocalCompressResponse>) => {
+            if (settled || fallbackStarted) {
+              if (isLocalCompressBitmap(event.data)) event.data.bitmap.close()
+              return
+            }
+            if (isLocalCompressSuccess(event.data)) { finish(event.data.blob); return }
+            if (isLocalCompressBitmap(event.data)) {
+              const bitmap = event.data.bitmap
+              try { encode(bitmap, bitmap.width, bitmap.height, fallback) }
+              finally { bitmap.close() }
+              return
+            }
+            fallback()
+          }
+          worker.postMessage({ blob, quality: String(outputQuality) } satisfies LocalCompressRequest)
+        } catch { fallback() }
       })
       if (current !== generation) return
       result.value = URL.createObjectURL(output)
-      message.value = `Ready: JPEG quality ${quality.value}. Download your compressed image.`
+      message.value = `Ready: JPEG quality ${outputQuality}. Download your compressed image.`
     } catch {
       if (current === generation) {
-        error.value = 'Local compression could not finish. Try a smaller image or a browser with Worker image support. Nothing was uploaded.'
+        error.value = 'Local compression could not finish. Try a smaller image or a browser with supported image encoding. Nothing was uploaded.'
         message.value = 'Compression stopped.'
       }
     } finally { if (current === generation) busy.value = false }
