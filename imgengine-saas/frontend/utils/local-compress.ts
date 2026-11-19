@@ -1,6 +1,7 @@
 export const MIN_JPEG_QUALITY = 40
 export const MAX_JPEG_QUALITY = 95
 export const DEFAULT_JPEG_QUALITY = 80
+export const MAX_COMPRESSED_JPEG_BYTES = 20 * 1024 * 1024
 
 export interface LocalCompressRequest { blob: Blob, quality: string }
 export interface LocalCompressSuccess { blob: Blob, quality: number }
@@ -17,12 +18,24 @@ export function jpegQuality(value: string): number {
   return quality
 }
 
+export function validCompressedJpeg(value: unknown): value is Blob {
+  return value instanceof Blob && value.type === 'image/jpeg'
+    && value.size > 0 && value.size <= MAX_COMPRESSED_JPEG_BYTES
+}
+
+function validQuality(value: unknown): value is number {
+  return Number.isSafeInteger(value) && typeof value === 'number'
+    && value >= MIN_JPEG_QUALITY && value <= MAX_JPEG_QUALITY
+}
+
 export function isLocalCompressSuccess(value: unknown): value is LocalCompressSuccess {
   return !!value && typeof value === 'object' && 'blob' in value && 'quality' in value
-    && (value as { blob: unknown }).blob instanceof Blob && Number.isSafeInteger((value as { quality: unknown }).quality)
+    && validCompressedJpeg((value as { blob: unknown }).blob)
+    && validQuality((value as { quality: unknown }).quality)
 }
 
 export function isLocalCompressBitmap(value: unknown): value is LocalCompressBitmap {
   return !!value && typeof value === 'object' && 'bitmap' in value && 'quality' in value
-    && (value as { bitmap: unknown }).bitmap instanceof ImageBitmap && Number.isSafeInteger((value as { quality: unknown }).quality)
+    && typeof ImageBitmap !== 'undefined' && (value as { bitmap: unknown }).bitmap instanceof ImageBitmap
+    && validQuality((value as { quality: unknown }).quality)
 }
