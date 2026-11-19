@@ -1,5 +1,7 @@
 # IMGENGINE — Milestone Continuation and New-Session Recovery Runbook
 
+**2026-11-19 owner continuation and review scope:** Interpret **“go ahead”** as a command to inspect actual GitHub main/PR/check state and the [live queue](../next.md), then repair the highest-priority eligible in-progress/failed task before beginning another. For current PR #72, a Firefox browser regression blocks F2c until current-head cross-browser, privacy, metadata and required CI evidence pass; do not automatically merge, re-run a completed task or open a duplicate PR. Review from **all seven engineering levels L1–L7** and **CISSP security, CCIE networking, top-level Linux/SRE, CA finance, MBA and management** as applicable; [canonical model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md). Keep the go-ahead rule unchanged after merges, with actual SHA reconciliation before F4.
+
 **Status:** Standing repository workflow, owner reaffirmed 2026-11-16; documentation only. This is not a running agent service, an installed automation, a workflow change or a grant to merge/deploy. It supplements [root AGENTS](../AGENTS.md), [skills](../skills.md), [next.md](../next.md), [milestone handoff](AGENT_MILESTONE_HANDOFF_TEMPLATE.md), [minimal-context CI policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), and [seven-level engineering model](SEVEN_LEVEL_ENGINEERING_OPERATING_MODEL.md).
 
 ## Post-merge documentation synchronization — owner-requested 2026-11-18
