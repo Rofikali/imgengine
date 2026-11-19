@@ -215,6 +215,9 @@ For local Ubuntu Docker engine P8 simulation changes, follow [P8-SIM-02 suite an
 
 ## Skill 18 — Evidence-backed milestone status, owner decision, and Go ahead
 
+**New permanent completion rule:** Before a milestone handoff, follow the [one-source-of-truth and conditional doc-impact transaction](docs/AGENT_MILESTONE_CONTINUATION_RUNBOOK.md#mandatory-documentation-impact-transaction-at-every-passed-milestone-2026-11-19). Update truthful `next.md`, and affected AGENTS/skills/READMEs/contracts/CI/security/CA-MBA docs; mark N/A for unrelated docs. Actual CI green is READY_FOR_REVIEW; only owner merge gives MERGED. Keep the next `go ahead` job and no unsolicited push/merge/deploy.
+
+
 **Binding status rule:** [root AGENTS](AGENTS.md) and [Milestone Continuation and New-Session Recovery](docs/AGENT_MILESTONE_CONTINUATION_RUNBOOK.md). `next.md` begins with the live **NOW / NEXT / LATER** queue. All older sections are retained as historical detail; a stale old row is *never* a reason to rebuild already merged work.
 
 1. On **every agent session start** and before interpreting “go ahead”, inspect the current `main` SHA, open/closed/merged PR state, exact head SHA, and required GitHub CI. Compare against the live queue and verify the requested milestone has not already been merged. Work from the real checked-out source, never an outdated chat report or previous-SHA test result.
