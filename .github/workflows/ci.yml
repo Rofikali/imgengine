@@ -300,29 +300,46 @@ jobs:
   frontend-browser-quality:
     name: Nuxt local-tool browser quality
     runs-on: ubuntu-24.04
+    # Version-matched official Ubuntu 24.04 + Node 24 + preinstalled browsers.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --shm-size=1g
     timeout-minutes: 45
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6 / Node24
         with:
           persist-credentials: false
-      - name: Enable pinned pnpm
-        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Verify pinned Ubuntu, Node and preinstalled browser engines
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+          node -e 'const [major,minor] = process.versions.node.split(".").map(Number); if(major!==24 || minor<15) process.exit(1)'
+          test "$(node -p 'require("./package.json").devDependencies["@playwright/test"]')" = "1.58.2"
+          for name in chromium-1208 chromium_headless_shell-1208 firefox-1509 webkit-2248; do
+            test -d "/ms-playwright/$name" || { echo "::error::Missing preinstalled Playwright engine: $name"; exit 1; }
+          done
+          corepack enable
+          pnpm --version
       - name: Install locked frontend dependencies
         working-directory: imgengine-saas/frontend
         run: pnpm install --frozen-lockfile
       - name: Generate Nuxt production output
         working-directory: imgengine-saas/frontend
         run: pnpm exec nuxi prepare && pnpm run build
-      - name: Install Playwright browser dependencies
-        working-directory: imgengine-saas/frontend
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
       - name: Run local tool browser quality matrix
         working-directory: imgengine-saas/frontend
+        # Playwright image runs as root; GitHub's /github/home belongs to pwuser.
+        # Firefox refuses a root session using another owner's HOME.
+        env:
+          HOME: /root
         run: pnpm run test:browser:local-tools
       - name: Upload browser failure artifacts
         if: failure()

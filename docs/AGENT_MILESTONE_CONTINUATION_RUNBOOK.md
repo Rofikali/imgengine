@@ -8,6 +8,18 @@
 
 A GitHub merge changes only files contained in that PR. It cannot automatically edit other Markdown or resume Codex. **Before every code, security or CI PR:** propose a truthful `next.md` milestone state and affected contract/status edits, with a check of README, skills, root/scoped AGENTS and docs indexes. **After an externally merged PR:** the next authorized small review PR must verify main merge SHA and exact-head check results, record MERGED and next READY in `next.md`, and correct changed facts in `README.md`, `skills.md`, `AGENTS.md`, `docs/README.md` and affected security/architecture/product docs. Preserve historical archives. Avoid duplicate live milestone queues across big docs. The [pull request template](../.github/pull_request_template.md) reminds reviewers; it is **not** automatic documentation generation or CI enforcement. Owner approval remains required for push/merge/deploy and security policy changes.
 
+## Mandatory documentation-impact transaction at every passed milestone (2026-11-19)
+
+**One truth source: `next.md`.** Each bounded task, including CI/infra/docs, must hand off code/tests **and** truthful documentation status. Do this at milestone completion inside the same PR, not as a separate repetitive context-heavy rewrite. A passing test means `READY_FOR_REVIEW`, **not** `MERGED`; a completed feature is **not** a released product.
+
+- **Always:** update the active `next.md` row with task ID, tested head SHA, commands and PASS/FAIL/NOT RUN, PR/CI links when real, blockers and **one** next READY job. Preserve dated historical statements.
+- **If affected:** update root/scoped `AGENTS.md` for durable agent or trust boundaries; `skills.md` for reusable recipes; root/component READMEs and `docs/README.md` for discoverability; APIs, C ABI/Rust FFI, HLD/LLD/ADR, privacy/EXIF/resource/security/CI/browser/a11y contracts; Docker/Linux/operations; and CA/MBA/management unit-cost, billing or release plans. **Do not edit everything just because it exists.** Note `N/A` for unaffected domains.
+- **Verify before handoff:** compare changed paths to contracts, ensure docs/links/acceptance evidence match actual source, tests and exact CI SHA, retain security exceptions/expiry, distinguish unexecuted tests, and summarize `updated | reviewed N/A | pending post-merge`.
+- **After real merge:** next **owner-authorized** PR verifies GitHub `merged=true`, actual merge SHA and exact-head CI; then updates `next.md`, impacted status summaries, parent feature progress and next eligible job. Never falsely edit MERGED before owner action.
+- **Token/CI cost:** read only relevant sections, avoid duplicated live progress in dozens of docs, batch documentation with code in one PR, inspect failed logs only, and never bypass required tests or automatically create a merge or CI-triggering status loop.
+
+This is a **binding agent/reviewer process and PR template**, not automated documentation generation; a future stale-doc CI verifier would require a separate reviewed implementation.
+
 ## The one crucial distinction
 
 **A persistent instruction is not a persistent process.** Writing "continue with the next milestone" in `AGENTS.md` helps any agent *that is running* choose correctly. **It cannot wake a finished Astra/Codex chat, launch another model invocation, monitor GitHub in the background or authorize a merge.** A stopped session only restarts via:
