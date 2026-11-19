@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_JPEG_QUALITY, isLocalCompressBitmap, isLocalCompressSuccess, jpegQuality } from './local-compress'
+import { DEFAULT_JPEG_QUALITY, isLocalCompressBitmap, isLocalCompressSuccess, jpegQuality, validCompressedJpeg } from './local-compress'
 
 describe('local JPEG compression quality', () => {
   it('uses a conservative default within the documented range', () => {
@@ -16,9 +16,16 @@ describe('local JPEG compression quality', () => {
   })
 
   it('accepts only a typed Worker success response', () => {
-    expect(isLocalCompressSuccess({ blob: new Blob(), quality: 80 })).toBe(true)
+    const jpeg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' })
+    expect(isLocalCompressSuccess({ blob: jpeg, quality: 80 })).toBe(true)
+    expect(isLocalCompressSuccess({ blob: new Blob(), quality: 80 })).toBe(false)
+    expect(isLocalCompressSuccess({ blob: new Blob(['plain'], { type: 'text/plain' }), quality: 80 })).toBe(false)
     expect(isLocalCompressSuccess({ blob: 'not-a-blob', quality: 80 })).toBe(false)
+    expect(isLocalCompressSuccess({ blob: jpeg, quality: 39 })).toBe(false)
+    expect(isLocalCompressSuccess({ blob: jpeg, quality: 96 })).toBe(false)
     expect(isLocalCompressSuccess({ error: true })).toBe(false)
+    expect(validCompressedJpeg(jpeg)).toBe(true)
+    expect(validCompressedJpeg(new Blob())).toBe(false)
   })
 
   it('does not treat a Worker failure as a transferable bitmap response', () => {
