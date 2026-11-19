@@ -19,6 +19,7 @@ test('converts locally to PNG and JPEG, preserves the documented alpha behavior,
   await page.goto('/convert-image')
   page.on('request', request => { if (/^https?:/.test(request.url())) requests.push({ method: request.method(), url: request.url(), body: request.postData() }) })
   await choose(page, await fixture(page))
+  await expect(page.getByRole('combobox', { name: 'Format', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Convert locally', exact: true }).click()
   const png = page.getByAltText('Converted PNG preview'); await expect(png).toBeVisible()
   expect(await png.evaluate(async (image: HTMLImageElement) => (await (await fetch(image.src)).blob()).type)).toBe('image/png')
