@@ -39,7 +39,7 @@ async function renderAnother() {
       <p class="eyebrow">IMGENGINE</p>
       <h1 id="page-title">Create printable photo layouts.</h1>
       <p class="intro">Choose a FIT grid or a physical print sheet. Processing is synchronous, server-validated, and ephemeral.</p>
-      <p><NuxtLink to="/resize-image" style="color: #b7d0ff">Resize locally — no upload</NuxtLink> · <NuxtLink to="/compress-image" style="color: #b7d0ff">Compress locally — no upload</NuxtLink></p>
+      <p><NuxtLink to="/resize-image" style="color: #b7d0ff">Resize locally — no upload</NuxtLink> · <NuxtLink to="/compress-image" style="color: #b7d0ff">Compress locally — no upload</NuxtLink> · <NuxtLink to="/convert-image" style="color: #b7d0ff">Convert locally — no upload</NuxtLink></p>
       <nav class="mode-switch" aria-label="Choose a rendering mode">
         <button class="mode-tab" :aria-pressed="activeMode === 'layout'" type="button" @click="activeMode = 'layout'">FIT layout</button>
         <button class="mode-tab" :aria-pressed="activeMode === 'sheet'" type="button" @click="activeMode = 'sheet'">Physical sheet</button>
