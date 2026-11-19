@@ -2,6 +2,8 @@
 
 **Status:** owner-requested standing agent practice, docs-only proposal (2026-11-17). **Goal:** reduce *unnecessary* Codex context/allowance consumption while preserving engineering, security, required CI, and owner approval. **Not** a guarantee of token savings or an actual token/billing measurement. This policy affects the work style of agents who read the repo; it does not set Codex account limits or automatically modify model configuration.
 
+**Windows host versus local Docker runtime (2026-11-19):** “Local workspace first” means use **local source/Git**; do **not** run the project toolchain in Windows. [Docker-only Ubuntu 24.04 policy](IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md) requires Node/pnpm/Playwright/CMake/Cargo/builds/tests **inside Docker Desktop Linux containers**, not host or workspace-local `node.exe`. Every new session checks active `next.md` + worktrees + scoped AGENTS, and checks P7 Docker files **before testing**. Read only necessary sections; reuse verified environment state. Report BLOCKED/NOT RUN if Docker fails; retain all exact-SHA CI/security and owner approval gates.
+
 **Read only when applicable:** [short live milestones](../next.md), [root AGENTS](../AGENTS.md), [Skill 20/21](../skills.md), [existing minimal-context CI policy](CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md), [product/infra and post-reset usage protocol](IMGENGINE_PRODUCT_INFRA_MILESTONE_AND_CODEX_USAGE_PROTOCOL.md). Do not load all these full documents at every startup. Read this short operational rule and only the task-specific details needed.
 
 ## Six binding rules for VS Code Codex sessions
