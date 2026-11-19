@@ -1,0 +1,64 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { JOBS, classifyDiff, encodeOutputs, full, selectFromEvent } from './ci-scope-select.mjs'
+
+const record = (path, status = 'M') => `${status}\0${path}\0`
+const names = decision => JOBS.filter(id => decision.jobs[id])
+const frontend = ['frontend-verification', 'frontend-browser-quality']
+const all = [...JOBS]
+for (const [path, expected] of [
+  ['README.md', []], ['next.md', []], ['docs/README.md', []],
+  ['docs/FRONTEND_F4_CONVERT_CONTRACT.md', frontend],
+  ['imgengine-saas/frontend/pages/convert-image.vue', frontend],
+  ['imgengine-saas/frontend/tests/browser/local-convert.spec.ts', frontend],
+  ['imgengine-saas/frontend/assets/main.css', frontend],
+  ['imgengine-saas/frontend/types/api.ts', [...frontend, 'rust-api-container']],
+  ['imgengine-saas/frontend/server/api/sheet-render.post.ts', [...frontend, 'rust-api-container']],
+  ['backend/imgengine-api/src/lib.rs', ['rust-api-container']],
+  ['backend/imgengine-supervisor/src/lib.rs', ['native-build-test', 'rust-api-container']],
+  ...['imgengine/src/a.c', 'imgengine/include/imgengine/api/v2/sheet.h', 'backend/imgengine/src/sys.rs',
+    '.github/workflows/ci.yml', 'scripts/ci-scope-select.mjs', 'infra/docker-compose.production.yml',
+    'imgengine-saas/frontend/pnpm-lock.yaml', 'imgengine-saas/frontend/package.json',
+    'docs/api-policy.md', 'docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md',
+    'Cargo.lock', 'Makefile', 'AGENTS.md', 'future-wasm/src/lib.rs', 'imgengine-saas/backend/app.py'].map(path => [path, all]),
+]) test(`impact: ${path}`, () => assert.deepEqual(names(classifyDiff(record(path))), expected))
+for (const [label, raw] of [
+  ['empty', ''], ['truncated', 'M\0x'], ['delete', record('next.md', 'D')],
+  ['rename', 'R100\0old\0new\0'], ['conflict', record('next.md', 'U')],
+  ['traversal', record('../README.md')], ['control', record('README\n.md')],
+  ['backslash', record('docs\\README.md')], ['oversized', record('next.md').repeat(10001)],
+]) test(`fail closed: ${label}`, () => assert.deepEqual(names(classifyDiff(raw)), all))
+
+test('frontend+status docs does not pull native', () => assert.deepEqual(names(classifyDiff(record('next.md') + record('imgengine-saas/frontend/pages/convert-image.vue'))), frontend))
+test('mixed frontend and native requires all', () => assert.deepEqual(names(classifyDiff(record('imgengine/src/x.c') + record('imgengine-saas/frontend/pages/convert-image.vue'))), all))
+test('docs and frontend contract still require browser quality', () => assert.deepEqual(names(classifyDiff(record('README.md') + record('docs/FRONTEND_F4_CONVERT_CONTRACT.md'))), frontend))
+test('outputs carry exact nine boolean jobs', () => {
+  const s = encodeOutputs(classifyDiff(record('next.md')))
+  assert.match(s, /version=ci-scope-02-v1/)
+  assert.match(s, /frontend_browser_quality=false/)
+  assert.equal(s.trim().split('\n').length, JOBS.length + 3)
+})
+const a = 'a'.repeat(40), b = 'b'.repeat(40), event = { pull_request: { number: 76, base: { sha: a }, head: { sha: b } } }
+test('PR diff uses trusted SHA and read-only numeric PR ref', () => {
+  const calls = []
+  const out = selectFromEvent('pull_request', event, args => {
+    calls.push(args)
+    if (args[0] === 'rev-parse') return `${b}\n`
+    if (args[0] === 'merge-base') return `${a}\n`
+    if (args[0] === 'diff') return record('README.md')
+    return ''
+  })
+  assert.deepEqual(names(out), [])
+  assert.deepEqual(calls[0], ['fetch', '--no-tags', 'origin', '+refs/pull/76/head:refs/remotes/origin/ci-scope-pr-head'])
+  assert.deepEqual(calls.at(-1), ['diff', '--name-status', '-z', '--find-renames', a, b, '--'])
+})
+test('changed or untrusted ref, invalid SHA, Git error are full', () => {
+  const shas = selectFromEvent('pull_request', event, args => args[0] === 'rev-parse' ? a : '')
+  assert.equal(shas.full, true)
+  assert.equal(selectFromEvent('pull_request', { pull_request: { number: 76, base: { sha: '--oops' }, head: { sha: b } } }, () => assert.fail()).full, true)
+  assert.equal(selectFromEvent('pull_request', event, () => { throw Error('network') }).full, true)
+})
+test('push, merge queue, unknown event always full', () => {
+  for (const eventName of ['push', 'merge_group', 'workflow_dispatch', 'pull_request_target']) assert.deepEqual(names(selectFromEvent(eventName, {}, () => assert.fail())), all)
+})
+test('full policy has no missing job', () => assert.deepEqual(names(full()), all))
