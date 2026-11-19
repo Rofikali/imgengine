@@ -1,5 +1,7 @@
 # IMGENGINE — Seven-Level Engineering Operating Model
 
+**F6 frontend quality handoff (2026-11-19, documentation only):** Apply the seven perspectives and risk-proportional reviews to the [Frontend Excellence Program](IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md) and [testable F6 acceptance matrix](IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md) only when corresponding milestones are READY in [next.md](../next.md). Do not treat a roadmap or design document as actual QA, security, performance, deployment or paid-product evidence.
+
 **Five-family review add-on (proposal, 2026-11-19):** Apply the existing seven risk-proportional perspectives to the [shared-core/branching/versioning ADR](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md) and [SDK/Desktop release matrix](IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md). SDK packaging, offline desktop distribution, public API tenancy, C ABI and versioned artifacts are separate review surfaces; no invented seventh agent, product release, merged feature or new pipeline is implied.
 
 **Status:** Proposed operating policy for human review; documentation only (2026-11-15). This document adds an engineering decision and review method. It does **not** certify production readiness, grant an AI agent independent authority, implement features, create seven autonomous engineers, or override the repository's existing security, ABI, release, or Git rules.
