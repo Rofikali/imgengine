@@ -21,6 +21,25 @@ The **active API** is Rust/Axum under `../backend/`, native C17 is `../imgengine
 
 **P8-SIM-02 candidate:** [P12/P13 sheet/crop smoke and measured cgroup evidence](../docs/P8_SIM_02_SHEET_CROP_RESOURCE_EVIDENCE.md) runs through the same P8 Docker workload image. It does **not** replace M1.3 browser/native pixel parity or P14 real-host validation. Runtime outcome is **NOT RUN** until the full `run-p8-vps-sim.ps1 -Build` harness completes at the exact PR SHA.
 
+## I01-I12 infrastructure verification matrix
+
+This is a source-to-evidence map, not a record of passed environments. Record each exact SHA, Docker host and command in `next.md`; P7/P8/P12/P14 do not advance one another.
+
+| Gate | Existing executable evidence | Current gap / required evidence |
+| --- | --- | --- |
+| **I01 Source and parser integrity** | `scripts/test-run-p8-vps-sim-parser.ps1` parses the P8 harness and probes its OOM predicate; Compose `config --quiet` is available. | Run parser on the exact candidate; no Docker workload implied. |
+| **I02 Image/reproducibility** | P7/P8 Compose names Dockerfiles; P8 workload has a standalone Dockerfile. | Fresh clean-context image builds/digests remain unverified. |
+| **I03 Compose/edge policy** | `scripts/verify-production-compose.py` checks rendered services, images, ports, networks and hardening declarations. | Static only; preserve this retained Python verifier until a proven replacement exists. |
+| **I04 Secrets and trust boundaries** | P7 verifier checks the test key is absent from Nuxt client output; P12 creates a disposable file-backed secret volume. | Actual P14 host ownership/mode and runtime exposure remain unverified. |
+| **I05 Isolation and resource ceilings** | Compose declares non-root, read-only roots, dropped caps, PIDs, CPU/memory/swap and tmpfs limits. | Docker/host enforcement and aggregate memory capacity need measured runtime evidence. |
+| **I06 P7 functional integration** | `verify-p7-frontend-stack.*`, render and layout contracts cover JPEG/PNG, malformed/oversized input, 413/503 and private Rust auth. | Run on an isolated Docker host with a synthetic key at the candidate SHA. |
+| **I07 P8 workload/cleanup** | P8 workload covers FIT, P12/P13, negative cases, bounded burst, workspace cleanup and periodic stats. | Run only after I01; capture workload JSON, `memory.peak`, `memory.events`, OOM state and cleanup. |
+| **I08 P12 candidate rehearsal** | `run-p12-local-candidate.ps1` creates disposable images/network/secret volume and runs API/Nuxt smoke. | No current exact-SHA execution; it is not Caddy/TLS evidence. |
+| **I09 P14 edge/TLS/network** | Caddyfile and rendered Compose describe sole 80/443 exposure and private Rust network. | Real DNS, TLS, renewal, firewall and upstream readiness require an approved host. |
+| **I10 Observability and recovery** | Health checks, P8 report fields and cleanup paths exist. | Alerts, backup, restart/drain, rollback and retention are not real-host validated. |
+| **I11 Security/adversarial behavior** | P7/P8 negative inputs, output limits, sandbox declarations and production static policy checks exist. | Abuse/rate controls, host secret metadata and actual kernel/network enforcement remain open. |
+| **I12 Exact-SHA CI and release governance** | Existing seven CI jobs remain required; P8 parser CI is additive. | Exact candidate CI, review and any real-host approval are required; no merge/deploy follows from local checks. |
+
 ## Before approving any infrastructure change
 
 1. Identify whether the work touches *development*, *simulation*, *disposable candidate*, or the *real P14 public deployment*. Use the right tests for that exact environment and no blanket system rebuilds.
