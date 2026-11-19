@@ -47,6 +47,7 @@ function jpegMetadataSegments(bytes: Buffer) {
     if (bytes[offset] !== 0xff) throw Error('Malformed JPEG marker')
     while (bytes[offset] === 0xff) offset++
     const marker = bytes[offset++]
+    if (marker === undefined) throw Error('Truncated JPEG marker')
     if (marker === 0xda || marker === 0xd9) break
     const size = bytes.readUInt16BE(offset)
     if (size < 2 || offset + size > bytes.length) throw Error('Malformed JPEG length')
