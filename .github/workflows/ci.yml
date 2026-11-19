@@ -91,17 +91,37 @@ jobs:
       ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
-      - uses: actions/checkout@v4
-      - name: Install native dependencies
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, Node 24
+        with:
+          persist-credentials: false
+      - name: Install sanitizer and native regression dependencies
+        timeout-minutes: 18
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
+          set -euo pipefail
+          # ImageMagick is required by progressive JPEG and geometry regressions:
+          # convert, identify, compare. Preserve all ASan/UBSan checks below.
+          # Avoid optional Ghostscript/font recommendations and 180s cutoffs.
           for attempt in 1 2 3; do
-            if timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 update \
-              && timeout 180 sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=60 install -y build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+            if sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 update \
+              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 install -y --no-install-recommends \
+                build-essential cmake ninja-build imagemagick libturbojpeg-dev libnuma-dev liburing-dev nasm; then
+              for tool in cmake ninja cc convert identify compare nasm; do
+                if ! command -v "$tool" >/dev/null 2>&1; then
+                  echo "::error::Missing required sanitizer/regression dependency: $tool"
+                  exit 1
+                fi
+              done
               exit 0
+            fi
+            echo "::warning::Sanitizer APT bootstrap attempt $attempt/3 failed; retrying package download only."
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Sanitizer prerequisites unavailable; ASan/UBSan gates remain FAILED/NOT RUN."
+              exit 1
             fi
             sleep $((attempt * 10))
           done
-          exit 1
       - name: Configure sanitizer build
         run: |
           cmake -S imgengine -B imgengine/build/sanitize-ci -G Ninja \
