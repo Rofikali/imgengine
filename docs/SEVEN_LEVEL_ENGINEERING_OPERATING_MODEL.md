@@ -1,5 +1,7 @@
 # IMGENGINE — Seven-Level Engineering Operating Model
 
+**Five-family review add-on (proposal, 2026-11-19):** Apply the existing seven risk-proportional perspectives to the [shared-core/branching/versioning ADR](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md) and [SDK/Desktop release matrix](IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md). SDK packaging, offline desktop distribution, public API tenancy, C ABI and versioned artifacts are separate review surfaces; no invented seventh agent, product release, merged feature or new pipeline is implied.
+
 **Status:** Proposed operating policy for human review; documentation only (2026-11-15). This document adds an engineering decision and review method. It does **not** certify production readiness, grant an AI agent independent authority, implement features, create seven autonomous engineers, or override the repository's existing security, ABI, release, or Git rules.
 
 **Start with:** [root AGENTS](../AGENTS.md), [current work/status](../next.md), [Astra kickoff](ASTRA_ENGINEERING_START_HERE.md), [technology ADR](TECHNOLOGY_AND_REPOSITORY_POLICY.md), [change-scoped verification](CHANGE_SCOPED_VERIFICATION.md), and the affected directory's scoped AGENTS. Use the [milestone/agent task template](AGENT_MILESTONE_HANDOFF_TEMPLATE.md) to operationalize this model.

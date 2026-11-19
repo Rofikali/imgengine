@@ -1,5 +1,7 @@
 # IMGENGINE milestone hierarchy, infrastructure experiments and Codex usage measurement
 
+**Proposed portfolio extension (2026-11-19):** [ADR-PORTFOLIO-005](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md) and [release compatibility matrix](IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md) propose an SDK/Desktop fifth family, with `PRODUCT-SDK-01` and `PRODUCT-DESKTOP-01` **LATER/NOT READY**, not additional implemented products. The four existing parent milestones and Free's five-tool release scope below remain authoritative; independent release/version/ABI and human go/no-go gates continue to apply. Current status is [next.md](../next.md).
+
 **Status:** Standing product/infra reporting policy, not a product release, hosting validation, token measurement or deployment approval. [Live next.md](../next.md) outranks dated examples. **2026-11-18:** F1 #57, F2a #59, F2b #62 merged (**Free v1 3/5 tool features, NOT released**); [PR #65](https://github.com/Rofikali/imgengine/pull/65) merged a [time-boxed non-production frontend picomatch waiver](FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). [Product portfolio](IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md), [P8 audit](INFRA_EXPERIMENTS_AND_AI_CONTEXT_COST_AUDIT_2026-11-17.md), [commercial gates](IMGENGINE_COMMERCIAL_READINESS_AND_UNIT_ECONOMICS.md) and [release checklist](MVP_RELEASE_CHECKLIST.md) remain separate.
 
 ## 1. Definition of a milestone — products versus features versus infrastructure
