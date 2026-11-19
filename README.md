@@ -1,6 +1,6 @@
 # imgengine
 
-**F2c reconciliation / F4 Convert (2026-11-19):** [Compress PR #72](https://github.com/Rofikali/imgengine/pull/72) is **MERGED** as `c3cc04cd60ac6530ba07b2148de48eb61e969155`; the owner verified nine required jobs passed at its PR head. **F4 Convert is now the active browser-local Free milestone**; neither feature merge makes Free a public release. [Live next.md](next.md) is authoritative.
+**F2c reconciliation / F4 Convert (2026-11-19):** [Compress PR #72](https://github.com/Rofikali/imgengine/pull/72) is **MERGED** as `c3cc04cd60ac6530ba07b2148de48eb61e969155`; the owner verified nine required jobs passed at its PR head. [F4 Convert PR #76](https://github.com/Rofikali/imgengine/pull/76) is **OPEN / CI PENDING**; neither feature merge makes Free a public release. [Live next.md](next.md) is authoritative.
 
 **Frontend Excellence F6 (owner-requested plan, 2026-11-19):** [post-Free frontend strategy](docs/IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md) + [F6 acceptance and verification matrix](docs/IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md) cover navbar, design system, accessible five-tool UX, SEO, browser speed and memory, measured Worker/Rust-Wasm decisions, dev tooling, security and CA/MBA/product gates. **F6 is a proposal, not implemented or released.** All Free v1 F5 safety/quality gates remain mandatory; [next.md](next.md) retains F4 Convert → F5 as the current development priority until reverified.
 
