@@ -1,7 +1,7 @@
 import { MAX_LOCAL_PIXELS } from '../utils/local-resize'
-import { jpegQuality } from '../utils/local-compress'
+import { jpegQuality, type LocalCompressRequest, type LocalCompressResponse } from '../utils/local-compress'
 
-self.onmessage = async (event: MessageEvent<{ blob: Blob, quality: string }>) => {
+self.onmessage = async (event: MessageEvent<LocalCompressRequest>) => {
   let bitmap: ImageBitmap | undefined
   let canvas: OffscreenCanvas | undefined
   try {
@@ -16,11 +16,10 @@ self.onmessage = async (event: MessageEvent<{ blob: Blob, quality: string }>) =>
     context.fillStyle = '#ffffff'
     context.fillRect(0, 0, bitmap.width, bitmap.height)
     context.drawImage(bitmap, 0, 0)
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: quality / 100 })
-    if (blob.type !== 'image/jpeg' || !blob.size || blob.size > 20 * 1024 * 1024) throw Error()
-    self.postMessage({ blob, quality })
+    const output = canvas.transferToImageBitmap()
+    self.postMessage({ bitmap: output, quality } satisfies LocalCompressResponse, [output])
   } catch {
-    self.postMessage({ error: true })
+    self.postMessage({ error: true } satisfies LocalCompressResponse)
   } finally {
     bitmap?.close()
     if (canvas) { canvas.width = 0; canvas.height = 0 }

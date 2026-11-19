@@ -240,6 +240,41 @@ jobs:
         working-directory: imgengine-saas/frontend
         run: pnpm run build
 
+  frontend-browser-quality:
+    name: Nuxt local-tool browser quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Enable pinned pnpm
+        run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install locked frontend dependencies
+        working-directory: imgengine-saas/frontend
+        run: pnpm install --frozen-lockfile
+      - name: Generate Nuxt production output
+        working-directory: imgengine-saas/frontend
+        run: pnpm exec nuxi prepare && pnpm run build
+      - name: Install Playwright browser dependencies
+        working-directory: imgengine-saas/frontend
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Run local tool browser quality matrix
+        working-directory: imgengine-saas/frontend
+        run: pnpm run test:browser:local-tools
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-browser-quality-artifacts
+          path: imgengine-saas/frontend/test-results
+          if-no-files-found: ignore
+
   rust-api-container:
     name: Rust API container verification
     runs-on: ubuntu-24.04

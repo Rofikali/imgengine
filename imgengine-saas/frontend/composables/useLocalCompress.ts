@@ -1,6 +1,6 @@
 import { onBeforeUnmount, ref, shallowRef } from 'vue'
 import { inspectPreview, loadCropPreview, type CropPreview } from '~/utils/crop-preview'
-import { DEFAULT_JPEG_QUALITY, jpegQuality } from '~/utils/local-compress'
+import { DEFAULT_JPEG_QUALITY, isLocalCompressBitmap, isLocalCompressSuccess, jpegQuality, type LocalCompressRequest, type LocalCompressResponse } from '~/utils/local-compress'
 import { MAX_LOCAL_BYTES, MAX_LOCAL_PIXELS } from '~/utils/local-resize'
 
 export function useLocalCompress() {
@@ -52,11 +52,27 @@ export function useLocalCompress() {
       const output = await new Promise<Blob>((resolve, reject) => {
         const worker = new Worker(new URL('../workers/local-compress.ts', import.meta.url), { type: 'module' })
         const finish = (value?: Blob) => { clearTimeout(timer); worker.terminate(); stopWorker = undefined; value ? resolve(value) : reject(Error()) }
+        const encode = (bitmap: ImageBitmap, outputQuality: number) => {
+          const canvas = document.createElement('canvas')
+          canvas.width = bitmap.width; canvas.height = bitmap.height
+          const context = canvas.getContext('2d')
+          if (!context) { bitmap.close(); finish(); return }
+          context.drawImage(bitmap, 0, 0); bitmap.close()
+          canvas.toBlob(encoded => {
+            canvas.width = canvas.height = 0
+            if (!encoded || encoded.type !== 'image/jpeg' || !encoded.size || encoded.size > 20 * 1024 * 1024) { finish(); return }
+            finish(encoded)
+          }, 'image/jpeg', outputQuality / 100)
+        }
         const timer = setTimeout(() => finish(), 10_000)
         stopWorker = () => finish()
         worker.onerror = () => finish()
-        worker.onmessage = event => finish(event.data.blob instanceof Blob ? event.data.blob : undefined)
-        try { worker.postMessage({ blob, quality: quality.value }) } catch { finish() }
+        worker.onmessage = (event: MessageEvent<LocalCompressResponse>) => {
+          if (isLocalCompressSuccess(event.data)) finish(event.data.blob)
+          else if (isLocalCompressBitmap(event.data)) encode(event.data.bitmap, event.data.quality)
+          else finish()
+        }
+        try { worker.postMessage({ blob, quality: quality.value } satisfies LocalCompressRequest) } catch { finish() }
       })
       if (current !== generation) return
       result.value = URL.createObjectURL(output)
