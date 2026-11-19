@@ -30,7 +30,7 @@ function withGpsExif(jpeg: Buffer): Buffer {
   view.setUint16(38, 1, true)
   view.setUint16(40, 1, true); view.setUint16(42, 2, true)
   view.setUint32(44, 2, true); tiff[48] = 'N'.charCodeAt(0)
-  const header = Buffer.from('Exif\\0\\0', 'binary')
+  const header = Buffer.from([69, 120, 105, 102, 0, 0])
   const app1Length = tiff.length + header.length + 2
   return Buffer.concat([
     jpeg.subarray(0, 2),
@@ -112,7 +112,7 @@ test('JPEG orientation and GPS EXIF are stripped from the exported JPEG across b
   }), 'base64')
   const input = withGpsExif(jpeg)
   const inputSegments = jpegMetadataSegments(input)
-  expect(inputSegments.some(s => s.marker === 0xe1 && s.data.subarray(0, 6).equals(Buffer.from('Exif\\0\\0', 'binary')))).toBe(true)
+  expect(inputSegments.some(s => s.marker === 0xe1 && s.data.subarray(0, 6).equals(Buffer.from([69, 120, 105, 102, 0, 0])))).toBe(true)
   expect(inputSegments.some(s => s.marker === 0xe1 && s.data.includes(Buffer.from([0x25, 0x88])))).toBe(true)
 
   await page.getByLabel('Choose a JPEG or PNG', { exact: true }).setInputFiles({ name: 'gps-orientation.jpg', mimeType: 'image/jpeg', buffer: input })
