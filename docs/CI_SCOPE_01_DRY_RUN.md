@@ -1,5 +1,7 @@
 # CI-SCOPE-01 Phase A: informational change classification
 
+**Superseded when CI-SCOPE-02 merges (2026-11-19):** This is the original **Phase A informational-only** classifier with historical seven-job outputs. The [Phase B selection+gate policy](CI_SCOPE_02_SELECTION_GATE.md) adds a new independently tested trusted-base selector, preserves all nine existing job IDs and a new always-on aggregate. Do not treat this dry-run's `actualJobs` property as a live branch-protection contract.
+
 Base: `758bedc24c9acd0ddde8a956210fd090d5bdb874`. Implementation is proposed
 for review; no selective skipping is activated. All seven existing jobs retain
 their names, triggers and unconditional scheduling. Two steps in the frontend
