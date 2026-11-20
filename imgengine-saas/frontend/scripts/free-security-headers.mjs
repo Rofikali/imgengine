@@ -53,7 +53,13 @@ export function buildFreeHeaders(dist) {
           const routeDir = relative(root, htmlFile).split(sep).slice(0, -1).join('/')
           const expected = '/' + (routeDir ? routeDir + '/' : '') + '_payload.json'
           const payloadPath = join(root, expected.slice(1))
-          if (contentType !== 'application/json' || value !== expected) {
+          // Nuxt adds a UUIDv4 cache buster on its route-local JSON payloads.
+          // Accept only the exact pathname with this one proven suffix.
+          const suffixPrefix = expected + '?_b='
+          const cacheBuster = value.startsWith(suffixPrefix) ? value.slice(suffixPrefix.length) : ''
+          const validCacheBuster = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cacheBuster)
+          const isExpectedPayload = value === expected || validCacheBuster
+          if (contentType !== 'application/json' || !isExpectedPayload) {
             throw Error('unapproved JSON script payload path/type in ' + relative(root, htmlFile) +
               ': expected ' + expected + ', received ' + JSON.stringify(value.slice(0, 240)) + ', length ' + value.length)
           }
