@@ -2,6 +2,8 @@
 
 **Decision state: OPEN / NO PATCH OR RISK ACCEPTANCE APPROVED.** This is an *intermediate development-CI finding*, not a source-frozen release candidate audit, immutable SBOM, final dependency disposition or public deployment clearance. [F5 release evidence matrix](evidence-matrix.md) remains authoritative for launch gates.
 
+**2026-11-20 main checkpoint:** [PR #86](https://github.com/Rofikali/imgengine/pull/86) merged at `7ed8a546b11eda1916639b8fa68fd49d36c605af`; its exact head `c954a47fee99f780d4514555d9fa11cc83ec66b8` passed [12/12 CI jobs](https://github.com/Rofikali/imgengine/actions/runs/44725866940). The advisory identifiers and lockfile graph below are now on main. **F5-SUPPLY-02** proposes removal of the now-obsolete picomatch development waiver while maintaining zero-tolerance high/critical auditing. This is not mitigation for the two moderate transitive findings; their release-risk disposition remains open.
+
 ## Exact verified report
 
 - **Source:** [PR #86 CI run 44725108058](https://github.com/Rofikali/imgengine/actions/runs/44725108058), job **Nuxt frontend verification**, `pnpm install --frozen-lockfile` and `pnpm audit --prod --json`, with `scripts/check-production-audit.mjs` printing bounded, sanitized finding details. The run's full aggregate CI result is **not presumed** from this individual frontend job. PR HEAD and all checks must be reverified before merging.
