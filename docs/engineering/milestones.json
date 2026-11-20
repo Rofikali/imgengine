@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "release": "IMGENGINE Free v1.0.0",
+  "release_state": "NOT_RELEASED",
+  "release_blockers": [
+    "Production source-lockfile moderate advisories (glob and minimatch) remain unremediated",
+    "Immutable Free-only release artifact, SBOM/provenance and independent release audit not approved",
+    "Privacy, terms, support and operator/legal contact notices remain draft",
+    "Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified",
+    "Explicit owner release go/no-go and production deployment not authorized"
+  ],
+  "milestones": [
+    {
+      "id": "F5-SUPPLY-03",
+      "title": "Disposable patched-major compatibility verification and Firefox isolation",
+      "priority": 100,
+      "pr": 88,
+      "declared_state": "PLANNED",
+      "depends_on": []
+    },
+    {
+      "id": "F5-SUPPLY-04",
+      "title": "Strict no-moderate release dependency audit gate",
+      "priority": 110,
+      "pr": 89,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-SUPPLY-03"
+      ]
+    },
+    {
+      "id": "F5-DOC-RECON-01",
+      "title": "Post-merge release documentation reconciliation",
+      "priority": 120,
+      "pr": 90,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-SUPPLY-04"
+      ]
+    },
+    {
+      "id": "F5-SUPPLY-05",
+      "title": "Permanent upstream-compatible dependency and lockfile remediation",
+      "priority": 10,
+      "pr": null,
+      "declared_state": "READY",
+      "depends_on": [
+        "F5-SUPPLY-04"
+      ]
+    },
+    {
+      "id": "F5-RC-01",
+      "title": "Immutable source-frozen static release artifact and independent verification",
+      "priority": 20,
+      "pr": null,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-SUPPLY-05"
+      ]
+    },
+    {
+      "id": "F5-TRUST-FINAL",
+      "title": "Owner-reviewed legal, privacy and support notices",
+      "priority": 30,
+      "pr": null,
+      "declared_state": "PLANNED",
+      "depends_on": []
+    },
+    {
+      "id": "F5-HOST-VERIFY",
+      "title": "Cloudflare live hosting, rollback and financial gate",
+      "priority": 40,
+      "pr": null,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-RC-01"
+      ]
+    }
+  ]
+}
