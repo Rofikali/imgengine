@@ -1,5 +1,7 @@
 # imgengine
 
+**Free v1 F5-TRUST-01 draft notices (2026-11-20):** The [Free release dossier](docs/releases/free/v1.0.0/README.md) now distinguishes merged static F5-STATIC-01 from a new public-notices milestone: draft-only Free `/privacy`, `/terms`, `/support` pages with a release-blocking preflight. Operator/private contact, applicable legal review, Cloudflare analytics/TLS/CSP, security advisory audit and owner approval remain outstanding; no live site or release tag is authorized.
+
 **F5 release documentation (owner-requested 2026-11-20, review candidate):** [versioned Free v1.0.0 dossier](docs/releases/free/v1.0.0/README.md) and [shared release-documentation templates](docs/releases/README.md) define a **static-only** Cloudflare Pages Direct Upload target. This is a documentation/governance milestone, **not** a static build, release tag, product launch or authorization to deploy. All C/Rust/Nuxt/server source remains in Git; Free public assets must exclude executable server/runtime functionality.
 
 **CI-SCOPE-02 conditional PR checks (review candidate):** [Versioned change-impact matrix and fail-closed verification gate](docs/CI_SCOPE_02_SELECTION_GATE.md). Frontend-only PRs can avoid unrelated native/FFI jobs while retaining Nuxt and all four browser projects; native, shared/unknown, CI or security changes run the full matrix, as do pushes to main. CI job selection is secure only with the always-running aggregate gate **and owner-configured required check protection**; no protection/account settings are silently changed.

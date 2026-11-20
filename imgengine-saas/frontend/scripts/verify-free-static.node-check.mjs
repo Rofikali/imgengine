@@ -21,10 +21,10 @@ function withFixture(fn) {
   } finally { rmSync(root, { recursive: true, force: true }) }
 }
 
-test('allows exactly six pre-rendered routes and browser assets; produces deterministic digest', () => {
+test('allows all nine verified static routes and browser assets; produces deterministic digest', () => {
   withFixture(({root}) => {
     const a = auditFreeStatic(root), b = auditFreeStatic(root)
-    assert.equal(a.fileCount, 8)
+    assert.equal(a.fileCount, 11)
     assert.equal(a.staticTreeSha256, b.staticTreeSha256)
     assert.equal(a.staticTreeSha256.length, 64)
   })

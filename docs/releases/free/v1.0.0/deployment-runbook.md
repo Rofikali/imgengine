@@ -27,6 +27,8 @@ Official vendor references: [Direct Upload](https://developers.cloudflare.com/pa
 
 ## Phase 2 — owner signoff and approved deployment
 
+**Mandatory hold after F5-TRUST-01:** `pnpm run verify:free-publication-ready` currently fails by design because public privacy/terms/support copy is a draft, legal/operator/support ownership is unknown, and a detached post-freeze signed-artifact/owner gate does not yet exist. Never bypass that failure to perform Pages Direct Upload. Next owner-reviewed milestone must supply verifiable contact, effective notice, actual Cloudflare analytics/logging configuration, independently authorized legal/privacy/security review and an external, immutable release approval record. Do not place final SHA into the source-controlled JSON manifest (self-reference).
+
 1. Obtain **explicit**, separate owner approval for immutable artifact digest, intended Cloudflare account/project, Free plan constraints, expected site visibility and launch/rollback operator.
 2. Review remaining high-severity advisories, static privacy/legal/support documentation, Cloudflare Access preview protection when required, DNS/TLS and asset security headers. Resolve/accept **only with valid production-authorized security decision**; the current picomatch exemption is *non-production only*.
 3. Create/select the **Direct Upload** Pages project under Workers & Pages, after validating its public-visibility behavior. For controlled internal rehearsal, use a protected preview if authorized; Cloudflare Pages previews may otherwise be Internet-accessible.

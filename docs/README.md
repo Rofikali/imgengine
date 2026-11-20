@@ -1,5 +1,7 @@
 # IMGENGINE Documentation
 
+**F5-TRUST-01 — privacy, terms and support drafts:** The [Free v1.0.0 dossier](releases/free/v1.0.0/README.md) requires reviewed, accurate public notices and private support before Cloudflare. F5-STATIC-01 #83 merged with 12/12 CI, but Free is NOT RELEASED. Draft static routes, accessibility/browser tests and fail-closed publication preflight are proposed as a separate PR; operator identity/contact, DPDP review, current audit and Cloudflare analytics/header validation remain open.
+
 **F5-RELEASE-DOCS-01 — merged governance, F5-STATIC-01 implementation in review:** [Release index](releases/README.md) and [Free v1.0.0 dossier](releases/free/v1.0.0/README.md) provide the static-only deployment boundary, truthful evidence matrix, source-controlled release plan, Cloudflare Direct Upload/rollback runbook and templates for independently versioned future products. **NOT RELEASED; no server runtime, tags, public site, billing or cloud settings changed** by documentation.
 
 **CI-SCOPE-02 (2026-11-19, review candidate):** [Selective pull-request verification and fail-closed required aggregate gate](CI_SCOPE_02_SELECTION_GATE.md). The [previous dry-run classifier](CI_SCOPE_01_DRY_RUN.md) is retained as historical evidence, not the new gating authority. Path→job ownership, trusted-base fork handling, docs-only cheap policy check, full main/release verification, skipped-job truth table, manual branch-protection setup, rollback and audit evidence are documented centrally.

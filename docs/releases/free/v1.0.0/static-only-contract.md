@@ -1,6 +1,6 @@
 # IMGENGINE Free v1.0.0 — Static-only public distribution contract
 
-**Status:** BINDING TARGET / F5-STATIC-01 IMPLEMENTATION PR IN REVIEW, TEST RESULTS PENDING. Source implementations are not production certification. Must be enforced by an independently reviewed **F5-STATIC-01** build and browser-negative-test PR before any release candidate or Cloudflare upload.
+**Status:** F5-STATIC-01 IMPLEMENTATION MERGED AND CI VERIFIED ([PR #83](https://github.com/Rofikali/imgengine/pull/83), [12/12 exact-head CI](https://github.com/Rofikali/imgengine/actions/runs/44686554819)), **NOT** a frozen/public release. F5-TRUST-01 adds static draft notices and negative publication checks; no Cloudflare production authorization.
 
 ## Build and distribution boundary
 
@@ -14,7 +14,7 @@
 
 Static generated output candidate: `imgengine-saas/frontend/.output/public/` from `pnpm exec nuxi generate` running **inside Ubuntu 24.04 Docker**. Nuxt `pnpm build` success and Playwright discovery alone do **not** demonstrate a viable static artifact. Direct-link/hard-refresh routes must work from the distribution; verify actual output shape rather than assuming it.
 
-Publicly supported paths are the landing page, five browser-local tool routes (`/resize-image`, `/crop-image`, `/compress-image`, `/rotate-image`, `/convert-image`) and approved static privacy/terms/support/error pages. Any redirects and security-header files are included only after review.
+Static routes under F5-TRUST-01 are landing `/`, five browser-local tool routes (`/resize-image`, `/crop-image`, `/compress-image`, `/rotate-image`, `/convert-image`) and **three pre-launch draft** routes (`/privacy`, `/terms`, `/support`). Do **not** treat these drafts as approved terms, contact or privacy assurance. A legal-review and private support channel are required before public publication. Any redirects and security-header files are included only after review.
 
 ## Prohibited public files, functionality and secrets
 
@@ -53,5 +53,9 @@ The repository currently includes `pages/index.vue` rendering `ServerRenderApp` 
 The existing [picomatch temporary exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md) is **non-production-only**, expires 2026-12-02 UTC and is **not** a production release authorization. Supply-chain and actual production exposure must be independently verified before deployment.
 
 ## Future products
+
+**F5-TRUST-01 publication hold:** The source-controlled plan remains `PLANNED` and may not carry its own final Git SHA. `pnpm run verify:free-publication-ready` deliberately returns failure until a future, separately reviewed external owner approval/attestation process is built and all draft copy is approved. Success of ordinary build tests is not permission to bypass this guard.
+
+**Cloudflare provider-specific security remains F5-HOST-01:** the service must validate actual `_headers`/CSP, page behavior, analytics configuration, HTTPS and privacy disclosures against the final chosen Pages project before production. Cloudflare may automatically enable Web Analytics, so do not claim no analytics without checking the dashboard. [Cloudflare Pages headers](https://developers.cloudflare.com/pages/configuration/headers/) and [analytics guidance](https://developers.cloudflare.com/pages/how-to/web-analytics/) are reference sources; no provider settings were changed here.
 
 Pro/Studio may reuse the same source through governed `main` and short-lived `feat/pro/*` / `feat/studio/*` branches, but have independent release artifacts, security boundaries, support and pricing decisions. The public Free static artifact is a selected **output**, never a forked/deleted codebase.

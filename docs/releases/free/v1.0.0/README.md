@@ -38,6 +38,10 @@ Authoritative shared policies: [release index](../../README.md), [five-family re
 
 ## Decision and remaining blockers
 
+**Current source progress (2026-11-20):** [F5-STATIC-01 PR #83](https://github.com/Rofikali/imgengine/pull/83) merged at `f1f61cfeecc565cbf3c44de57a747d1369b11000`; exact-head [run #44686554819](https://github.com/Rofikali/imgengine/actions/runs/44686554819) passed 12/12 jobs including 100/100 static four-browser tests and artifact negative checks. This verifies development implementation, **not** a frozen, signed or Cloudflare-hosted release candidate.
+
+**F5-TRUST-01 in review:** static **draft-only** `/privacy`, `/terms` and `/support` routes are proposed for Free builds, with a labelled footer and a separate publication readiness guard. No legal operator identity, private contact channel or contractual jurisdiction is fabricated. Current public-page content says pre-launch draft, and `pnpm run verify:free-publication-ready` intentionally fails; it must not be used to approve deployment. The future final artifact/owner approval must be external and post-freeze. Hosting provider logs and analytics configuration must be checked in the actual Cloudflare project before privacy copy is finalized.
+
 **Next:** owner-reviewed merge of the docs PR, followed by a **separate** F5-STATIC-01 implementation PR, release-level browser/privacy/a11y tests against the actual generated static site, security/advisory disposition, privacy/legal/support owner review, real Cloudflare preview/rollback readiness and exact artifact provenance. A public site requires an additional **explicit owner approval** identifying the release artifact digest and target project.
 
 No VPS / real C/Rust host-capacity evidence is demanded for a genuinely serverless *static* Free build; it becomes mandatory for a separately approved public Rust/C/Studio/API service. A 20-GB/1-GB local Docker allocation alone is not public-host evidence.
