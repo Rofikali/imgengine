@@ -37,6 +37,7 @@ The complete project (C17 native libraries, Rust/Axum backend, Nuxt server route
 - [Static-only contract](static-only-contract.md) — required architecture/negative checks
 - [Evidence and sign-off matrix](evidence-matrix.md) — actual verified historical facts vs unknown production gates
 - [Dependency advisory review (2026-11-20)](dependency-advisory-review-2026-11-20.md) — exact audit IDs, reported patches and unresolved applicability/compatibility gates
+- [F5-SUPPLY-04 release-candidate audit gate](release-dependency-security-gate.md) — a separate **no moderate/high/critical** dependency threshold for release preflight. Ordinary development CI still logs moderate findings, and a green audit alone never authorizes hosting/publication.
 - [Cloudflare deployment/rollback runbook](deployment-runbook.md) — **procedure only**, no deploy
 
 Authoritative shared policies: [release index](../../README.md), [five-family release ADR](../../../ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md), [compatibility contract](../../../IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md), [Docker-only engineering](../../../IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md), [main live milestone board](../../../../next.md), [temporary unpatched non-production security exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). Avoid copying those policies.
