@@ -1,5 +1,9 @@
 # IMGENGINE Free v1.0.0 — Static-only public distribution contract
 
+**F5-HOST-HDR-01 boundary (candidate, not production approval):** The Free distribution is allowed **one root `_headers` Cloudflare Pages configuration file**, byte-for-byte derived from the compiled HTML and validated. This must not open the allowlist to `_worker.js`, `_routes.json`, `functions/`, Node/Nitro, executables or server APIs. A CSP must hash executable inline Nuxt scripts (no `unsafe-inline` or `unsafe-eval` in `script-src`), restrict fetch to same-origin and workers to same-origin or local blob, and prevent frames/forms/objects. Nuxt's current CSS may need `style-src 'unsafe-inline'`, explicitly accepted as a scoped limitation until a separate style policy is proven. Temporarily `X-Robots-Tag: noindex, nofollow` applies to draft Free static pages; **a future separate reviewed PR must remove it only after legal/content approval**.
+
+Cloudflare `_headers` applies only to **static asset responses**, not Pages Functions. No Functions are allowed. Local Playwright **simulates provider headers** using the generated file, which is evidence of browser compatibility but **not** proof of actual Cloudflare CDN behavior. See [Cloudflare Pages headers](https://developers.cloudflare.com/pages/configuration/headers/). No Cloudflare account/project setting is touched.
+
 **Status:** F5-STATIC-01 IMPLEMENTATION MERGED AND CI VERIFIED ([PR #83](https://github.com/Rofikali/imgengine/pull/83), [12/12 exact-head CI](https://github.com/Rofikali/imgengine/actions/runs/44686554819)), **NOT** a frozen/public release. F5-TRUST-01 adds static draft notices and negative publication checks; no Cloudflare production authorization.
 
 ## Build and distribution boundary

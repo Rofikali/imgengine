@@ -81,3 +81,35 @@ test('Free tool routes link to privacy, terms and support without image upload',
     await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
   }
 })
+
+test('compiled Free static pages enforce CSP and defensive Cloudflare headers', async ({ page, request }) => {
+  const urls = ['/', ...freeTools.map(x => x[1]), '/privacy', '/terms', '/support']
+  for (const route of urls) {
+    const response = await request.get(route, { maxRedirects: 0 })
+    expect(response.status(), route).toBe(200)
+    const headers = response.headers()
+    const csp = headers['content-security-policy']
+    expect(csp, route).toContain("default-src 'none'")
+    expect(csp, route).toContain("script-src 'self'")
+    expect(csp, route).toContain("connect-src 'self'")
+    expect(csp, route).toContain("frame-ancestors 'none'")
+    expect(csp, route).not.toContain('unsafe-eval')
+    expect(csp.split('script-src ')[1].split(';')[0]).not.toContain('unsafe-inline')
+    expect(headers['x-content-type-options']).toBe('nosniff')
+    expect(headers['x-frame-options']).toBe('DENY')
+    expect(headers['referrer-policy']).toBe('no-referrer')
+    expect(headers['x-robots-tag']).toContain('noindex')
+    await page.addInitScript(() => {
+      const store = window as Window & { __imgengineCspViolations?: string[] }
+      store.__imgengineCspViolations = []
+      document.addEventListener('securitypolicyviolation', event => {
+        store.__imgengineCspViolations?.push(event.violatedDirective + ': ' + event.blockedURI)
+      })
+    })
+    await page.goto(route)
+    await expect(page.getByRole('main')).toBeVisible()
+    const violations = await page.evaluate(() => (window as Window & { __imgengineCspViolations?: string[] }).__imgengineCspViolations ?? [])
+    expect(violations, route).toEqual([])
+  }
+  expect((await request.get('/_headers')).status()).toBe(404)
+})

@@ -3,8 +3,10 @@ import { createServer } from 'node:http'
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { verifyFreeHeaders } from './free-security-headers.mjs'
 
 const root = realpathSync(fileURLToPath(new URL('../.output/public/', import.meta.url)))
+const providerHeaders = verifyFreeHeaders(root)
 const types = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -16,7 +18,8 @@ const port = Number(process.env.PORT || 3100)
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('invalid test port')
 
 createServer((req, res) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
+  // Simulate Cloudflare Pages applying the generated _headers on static responses.
+  for (const [name, value] of providerHeaders) res.setHeader(name, value)
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return
   }
@@ -24,7 +27,7 @@ createServer((req, res) => {
   try { pathname = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname) }
   catch { res.writeHead(400); res.end(); return }
   if (pathname.includes('\\') || pathname.includes('\0') || pathname.split('/').includes('..') ||
-      pathname.startsWith('/api/') || pathname.startsWith('/server/') || pathname === '/api') {
+      pathname.startsWith('/api/') || pathname.startsWith('/server/') || pathname === '/api' || pathname === '/_headers') {
     res.writeHead(404); res.end(); return
   }
   const rel = pathname.replace(/^\/+/, '')

@@ -1,4 +1,5 @@
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, rmSync, writeFileSync } from 'node:fs'
+import { buildFreeHeaders, parseFreeHeaders } from './free-security-headers.mjs'
 import { fileURLToPath } from 'node:url'
 
 const folder = fileURLToPath(new URL('../.output/public/', import.meta.url))
@@ -13,3 +14,8 @@ if (existsSync(spaFallback)) {
 if (!existsSync(fileURLToPath(new URL('../.output/public/404.html', import.meta.url)))) {
   throw Error('Free static build requires an explicit 404.html')
 }
+
+const headers = buildFreeHeaders(folder)
+parseFreeHeaders(headers)
+writeFileSync(fileURLToPath(new URL('../.output/public/_headers', import.meta.url)), headers, { mode: 0o644 })
+console.log('Free static security headers generated from compiled HTML')

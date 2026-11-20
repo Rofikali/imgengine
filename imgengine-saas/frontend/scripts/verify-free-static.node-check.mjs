@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { auditFreeStatic, FREE_ROUTES } from './verify-free-static.mjs'
+import { buildFreeHeaders } from './free-security-headers.mjs'
 
 function withFixture(fn) {
   const root = mkdtempSync(join(tmpdir(), 'imgengine-free-static-'))
@@ -17,6 +18,7 @@ function withFixture(fn) {
     write('404.html', 'not found')
     for (const route of FREE_ROUTES.slice(1)) write(route.slice(1) + '/index.html')
     write('_nuxt/assets.js')
+    write('_headers', buildFreeHeaders(root))
     fn({ root, write })
   } finally { rmSync(root, { recursive: true, force: true }) }
 }
@@ -24,7 +26,7 @@ function withFixture(fn) {
 test('allows all nine verified static routes and browser assets; produces deterministic digest', () => {
   withFixture(({root}) => {
     const a = auditFreeStatic(root), b = auditFreeStatic(root)
-    assert.equal(a.fileCount, 11)
+    assert.equal(a.fileCount, 12)
     assert.equal(a.staticTreeSha256, b.staticTreeSha256)
     assert.equal(a.staticTreeSha256.length, 64)
   })
@@ -67,5 +69,18 @@ test('symlinks cannot escape public artifact', () => {
   withFixture(({root}) => {
     symlinkSync(join(root, 'index.html'), join(root, '_nuxt', 'shadow.js'))
     assert.throws(() => auditFreeStatic(root), /Symlink/)
+  })
+})
+
+test('Free static audit requires generated, intact Cloudflare security headers', () => {
+  withFixture(({root}) => {
+    rmSync(join(root, '_headers'))
+    assert.throws(() => auditFreeStatic(root), /_headers missing/)
+  })
+})
+test('tampered CSP is rejected even if other artifact files are safe', () => {
+  withFixture(({root, write}) => {
+    write('_headers', buildFreeHeaders(root).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
+    assert.throws(() => auditFreeStatic(root), /do not match|unsafe/)
   })
 })

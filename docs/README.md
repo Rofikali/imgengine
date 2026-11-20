@@ -1,5 +1,7 @@
 # IMGENGINE Documentation
 
+**Cloudflare static-header candidate (F5-HOST-HDR-01):** [Free release contract](releases/free/v1.0.0/static-only-contract.md) specifies deterministic root `_headers`, hash-based script CSP, restrictive browser/egress rules and independent exact-build verification. F5-TRUST-01 #84 is merged; three notices are drafts, hosting/security/legal evidence remains open. No Pages deployment is authorized by documentation or CI.
+
 **F5-TRUST-01 — privacy, terms and support drafts:** The [Free v1.0.0 dossier](releases/free/v1.0.0/README.md) requires reviewed, accurate public notices and private support before Cloudflare. F5-STATIC-01 #83 merged with 12/12 CI, but Free is NOT RELEASED. Draft static routes, accessibility/browser tests and fail-closed publication preflight are proposed as a separate PR; operator identity/contact, DPDP review, current audit and Cloudflare analytics/header validation remain open.
 
 **F5-RELEASE-DOCS-01 — merged governance, F5-STATIC-01 implementation in review:** [Release index](releases/README.md) and [Free v1.0.0 dossier](releases/free/v1.0.0/README.md) provide the static-only deployment boundary, truthful evidence matrix, source-controlled release plan, Cloudflare Direct Upload/rollback runbook and templates for independently versioned future products. **NOT RELEASED; no server runtime, tags, public site, billing or cloud settings changed** by documentation.
