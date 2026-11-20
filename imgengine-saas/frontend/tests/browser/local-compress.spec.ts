@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { isApprovedStaticNuxtPayload } from './static-payload'
 import AxeBuilder from '@axe-core/playwright'
 import { oriented } from './orientation'
 
@@ -98,7 +99,7 @@ test('compresses locally to JPEG, composites alpha onto white, downloads, and pa
   const localAsset = (request: typeof requests[number]) => {
     const url = new URL(request.url)
     return request.method === 'GET' && !request.body && url.origin === 'http://127.0.0.1:3100'
-      && (/^\/_nuxt\//.test(url.pathname) || url.pathname === '/compress-image' || url.pathname === '/')
+      && (( !url.search && (/^\/_nuxt\//.test(url.pathname) || url.pathname === '/compress-image' || url.pathname === '/')) || isApprovedStaticNuxtPayload(url))
   }
   expect(requests.every(localAsset), JSON.stringify(requests)).toBe(true)
   expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])

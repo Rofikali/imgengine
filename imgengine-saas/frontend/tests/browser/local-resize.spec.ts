@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { isApprovedStaticNuxtPayload } from './static-payload'
 import AxeBuilder from '@axe-core/playwright'
 import { oriented } from './orientation'
 
@@ -41,8 +42,8 @@ test('local resize, aspect lock, PNG download, no image network/storage and acce
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   const assetOnly = (r: typeof requests[number]) => {
     const url = new URL(r.url)
-    return r.method === 'GET' && !r.body && url.origin === 'http://127.0.0.1:3100' && !url.search
-      && (/^\/_nuxt\/[^/]+\.(js|css)$/.test(url.pathname) || /^\/_nuxt\/builds\/meta\/[a-f0-9-]+\.json$/.test(url.pathname))
+    const normalAsset = !url.search && (/^\/_nuxt\/[^/]+\.(js|css)$/.test(url.pathname) || /^\/_nuxt\/builds\/meta\/[a-f0-9-]+\.json$/.test(url.pathname))
+    return r.method === 'GET' && !r.body && url.origin === 'http://127.0.0.1:3100' && (normalAsset || isApprovedStaticNuxtPayload(url))
   }
   expect(requests.every(assetOnly), JSON.stringify(requests.map(r => ({ method: r.method, path: new URL(r.url).pathname, hasBody: !!r.body })))).toBe(true)
   expect(await page.evaluate(async () => ({ local: localStorage.length, session: sessionStorage.length, databases: (await indexedDB.databases()).length }))).toEqual({ local: 0, session: 0, databases: 0 })
