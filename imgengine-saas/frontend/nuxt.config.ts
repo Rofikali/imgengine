@@ -43,6 +43,10 @@ export default defineNuxtConfig({
     imgengineApiBase: freeStatic ? '' : process.env.IMGENGINE_API_BASE ?? 'http://localhost:8000',
     imgengineRenderApiKey: freeStatic ? '' : process.env.IMGENGINE_RENDER_API_KEY ?? '',
   },
+  // Free-only CSP retains default-src 'none'; avoid speculative NuxtLink
+  // asset prefetch (which may fall back to default-src across browsers).
+  // Normal server-backed Nuxt behavior remains unchanged.
+  experimental: freeStatic ? { defaults: { nuxtLink: { prefetch: false } } } : {},
   devtools: { enabled: !freeStatic },
   typescript: { strict: true },
 })
