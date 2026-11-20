@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git worktree add --detach "$RUNNER_TEMP/f5-supply-03" HEAD
+          git -c safe.directory="$GITHUB_WORKSPACE" worktree add --detach "$RUNNER_TEMP/f5-supply-03" HEAD
           test -f "$RUNNER_TEMP/f5-supply-03/imgengine-saas/frontend/pnpm-lock.yaml"
       - name: Apply EXPERIMENTAL major overrides in disposable tree only
         working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
@@ -72,7 +72,8 @@ jobs:
           console.log('TRIAL ONLY: glob=14.0.2 minimatch=11.0.1 via disposable project overrides')
           NODE
           # The committed versions in GITHUB_WORKSPACE are NOT edited.
-          test -z "$(git -C "$GITHUB_WORKSPACE" status --porcelain)"
+          checkout_status="$(git -c safe.directory="$GITHUB_WORKSPACE" -C "$GITHUB_WORKSPACE" status --porcelain)"
+          test -z "$checkout_status"
       - name: Resolve trial lockfile and inspect transitive graph
         working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
         shell: bash
@@ -142,7 +143,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -n "$(git status --porcelain)" ]; then
+          checkout_status="$(git -c safe.directory="$GITHUB_WORKSPACE" status --porcelain)"
+          if [ -n "$checkout_status" ]; then
             echo "::error::Disposable probe unexpectedly modified reviewed checkout"
             exit 1
           fi
