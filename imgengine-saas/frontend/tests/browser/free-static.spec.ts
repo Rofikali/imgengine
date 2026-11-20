@@ -17,7 +17,7 @@ test('Free tools and legal routes are genuine static HTML, with no server layout
     // hydration/navigation must never interrupt the next route under Firefox.
     const routePage = await context.newPage()
     try {
-      await routePage.goto(route)
+      await routePage.goto(route, { waitUntil: 'domcontentloaded' })
       await expect(routePage.getByRole('main')).toBeVisible()
       await expect(routePage.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
       await expect(routePage.getByText('Create printable photo layouts.')).toHaveCount(0)
@@ -69,7 +69,7 @@ test('pre-launch privacy, terms and support drafts are visible and clearly not a
     expect(response.status(), route).toBe(200)
     const page = await context.newPage()
     try {
-      await page.goto(route)
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
       await expect(page.getByRole('heading', { name: heading })).toBeVisible()
       await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
       await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
@@ -89,7 +89,7 @@ test('Free tool routes link to privacy, terms and support without image upload',
   for (const [, route] of freeTools) {
     const page = await context.newPage()
     try {
-      await page.goto(route)
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
       const nav = page.getByRole('navigation', { name: 'Privacy, terms and support' })
       await expect(nav.getByRole('link')).toHaveCount(3)
       await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
