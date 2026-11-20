@@ -41,7 +41,8 @@ export function buildFreeHeaders(dist) {
     const html = readFileSync(htmlFile, 'utf8')
     for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
       const attrs = match[1]
-      const body = matc      const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
+      const body = match[2]
+      const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
       const contentType = (type?.[1] ?? type?.[2] ?? type?.[3] ?? '').toLowerCase()
       const src = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
       const value = src ? src[1] ?? src[2] ?? src[3] : null
