@@ -43,6 +43,36 @@ test('known high advisory outputs name, GHSA and fix state, and still fails', ()
   assert.match(result.stderr, /require remediation/)
 })
 
+test('moderate production advisories print names, IDs and available fixes without weakening CI', () => {
+  const result = audit(report(
+    { critical: 0, high: 0, moderate: 2, low: 0 },
+    {
+      glob: { severity: 'moderate', module_name: 'glob', url: 'https://github.com/advisories/GHSA-aaaa-bbbb-cccc', patched_versions: '>=13.0.0' },
+      minimatch: { severity: 'moderate', module_name: 'minimatch', url: 'https://github.com/advisories/GHSA-dddd-eeee-ffff', patched_versions: null },
+    },
+  ))
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /critical=0 high=0 moderate=2 low=0/)
+  assert.match(result.stdout, /severity=moderate package=glob id=GHSA-aaaa-bbbb-cccc patched=>=13\.0\.0/)
+  assert.match(result.stdout, /severity=moderate package=minimatch id=GHSA-dddd-eeee-ffff patched=no published fix reported/)
+})
+
+test('missing moderate details cannot be mistaken for a clean release audit', () => {
+  const result = audit(report({ critical: 0, high: 0, moderate: 2, low: 0 }))
+  assert.equal(result.status, 0) // Existing CI severity policy is unchanged.
+  assert.match(result.stdout, /Moderate advisory detail unavailable/)
+  assert.match(result.stdout, /Free release review remains pending/)
+})
+
+test('moderate advisory names are sanitized before appearing in public CI logs', () => {
+  const result = audit(report(
+    { critical: 0, high: 0, moderate: 1, low: 0 },
+    { control: { severity: 'moderate', module_name: 'foo\nbar', url: 'https://example.test/', patched_versions: 'unknown\rfix' } },
+  ))
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /severity=moderate package=foo bar id=GHSA-not-provided patched=unknown fix/)
+})
+
 test('missing detailed advisories cannot bypass high severity failure', () => {
   const result = audit(report({ critical: 0, high: 1, moderate: 0, low: 0 }))
   assert.equal(result.status, 1)
