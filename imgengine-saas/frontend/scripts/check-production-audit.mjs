@@ -52,12 +52,17 @@ console.log(`Production dependency audit: critical=${critical} high=${high} mode
  // Keep the security gate strict, but make the next unpatched finding diagnosable
  // from the failed CI step without downloading a full private audit artifact.
 const advisories = report?.advisories
-const severeAdvisories = advisories && typeof advisories === 'object'
-  ? Object.values(advisories).filter((item) => item && (item.severity === 'critical' || item.severity === 'high'))
+const auditEntries = advisories && typeof advisories === 'object'
+  ? Object.values(advisories).filter((item) => item && typeof item === 'object')
   : []
+const severeAdvisories = auditEntries.filter((item) => item.severity === 'critical' || item.severity === 'high')
+const moderateAdvisories = auditEntries.filter((item) => item.severity === 'moderate')
 
+// Moderate findings do not change the existing CI severity threshold. Their
+// identities must still be visible to reviewers before any Free release
+// decision, without storing the full raw audit report in public job output.
 const safeLabel = (value) => String(value ?? 'unknown').replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 160)
-for (const item of severeAdvisories.slice(0, 12)) {
+for (const item of [...severeAdvisories.slice(0, 12), ...moderateAdvisories.slice(0, 12)]) {
   const ghsa = String(item.url ?? '').match(/GHSA-[a-z0-9-]+/i)?.[0] ?? 'GHSA-not-provided'
   const packageName = safeLabel(item.module_name ?? item.name)
   const patchedVersions = safeLabel(item.patched_versions ?? 'no published fix reported')
@@ -69,6 +74,13 @@ if ((critical > 0 || high > 0) && severeAdvisories.length === 0) {
 if (severeAdvisories.length > 12) {
   console.log(`Production advisory detail truncated: ${severeAdvisories.length} total high/critical advisory records`)
 }
+if (moderate > 0 && moderateAdvisories.length === 0) {
+  console.log('Moderate advisory detail unavailable in audit JSON; Free release review remains pending')
+}
+if (moderateAdvisories.length > 12) {
+  console.log(`Moderate advisory detail truncated: ${moderateAdvisories.length} total moderate advisory records`)
+}
+
 if (critical > 0 || high > 0) {
   if (temporarilyAllowPicomatch) {
     const decision = assessTemporaryPicomatchWaiver(report, { critical, high })
