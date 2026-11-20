@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync, existsSync, writeFileSync, lstatSync } from 'node:fs'
-import { extname, join, relative, resolve } from 'node:path'
+import { extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // F5-HOST-HDR-01 — Cloudflare Pages _headers for STATIC ASSETS only.
@@ -41,19 +41,32 @@ export function buildFreeHeaders(dist) {
     const html = readFileSync(htmlFile, 'utf8')
     for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
       const attrs = match[1]
-      const body = match[2]
+      const body = matc      const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
+      const contentType = (type?.[1] ?? type?.[2] ?? type?.[3] ?? '').toLowerCase()
       const src = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
-      if (src) {
-        const value = src[1] ?? src[2] ?? src[3]
-        // Restrict all compiled executable scripts to local Nuxt assets.
+      const value = src ? src[1] ?? src[2] ?? src[3] : null
+      if (contentType === 'application/json' || contentType === 'application/ld+json') {
+        if (value !== null) {
+          // Nuxt's prerendered route data is a non-executable JSON data block,
+          // but accept only the exact existing payload adjacent to this HTML route.
+          const routeDir = relative(root, htmlFile).split(sep).slice(0, -1).join('/')
+          const expected = '/' + (routeDir ? routeDir + '/' : '') + '_payload.json'
+          const payloadPath = join(root, expected.slice(1))
+          if (contentType !== 'application/json' || value !== expected ||
+              !existsSync(payloadPath) || lstatSync(payloadPath).isSymbolicLink() ||
+              !statSync(payloadPath).isFile() || body.trim()) {
+            throw Error('unapproved JSON script payload in ' + relative(root, htmlFile))
+          }
+        }
+        continue
+      }
+      if (value !== null) {
+        // Executable scripts must refer only to compiled same-origin Nuxt JS.
         if (!/^\/_nuxt\/[a-z0-9_.\/-]+\.m?js(?:\?[a-z0-9_-]+)?$/i.test(value) || value.includes('..')) {
           throw Error('external/unapproved script in ' + relative(root, htmlFile) + ': src pathname ' + JSON.stringify(value.split(/[?#]/, 1)[0].slice(0, 160)))
         }
         continue
       }
-      const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
-      const contentType = (type?.[1] ?? type?.[2] ?? type?.[3] ?? '').toLowerCase()
-      if (contentType === 'application/json' || contentType === 'application/ld+json') continue
       // Import maps influence module resolution and must receive an exact CSP hash.
       if (!['', 'module', 'text/javascript', 'application/javascript', 'importmap'].includes(contentType)) {
         throw Error('unknown inline script type: ' + contentType)
