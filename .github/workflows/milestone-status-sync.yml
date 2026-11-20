@@ -89,7 +89,7 @@ jobs:
             push --quiet origin "HEAD:refs/heads/$branch" \
             "--force-with-lease=refs/heads/$branch:$remote_sha"
 
-          if gh pr view "$branch" --json number --jq '.number' >/dev/null 2>&1; then
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // ""')" ]; then
             echo "Existing status PR refreshed; owner review remains required."
           else
             gh pr create \
