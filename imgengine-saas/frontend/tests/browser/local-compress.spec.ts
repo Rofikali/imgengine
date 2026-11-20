@@ -77,7 +77,7 @@ async function choose(page: Page, buffer: Buffer) {
 
 test('compresses locally to JPEG, composites alpha onto white, downloads, and passes accessibility', async ({ page }) => {
   const requests: Array<{ method: string, url: string, body: string | null }> = []
-  await page.goto('/compress-image')
+  await page.goto('/compress-image', { waitUntil: 'domcontentloaded' })
   page.on('request', request => { if (/^https?:/.test(request.url())) requests.push({ method: request.method(), url: request.url(), body: request.postData() }) })
   await choose(page, await fixture(page, true))
   await page.getByLabel('Quality', { exact: true }).fill('80')
@@ -106,7 +106,7 @@ test('compresses locally to JPEG, composites alpha onto white, downloads, and pa
 })
 
 test('JPEG orientation and GPS EXIF are stripped from the exported JPEG across browsers', async ({ page }) => {
-  await page.goto('/compress-image')
+  await page.goto('/compress-image', { waitUntil: 'domcontentloaded' })
   const jpeg = Buffer.from(await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 3; canvas.height = 2
     canvas.getContext('2d')!.fillRect(0, 0, 3, 2)
@@ -133,7 +133,7 @@ test('rejects invalid quality and cancels or removes local resources', async ({ 
     URL.revokeObjectURL = url => { urls.delete(url); revoke(url) }
     Object.defineProperty(window, 'compressURLs', { get: () => urls.size })
   })
-  await page.goto('/compress-image'); await choose(page, await fixture(page))
+  await page.goto('/compress-image', { waitUntil: 'domcontentloaded' }); await choose(page, await fixture(page))
   await page.getByLabel('Quality', { exact: true }).fill('39'); await page.getByRole('button', { name: 'Compress locally', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('40 to 95')
   await page.evaluate(() => { window.Worker = class { postMessage() {} terminate() {} } as unknown as typeof Worker })
@@ -146,7 +146,7 @@ test('rejects invalid quality and cancels or removes local resources', async ({ 
 })
 
 test('recovers locally if Worker image decoding fails, with no image-bearing request', async ({ page }) => {
-  await page.goto('/compress-image')
+  await page.goto('/compress-image', { waitUntil: 'domcontentloaded' })
   const requests: Array<{ method: string, url: string, body: string | null }> = []
   page.on('request', request => {
     if (/^https?:/.test(request.url())) requests.push({ method: request.method(), url: request.url(), body: request.postData() })
@@ -168,7 +168,7 @@ test('recovers locally if Worker image decoding fails, with no image-bearing req
 })
 
 test('synchronous Canvas encoding failure rejects promptly and releases source on remove', async ({ page }) => {
-  await page.goto('/compress-image')
+  await page.goto('/compress-image', { waitUntil: 'domcontentloaded' })
   await choose(page, await fixture(page))
   await page.evaluate(() => {
     HTMLCanvasElement.prototype.toBlob = () => { throw Error('synthetic Canvas failure') }
