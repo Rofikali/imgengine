@@ -1,0 +1,52 @@
+{
+  "$schema": "../../schemas/release-plan.schema.json",
+  "schema_version": 1,
+  "kind": "source-controlled-release-plan",
+  "product": "imgengine-free",
+  "version": "1.0.0",
+  "state": "PLANNED",
+  "publicly_released": false,
+  "capabilities": [
+    "resize",
+    "crop",
+    "compress",
+    "rotate",
+    "convert"
+  ],
+  "distribution": {
+    "type": "verified-static-assets-only",
+    "candidate_output": "imgengine-saas/frontend/.output/public",
+    "build_environment": "ubuntu-24.04-docker",
+    "hosting_target": "cloudflare-pages",
+    "upload_method": "direct-upload",
+    "nuxt_server_runtime_allowed": false,
+    "cloudflare_pages_functions_allowed": false,
+    "public_rust_or_c_api_allowed": false,
+    "server_image_upload_allowed": false,
+    "automatic_git_deployment_allowed": false
+  },
+  "source_control": {
+    "integration_branch": "main",
+    "proposed_release_branch": "release/free/v1.0.0",
+    "proposed_immutable_tag": "free-v1.0.0",
+    "tag_created": false
+  },
+  "candidate_evidence": {
+    "frozen_source_sha": null,
+    "build_artifact_sha256": null,
+    "release_ci_run_url": null,
+    "static_export_test_url": null,
+    "security_review_url": null,
+    "privacy_review_url": null,
+    "legal_review_url": null,
+    "hosting_rollback_review_url": null
+  },
+  "production": {
+    "owner_approval_reference": null,
+    "pages_project": null,
+    "deployment_id": null,
+    "public_url": null,
+    "deployed_at_utc": null
+  },
+  "final_build_evidence_policy": "Generate independent post-freeze artifact-manifest.json and immutable archive; this tracked release plan must not reference the SHA of its own Git commit."
+}
