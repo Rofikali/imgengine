@@ -1,6 +1,6 @@
 // Only Nuxt's predictable, same-origin prerender payload requests are allowed
 // in the browser-local privacy assertions. This does not allow arbitrary GETs.
-const freeRoutes = new Set(['/', '/resize-image', '/crop-image', '/compress-image', '/rotate-image', '/convert-image'])
+const freeRoutes = new Set(['/', '/resize-image', '/crop-image', '/compress-image', '/rotate-image', '/convert-image', '/privacy', '/terms', '/support'])
 export function isApprovedStaticNuxtPayload(url: URL): boolean {
   if (process.env.IMGENGINE_STATIC_E2E !== '1') return false
   const suffix = '/_payload.json'
