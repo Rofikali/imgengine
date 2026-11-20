@@ -36,6 +36,7 @@ The complete project (C17 native libraries, Rust/Axum backend, Nuxt server route
 - [Release plan metadata](release-manifest.json) — intentionally contains null evidence fields and no self-referential Git SHA
 - [Static-only contract](static-only-contract.md) — required architecture/negative checks
 - [Evidence and sign-off matrix](evidence-matrix.md) — actual verified historical facts vs unknown production gates
+- [Dependency advisory review (2026-11-20)](dependency-advisory-review-2026-11-20.md) — exact audit IDs, reported patches and unresolved applicability/compatibility gates
 - [Cloudflare deployment/rollback runbook](deployment-runbook.md) — **procedure only**, no deploy
 
 Authoritative shared policies: [release index](../../README.md), [five-family release ADR](../../../ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md), [compatibility contract](../../../IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md), [Docker-only engineering](../../../IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md), [main live milestone board](../../../../next.md), [temporary unpatched non-production security exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). Avoid copying those policies.
