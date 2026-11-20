@@ -16,7 +16,7 @@ async function choose(page: import('@playwright/test').Page, buffer: Buffer) {
 
 test('converts locally to PNG and JPEG, preserves the documented alpha behavior, downloads, and has no image upload', async ({ page }) => {
   const requests: Array<{ method: string, url: string, body: string | null }> = []
-  await page.goto('/convert-image')
+  await page.goto('/convert-image', { waitUntil: 'domcontentloaded' })
   page.on('request', request => { if (/^https?:/.test(request.url())) requests.push({ method: request.method(), url: request.url(), body: request.postData() }) })
   await choose(page, await fixture(page))
   await expect(page.getByRole('combobox', { name: 'Format', exact: true })).toBeVisible()
@@ -44,7 +44,7 @@ test('rejects malformed or oversized input and releases local URLs after remove'
     URL.revokeObjectURL = url => { urls.delete(url); revoke(url) }
     Object.defineProperty(window, 'convertURLs', { get: () => urls.size })
   })
-  await page.goto('/convert-image')
+  await page.goto('/convert-image', { waitUntil: 'domcontentloaded' })
   await page.getByLabel('Choose a JPEG or PNG', { exact: true }).setInputFiles({ name: 'bad', mimeType: 'image/png', buffer: Buffer.from('not an image') })
   await expect(page.getByRole('alert')).toContainText('Cannot open')
   await choose(page, await fixture(page)); await page.getByRole('button', { name: 'Convert locally', exact: true }).click(); await expect(page.getByAltText('Converted PNG preview')).toBeVisible()
