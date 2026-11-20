@@ -58,7 +58,7 @@ test('static Free browsing sends no image, filename, or server-bound requests', 
   expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])
 })
 
-test('pre-launch privacy, terms and support drafts are visible and clearly not approved', async ({ page, request }) => {
+test('pre-launch privacy, terms and support drafts are visible and clearly not approved', async ({ context, request }) => {
   const notices = [
     ['/privacy', 'Privacy notice'],
     ['/terms', 'Terms of use'],
@@ -67,29 +67,39 @@ test('pre-launch privacy, terms and support drafts are visible and clearly not a
   for (const [route, heading] of notices) {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
-    await page.goto(route)
-    await expect(page.getByRole('heading', { name: heading })).toBeVisible()
-    await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toHaveCount(0)
-    await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
-    const links = page.getByRole('navigation', { name: 'Privacy, terms and support' })
-    for (const [name, href] of [['Privacy', '/privacy'], ['Terms', '/terms'], ['Support', '/support']] as const) {
-      await expect(links.getByRole('link', { name })).toHaveAttribute('href', href)
+    const page = await context.newPage()
+    try {
+      await page.goto(route)
+      await expect(page.getByRole('heading', { name: heading })).toBeVisible()
+      await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
+      await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toHaveCount(0)
+      await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
+      const links = page.getByRole('navigation', { name: 'Privacy, terms and support' })
+      for (const [name, href] of [['Privacy', '/privacy'], ['Terms', '/terms'], ['Support', '/support']] as const) {
+        await expect(links.getByRole('link', { name })).toHaveAttribute('href', href)
+      }
+    } finally {
+      await page.close()
     }
   }
 })
 
-test('Free tool routes link to privacy, terms and support without image upload', async ({ page }) => {
+test('Free tool routes link to privacy, terms and support without image upload', async ({ context }) => {
   for (const [, route] of freeTools) {
-    await page.goto(route)
-    const nav = page.getByRole('navigation', { name: 'Privacy, terms and support' })
-    await expect(nav.getByRole('link')).toHaveCount(3)
-    await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
+    const page = await context.newPage()
+    try {
+      await page.goto(route)
+      const nav = page.getByRole('navigation', { name: 'Privacy, terms and support' })
+      await expect(nav.getByRole('link')).toHaveCount(3)
+      await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
+    } finally {
+      await page.close()
+    }
   }
 })
 
-test('compiled Free static pages enforce CSP and defensive Cloudflare headers', async ({ page, request }) => {
+test('compiled Free static pages enforce CSP and defensive Cloudflare headers', async ({ context, request }) => {
   const urls = ['/', ...freeTools.map(x => x[1]), '/privacy', '/terms', '/support']
   for (const route of urls) {
     const response = await request.get(route, { maxRedirects: 0 })
@@ -98,7 +108,7 @@ test('compiled Free static pages enforce CSP and defensive Cloudflare headers', 
     const csp = headers['content-security-policy']
     expect(csp, route).toContain("default-src 'none'")
     expect(csp, route).toContain("script-src 'self'")
-    expect(csp, route).toContain("connect-src 'self'")
+    expect(csp, route).toContain("connect-src 'self' blob:")
     expect(csp, route).toContain("frame-ancestors 'none'")
     expect(csp, route).not.toContain('unsafe-eval')
     const scriptDirective = csp?.split('script-src ')[1]?.split(';')[0] ?? ''
@@ -107,18 +117,23 @@ test('compiled Free static pages enforce CSP and defensive Cloudflare headers', 
     expect(headers['x-frame-options']).toBe('DENY')
     expect(headers['referrer-policy']).toBe('no-referrer')
     expect(headers['x-robots-tag']).toContain('noindex')
-    await page.addInitScript(() => {
-      const store = window as Window & { __imgengineCspViolations?: string[] }
-      store.__imgengineCspViolations = []
-      document.addEventListener('securitypolicyviolation', event => {
-        store.__imgengineCspViolations?.push(event.violatedDirective + ': ' + event.blockedURI)
+    const page = await context.newPage()
+    try {
+      await page.addInitScript(() => {
+        const store = window as Window & { __imgengineCspViolations?: string[] }
+        store.__imgengineCspViolations = []
+        document.addEventListener('securitypolicyviolation', event => {
+          store.__imgengineCspViolations?.push(event.violatedDirective + ': ' + event.blockedURI)
+        })
       })
-    })
-    await page.goto(route)
-    await expect(page.getByRole('main')).toBeVisible()
-    await expect(page.locator('link[rel~="prefetch"]')).toHaveCount(0)
-    const violations = await page.evaluate(() => (window as Window & { __imgengineCspViolations?: string[] }).__imgengineCspViolations ?? [])
-    expect(violations, route).toEqual([])
+      await page.goto(route)
+      await expect(page.getByRole('main')).toBeVisible()
+      await expect(page.locator('link[rel~="prefetch"]')).toHaveCount(0)
+      const violations = await page.evaluate(() => (window as Window & { __imgengineCspViolations?: string[] }).__imgengineCspViolations ?? [])
+      expect(violations, route).toEqual([])
+    } finally {
+      await page.close()
+    }
   }
   expect((await request.get('/_headers')).status()).toBe(404)
 })
