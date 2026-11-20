@@ -42,9 +42,9 @@ export function buildFreeHeaders(dist) {
     for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
       const attrs = match[1]
       const body = match[2]
-      const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
+      const type = attrs.match(/(?:^|\s)type\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
       const contentType = (type?.[1] ?? type?.[2] ?? type?.[3] ?? '').toLowerCase()
-      const src = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
+      const src = attrs.match(/(?:^|\s)src\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
       const value = src ? src[1] ?? src[2] ?? src[3] : null
       if (contentType === 'application/json' || contentType === 'application/ld+json') {
         if (value !== null) {
@@ -94,7 +94,7 @@ export function buildFreeHeaders(dist) {
     "default-src 'none'",
     'script-src ' + scriptSrc,
     "style-src 'self' 'unsafe-inline'",
-    "connect-src 'self'",
+    "connect-src 'self' blob:",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
     "worker-src 'self' blob:",
