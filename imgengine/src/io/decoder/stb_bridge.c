@@ -10,16 +10,15 @@
 #include <string.h>
 
 static uint32_t img_read_u32_be(const uint8_t *input) {
-    return ((uint32_t)input[0] << 24) | ((uint32_t)input[1] << 16) |
-           ((uint32_t)input[2] << 8) | (uint32_t)input[3];
+    return ((uint32_t)input[0] << 24) | ((uint32_t)input[1] << 16) | ((uint32_t)input[2] << 8) |
+           (uint32_t)input[3];
 }
 
 /* stb_image reserves IDAT storage before confirming the declared chunk is
  * present. Validate all PNG chunk bounds first so a hostile length cannot
  * induce allocation from data outside the supplied input. */
 static img_result_t img_validate_png_chunks(const uint8_t *data, size_t size) {
-    static const uint8_t signature[] = {0x89, 0x50, 0x4e, 0x47,
-                                        0x0d, 0x0a, 0x1a, 0x0a};
+    static const uint8_t signature[] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
     size_t offset = 0;
     int have_ihdr = 0;
     int have_idat = 0;
