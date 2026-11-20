@@ -87,7 +87,7 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
 })
 
 
-test('Free static matrix runs all projects and all ten disjoint Firefox test shards', () => {
+test('Free static matrix runs all projects and all fifty disjoint Firefox test shards', () => {
   const invocations = []
   const result = runFreeStaticBrowserMatrix((command, args, options) => {
     invocations.push({ command, args, options })
@@ -95,12 +95,12 @@ test('Free static matrix runs all projects and all ten disjoint Firefox test sha
   })
   assert.equal(result, 0)
   assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
-  assert.equal(FIREFOX_TEST_SHARDS, 10)
-  assert.equal(invocations.length, 13) // Chromium, mobile, ten Firefox, WebKit.
+  assert.equal(FIREFOX_TEST_SHARDS, 50)
+  assert.equal(invocations.length, FIREFOX_TEST_SHARDS + 3) // Chromium, mobile, fifty Firefox, WebKit.
   assert.deepEqual(invocations.map(({ args }) => args[5]), [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
-    ...Array.from({ length: 10 }, () => '--project=desktop-firefox'),
+    ...Array.from({ length: FIREFOX_TEST_SHARDS }, () => '--project=desktop-firefox'),
     '--project=desktop-webkit',
   ])
   for (const [i, { command, args, options }] of invocations.entries()) {
@@ -109,9 +109,9 @@ test('Free static matrix runs all projects and all ten disjoint Firefox test sha
     assert.equal(args[5].startsWith('--project='), true)
     assert.equal(options.stdio, 'inherit')
     assert.match(options.cwd, /frontend\/?$/)
-    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, i >= 2 && i < 12 ? '1' : '0')
-    if (i >= 2 && i < 12) {
-      assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/10'])
+    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, i >= 2 && i < FIREFOX_TEST_SHARDS + 2 ? '1' : '0')
+    if (i >= 2 && i < FIREFOX_TEST_SHARDS + 2) {
+      assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/' + FIREFOX_TEST_SHARDS])
     } else {
       assert.equal(args.length, 6)
     }
@@ -128,9 +128,9 @@ test('Free static matrix fails closed on a failing Firefox shard, never skipping
   assert.deepEqual(executed, [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
-    '--shard=1/10',
-    '--shard=2/10',
-    '--shard=3/10',
+    '--shard=1/50',
+    '--shard=2/50',
+    '--shard=3/50',
   ])
 })
 
