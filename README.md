@@ -1,5 +1,7 @@
 # imgengine
 
+**Milestone automation — F5-DOCSYNC-01 review candidate:** [GitHub PR-driven milestone sync proposal](docs/engineering/MILESTONE_AUTOMATION.md) defines a reviewed registry and generated NOW/NEXT/WORKING/COMPLETED summary in [next.md](next.md). The workflow is not active until merged and verified by a real run. Root README, AGENTS and skills remain durable human-reviewed documentation, not copies of every PR status.
+
 **CURRENT VERIFIED MAIN (2026-11-20 UTC):** [PR #89](https://github.com/Rofikali/imgengine/pull/89) **MERGED** as `6c9e5ff7846d6d4e3b4ec63d62b19ac0d3af3008`, [post-merge main CI](https://github.com/Rofikali/imgengine/actions/runs/44771824270) **SUCCESS**. The zero-moderate release-candidate audit is now implemented, but the source lockfile still resolves moderate-advisory `glob@13.0.7` / `minimatch@10.2.6`. #88 merged as `ec213cfc1814c04cd4e2ac693eaf28d9f0015186`; its latest [12/12 CI](https://github.com/Rofikali/imgengine/actions/runs/44742258560) and [temporary patched-major trial](https://github.com/Rofikali/imgengine/actions/runs/44742258511) passed 84 local + 200 static browser tests, but did **not** patch production dependencies. **NEXT READY: F5-SUPPLY-05 — package-manager-generated production dependency remediation in approved Ubuntu 24.04 Docker, full exact-head CI and four-browser/privacy verification. Free v1.0.0 NOT RELEASED.**
 
 **Historical F5-HOST-HDR-01 (#85):** Static `_headers` and script-hash CSP were merged and tested locally; live Cloudflare TLS, rollback and owner go-live remain independent gates.

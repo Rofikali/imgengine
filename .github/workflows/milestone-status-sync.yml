@@ -1,0 +1,99 @@
+name: IMGENGINE milestone status synchronization
+
+# PR events plus main pushes; schedule is a fallback if PR-target is restricted.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: imgengine-milestone-sync
+  cancel-in-progress: false
+
+jobs:
+  propose-status-update:
+    if: >-
+      github.repository == 'Rofikali/imgengine' &&
+      (github.event_name != 'pull_request_target' ||
+       github.event.pull_request.head.ref != 'docs/auto-milestone-status')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      # SECURITY: run only trusted main. Never execute any triggering PR code.
+      - name: Checkout trusted main with no persisted credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Test deterministic reconciliation
+        run: node --test scripts/milestone-sync.test.mjs
+
+      - name: Generate snapshot from GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/milestone-sync.mjs --write
+
+      - name: Open or refresh review-only status PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="docs/auto-milestone-status"
+          if [ -z "$(git status --porcelain -- next.md docs/engineering/live-status.md)" ]; then
+            echo "No GitHub milestone-status differences; nothing to propose."
+            exit 0
+          fi
+          git diff --check
+          git fetch --quiet origin refs/heads/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)" || {
+            echo "::error::main changed during snapshot; retry on next event"
+            exit 1
+          }
+          command -v gh >/dev/null || { echo "::error::GitHub CLI unavailable"; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -- next.md docs/engineering/live-status.md
+          git commit -m "docs(status): sync PR-verified NOW NEXT and completed milestones"
+
+          remote_sha="$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)"
+          if [ -n "$remote_sha" ]; then
+            git fetch --quiet origin "refs/heads/$branch"
+            remote_author="$(git log -1 --format=%ae FETCH_HEAD)"
+            if [ "$remote_author" != "41898282+github-actions[bot]@users.noreply.github.com" ]; then
+              echo "::error::Status branch has a non-bot author; refuse to overwrite."
+              exit 1
+            fi
+            if [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse 'FETCH_HEAD^{tree}')" ]; then
+              echo "Existing bot branch already has identical generated status."
+              exit 0
+            fi
+          fi
+
+          # Bot-branch only; no automatic merge, deployment or release tagging.
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            push --quiet origin "HEAD:refs/heads/$branch" \
+            "--force-with-lease=refs/heads/$branch:$remote_sha"
+
+          if gh pr view "$branch" --json number --jq '.number' >/dev/null 2>&1; then
+            echo "Existing status PR refreshed; owner review remains required."
+          else
+            gh pr create \
+              --base main --head "$branch" \
+              --title "docs(status): reconcile GitHub PR and milestone board" \
+              --body "Automated, review-only milestone snapshot from the approved registry and GitHub PR/check APIs. Changes are limited to next.md and docs/engineering/live-status.md. No automatic merges, security waivers, deployment or public release; review required."
+          fi
