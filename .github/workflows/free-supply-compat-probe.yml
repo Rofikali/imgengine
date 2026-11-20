@@ -1,0 +1,151 @@
+# F5-SUPPLY-03 — Disposable compatibility experiment ONLY.
+# Does not update the tracked frontend package.json or pnpm-lock.yaml.
+# Does not approve a dependency patch, public release, or deployment.
+name: IMGENGINE Free supply compatibility probe
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      # Do not spend probe CI minutes on ordinary release-documentation edits.
+      - .github/workflows/free-supply-compat-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-major-upgrade-test:
+    name: Disposable glob/minimatch compatibility probe
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --shm-size=1g
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    env:
+      HOME: /root
+    steps:
+      - name: Check out reviewed PR merge without persisting credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6 / Node 24
+        with:
+          persist-credentials: false
+      - name: Use Node 24 and pinned package manager
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify official Ubuntu 24.04 Playwright container and pinned pnpm
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+          node -e 'if (Number(process.versions.node.split(".")[0]) !== 24) process.exit(1)'
+          test "$(node -p 'require("./package.json").packageManager')" = "pnpm@10.34.9"
+          test "$(node -p 'require("./package.json").devDependencies["@playwright/test"]')" = "1.58.2"
+          corepack enable
+          test "$(pnpm --version)" = "10.34.9"
+      - name: Create independent disposable Git worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -c safe.directory="$GITHUB_WORKSPACE" worktree add --detach "$RUNNER_TEMP/f5-supply-03" HEAD
+          test -f "$RUNNER_TEMP/f5-supply-03/imgengine-saas/frontend/pnpm-lock.yaml"
+      - name: Apply EXPERIMENTAL major overrides in disposable tree only
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs'
+          const file = 'package.json'
+          const pkg = JSON.parse(readFileSync(file, 'utf8'))
+          if (pkg.packageManager !== 'pnpm@10.34.9') throw Error('unexpected pnpm version')
+          pkg.pnpm ??= {}
+          if (pkg.pnpm.overrides?.glob || pkg.pnpm.overrides?.minimatch) {
+            throw Error('production already overrides tested packages: re-evaluate probe')
+          }
+          pkg.pnpm.overrides = { ...pkg.pnpm.overrides, glob: '14.0.2', minimatch: '11.0.1' }
+          writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n')
+          console.log('TRIAL ONLY: glob=14.0.2 minimatch=11.0.1 via disposable project overrides')
+          NODE
+          # The committed versions in GITHUB_WORKSPACE are NOT edited.
+          checkout_status="$(git -c safe.directory="$GITHUB_WORKSPACE" -C "$GITHUB_WORKSPACE" status --porcelain)"
+          test -z "$checkout_status"
+      - name: Resolve trial lockfile and inspect transitive graph
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --no-frozen-lockfile
+          pnpm why glob minimatch --depth 20
+      - name: Verify trial production audit has no remaining advisories
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          pnpm audit --prod --json > "$RUNNER_TEMP/f5-supply-03/probe-audit.json"
+          pnpm_audit_status=$?
+          set -e
+          # Use the same fail-closed checker as normal CI. The explicit
+          # moderate=0 assertion below is stricter than development policy.
+          node scripts/check-production-audit.mjs "$RUNNER_TEMP/f5-supply-03/probe-audit.json"
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const report = JSON.parse(readFileSync(process.env.RUNNER_TEMP + '/f5-supply-03/probe-audit.json', 'utf8'))
+          const counts = report?.metadata?.vulnerabilities
+          if (!counts || !['critical', 'high', 'moderate', 'low'].every(k => Number.isSafeInteger(counts[k]) && counts[k] >= 0)) {
+            throw Error('probe audit report incomplete')
+          }
+          if (counts.critical || counts.high || counts.moderate) {
+            throw Error('experimental override did not eliminate all moderate-or-worse findings')
+          }
+          console.log('TRIAL AUDIT: critical=0 high=0 moderate=0; does NOT approve production override')
+          NODE
+          if [ "$pnpm_audit_status" -ne 0 ]; then
+            echo "::warning::pnpm audit command exited nonzero; report was independently parsed and checked."
+          fi
+      - name: Verify Nuxt compatibility, unit tests and normal server build
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec nuxi prepare
+          pnpm run typecheck
+          pnpm test
+          pnpm run build
+      - name: Verify normal local image tools across four browsers
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run test:browser:local-tools
+      - name: Generate and audit Free static-only artifact with trial packages
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run build:free-static
+          pnpm run verify:free-static
+      - name: Verify four-browser Free static CSP and privacy matrix
+        working-directory: ${{ runner.temp }}/f5-supply-03/imgengine-saas/frontend
+        shell: bash
+        env:
+          IMGENGINE_STATIC_E2E: '1'
+        run: |
+          set -euo pipefail
+          pnpm run test:browser:free-static
+      - name: Demonstrate original source remains unmodified
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          checkout_status="$(git -c safe.directory="$GITHUB_WORKSPACE" status --porcelain)"
+          if [ -n "$checkout_status" ]; then
+            echo "::error::Disposable probe unexpectedly modified reviewed checkout"
+            exit 1
+          fi
+          echo "Reviewed source checkout unchanged; experimental overrides were never committed."

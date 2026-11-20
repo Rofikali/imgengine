@@ -17,7 +17,25 @@ const types = {
 const port = Number(process.env.PORT || 3100)
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('invalid test port')
 
+// Test-only Firefox navigation telemetry. A timeout can happen while
+// Playwright waits for domcontentloaded. Record whether Node received and
+// finished each HTTP request, without logging query strings, image data,
+// request bodies, cookies, addresses or user-provided filenames.
+const traceStaticRequests = process.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS === '1'
+let diagnosticRequests = 0
+
 createServer((req, res) => {
+  if (traceStaticRequests) {
+    const id = ++diagnosticRequests
+    const startNs = process.hrtime.bigint()
+    const path = (req.url || '/').split(/[?#]/, 1)[0].slice(0, 96).replace(/[^a-zA-Z0-9_./-]/g, '_')
+    console.error('[free-static-test-http] start id=' + id + ' method=' + req.method + ' path=' + path)
+    const duration = () => (Number(process.hrtime.bigint() - startNs) / 1e6).toFixed(1)
+    res.once('finish', () => console.error('[free-static-test-http] finish id=' + id + ' status=' + res.statusCode + ' ms=' + duration()))
+    res.once('close', () => {
+      if (!res.writableFinished) console.error('[free-static-test-http] incomplete id=' + id + ' status=' + res.statusCode + ' ms=' + duration())
+    })
+  }
   // Simulate Cloudflare Pages applying the generated _headers on static responses.
   for (const [name, value] of providerHeaders) res.setHeader(name, value)
   if (req.method !== 'GET' && req.method !== 'HEAD') {
