@@ -7,8 +7,8 @@ on:
   pull_request:
     branches: [main]
     paths:
+      # Do not spend probe CI minutes on ordinary release-documentation edits.
       - .github/workflows/free-supply-compat-probe.yml
-      - docs/releases/free/v1.0.0/dependency-advisory-review-2026-11-20.md
 
 permissions:
   contents: read
