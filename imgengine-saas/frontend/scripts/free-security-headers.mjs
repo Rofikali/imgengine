@@ -55,7 +55,7 @@ export function buildFreeHeaders(dist) {
           const payloadPath = join(root, expected.slice(1))
           if (contentType !== 'application/json' || value !== expected) {
             throw Error('unapproved JSON script payload path/type in ' + relative(root, htmlFile) +
-              ': expected ' + expected + ', received ' + JSON.stringify(value.split(/[?#]/, 1)[0].slice(0, 160)))
+              ': expected ' + expected + ', received ' + JSON.stringify(value.slice(0, 240)) + ', length ' + value.length)
           }
           if (!existsSync(payloadPath) || lstatSync(payloadPath).isSymbolicLink() || !statSync(payloadPath).isFile()) {
             throw Error('missing or unsafe route-local JSON payload in ' + relative(root, htmlFile))
