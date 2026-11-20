@@ -360,7 +360,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Verify production audit diagnostics and fail-closed gate
         working-directory: imgengine-saas/frontend
-        run: node --test scripts/check-production-audit.node-check.mjs
+        run: node --test scripts/check-production-audit.node-check.mjs scripts/check-free-release-dependencies.node-check.mjs
       - name: Fail on critical or high production dependency advisories
         working-directory: imgengine-saas/frontend
         shell: bash

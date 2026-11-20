@@ -1,11 +1,14 @@
 import { readFile } from 'node:fs/promises'
 const [reportPath, ...flags] = process.argv.slice(2)
-if (flags.length) {
+// Release-candidate verification is strictly stronger than development CI.
+// There is NO option to waive high/critical findings or skip advisory review.
+const releaseCandidate = flags.length === 1 && flags[0] === '--release-candidate'
+if (flags.length && !releaseCandidate) {
   console.error('unrecognized audit option; refusing to skip the security gate')
   process.exit(2)
 }
 if (!reportPath) {
-  console.error('usage: check-production-audit.mjs AUDIT_REPORT.json')
+  console.error('usage: check-production-audit.mjs AUDIT_REPORT.json [--release-candidate]')
   process.exit(2)
 }
 
@@ -77,4 +80,13 @@ if (moderateAdvisories.length > 12) {
 if (critical > 0 || high > 0) {
   console.error('critical or high production dependency advisories require remediation or an approved release decision')
   process.exit(1)
+}
+
+if (releaseCandidate && moderate > 0) {
+  console.error('Free release-candidate audit BLOCKED: moderate production dependency advisories require remediation and exact-lockfile re-verification')
+  process.exit(1)
+}
+
+if (releaseCandidate) {
+  console.log('Free release-candidate dependency threshold PASSED (no critical, high or moderate advisories); independent owner/legal/hosting gates still required')
 }
