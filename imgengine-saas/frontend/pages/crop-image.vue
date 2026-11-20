@@ -75,7 +75,7 @@ useHead({ title: 'Crop an image locally — IMGENGINE' })
     </form>
     <p class="status" role="status">{{ message }}</p><p v-if="error" class="error" role="alert">{{ error }}</p>
     <section v-if="result" class="result" aria-label="Cropped image"><img :src="result" alt="Cropped PNG preview"><a class="primary" :href="result" download="imgengine-cropped.png">Download PNG</a></section>
-    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/compress-image">Compress locally</NuxtLink> · <NuxtLink to="/convert-image">Convert locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
+    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/compress-image">Compress locally</NuxtLink> · <NuxtLink to="/convert-image">Convert locally</NuxtLink> · <NuxtLink to="/">All Free tools</NuxtLink></p>
   </section></main>
 </template>
 <style scoped>

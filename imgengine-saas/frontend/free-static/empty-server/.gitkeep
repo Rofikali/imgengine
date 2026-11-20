@@ -1,0 +1,1 @@
+# Empty on purpose: Free static builds must not scan the normal Nuxt server directory.

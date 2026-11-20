@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { isApprovedStaticNuxtPayload } from './static-payload'
 import AxeBuilder from '@axe-core/playwright'
 import { oriented } from './orientation'
 
@@ -29,8 +30,9 @@ test('exact odd rectangle pixels, transparent final pixel, keyboard, privacy and
   page.on('request', r => {
     if (!/^https?:/.test(r.url())) return
     const u = new URL(r.url())
-    const asset = /^\/_nuxt\/[^/]+\.(js|css)$/.test(u.pathname) || /^\/_nuxt\/builds\/meta\/[a-f0-9-]+\.json$/.test(u.pathname)
-    if (r.method() !== 'GET' || r.postData() || u.search || u.origin !== 'http://127.0.0.1:3100' || !asset) requests.push(`${r.method()} ${u.pathname}`)
+    const payload = isApprovedStaticNuxtPayload(u)
+    const asset = (!u.search && (/^\/_nuxt\/[^/]+\.(js|css)$/.test(u.pathname) || /^\/_nuxt\/builds\/meta\/[a-f0-9-]+\.json$/.test(u.pathname))) || payload
+    if (r.method() !== 'GET' || r.postData() || u.origin !== 'http://127.0.0.1:3100' || !asset) requests.push(`${r.method()} ${u.pathname}`)
   })
   await choose(page, await source(page)); await fields(page, 10, 20, 17, 31)
   const frame = page.getByRole('group', { name: 'Crop selection preview' }); await frame.focus(); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Shift+ArrowDown')

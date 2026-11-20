@@ -19,7 +19,7 @@ useHead({ title: 'Convert an image locally — IMGENGINE' })
     <p class="status" role="status">{{ message }}</p><p v-if="error" class="error" role="alert">{{ error }}</p>
     <div v-if="source" class="result"><p class="help">Source: {{ source.width }} × {{ source.height }} pixels.</p><img :src="source.url" alt="Local source image"></div>
     <section v-if="result" class="result" aria-label="Converted image"><img :src="result" :alt="`Converted ${format === 'image/jpeg' ? 'JPEG' : 'PNG'} preview`"><a class="primary" :href="result" :download="`imgengine-converted.${extension()}`">Download {{ format === 'image/jpeg' ? 'JPEG' : 'PNG' }}</a></section>
-    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/compress-image">Compress locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
+    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/compress-image">Compress locally</NuxtLink> · <NuxtLink to="/">All Free tools</NuxtLink></p>
   </section></main>
 </template>
 <style scoped>.local-convert > .help { margin-top: 1rem; } input[type=file] { max-width: 100%; } input:focus-visible { outline: 3px solid #b7d0ff; outline-offset: 3px; } a:not(.primary) { color: #b7d0ff; }</style>

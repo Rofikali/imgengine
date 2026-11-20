@@ -376,6 +376,9 @@ jobs:
       - name: Generate Nuxt TypeScript configuration
         working-directory: imgengine-saas/frontend
         run: pnpm exec nuxi prepare
+      - name: Test Free static artifact allowlist and forbidden-server cases
+        working-directory: imgengine-saas/frontend
+        run: node --test scripts/verify-free-static.node-check.mjs
       - name: Run frontend unit tests
         working-directory: imgengine-saas/frontend
         run: pnpm test
@@ -432,6 +435,18 @@ jobs:
         env:
           HOME: /root
         run: pnpm run test:browser:local-tools
+      - name: Generate static Free-only distribution (Docker Ubuntu 24.04)
+        working-directory: imgengine-saas/frontend
+        run: pnpm run build:free-static
+      - name: Reject forbidden runtime, secrets, API and missing static routes
+        working-directory: imgengine-saas/frontend
+        run: pnpm run verify:free-static
+      - name: Run full local-tool and static-boundary browser matrix
+        working-directory: imgengine-saas/frontend
+        env:
+          HOME: /root
+          IMGENGINE_STATIC_E2E: '1'
+        run: pnpm run test:browser:free-static
       - name: Upload browser failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
