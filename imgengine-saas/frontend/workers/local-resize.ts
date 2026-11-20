@@ -7,7 +7,9 @@ self.onmessage = async (event: MessageEvent<{ blob: Blob, width: string, height:
   let canvas: OffscreenCanvas | undefined
   try {
     const size = resizeDimensions(event.data.width, event.data.height)
-    bitmap = await createImageBitmap(event.data.blob)
+    // Browser defaults vary for EXIF orientation. The local-tool contract uses
+    // stored raster pixels, so opt out explicitly before any crop/rotation.
+    bitmap = await createImageBitmap(event.data.blob, { imageOrientation: 'none' })
     if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > MAX_LOCAL_PIXELS) throw Error()
     const crop = event.data.crop ? validatePixelCrop(event.data.crop, bitmap) : undefined
     const rotation = event.data.rotation === undefined ? undefined : validateRightAngleRotation(event.data.rotation)

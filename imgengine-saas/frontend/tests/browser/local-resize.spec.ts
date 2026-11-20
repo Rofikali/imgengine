@@ -109,7 +109,7 @@ test('repeated operations release URLs and Workers on replace, remove and route 
   await expect.poll(resources).toEqual([0, 0])
 })
 
-test('cancel and Worker failure discard pending work without upload', async ({ page }) => {
+test('cancel discards pending work and Worker failure falls back locally without upload', async ({ page }) => {
   const posts: string[] = []; page.on('request', r => { if (r.method() !== 'GET') posts.push(r.url()) })
   await page.addInitScript(() => {
     window.Worker = class {
@@ -122,15 +122,22 @@ test('cancel and Worker failure discard pending work without upload', async ({ p
   await page.getByRole('button', { name: 'Cancel', exact: true }).click()
   await expect(page.getByAltText('Resized PNG preview')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Resize locally', exact: true })).toBeEnabled()
+  await page.evaluate(() => { window.Worker = class { constructor() { throw Error('unsupported') } } as unknown as typeof Worker })
+  await page.getByRole('button', { name: 'Resize locally', exact: true }).click()
+  await expect(page.getByAltText('Resized PNG preview')).toBeVisible()
+  await page.evaluate(() => {
+    window.Worker = class {
+      onmessage = null; onerror = null
+      postMessage() { Object.defineProperty(window, 'workerPosted', { value: true, configurable: true }) } terminate() {}
+    } as unknown as typeof Worker
+  })
   await page.clock.install()
   await page.evaluate(() => Object.defineProperty(window, 'workerPosted', { value: false, configurable: true }))
   await page.getByRole('button', { name: 'Resize locally', exact: true }).click()
   await page.waitForFunction(() => (window as unknown as { workerPosted: boolean }).workerPosted)
   await page.clock.fastForward(10_001)
-  await expect(page.getByRole('alert')).toContainText('Nothing was uploaded')
-  await page.evaluate(() => { window.Worker = class { constructor() { throw Error('unsupported') } } as unknown as typeof Worker })
-  await page.getByRole('button', { name: 'Resize locally', exact: true }).click()
-  await expect(page.getByRole('alert')).toContainText('Nothing was uploaded')
+  await expect(page.getByAltText('Resized PNG preview')).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
   expect(posts).toEqual([])
 })
 

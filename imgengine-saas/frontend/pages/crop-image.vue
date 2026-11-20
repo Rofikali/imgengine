@@ -12,7 +12,13 @@ const invalid = computed(() => {
 })
 function setSelection(crop: PixelCrop) { invalidate(); for (const key of ['x', 'y', 'width', 'height'] as const) fields[key] = String(crop[key]) }
 let drag: { id: number, x: number, y: number, scaleX: number, scaleY: number, crop: PixelCrop } | null = null
-function resetSelection() { drag = null; square.value = false; if (source.value) setSelection(initialCrop(source.value)) }
+function stopDrag() {
+  window.removeEventListener('pointermove', move)
+  window.removeEventListener('pointerup', stopDrag)
+  window.removeEventListener('pointercancel', stopDrag)
+  drag = null
+}
+function resetSelection() { stopDrag(); square.value = false; if (source.value) setSelection(initialCrop(source.value)) }
 watch(source, resetSelection)
 function edit(key: keyof PixelCrop, value: string) {
   drag = null; invalidate(); fields[key] = value
@@ -22,11 +28,17 @@ function aspect(event: Event) { square.value = (event.target as HTMLSelectElemen
 function down(event: PointerEvent) {
   if (busy.value || !selection.value || !source.value || event.button !== 0) return
   const target = event.currentTarget as HTMLElement, box = target.getBoundingClientRect()
-  target.focus(); target.setPointerCapture(event.pointerId)
+  event.preventDefault()
+  target.focus()
+  try { target.setPointerCapture(event.pointerId) } catch { /* window listeners retain drag continuity */ }
   drag = { id: event.pointerId, x: event.clientX, y: event.clientY, scaleX: source.value.width / box.width, scaleY: source.value.height / box.height, crop: selection.value }
+  window.addEventListener('pointermove', move)
+  window.addEventListener('pointerup', stopDrag)
+  window.addEventListener('pointercancel', stopDrag)
 }
 function move(event: PointerEvent) {
   if (!drag || drag.id !== event.pointerId || busy.value || !source.value) return
+  event.preventDefault()
   setSelection(moveCrop(drag.crop, source.value, (event.clientX - drag.x) * drag.scaleX, (event.clientY - drag.y) * drag.scaleY))
 }
 function key(event: KeyboardEvent) {
@@ -37,7 +49,7 @@ function key(event: KeyboardEvent) {
   setSelection(moveCrop(selection.value, source.value, step[0] * distance, step[1] * distance))
 }
 function choose(event: Event) { const target = event.target as HTMLInputElement; void select(target.files?.[0]); target.value = '' }
-function remove() { drag = null; reset(); input.value?.focus() }
+function remove() { stopDrag(); reset(); input.value?.focus() }
 useHead({ title: 'Crop an image locally — IMGENGINE' })
 </script>
 <template>
@@ -54,7 +66,7 @@ useHead({ title: 'Crop an image locally — IMGENGINE' })
         <p id="crop-help" class="help layout-note">Left/top start at zero. Output up to 4096 pixels per side and 4 megapixels. Reset centers the largest allowed selection.</p>
       </fieldset>
       <p v-if="invalid" class="error" role="alert">{{ invalid }}</p>
-      <div v-if="source" class="crop-stage" :style="{ width: `min(100%, ${24 * source.width / source.height}rem)`, aspectRatio: `${source.width} / ${source.height}` }" role="group" aria-label="Crop selection preview" tabindex="0" aria-describedby="crop-controls" @pointerdown="down" @pointermove="move" @pointerup="drag = null" @pointercancel="drag = null" @lostpointercapture="drag = null" @keydown="key">
+      <div v-if="source" class="crop-stage" :style="{ width: `min(100%, ${24 * source.width / source.height}rem)`, aspectRatio: `${source.width} / ${source.height}` }" role="group" aria-label="Crop selection preview" tabindex="0" aria-describedby="crop-controls" @pointerdown="down" @pointermove="move" @pointerup="stopDrag" @pointercancel="stopDrag" @lostpointercapture="stopDrag" @keydown="key">
         <img :src="source.url" alt="Local source image" draggable="false">
         <div v-if="selection" class="selection-box" :style="{ left: `${selection.x / source.width * 100}%`, top: `${selection.y / source.height * 100}%`, width: `${selection.width / source.width * 100}%`, height: `${selection.height / source.height * 100}%` }" />
       </div>

@@ -68,7 +68,7 @@ test('portrait pointer/touch moves stay bounded and numeric controls resize', as
     await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }] })
     await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: box.x + box.width - 1, y: box.y + box.height - 1 }] })
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-  } else { await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(box.x + box.width + 200, box.y + box.height + 200); await page.mouse.up() }
+  } else { await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(box.x + box.width - 1, box.y + box.height - 1); await page.mouse.up() }
   const left = Number(await page.getByLabel('Left', { exact: true }).inputValue()), top = Number(await page.getByLabel('Top', { exact: true }).inputValue())
   expect(left).toBeGreaterThan(10); expect(left).toBeLessThanOrEqual(153); expect(top).toBeGreaterThan(10); expect(top).toBeLessThanOrEqual(341)
   await crop(page); expect(await page.getByAltText('Cropped PNG preview').evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([50, 60])

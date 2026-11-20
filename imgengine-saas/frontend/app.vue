@@ -13,6 +13,7 @@ button:focus-visible, a:focus-visible, .drop-zone:focus-visible { outline: 3px s
 h1, h2 { margin: 0; line-height: 1.1; } h1 { font-size: clamp(2rem, 6vw, 3.8rem); } h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); }
 .intro, .help, .drop-zone span { color: #bdcae0; line-height: 1.55; }.intro { max-width: 40rem; margin: 1rem 0 0; }
 .mode-switch { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+.local-tools { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: 1.5rem 0 0; }.local-tools a { color: #b7d0ff; }
 .mode-tab { min-height: 2.5rem; padding: .5rem .9rem; border: 1px solid #617da7; background: transparent; color: #edf4ff; }
 .mode-tab[aria-pressed="true"] { border-color: #8bb8ff; background: #18345a; }
 .render-form { display: grid; gap: 1rem; margin-top: 2rem; }
