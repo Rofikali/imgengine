@@ -109,6 +109,7 @@ test('compiled Free static pages enforce CSP and defensive Cloudflare headers', 
     })
     await page.goto(route)
     await expect(page.getByRole('main')).toBeVisible()
+    await expect(page.locator('link[rel~="prefetch"]')).toHaveCount(0)
     const violations = await page.evaluate(() => (window as Window & { __imgengineCspViolations?: string[] }).__imgengineCspViolations ?? [])
     expect(violations, route).toEqual([])
   }
