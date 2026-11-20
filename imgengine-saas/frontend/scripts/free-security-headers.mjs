@@ -53,10 +53,18 @@ export function buildFreeHeaders(dist) {
           const routeDir = relative(root, htmlFile).split(sep).slice(0, -1).join('/')
           const expected = '/' + (routeDir ? routeDir + '/' : '') + '_payload.json'
           const payloadPath = join(root, expected.slice(1))
-          if (contentType !== 'application/json' || value !== expected ||
-              !existsSync(payloadPath) || lstatSync(payloadPath).isSymbolicLink() ||
-              !statSync(payloadPath).isFile() || body.trim()) {
-            throw Error('unapproved JSON script payload in ' + relative(root, htmlFile))
+          if (contentType !== 'application/json' || value !== expected) {
+            throw Error('unapproved JSON script payload path/type in ' + relative(root, htmlFile) +
+              ': expected ' + expected + ', received ' + JSON.stringify(value.split(/[?#]/, 1)[0].slice(0, 160)))
+          }
+          if (!existsSync(payloadPath) || lstatSync(payloadPath).isSymbolicLink() || !statSync(payloadPath).isFile()) {
+            throw Error('missing or unsafe route-local JSON payload in ' + relative(root, htmlFile))
+          }
+          // A non-executable JSON data block can contain inline serialized state
+          // even with a src attribute. Require valid JSON, never execute or hash it.
+          if (body.trim()) {
+            try { JSON.parse(body) }
+            catch { throw Error('invalid inline route JSON payload in ' + relative(root, htmlFile)) }
           }
         }
         continue
