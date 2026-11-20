@@ -34,6 +34,56 @@ function staticallyRenderedHtml(root) {
   return files.sort()
 }
 
+// Nuxt's optional speculative asset hints are blocked by default-src 'none'.
+// Free needs no eager cross-route prefetch; remove only trusted compiled hints,
+// never change executable scripts or widen the default CSP.
+function readLinkAttributes(link) {
+  const attrs = new Map()
+  for (const match of link.matchAll(/\s([a-z][a-z0-9-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
+    const name = match[1].toLowerCase()
+    if (attrs.has(name)) throw Error('duplicate HTML link attribute: ' + name)
+    attrs.set(name, match[2] ?? match[3] ?? match[4])
+  }
+  return attrs
+}
+
+function isPrefetchLink(link) {
+  const attrs = readLinkAttributes(link)
+  return { attrs, prefetch: (attrs.get('rel') ?? '').toLowerCase().split(/\s+/).includes('prefetch') }
+}
+
+export function stripFreeSpeculativePrefetch(dist) {
+  const root = resolve(dist)
+  let count = 0
+  for (const htmlFile of staticallyRenderedHtml(root)) {
+    const html = readFileSync(htmlFile, 'utf8')
+    const updated = html.replace(/<link\b[^>]*>/gi, (link) => {
+      const { attrs, prefetch } = isPrefetchLink(link)
+      if (!prefetch) return link
+      const href = attrs.get('href') ?? attrs.get('data-href')
+      if ((attrs.has('href') && attrs.has('data-href')) ||
+          attrs.get('rel')?.toLowerCase().trim() !== 'prefetch' ||
+          !href || !/^\/_nuxt\/[a-z0-9_.\/-]+\.(?:js|css)(?:\?v=[a-z0-9_-]{1,64})?$/i.test(href) ||
+          href.includes('..')) {
+        throw Error('unapproved speculative prefetch in ' + relative(root, htmlFile))
+      }
+      count++
+      return ''
+    })
+    if (updated !== html) writeFileSync(htmlFile, updated)
+  }
+  return count
+}
+
+export function assertNoFreeSpeculativePrefetch(dist) {
+  const root = resolve(dist)
+  for (const htmlFile of staticallyRenderedHtml(root)) {
+    for (const link of readFileSync(htmlFile, 'utf8').matchAll(/<link\b[^>]*>/gi)) {
+      if (isPrefetchLink(link[0]).prefetch) throw Error('Free static artifact contains blocked speculative prefetch: ' + relative(root, htmlFile))
+    }
+  }
+}
+
 export function buildFreeHeaders(dist) {
   const root = resolve(dist)
   const inline = new Set()
