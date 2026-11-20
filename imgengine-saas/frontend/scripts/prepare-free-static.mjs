@@ -1,5 +1,5 @@
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
-import { buildFreeHeaders, parseFreeHeaders } from './free-security-headers.mjs'
+import { buildFreeHeaders, parseFreeHeaders, stripFreeSpeculativePrefetch, assertNoFreeSpeculativePrefetch } from './free-security-headers.mjs'
 import { fileURLToPath } from 'node:url'
 
 const folder = fileURLToPath(new URL('../.output/public/', import.meta.url))
@@ -15,6 +15,9 @@ if (!existsSync(fileURLToPath(new URL('../.output/public/404.html', import.meta.
   throw Error('Free static build requires an explicit 404.html')
 }
 
+const strippedPrefetch = stripFreeSpeculativePrefetch(folder)
+assertNoFreeSpeculativePrefetch(folder)
+console.log('Removed ' + strippedPrefetch + ' Nuxt speculative prefetch hints from Free HTML')
 const headers = buildFreeHeaders(folder)
 parseFreeHeaders(headers)
 writeFileSync(fileURLToPath(new URL('../.output/public/_headers', import.meta.url)), headers, { mode: 0o644 })
