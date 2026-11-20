@@ -1,0 +1,58 @@
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { resolve } from 'node:path'
+
+// Every verified browser project and every static-route assertion must run.
+// Desktop Firefox intermittently stalls waiting for domcontentloaded after
+// Node has already sent the static resources (confirmed by request timings).
+// Repro on 10-shard optional trial means five-test process lifetimes are not
+// sufficient. One-test processes keep the same tests and original deadlines,
+// while making navigation failures diagnosable by isolated server lifetime.
+// Playwright with --fully-parallel uses TEST-level sharding, not file-level.
+// A missing/extra test fails rather than silently running an empty shard.
+export const FREE_STATIC_BROWSER_PROJECTS = Object.freeze([
+  'desktop-chromium',
+  'mobile-chromium',
+  'desktop-firefox',
+  'desktop-webkit',
+])
+export const FIREFOX_TEST_SHARDS = 50
+
+const frontendRoot = fileURLToPath(new URL('../', import.meta.url))
+
+export function runFreeStaticBrowserMatrix(run = spawnSync) {
+  for (const project of FREE_STATIC_BROWSER_PROJECTS) {
+    const shards = project === 'desktop-firefox' ? FIREFOX_TEST_SHARDS : 1
+    for (let i = 1; i <= shards; i++) {
+      const label = project + (shards > 1 ? ' shard ' + i + '/' + shards : '')
+      console.log('Free static browser matrix: running ' + label + ' with a new static test server')
+      const args = [
+        'exec', 'playwright', 'test',
+        '--config', 'playwright.free-static.config.ts',
+        '--project=' + project,
+      ]
+      if (shards > 1) args.push('--fully-parallel', '--shard=' + i + '/' + shards)
+      const result = run('pnpm', args, {
+        cwd: frontendRoot,
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          // Test-only server instrumentation: logs bounded static-route names,
+          // status and completion times, never image/filename/metadata bytes.
+          IMGENGINE_STATIC_TEST_DIAGNOSTICS: project === 'desktop-firefox' ? '1' : '0',
+        },
+      })
+      if (result.error) throw result.error
+      if (result.status !== 0) {
+        console.error('Free static browser matrix failed at ' + label + '; remaining tests are NOT counted as passed')
+        return Number.isInteger(result.status) && result.status > 0 ? result.status : 1
+      }
+    }
+  }
+  console.log('Free static browser matrix: all projects and all Firefox test shards passed')
+  return 0
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  process.exitCode = runFreeStaticBrowserMatrix()
+}

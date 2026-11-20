@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { auditFreeStatic, FREE_ROUTES } from './verify-free-static.mjs'
 import { buildFreeHeaders } from './free-security-headers.mjs'
+import { FREE_STATIC_BROWSER_PROJECTS, FIREFOX_TEST_SHARDS, runFreeStaticBrowserMatrix } from './run-free-static-browser-matrix.mjs'
 
 function withFixture(fn) {
   const root = mkdtempSync(join(tmpdir(), 'imgengine-free-static-'))
@@ -83,4 +84,57 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
     write('_headers', buildFreeHeaders(root).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
     assert.throws(() => auditFreeStatic(root), /do not match|unsafe/)
   })
+})
+
+
+test('Free static matrix runs all projects and all fifty disjoint Firefox test shards', () => {
+  const invocations = []
+  const result = runFreeStaticBrowserMatrix((command, args, options) => {
+    invocations.push({ command, args, options })
+    return { status: 0 }
+  })
+  assert.equal(result, 0)
+  assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
+  assert.equal(FIREFOX_TEST_SHARDS, 50)
+  assert.equal(invocations.length, FIREFOX_TEST_SHARDS + 3) // Chromium, mobile, fifty Firefox, WebKit.
+  assert.deepEqual(invocations.map(({ args }) => args[5]), [
+    '--project=desktop-chromium',
+    '--project=mobile-chromium',
+    ...Array.from({ length: FIREFOX_TEST_SHARDS }, () => '--project=desktop-firefox'),
+    '--project=desktop-webkit',
+  ])
+  for (const [i, { command, args, options }] of invocations.entries()) {
+    assert.equal(command, 'pnpm')
+    assert.deepEqual(args.slice(0, 5), ['exec', 'playwright', 'test', '--config', 'playwright.free-static.config.ts'])
+    assert.equal(args[5].startsWith('--project='), true)
+    assert.equal(options.stdio, 'inherit')
+    assert.match(options.cwd, /frontend\/?$/)
+    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, i >= 2 && i < FIREFOX_TEST_SHARDS + 2 ? '1' : '0')
+    if (i >= 2 && i < FIREFOX_TEST_SHARDS + 2) {
+      assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/' + FIREFOX_TEST_SHARDS])
+    } else {
+      assert.equal(args.length, 6)
+    }
+  }
+})
+
+test('Free static matrix fails closed on a failing Firefox shard, never skipping remaining checks', () => {
+  const executed = []
+  const code = runFreeStaticBrowserMatrix((_command, args) => {
+    executed.push(args.at(-1))
+    return { status: executed.length === 5 ? 2 : 0 }
+  })
+  assert.equal(code, 2)
+  assert.deepEqual(executed, [
+    '--project=desktop-chromium',
+    '--project=mobile-chromium',
+    '--shard=1/50',
+    '--shard=2/50',
+    '--shard=3/50',
+  ])
+})
+
+test('Free static matrix treats an interrupted/unknown process status as failure', () => {
+  assert.equal(runFreeStaticBrowserMatrix(() => ({ status: null, signal: 'SIGTERM' })), 1)
+  assert.throws(() => runFreeStaticBrowserMatrix(() => ({ status: null, error: Error('spawn denied') })), /spawn denied/)
 })
