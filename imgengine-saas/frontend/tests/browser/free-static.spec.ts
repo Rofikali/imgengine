@@ -8,8 +8,8 @@ const freeTools = [
   ['Convert locally — no upload', '/convert-image', 'Convert an image'],
 ] as const
 
-test('all six Free routes are genuine static HTML, with no server layout offered', async ({ page, request }) => {
-  for (const route of ['/', ...freeTools.map(x => x[1])]) {
+test('Free tools and legal routes are genuine static HTML, with no server layout offered', async ({ page, request }) => {
+  for (const route of ['/', ...freeTools.map(x => x[1]), '/privacy', '/terms', '/support']) {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
     expect(response.headers()['content-type']).toContain('text/html')
@@ -49,4 +49,35 @@ test('static Free browsing sends no image, filename, or server-bound requests', 
   for (const [, path] of freeTools) await page.goto(path)
   expect(requests).toEqual([])
   expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])
+})
+
+test('pre-launch privacy, terms and support drafts are visible and clearly not approved', async ({ page, request }) => {
+  const notices = [
+    ['/privacy', 'Privacy notice'],
+    ['/terms', 'Terms of use'],
+    ['/support', 'Support and contact'],
+  ] as const
+  for (const [route, heading] of notices) {
+    const response = await request.get(route, { maxRedirects: 0 })
+    expect(response.status(), route).toBe(200)
+    await page.goto(route)
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible()
+    await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toHaveCount(0)
+    await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
+    const links = page.getByRole('navigation', { name: 'Privacy, terms and support' })
+    for (const [name, href] of [['Privacy', '/privacy'], ['Terms', '/terms'], ['Support', '/support']] as const) {
+      await expect(links.getByRole('link', { name })).toHaveAttribute('href', href)
+    }
+  }
+})
+
+test('Free tool routes link to privacy, terms and support without image upload', async ({ page }) => {
+  for (const [, route] of freeTools) {
+    await page.goto(route)
+    const nav = page.getByRole('navigation', { name: 'Privacy, terms and support' })
+    await expect(nav.getByRole('link')).toHaveCount(3)
+    await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
+  }
 })

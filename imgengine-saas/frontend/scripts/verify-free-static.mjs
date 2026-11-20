@@ -3,7 +3,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'node
 import { basename, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-export const FREE_ROUTES = Object.freeze(['/', '/resize-image', '/crop-image', '/compress-image', '/rotate-image', '/convert-image'])
+export const FREE_ROUTES = Object.freeze(['/', '/resize-image', '/crop-image', '/compress-image', '/rotate-image', '/convert-image', '/privacy', '/terms', '/support'])
 const MAX_FILES = 20000
 const MAX_FILE_BYTES = 25 * 1024 * 1024
 const allowed = new Set(['.html', '.js', '.mjs', '.css', '.json', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff', '.woff2', '.txt'])

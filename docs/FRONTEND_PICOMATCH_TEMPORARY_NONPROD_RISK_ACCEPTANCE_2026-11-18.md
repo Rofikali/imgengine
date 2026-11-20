@@ -41,3 +41,11 @@
 **Monitoring is not automatic:** documentation and this checker cannot watch new releases without a separate scheduled monitor/automation. The owner should review this at least daily during the exception, or opt into an alerting automation. **Owner approval to temporarily pass this exact development-only finding does not authorize merge, deploy, secret changes, cloud spending or public release.**
 
 **Post-merge follow-up:** Runner labels from [draft PR #64](https://github.com/Rofikali/imgengine/pull/64) are already merged via #65; do not duplicate them. The security waiver is still subject to automatic expiry and prompt patch removal. [Live security task](../next.md) owns ongoing state.
+
+## 2026-11-20 advisory withdrawal follow-up — current release interpretation
+
+**Verified upstream change:** [GitHub Advisory GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) was **withdrawn 2026-11-18** and updated 2026-11-19; the database explicitly states that this report **is not a security issue**. The 2026-11-18 original report, CI waiver decision and its expiry above remain historical facts about what GitHub/pnpm reported at that time, **not** an assertion that the withdrawn finding is currently valid.
+
+**Do not silently change the existing narrow CI exception or claim production is safe from this change alone.** Run a new exact-lockfile `pnpm audit --prod --json`, record counts/advisory IDs, inspect other current high/critical findings, inspect the compiled static artifact's actual dependency exposure and complete license/supply-chain review. If GitHub/pnpm no longer reports this advisory, propose a separate smallest viable CI hardening PR to remove the stale exception and the opt-in flag while retaining fail-closed audit policy and its regression tests. If a registry still reports it, reconcile the source/update state and record a dated reviewer disposition. The previous non-production-only exception cannot be repurposed into a public-launch waiver.
+
+**F5 Free v1.0.0 remains NOT RELEASED.** Legal/privacy/support content, Cloudflare host security, immutable artifact verification, branch protection and explicit owner public go/no-go remain separately blocked.

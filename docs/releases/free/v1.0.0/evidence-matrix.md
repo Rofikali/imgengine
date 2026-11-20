@@ -11,9 +11,15 @@
 | Post-merge `main` CI | PASS **for current integration, not static artifact** | [Run #44679764303](https://github.com/Rofikali/imgengine/actions/runs/44679764303). Reconfirm latest main during next engineering task. |
 | C-A0 malformed PNG defensive fix | MERGED | [PR #81](https://github.com/Rofikali/imgengine/pull/81) merge `a50c6e1469022eb8b0d3cbe5d76e1290f5db1d45`; not a Free launch waiver. |
 
-**F5-STATIC-01 candidate (2026-11-20):** source/configuration and separate static Playwright/test-only server implementation proposed in a review PR. **Until the exact-head CI run completes, `NOT_RUN` remains correct for static-artifact qualification.** A later passing PR gate is not automatic approval for production packaging, privacy/legal or Cloudflare release.
+**F5-STATIC-01 implementation MERGED (2026-11-20):** [PR #83](https://github.com/Rofikali/imgengine/pull/83) merged at `f1f61cfeecc565cbf3c44de57a747d1369b11000`; exact PR head `772e9375bbe638efe9771e9b0a5d025feeca30f6` passed [12/12 selected CI checks](https://github.com/Rofikali/imgengine/actions/runs/44686554819), including 84/84 existing server-backed browser and **100/100 separate static-output browser tests** and policy scan. CI generated 36 files, 292,571 bytes and a deterministic static-tree inventory digest. These are **historical implementation checks**, not a frozen candidate, independent hosting test, legal signoff or authorized public release.
 
 ## Required release-candidate gates — none presumed passed
+
+**F5-TRUST-01 implementation candidate (2026-11-20):** /privacy, /terms and /support pages and footer belong **only to the Free static target**, not the existing Rust/C/Nuxt server experience. All three pages are visibly **PRE-LAUNCH DRAFT**. No verified operator name, private security/privacy contact, support response owner, terms signoff, effective date, provider analytics setting or privacy retention schedule has been supplied. Publication preflight is intentionally **BLOCKED**; development CI tests that blocking behavior rather than waiving it.
+
+**Picomatch status change to investigate:** [GitHub withdrew GHSA-fc5q-39xc-vjpf on 2026-11-18](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), stating it is not a security issue. This supersedes the advisory premise of the [2026-11-18 temporary nonproduction exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). Do **not** silently remove the waiver, declare all dependencies secure or change critical/high policy without a fresh exact-lockfile `pnpm audit --prod`, advisory provenance reconciliation and security review. Independently examine other current findings and the production supply chain.
+
+**Legal review reference:** [India's DPDP Act](https://www.indiacode.nic.in/indiacode/handle/123456789/22037?view_type=browse) and [DPDP Rules 2025 Gazette](https://egazette.gov.in/WriteReadData/2025/267650.pdf) have phased commencement; evaluate obligations applicable to the **actual launch date and data processing**, including CDN metadata, rather than inserting a generic compliance claim. Legal and customer-privacy decisions remain owner/reviewer responsibilities.
 
 | Gate | Required evidence at **exact static build SHA + digest** | State | Owner / next work |
 | --- | --- | --- | --- |

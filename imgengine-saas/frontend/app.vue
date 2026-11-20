@@ -1,4 +1,20 @@
-<template><NuxtPage /></template>
+<script setup lang="ts">
+const showFreeNotices = useRuntimeConfig().public.imgengineFreeStatic === true
+</script>
+
+<template>
+  <div>
+    <NuxtPage />
+    <footer v-if="showFreeNotices" class="free-site-footer">
+      <nav aria-label="Privacy, terms and support">
+        <NuxtLink to="/privacy">Privacy</NuxtLink>
+        <NuxtLink to="/terms">Terms</NuxtLink>
+        <NuxtLink to="/support">Support</NuxtLink>
+      </nav>
+      <p>IMGENGINE Free · browser-local tools</p>
+    </footer>
+  </div>
+</template>
 
 <style>
 :root { color: #eef4ff; background: #08111f; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
@@ -28,4 +44,11 @@ h1, h2 { margin: 0; line-height: 1.1; } h1 { font-size: clamp(2rem, 6vw, 3.8rem)
 .status, .error { margin: 1.25rem 0 0; padding: .9rem 1rem; border-radius: .65rem; }.status { background: #142944; color: #c7dcff; }.error { background: #3b1720; color: #ffd1d7; }
 .result { display: grid; gap: 1rem; margin-top: 2rem; }.result img { width: 100%; max-height: 30rem; object-fit: contain; border-radius: .85rem; background: #07101d; }
 @media (max-width: 32rem) { .selection-actions, .layout-fields { display: grid; grid-template-columns: 1fr; }.primary, .secondary { width: 100%; } }
+.free-site-footer { padding: 1rem 1.5rem 2rem; color: #bdcae0; text-align: center; font-size: .9rem; }
+.free-site-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+.free-site-footer a, .free-notice a { color: #b7d0ff; }
+.free-site-footer p { margin: .75rem 0 0; }
+.free-notice { line-height: 1.6; }
+.free-notice h2 { font-size: 1.3rem; margin-top: 1.5rem; }
+.free-notice p { overflow-wrap: anywhere; }
 </style>
