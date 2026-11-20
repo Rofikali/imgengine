@@ -80,6 +80,18 @@ test('Nuxt data scripts accept only existing route-local JSON payloads, never ex
     writeFileSync(payload, '{"rendered":true}')
     writeFileSync(html, '<script type="application/json" data-nuxt-data src="/compress-image/_payload.json">{"rendered":true}</script>')
     assert.doesNotThrow(() => buildFreeHeaders(root))
+    const nuxtCacheBuster = '?_b=31b6d882-faf0-4fed-b2e3-781749719811'
+    writeFileSync(html, '<script type="application/json" src="/compress-image/_payload.json' + nuxtCacheBuster + '"></script>')
+    assert.doesNotThrow(() => buildFreeHeaders(root))
+    for (const invalidSuffix of [
+      '?_b=wrong',
+      '?_b=31b6d882-faf0-4fed-b2e3-781749719811&debug=1',
+      '?_b=31b6d882-faf0-4fed-b2e3-781749719811#fragment',
+      '?token=31b6d882-faf0-4fed-b2e3-781749719811',
+    ]) {
+      writeFileSync(html, '<script type="application/json" src="/compress-image/_payload.json' + invalidSuffix + '"></script>')
+      assert.throws(() => buildFreeHeaders(root), /unapproved JSON script payload/)
+    }
     writeFileSync(html, '<script type="application/json" src="/compress-image/_payload.json">not-json</script>')
     assert.throws(() => buildFreeHeaders(root), /invalid inline route JSON payload/)
     writeFileSync(html, '<script src="/compress-image/_payload.json"></script>')
