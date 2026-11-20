@@ -1,6 +1,6 @@
 # F5-SUPPLY-04 — Free release-candidate dependency audit gate
 
-**Status: proposed, review required. No public launch authorization.**
+**Status: MERGED in [PR #89](https://github.com/Rofikali/imgengine/pull/89), main commit `6c9e5ff7846d6d4e3b4ec63d62b19ac0d3af3008`; [post-merge CI SUCCESS](https://github.com/Rofikali/imgengine/actions/runs/44771824270). Source-locked dependency remediation remains OPEN; no public launch authorization.**
 
 This is an *additional stricter pre-publication security condition*, not a
 replacement for ordinary development CI, a dependency fix, a permanent release

@@ -1,5 +1,9 @@
 # IMGENGINE Documentation
 
+**CURRENT VERIFIED MAIN (2026-11-20 UTC):** [PR #89](https://github.com/Rofikali/imgengine/pull/89) **MERGED** as `6c9e5ff7846d6d4e3b4ec63d62b19ac0d3af3008`, with [post-merge main CI SUCCESS](https://github.com/Rofikali/imgengine/actions/runs/44771824270). Strict zero-moderate release-only audit is implemented, not a dependency fix. The tracked frontend lockfile retains the moderate `glob@13.0.7` / `minimatch@10.2.6` findings; the #88 patched-major trial was disposable. **NEXT: F5-SUPPLY-05 permanent upstream-compatible package-manager-generated lockfile patch, exact-head Docker/CI/browser/security proof. Free v1.0.0 NOT RELEASED.**
+
+See the [F5-SUPPLY-05 dependency-remediation handoff](releases/free/v1.0.0/dependency-remediation-handoff.md). Older entries below retain historical engineering evidence, not the live next-task status.
+
 **Cloudflare static-header implementation MERGED (F5-HOST-HDR-01, PR #85):** [Free release contract](releases/free/v1.0.0/static-only-contract.md) specifies deterministic root `_headers`, hash-based script CSP, restrictive browser/egress rules and verification. [Exact-head 12/12 CI](https://github.com/Rofikali/imgengine/actions/runs/44722531833) passed, including 200/200 Free static checks; live Cloudflare responses are NOT_RUN. Notices are still drafts and dependency/security/legal evidence remains open. No Pages deployment is authorized.
 
 **F5-TRUST-01 MERGED — privacy, terms and support drafts:** [Free dossier](releases/free/v1.0.0/README.md) requires accurate public notices and private support before hosting. [PR #84](https://github.com/Rofikali/imgengine/pull/84) merged the draft routes and fail-closed publication guard; operator identity/contact, applicable DPDP review and Cloudflare hosting/privacy validation remain open. Free is **NOT RELEASED**.
