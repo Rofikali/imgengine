@@ -90,6 +90,6 @@ test('Nuxt data scripts accept only existing route-local JSON payloads, never ex
     assert.throws(() => buildFreeHeaders(root), /unapproved JSON script payload/)
     rmSync(payload)
     writeFileSync(html, '<script type="application/json" src="/compress-image/_payload.json"></script>')
-    assert.throws(() => buildFreeHeaders(root), /unapproved JSON script payload/)
+    assert.throws(() => buildFreeHeaders(root), /missing or unsafe route-local JSON payload/)
   })
 })
