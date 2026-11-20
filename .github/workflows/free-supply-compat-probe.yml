@@ -37,6 +37,7 @@ jobs:
           node-version: 24
       - name: Verify official Ubuntu 24.04 Playwright container and pinned pnpm
         working-directory: imgengine-saas/frontend
+        shell: bash
         run: |
           set -euo pipefail
           . /etc/os-release
