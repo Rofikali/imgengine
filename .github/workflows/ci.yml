@@ -378,7 +378,7 @@ jobs:
         run: pnpm exec nuxi prepare
       - name: Test Free static artifact allowlist and forbidden-server cases
         working-directory: imgengine-saas/frontend
-        run: node --test scripts/verify-free-static.test.mjs
+        run: node --test scripts/verify-free-static.node-check.mjs
       - name: Run frontend unit tests
         working-directory: imgengine-saas/frontend
         run: pnpm test
