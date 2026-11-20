@@ -88,7 +88,7 @@ static int test_stb_rejects_truncated_png_chunk(void) {
     const img_result_t actual = img_decode_stb(&ctx, hostile_png, sizeof(hostile_png), &output);
     img_slab_destroy(pool);
 
-    if (actual != IMG_ERR_SECURITY || output.data != NULL) {
+    if (actual != IMG_ERR_FORMAT || output.data != NULL) {
         fprintf(stderr, "STB decoder accepted a truncated PNG chunk\n");
         return 1;
     }

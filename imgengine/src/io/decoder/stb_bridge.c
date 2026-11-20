@@ -29,32 +29,32 @@ static img_result_t img_validate_png_chunks(const uint8_t *data, size_t size) {
     offset = sizeof(signature);
     while (offset < size) {
         if (size - offset < 12u)
-            return IMG_ERR_SECURITY;
+            return IMG_ERR_FORMAT;
 
         const uint32_t length = img_read_u32_be(data + offset);
         const uint8_t *const type = data + offset + 4u;
         offset += 8u;
         if (size - offset < 4u || (size_t)length > size - offset - 4u)
-            return IMG_ERR_SECURITY;
+            return IMG_ERR_FORMAT;
 
         if (memcmp(type, "IHDR", 4) == 0) {
             if (have_ihdr || have_idat || length != 13u)
-                return IMG_ERR_SECURITY;
+                return IMG_ERR_FORMAT;
             have_ihdr = 1;
         } else if (memcmp(type, "IDAT", 4) == 0) {
             if (!have_ihdr)
-                return IMG_ERR_SECURITY;
+                return IMG_ERR_FORMAT;
             have_idat = 1;
         } else if (memcmp(type, "IEND", 4) == 0) {
             if (!have_ihdr || !have_idat || length != 0u)
-                return IMG_ERR_SECURITY;
-            return offset + 4u == size ? IMG_SUCCESS : IMG_ERR_SECURITY;
+                return IMG_ERR_FORMAT;
+            return offset + 4u == size ? IMG_SUCCESS : IMG_ERR_FORMAT;
         }
 
         offset += (size_t)length + 4u;
     }
 
-    return IMG_ERR_SECURITY;
+    return IMG_ERR_FORMAT;
 }
 
 img_result_t img_decode_stb(img_ctx_t *ctx, const uint8_t *data, size_t size, img_buffer_t *out) {
