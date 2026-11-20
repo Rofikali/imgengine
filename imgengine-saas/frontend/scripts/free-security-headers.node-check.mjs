@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'nod
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createHash } from 'node:crypto'
-import { buildFreeHeaders, parseFreeHeaders, verifyFreeHeaders } from './free-security-headers.mjs'
+import { buildFreeHeaders, parseFreeHeaders, verifyFreeHeaders, stripFreeSpeculativePrefetch, assertNoFreeSpeculativePrefetch } from './free-security-headers.mjs'
 
 function fixture(html, fn) {
   const folder = mkdtempSync(join(tmpdir(), 'imgengine-cf-headers-'))
@@ -24,7 +24,7 @@ test('uses exact SHA-256 of executable inline scripts; ignores JSON data scripts
     const scriptPolicy = parseFreeHeaders(headers).get('Content-Security-Policy').split('; ').find(part => part.startsWith('script-src '))
     assert.ok(scriptPolicy, 'script-src must exist')
     assert.doesNotMatch(scriptPolicy, /unsafe-eval|unsafe-inline/)
-    assert.match(headers, /connect-src 'self'/)
+    assert.match(headers, /connect-src 'self' blob:/)
     assert.match(headers, /frame-ancestors 'none'/)
     assert.match(headers, /X-Robots-Tag: noindex, nofollow/)
     assert.equal(verifyFreeHeaders(root).get('X-Content-Type-Options'), 'nosniff')
@@ -103,5 +103,33 @@ test('Nuxt data scripts accept only existing route-local JSON payloads, never ex
     rmSync(payload)
     writeFileSync(html, '<script type="application/json" src="/compress-image/_payload.json"></script>')
     assert.throws(() => buildFreeHeaders(root), /missing or unsafe route-local JSON payload/)
+  })
+})
+
+test('Free build strips only compiled same-origin Nuxt speculative hints', () => {
+  fixture('<h1>SAFE</h1>', root => {
+    const html = join(root, 'index.html')
+    writeFileSync(html, '<link rel="prefetch" href="/_nuxt/error-404.BpPywUAv.css">' +
+      '<link href="/_nuxt/entry.A1b.js" rel="prefetch">' +
+      '<link rel="stylesheet" href="/_nuxt/entry.A1b.css">')
+    assert.throws(() => assertNoFreeSpeculativePrefetch(root), /blocked speculative prefetch/)
+    assert.equal(stripFreeSpeculativePrefetch(root), 2)
+    assert.doesNotThrow(() => assertNoFreeSpeculativePrefetch(root))
+    assert.match(readFileSync(html, 'utf8'), /rel="stylesheet"/)
+    assert.doesNotMatch(readFileSync(html, 'utf8'), /prefetch/)
+    writeFileSync(html, '<link rel="prefetch" href="https://cdn.example.com/evil.js">')
+    assert.throws(() => stripFreeSpeculativePrefetch(root), /unapproved speculative prefetch/)
+    writeFileSync(html, '<link rel="prefetch" href="/_nuxt/../secret.js">')
+    assert.throws(() => stripFreeSpeculativePrefetch(root), /unapproved speculative prefetch/)
+  })
+})
+
+test('script checks never mistake data-type or data-src for executable attributes', () => {
+  fixture('<h1>SAFE</h1>', root => {
+    const html = join(root, 'index.html')
+    writeFileSync(html, '<script data-type="application/json" src="https://cdn.example.com/evil.js"></script>')
+    assert.throws(() => buildFreeHeaders(root), /external\/unapproved script/)
+    writeFileSync(html, '<script type="module" data-src="/_nuxt/safe.js" src="https://cdn.example.com/evil.js"></script>')
+    assert.throws(() => buildFreeHeaders(root), /external\/unapproved script/)
   })
 })
