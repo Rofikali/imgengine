@@ -133,3 +133,70 @@ test('unknown and retired picomatch audit flags fail closed', () => {
     assert.match(result.stderr, /unrecognized audit option/)
   }
 })
+
+
+test('release-candidate mode passes only a clean moderate-or-worse audit', () => {
+  const result = audit(report({ critical: 0, high: 0, moderate: 0, low: 1 }), {
+    args: ['--release-candidate'],
+  })
+  assert.equal(result.status, 0)
+  assert.match(result.stdout, /release-candidate dependency threshold PASSED/)
+  assert.match(result.stdout, /critical=0 high=0 moderate=0 low=1/)
+})
+
+test('release-candidate mode refuses moderate production findings with complete identities', () => {
+  const result = audit(report(
+    { critical: 0, high: 0, moderate: 2, low: 0 },
+    {
+      a: { severity: 'moderate', module_name: 'glob', url: 'https://github.com/advisories/GHSA-3g3m-2fjr-6pw4', patched_versions: '>=14.0.2' },
+      b: { severity: 'moderate', module_name: 'minimatch', url: 'https://github.com/advisories/GHSA-g3hv-75wg-m249', patched_versions: '>=11.0.1' },
+    },
+  ), { args: ['--release-candidate'] })
+  assert.equal(result.status, 1)
+  assert.match(result.stdout, /severity=moderate package=glob/)
+  assert.match(result.stdout, /severity=moderate package=minimatch/)
+  assert.match(result.stderr, /release-candidate audit BLOCKED/)
+  assert.doesNotMatch(result.stdout, /threshold PASSED/)
+})
+
+test('release-candidate mode refuses moderate summary when advisory details are missing', () => {
+  const result = audit(report({ critical: 0, high: 0, moderate: 1, low: 0 }), {
+    args: ['--release-candidate'],
+  })
+  assert.equal(result.status, 1)
+  assert.match(result.stdout, /Moderate advisory detail unavailable/)
+  assert.match(result.stderr, /release-candidate audit BLOCKED/)
+})
+
+test('release-candidate mode never overrides a high or critical finding', () => {
+  for (const counts of [
+    { critical: 1, high: 0, moderate: 0, low: 0 },
+    { critical: 0, high: 1, moderate: 2, low: 0 },
+  ]) {
+    const result = audit(report(counts), { args: ['--release-candidate'] })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /critical or high/)
+  }
+})
+
+test('release-candidate option cannot combine with bypass or duplicates', () => {
+  for (const flags of [
+    ['--release-candidate', '--ignore-all-high'],
+    ['--release-candidate', '--release-candidate'],
+    ['--ignore-all-high', '--release-candidate'],
+  ]) {
+    const result = audit(report({ critical: 0, high: 0, moderate: 0, low: 0 }), {
+      args: flags,
+    })
+    assert.equal(result.status, 2)
+    assert.match(result.stderr, /unrecognized audit option/)
+  }
+})
+
+test('release-candidate mode rejects malformed audit summaries', () => {
+  const result = audit(report({ critical: 0, high: 0, moderate: '0', low: 0 }), {
+    args: ['--release-candidate'],
+  })
+  assert.equal(result.status, 2)
+  assert.match(result.stderr, /invalid vulnerability summary/)
+})
