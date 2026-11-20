@@ -21,7 +21,9 @@ test('uses exact SHA-256 of executable inline scripts; ignores JSON data scripts
   fixture('<script type="application/json">{"safe": true}</script><script>' + inline + '</script><script type="module" src="/_nuxt/entry.A1b.js"></script>', (root, headers) => {
     const digest=createHash('sha256').update(inline).digest('base64')
     assert.match(headers, new RegExp('sha256-' + digest.replace(/[+]/g, '\\+')))
-    assert.doesNotMatch(headers, /unsafe-eval|script-src[^\n]*unsafe-inline/)
+    const scriptPolicy = parseFreeHeaders(headers).get('Content-Security-Policy').split('; ').find(part => part.startsWith('script-src '))
+    assert.ok(scriptPolicy, 'script-src must exist')
+    assert.doesNotMatch(scriptPolicy, /unsafe-eval|unsafe-inline/)
     assert.match(headers, /connect-src 'self'/)
     assert.match(headers, /frame-ancestors 'none'/)
     assert.match(headers, /X-Robots-Tag: noindex, nofollow/)
