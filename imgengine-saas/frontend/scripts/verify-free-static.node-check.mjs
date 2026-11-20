@@ -104,7 +104,7 @@ test('Free static matrix runs all four projects with separate Playwright and ser
     assert.equal(command, 'pnpm')
     assert.deepEqual(args.slice(0, 5), ['exec', 'playwright', 'test', '--config', 'playwright.free-static.config.ts'])
     assert.equal(options.stdio, 'inherit')
-    assert.match(options.cwd, /frontend$/)
+    assert.match(options.cwd, /frontend\/?$/)
   }
   assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
 })
