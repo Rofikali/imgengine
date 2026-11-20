@@ -46,7 +46,7 @@ static img_result_t img_validate_png_chunks(const uint8_t *data, size_t size) {
                 return IMG_ERR_FORMAT;
             have_idat = 1;
         } else if (memcmp(type, "IEND", 4) == 0) {
-            if (!have_ihdr || !have_idat || length != 0u)
+            if (!have_ihdr || length != 0u)
                 return IMG_ERR_FORMAT;
             return offset + 4u == size ? IMG_SUCCESS : IMG_ERR_FORMAT;
         }
