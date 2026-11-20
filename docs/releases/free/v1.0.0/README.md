@@ -4,6 +4,8 @@
 
 **F5-HOST-HDR-01 MERGED (2026-11-20):** [PR #85](https://github.com/Rofikali/imgengine/pull/85) merged at `44c3b0f28cb916e8dbb80e9215212785187c9961`; exact head `870f255ba55363194e39af94104aac2d4d42805a` passed [12/12 CI](https://github.com/Rofikali/imgengine/actions/runs/44722531833) including 200/200 Free static and 84/84 normal browser checks. Compiled `_headers`, script-hash CSP and strict static artifact checks work in local simulation. **Actual Cloudflare response/TLS, hosting privacy, legal owner notices and release approval are NOT VERIFIED.**
 
+**F5-SUPPLY-02 MERGED (2026-11-20):** [PR #87](https://github.com/Rofikali/imgengine/pull/87) merged as `6677029e504ef6cb122fc230bfae010c0edb138b`; exact head passed [12/12 CI](https://github.com/Rofikali/imgengine/actions/runs/44727385277), including 84/84 normal and 200/200 Free static browser tests. The withdrawn picomatch CI waiver is gone; high/critical gate remains strict. Two moderate transitive advisories are still open, with a separate disposable compatibility experiment proposed under F5-SUPPLY-03.
+
 **State: F5 FEATURES AND SECURITY IMPLEMENTATION MERGED / FREE V1.0.0 NOT RELEASED.** This dossier is a tracked release plan, **not** a frozen release artifact, Git tag, Cloudflare deployment or public launch. Release owner go/no-go: **NOT GIVEN**.
 
 ## Customer promise (Free only)
@@ -39,7 +41,7 @@ The complete project (C17 native libraries, Rust/Axum backend, Nuxt server route
 - [Dependency advisory review (2026-11-20)](dependency-advisory-review-2026-11-20.md) — exact audit IDs, reported patches and unresolved applicability/compatibility gates
 - [Cloudflare deployment/rollback runbook](deployment-runbook.md) — **procedure only**, no deploy
 
-Authoritative shared policies: [release index](../../README.md), [five-family release ADR](../../../ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md), [compatibility contract](../../../IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md), [Docker-only engineering](../../../IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md), [main live milestone board](../../../../next.md), [temporary unpatched non-production security exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). Avoid copying those policies.
+Authoritative shared policies: [release index](../../README.md), [five-family release ADR](../../../ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md), [compatibility contract](../../../IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md), [Docker-only engineering](../../../IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md), [main live milestone board](../../../../next.md), [historical, retired non-production security exception](../../../FRONTEND_PICOMATCH_TEMPORARY_NONPROD_RISK_ACCEPTANCE_2026-11-18.md). Avoid copying those policies.
 
 ## Decision and remaining blockers
 
@@ -47,6 +49,6 @@ Authoritative shared policies: [release index](../../README.md), [five-family re
 
 **F5-TRUST-01 merged (drafts only):** static **draft-only** `/privacy`, `/terms` and `/support` routes are proposed for Free builds, with a labelled footer and a separate publication readiness guard. No legal operator identity, private contact channel or contractual jurisdiction is fabricated. Current public-page content says pre-launch draft, and `pnpm run verify:free-publication-ready` intentionally fails; it must not be used to approve deployment. The future final artifact/owner approval must be external and post-freeze. Hosting provider logs and analytics configuration must be checked in the actual Cloudflare project before privacy copy is finalized.
 
-**Next:** F5-SUPPLY-01 production dependency advisory identification and reviewer disposition, reconciliation of the withdrawn picomatch advisory/legacy exception, followed by independent frozen-artifact browser/privacy/a11y evidence, reviewed privacy/legal/support contacts and notices, Cloudflare hosting/rollback verification and named owner release approval. No cloud upload or tag follows automatically from any development PR. A public site requires an additional **explicit owner approval** identifying the release artifact digest and target project.
+**Next:** F5-SUPPLY-03 disposable compatibility probe and separate owner-reviewed dependency remediation/disposition, followed by independently frozen-artifact browser/privacy/a11y evidence, reviewed privacy/legal/support contacts and notices, Cloudflare hosting/rollback verification and named owner release approval. No cloud upload or tag follows automatically from any development PR. A public site requires an additional **explicit owner approval** identifying the release artifact digest and target project.
 
 No VPS / real C/Rust host-capacity evidence is demanded for a genuinely serverless *static* Free build; it becomes mandatory for a separately approved public Rust/C/Studio/API service. A 20-GB/1-GB local Docker allocation alone is not public-host evidence.
