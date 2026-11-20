@@ -3,18 +3,20 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 
 // Every verified browser project and every static-route assertion must run.
-// Desktop Firefox intermittently stalls during page.goto after long test
-// lifetimes, including in unmodified-lockfile baseline CI. Short-lived,
-// disjoint Playwright test shards keep the exact tests and original deadlines,
+// Desktop Firefox intermittently stalls waiting for domcontentloaded after
+// Node has already sent the static resources (confirmed by request timings).
+// Repro on 10-shard optional trial means five-test process lifetimes are not
+// sufficient. One-test processes keep the same tests and original deadlines,
 // while making navigation failures diagnosable by isolated server lifetime.
 // Playwright with --fully-parallel uses TEST-level sharding, not file-level.
+// A missing/extra test fails rather than silently running an empty shard.
 export const FREE_STATIC_BROWSER_PROJECTS = Object.freeze([
   'desktop-chromium',
   'mobile-chromium',
   'desktop-firefox',
   'desktop-webkit',
 ])
-export const FIREFOX_TEST_SHARDS = 10
+export const FIREFOX_TEST_SHARDS = 50
 
 const frontendRoot = fileURLToPath(new URL('../', import.meta.url))
 
