@@ -136,7 +136,8 @@ test('cancel discards pending work and Worker failure falls back locally without
   await page.getByRole('button', { name: 'Resize locally', exact: true }).click()
   await page.waitForFunction(() => (window as unknown as { workerPosted: boolean }).workerPosted)
   await page.clock.fastForward(10_001)
-  await expect(page.getByRole('alert')).toContainText('Nothing was uploaded')
+  await expect(page.getByAltText('Resized PNG preview')).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
   expect(posts).toEqual([])
 })
 
