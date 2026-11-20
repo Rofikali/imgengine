@@ -47,7 +47,7 @@ export function buildFreeHeaders(dist) {
         const value = src[1] ?? src[2] ?? src[3]
         // Restrict all compiled executable scripts to local Nuxt assets.
         if (!/^\/_nuxt\/[a-z0-9_.\/-]+\.m?js(?:\?[a-z0-9_-]+)?$/i.test(value) || value.includes('..')) {
-          throw Error('external/unapproved script in ' + relative(root, htmlFile))
+          throw Error('external/unapproved script in ' + relative(root, htmlFile) + ': src pathname ' + JSON.stringify(value.split(/[?#]/, 1)[0].slice(0, 160)))
         }
         continue
       }
