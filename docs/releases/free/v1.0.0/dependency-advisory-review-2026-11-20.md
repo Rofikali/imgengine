@@ -10,9 +10,18 @@
 - **Advisory B:** `minimatch`, **moderate**, [GHSA-g3hv-75wg-m249](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249), production audit reports `patched_versions: >=11.0.1`. The advisory describes input-controlled glob-pattern expansion with potential CPU/memory denial of service under specified processing settings. Applicability to project inputs and resolved version **UNVERIFIED**.
 - **Previously reported picomatch high advisory:** [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) is **withdrawn** as of 2026-11-18 and did not appear in this run's high counts. The narrow time-limited *development CI* exception remains in source; remove it only in a separately reviewed fail-closed security change. It is never a production authorization.
 
+## Verified current lockfile graph (static inspection, NOT reachability proof)
+
+The tracked `imgengine-saas/frontend/pnpm-lock.yaml` blob **`7cbd9c37f1aa5bfcfd16dfd3df8913afc8e29026`** resolves:
+
+- `nitropack@2.13.6` → `@vercel/nft@1.11.1` → **`glob@13.0.7`** → **`minimatch@10.2.6`**.
+- `nitropack@2.13.6` → `archiver@8.0.0` → `readdir-glob@3.0.0` → **`minimatch@10.2.6`**.
+
+This is **two transitive paths to the resolved minimatch version**, not an independently verified runtime exposure. Nitro is involved in Nuxt tooling and normal server builds; static Free export must still prove no executable copy or reachable Node/Nitro code in the final output. Do not hand-edit the lockfile or force a major upgrade across these dependency contracts without compatibility tests. The package graph may change with later merges; re-verify from the frozen candidate lockfile.
+
 ## Required review and resolution sequence
 
-1. **Dependency graph and lockfile evidence:** capture exact resolved `glob` and `minimatch` versions and all importing paths with pinned pnpm `10.34.9` (`pnpm why glob minimatch --depth 20` and lockfile inspection) in the mandated Ubuntu 24.04 Docker environment. Distinguish build/dev/test tree from executable shipped static browser output. A `--prod` audit classifies dependency entries; it does **not** alone prove runtime reachability.
+1. **Dependency graph and lockfile evidence:** reconfirm the graph above, all resolved versions and all importing paths with pinned pnpm `10.34.9` (`pnpm why glob minimatch --depth 20` and lockfile inspection) in the mandated Ubuntu 24.04 Docker environment. Distinguish build/dev/test tree from executable shipped static browser output. A `--prod` audit classifies dependency entries; it does **not** alone prove runtime reachability.
 2. **Threat model / exposure:** assess whether untrusted patterns, input filenames, directory trees or AbortSignal cancellations reach either vulnerable implementation during build, static serving or any separately deployed Node/Rust/C runtime. Verify the Free static artifact contains no Node/Nitro/server code, rather than inferring this from package names.
 3. **Patch feasibility:** select an upstream-compatible Nuxt/transitive dependency upgrade only after inspecting actual semver/ABI compatibility and the lockfile. Published patched *major* versions are **not** permission for blind global overrides or hand-edited lockfiles. If non-applicable, document a dated, scoped owner/security acceptance and expiration; otherwise prepare a separate minimal patch PR.
 4. **Reverification:** frozen install, production audit, checker unit regressions, typecheck/unit/build, static artifact/headers/CSP audit and all affected four-browser checks on **the exact patch HEAD**. Current critical/high gate must remain fail-closed.
