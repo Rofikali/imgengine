@@ -70,6 +70,31 @@ static int test_stb_decode_preflight(void) {
     return 0;
 }
 
+static int test_stb_rejects_truncated_png_chunk(void) {
+    /* Valid PNG signature and IHDR followed by a declared 2 GiB IDAT with no
+     * payload. The decoder must reject it before stb_image reserves IDAT data. */
+    const uint8_t hostile_png[] = {
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
+        0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x49, 0x44, 0x41, 0x54, 0x00, 0x00, 0x00, 0x00,
+    };
+    img_slab_pool_t *pool = img_slab_create(1024, 256);
+    if (!pool) {
+        fprintf(stderr, "could not create tiny slab for PNG chunk test\n");
+        return 1;
+    }
+    img_ctx_t ctx = {.local_pool = pool};
+    img_buffer_t output = {0};
+    const img_result_t actual = img_decode_stb(&ctx, hostile_png, sizeof(hostile_png), &output);
+    img_slab_destroy(pool);
+
+    if (actual != IMG_ERR_FORMAT || output.data != NULL) {
+        fprintf(stderr, "STB decoder accepted a truncated PNG chunk\n");
+        return 1;
+    }
+    return 0;
+}
+
 static int test_slab_lifecycle(void) {
     if (img_slab_create(0, 64) != NULL || img_slab_create(64, 0) != NULL ||
         img_slab_create(64, 128) != NULL || img_slab_create(SIZE_MAX, 64) != NULL) {
@@ -160,7 +185,8 @@ static int test_scheduler_overflow_queue(void) {
 }
 
 int main(void) {
-    int failures = test_input_validation() + test_stb_decode_preflight() + test_slab_lifecycle() +
+    int failures = test_input_validation() + test_stb_decode_preflight() +
+                   test_stb_rejects_truncated_png_chunk() + test_slab_lifecycle() +
                    test_arena_boundaries() + test_scheduler_overflow_queue();
     if (failures != 0)
         return 1;
