@@ -97,7 +97,7 @@ test('Free static matrix runs all projects and all ten disjoint Firefox test sha
   assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
   assert.equal(FIREFOX_TEST_SHARDS, 10)
   assert.equal(invocations.length, 13) // Chromium, mobile, ten Firefox, WebKit.
-  assert.deepEqual(invocations.map(({ args }) => args[4]), [
+  assert.deepEqual(invocations.map(({ args }) => args[5]), [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
     ...Array.from({ length: 10 }, () => '--project=desktop-firefox'),
@@ -105,16 +105,15 @@ test('Free static matrix runs all projects and all ten disjoint Firefox test sha
   ])
   for (const [i, { command, args, options }] of invocations.entries()) {
     assert.equal(command, 'pnpm')
-    assert.deepEqual(args.slice(0, 4), ['exec', 'playwright', 'test', '--config'])
-    assert.equal(args[4].startsWith('--project='), true)
-    assert.equal(args[3], 'playwright.free-static.config.ts')
+    assert.deepEqual(args.slice(0, 5), ['exec', 'playwright', 'test', '--config', 'playwright.free-static.config.ts'])
+    assert.equal(args[5].startsWith('--project='), true)
     assert.equal(options.stdio, 'inherit')
     assert.match(options.cwd, /frontend\/?$/)
     assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, i >= 2 && i < 12 ? '1' : '0')
     if (i >= 2 && i < 12) {
-      assert.deepEqual(args.slice(5), ['--fully-parallel', '--shard=' + (i - 1) + '/10'])
+      assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/10'])
     } else {
-      assert.equal(args.length, 5)
+      assert.equal(args.length, 6)
     }
   }
 })
