@@ -94,7 +94,8 @@ test('compiled Free static pages enforce CSP and defensive Cloudflare headers', 
     expect(csp, route).toContain("connect-src 'self'")
     expect(csp, route).toContain("frame-ancestors 'none'")
     expect(csp, route).not.toContain('unsafe-eval')
-    expect(csp.split('script-src ')[1].split(';')[0]).not.toContain('unsafe-inline')
+    const scriptDirective = csp?.split('script-src ')[1]?.split(';')[0] ?? ''
+    expect(scriptDirective).not.toContain('unsafe-inline')
     expect(headers['x-content-type-options']).toBe('nosniff')
     expect(headers['x-frame-options']).toBe('DENY')
     expect(headers['referrer-policy']).toBe('no-referrer')
