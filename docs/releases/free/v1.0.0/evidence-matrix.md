@@ -11,6 +11,8 @@
 | Post-merge `main` CI | PASS **for current integration, not static artifact** | [Run #44679764303](https://github.com/Rofikali/imgengine/actions/runs/44679764303). Reconfirm latest main during next engineering task. |
 | C-A0 malformed PNG defensive fix | MERGED | [PR #81](https://github.com/Rofikali/imgengine/pull/81) merge `a50c6e1469022eb8b0d3cbe5d76e1290f5db1d45`; not a Free launch waiver. |
 
+**F5-STATIC-01 candidate (2026-11-20):** source/configuration and separate static Playwright/test-only server implementation proposed in a review PR. **Until the exact-head CI run completes, `NOT_RUN` remains correct for static-artifact qualification.** A later passing PR gate is not automatic approval for production packaging, privacy/legal or Cloudflare release.
+
 ## Required release-candidate gates — none presumed passed
 
 | Gate | Required evidence at **exact static build SHA + digest** | State | Owner / next work |

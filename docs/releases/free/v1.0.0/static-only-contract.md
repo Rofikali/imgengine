@@ -1,6 +1,6 @@
 # IMGENGINE Free v1.0.0 — Static-only public distribution contract
 
-**Status:** BINDING TARGET / UNIMPLEMENTED AND UNVERIFIED. Must be enforced by an independently reviewed **F5-STATIC-01** build and browser-negative-test PR before any release candidate or Cloudflare upload.
+**Status:** BINDING TARGET / F5-STATIC-01 IMPLEMENTATION PR IN REVIEW, TEST RESULTS PENDING. Source implementations are not production certification. Must be enforced by an independently reviewed **F5-STATIC-01** build and browser-negative-test PR before any release candidate or Cloudflare upload.
 
 ## Build and distribution boundary
 
@@ -23,6 +23,18 @@ Publicly supported paths are the landing page, five browser-local tool routes (`
 - **No secrets/internal configuration**: no `IMGENGINE_RENDER_API_KEY`, `IMGENGINE_API_KEYS`, API bearer tokens, internal Rust hostnames, .env secrets, credential files, server source maps, application source files, telemetry of filenames or bearer/session identifiers. Public assets may necessarily contain non-sensitive application JavaScript and source maps only if explicitly reviewed.
 - **No unsupported feature promise**: Pro, Studio, Developer API, SDK/Desktop, physical print layouts, accounts, batch/paid services or server render are not offered as working Free v1 features.
 - **No hidden price or platform dependency**: Free v1 cannot require billed Workers, Functions, R2/D1/KV, private servers, domains, paid accounts or server-side compute. CDN asset delivery may still expose normal hosting-layer access metadata and is not equivalent to zero provider data processing.
+
+## F5-STATIC-01 implementation surface (candidate, not evidence of PASS)
+
+- `imgengine-saas/frontend/nuxt.config.ts`: opt-in `IMGENGINE_FREE_STATIC_BUILD=1`; maps only six Free paths, replaces the normal homepage with a Free-only landing component, and selects an empty Nuxt `serverDir` so normal `server/api` handlers do not join the build.
+- `imgengine-saas/frontend/free-static/landing.vue` and `free-static/empty-server/.gitkeep`: Free entrypoint and explicit isolated server scan root.
+- `pnpm run build:free-static`: Nuxt static generation inside Ubuntu Docker followed by explicit removal of Nuxt's catchall `200.html`. The Free artifact requires a real `404.html`.
+- `pnpm run verify:free-static`: fail-closed file and text scanner, six prerendered route assertions, no symlinks, cloud-functions/server/lockfiles/hidden assets, limit and secret checks; prints a deterministic SHA-256 inventory of included files. It is **not** a substitute for human privacy/security assessment or final immutable release attestation.
+- `scripts/serve-free-static.mjs`: local **test-only** HTTP server serving just `.output/public`, with real HTTP 404s for nonexistent/API routes. The test server itself must never be uploaded.
+- `playwright.free-static.config.ts`: Chromium desktop/mobile, Firefox and WebKit run **all existing local-tool tests and static-specific security/navigation tests** against generated files. The normal server-backed Playwright job remains intact.
+- Existing tool pages' back links now lead to the Free tools landing navigation; original backend, C/Rust/ABI and private print functionality remain in the repository.
+
+No workflow deploy step, Cloudflare credentials or public host is introduced. The existing `Nuxt build` and `Nuxt generate` CI checks must both pass before treating this implementation as review-ready.
 
 ## Evidence demanded from F5-STATIC-01
 

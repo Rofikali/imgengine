@@ -25,7 +25,7 @@ useHead({ title: 'Compress an image locally — IMGENGINE' })
     <p class="status" role="status">{{ message }}</p><p v-if="error" class="error" role="alert">{{ error }}</p>
     <div v-if="source" class="result"><p class="help">Source: {{ source.width }} × {{ source.height }} pixels.</p><img :src="source.url" alt="Local source image"></div>
     <section v-if="result" class="result" aria-label="Compressed image"><img :src="result" alt="Compressed JPEG preview"><a class="primary" :href="result" download="imgengine-compressed.jpg">Download JPEG</a></section>
-    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/convert-image">Convert locally</NuxtLink> · <NuxtLink to="/">Server print layouts (uploads on Render)</NuxtLink></p>
+    <p><NuxtLink to="/resize-image">Resize locally</NuxtLink> · <NuxtLink to="/crop-image">Crop locally</NuxtLink> · <NuxtLink to="/rotate-image">Rotate locally</NuxtLink> · <NuxtLink to="/convert-image">Convert locally</NuxtLink> · <NuxtLink to="/">All Free tools</NuxtLink></p>
   </section></main>
 </template>
 

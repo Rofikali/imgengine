@@ -104,8 +104,8 @@ test('repeated operations release URLs and Workers on replace, remove and route 
   await page.getByRole('button', { name: 'Remove image' }).click(); await expect.poll(resources).toEqual([0, 0])
   await expect(page.getByLabel('Choose a JPEG or PNG', { exact: true })).toBeFocused()
   await select(page, buffer)
-  await page.getByRole('link', { name: 'Server print layouts (uploads on Render)' }).click()
-  await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toBeVisible()
+  await page.getByRole('link', { name: 'All Free tools' }).click()
+  await expect(page.getByRole('heading', { name: process.env.IMGENGINE_STATIC_E2E === '1' ? 'Edit images privately.' : 'Create printable photo layouts.' })).toBeVisible()
   await expect.poll(resources).toEqual([0, 0])
 })
 

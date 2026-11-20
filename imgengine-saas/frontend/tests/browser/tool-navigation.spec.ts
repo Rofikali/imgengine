@@ -18,6 +18,6 @@ test('the landing page exposes every browser-local Free tool in a labelled navig
     await expect(navigation.getByRole('link', { name, exact: true })).toHaveAttribute('href', path)
   }
 
-  await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: process.env.IMGENGINE_STATIC_E2E === '1' ? 'Edit images privately.' : 'Create printable photo layouts.' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
