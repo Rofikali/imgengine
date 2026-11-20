@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:imgengine:schema:release-plan:v1",
+  "title": "IMGENGINE source-controlled release plan v1",
+  "description": "Planning metadata only; final attestation is generated after source freeze and stored separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "product",
+    "version",
+    "state",
+    "publicly_released",
+    "capabilities",
+    "distribution",
+    "source_control",
+    "candidate_evidence",
+    "production",
+    "final_build_evidence_policy"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "const": "source-controlled-release-plan"
+    },
+    "product": {
+      "type": "string",
+      "pattern": "^imgengine-[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-zA-Z0-9.-]+)?$"
+    },
+    "state": {
+      "enum": [
+        "PLANNED",
+        "CANDIDATE",
+        "READY_FOR_RELEASE_REVIEW",
+        "APPROVED_FOR_DEPLOYMENT",
+        "RELEASED",
+        "SUPERSEDED",
+        "ROLLED_BACK"
+      ]
+    },
+    "publicly_released": {
+      "type": "boolean"
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "candidate_output",
+        "build_environment",
+        "hosting_target",
+        "upload_method",
+        "nuxt_server_runtime_allowed",
+        "cloudflare_pages_functions_allowed",
+        "public_rust_or_c_api_allowed",
+        "server_image_upload_allowed",
+        "automatic_git_deployment_allowed"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "candidate_output": {
+          "type": "string"
+        },
+        "build_environment": {
+          "type": "string"
+        },
+        "hosting_target": {
+          "type": "string"
+        },
+        "upload_method": {
+          "type": "string"
+        },
+        "nuxt_server_runtime_allowed": {
+          "type": "boolean"
+        },
+        "cloudflare_pages_functions_allowed": {
+          "type": "boolean"
+        },
+        "public_rust_or_c_api_allowed": {
+          "type": "boolean"
+        },
+        "server_image_upload_allowed": {
+          "type": "boolean"
+        },
+        "automatic_git_deployment_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "source_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "integration_branch",
+        "proposed_release_branch",
+        "proposed_immutable_tag",
+        "tag_created"
+      ],
+      "properties": {
+        "integration_branch": {
+          "type": "string"
+        },
+        "proposed_release_branch": {
+          "type": "string"
+        },
+        "proposed_immutable_tag": {
+          "type": "string"
+        },
+        "tag_created": {
+          "type": "boolean"
+        }
+      }
+    },
+    "candidate_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frozen_source_sha",
+        "build_artifact_sha256",
+        "release_ci_run_url",
+        "static_export_test_url",
+        "security_review_url",
+        "privacy_review_url",
+        "legal_review_url",
+        "hosting_rollback_review_url"
+      ],
+      "properties": {
+        "frozen_source_sha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "build_artifact_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "release_ci_run_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "static_export_test_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "security_review_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "privacy_review_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "legal_review_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hosting_rollback_review_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "production": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner_approval_reference",
+        "pages_project",
+        "deployment_id",
+        "public_url",
+        "deployed_at_utc"
+      ],
+      "properties": {
+        "owner_approval_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pages_project": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deployment_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "public_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deployed_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "final_build_evidence_policy": {
+      "type": "string",
+      "minLength": 50
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "PLANNED"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "publicly_released": {
+            "const": false
+          },
+          "source_control": {
+            "properties": {
+              "tag_created": {
+                "const": false
+              }
+            }
+          },
+          "production": {
+            "properties": {
+              "owner_approval_reference": {
+                "type": "null"
+              },
+              "deployment_id": {
+                "type": "null"
+              },
+              "deployed_at_utc": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "RELEASED"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "publicly_released": {
+            "const": true
+          },
+          "production": {
+            "required": [
+              "owner_approval_reference",
+              "deployment_id",
+              "public_url",
+              "deployed_at_utc"
+            ],
+            "properties": {
+              "owner_approval_reference": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deployment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "public_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "deployed_at_utc": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
