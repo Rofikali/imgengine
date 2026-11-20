@@ -1,5 +1,9 @@
 # IMGENGINE Free v1.0.0 — Release dossier
 
+**F5-TRUST-01 merged (2026-11-20):** [PR #84](https://github.com/Rofikali/imgengine/pull/84) merged as `cffe893c03bed4203e75d03703fbb4c5238c1ebb`; exact head `4a7a9698d6856053d31a953304019ceff74cf945` passed [12/12 CI](https://github.com/Rofikali/imgengine/actions/runs/44704589708) with 108/108 Free static and 84/84 normal browser tests. Draft /privacy, /terms and /support and fail-closed publication guard are merged; **none are final owner/legal notices**. No site was deployed. Production dependency audit on that PR: **critical=0, high=0, moderate=2**. The two moderate advisories require identification and applicable reviewer disposition.
+
+**F5-HOST-HDR-01 (review candidate):** Build-time Cloudflare Pages static `_headers` generation with exact Nuxt HTML script hashes, forbidden API/server checks, local simulation and cross-browser negative tests. This is **not evidence of production Cloudflare headers**, HTTPS, domain safety or owner launch approval; all three public notices remain pre-launch drafts.
+
 **State: PLANNED / NOT RELEASED.** This dossier is a planning artifact proposed under `F5-RELEASE-DOCS-01` on 2026-11-20; it is **not** a release candidate, Git tag, hosted website or claim of public availability. Release owner go/no-go: **NOT GIVEN**.
 
 ## Customer promise (Free only)

@@ -25,7 +25,7 @@ async function fields(page: Page, x: number, y: number, width: number, height: n
 async function crop(page: Page) { await page.getByRole('button', { name: 'Crop locally', exact: true }).click(); await expect(page.getByAltText('Cropped PNG preview')).toBeVisible() }
 
 test('exact odd rectangle pixels, transparent final pixel, keyboard, privacy and axe', async ({ page }) => {
-  await page.goto('/crop-image')
+  await page.goto('/crop-image', { waitUntil: 'domcontentloaded' })
   const requests: string[] = []
   page.on('request', r => {
     if (!/^https?:/.test(r.url())) return
@@ -61,7 +61,7 @@ test('exact odd rectangle pixels, transparent final pixel, keyboard, privacy and
 })
 
 test('portrait pointer/touch moves stay bounded and numeric controls resize', async ({ page, isMobile }) => {
-  await page.goto('/crop-image'); await choose(page, await source(page, 203, 401)); await fields(page, 10, 10, 50, 60)
+  await page.goto('/crop-image', { waitUntil: 'domcontentloaded' }); await choose(page, await source(page, 203, 401)); await fields(page, 10, 10, 50, 60)
   const frame = page.getByRole('group', { name: 'Crop selection preview' })
   await frame.scrollIntoViewIfNeeded()
   const box = (await frame.boundingBox())!
@@ -77,7 +77,7 @@ test('portrait pointer/touch moves stay bounded and numeric controls resize', as
 })
 
 test('stored-raster JPEG/PNG orientation remains explicit in cropped output', async ({ page }) => {
-  await page.goto('/crop-image')
+  await page.goto('/crop-image', { waitUntil: 'domcontentloaded' })
   for (const jpeg of [false, true]) for (const orientation of [2, 6, 8]) {
     await choose(page, oriented(await source(page, 401, 203, jpeg), orientation, !jpeg, true))
     await fields(page, 11, 30, 17, 31); await crop(page)
@@ -92,7 +92,7 @@ test('selection changes, remove and navigation release resources; cancel suppres
     URL.createObjectURL = blob => { const url = create(blob); urls.add(url); return url }; URL.revokeObjectURL = url => { urls.delete(url); revoke(url) }
     Object.defineProperty(window, 'cropURLs', { get: () => urls.size })
   })
-  await page.goto('/crop-image'); const buffer = await source(page)
+  await page.goto('/crop-image', { waitUntil: 'domcontentloaded' }); const buffer = await source(page)
   const count = () => page.evaluate(() => (window as unknown as { cropURLs: number }).cropURLs)
   for (let i = 0; i < 3; i++) { await choose(page, buffer); await expect.poll(count).toBe(1); await fields(page, 10, 10, 50, 50); await crop(page); await expect.poll(count).toBe(2) }
   await page.getByLabel('Left', { exact: true }).fill('11'); await expect.poll(count).toBe(1)

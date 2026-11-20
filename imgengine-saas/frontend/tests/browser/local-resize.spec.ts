@@ -18,7 +18,7 @@ async function select(page: Page, buffer: Buffer, jpeg = false) {
 }
 test('local resize, aspect lock, PNG download, no image network/storage and accessibility', async ({ page }) => {
   const requests: Array<{ url: string, method: string, body: string | null }> = []
-  await page.goto('/resize-image')
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' })
   page.on('request', r => { if (/^https?:/.test(r.url())) requests.push({ url: r.url(), method: r.method(), body: r.postData() }) })
   await select(page, await fixture(page))
   await page.getByLabel('Width', { exact: true }).focus()
@@ -59,7 +59,7 @@ test('local resize, aspect lock, PNG download, no image network/storage and acce
 })
 
 test('stored-raster EXIF JPEG/PNG 1–8, malformed metadata and bounded input', async ({ page }) => {
-  await page.goto('/resize-image')
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' })
   for (const jpeg of [false, true]) {
     const buffer = await fixture(page, jpeg)
     for (let value = 1; value <= 8; value++) {
@@ -95,7 +95,7 @@ test('repeated operations release URLs and Workers on replace, remove and route 
     }
     Object.defineProperty(window, 'localResources', { get: () => [urls.size, workers.size] })
   })
-  await page.goto('/resize-image'); const buffer = await fixture(page)
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' }); const buffer = await fixture(page)
   const resources = () => page.evaluate(() => (window as unknown as { localResources: number[] }).localResources)
   for (let i = 0; i < 5; i++) {
     await select(page, buffer); await expect.poll(resources).toEqual([1, 0])
@@ -118,7 +118,7 @@ test('cancel discards pending work and Worker failure falls back locally without
       postMessage() { Object.defineProperty(window, 'workerPosted', { value: true, configurable: true }) } terminate() {}
     } as unknown as typeof Worker
   })
-  await page.goto('/resize-image'); await select(page, await fixture(page))
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' }); await select(page, await fixture(page))
   await page.getByRole('button', { name: 'Resize locally', exact: true }).click()
   await page.getByRole('button', { name: 'Cancel', exact: true }).click()
   await expect(page.getByAltText('Resized PNG preview')).toHaveCount(0)
@@ -143,7 +143,7 @@ test('cancel discards pending work and Worker failure falls back locally without
 })
 
 test('accepted four-megapixel boundary produces exact PNG dimensions', async ({ page }, info) => {
-  await page.goto('/resize-image')
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' })
   const buffer = Buffer.from(await page.evaluate(() => {
     const c = document.createElement('canvas'); c.width = 2000; c.height = 2000
     const ctx = c.getContext('2d')!; ctx.fillStyle = '#218040'; ctx.fillRect(0, 0, 2000, 2000)
@@ -160,7 +160,7 @@ test('accepted four-megapixel boundary produces exact PNG dimensions', async ({ 
 })
 
 test('a replaced slow file cannot publish a stale preview', async ({ page }) => {
-  await page.goto('/resize-image')
+  await page.goto('/resize-image', { waitUntil: 'domcontentloaded' })
   const slow = await fixture(page)
   const small = Buffer.from(await page.evaluate(() => {
     const c = document.createElement('canvas'); c.width = 1; c.height = 1

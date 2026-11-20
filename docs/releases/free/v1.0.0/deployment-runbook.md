@@ -1,5 +1,9 @@
 # IMGENGINE Free v1.0.0 — Cloudflare Pages static deployment and rollback
 
+**F5-HOST-HDR-01 planned Cloudflare static headers:** The only approved provider-specific control file in the Free output is root `.output/public/_headers` generated *after* static HTML generation. The content is checked against the real HTML inline script hashes, must pass Cloudflare's 2,000-character line limit, and is delivered **with** the exact verified static artifact. Required policy includes `Content-Security-Policy` (script hashes, `default-src 'none'`, `connect-src 'self' blob:` (browser-local object URL reads only; no external egress), `object-src 'none'`, `frame-ancestors 'none'`), `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, opener/resource policies and temporary `X-Robots-Tag: noindex` for drafts. The local static test server applies those rules and runs full real-asset browser checks, without becoming part of the upload.
+
+**Provider boundary:** Do not claim the actual host applies `_headers`, honors HSTS/TLS, provides a specific HTTP 404 or logs only certain metadata until a separately owner-approved protected Pages preview is tested directly. No cloud deployment/preview is authorized by this runbook update. `style-src 'unsafe-inline'` is a documented scoped limitation pending actual browser-supported style nonce/hash review.
+
 **Status:** FUTURE PROCEDURE ONLY — NOT DEPLOYED / NO PRODUCTION APPROVAL. Account signup or login is not permission to create a public Pages deployment. See [release dossier](README.md), [static contract](static-only-contract.md) and [F5 evidence matrix](evidence-matrix.md).
 
 ## Chosen hosting architecture
@@ -50,3 +54,5 @@ For releases **after the first**, restore the **verified previous known-good** P
 For the **first** public deployment there may be **no previous known-good deployment**: preapprove an emergency traffic restriction/maintenance response or disabling/removing public availability, and practice that without leaking secrets. Deleting a Pages project is not automatically the preferred rollback; use reversible access controls whenever possible. Verify provider rollback controls on the actual account/project before publication.
 
 No cloud or repository modification is performed by following this paper runbook; every public traffic, billing, credential and domain action requires separate owner approval.
+
+**Free CSP/SSR compatibility boundary (F5-HOST-HDR-01):** Free-only NuxtLink speculative prefetch is disabled, and only build-generated same-origin `/_nuxt/*.js` / `*.css` prefetch hints are removed after prerendering (with fail-closed scope validation) to retain `default-src 'none'` across browsers. Real local image processing uses `fetch(blob:)`; `connect-src` therefore explicitly permits `blob:` without permitting extra HTTP origins. Keep actual four-browser image operations and CSP regressions required. This is a development-build contract, not independent Cloudflare evidence.

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { verifyFreeHeaders, assertNoFreeSpeculativePrefetch } from './free-security-headers.mjs'
 
 export const FREE_ROUTES = Object.freeze(['/', '/resize-image', '/crop-image', '/compress-image', '/rotate-image', '/convert-image', '/privacy', '/terms', '/support'])
 const MAX_FILES = 20000
@@ -46,6 +47,9 @@ export function auditFreeStatic(root) {
   }
   if (!names.has('404.html')) throw Error('Missing real 404.html: cannot ship fallback-only SPA')
   if (names.has('200.html')) throw Error('SPA catchall 200.html is forbidden for Free-only static hosting')
+  if (!names.has('_headers')) throw Error('Free static Cloudflare _headers missing')
+  verifyFreeHeaders(dist)
+  assertNoFreeSpeculativePrefetch(dist)
 
   const records = []
   let total = 0
@@ -55,7 +59,7 @@ export function auditFreeStatic(root) {
     if (segments.some(part => part.startsWith('.') || forbiddenSegments.has(part))) throw Error('Forbidden path in Free artifact: ' + name)
     if (segments.some(part => forbiddenNames.has(part))) throw Error('Forbidden executable/fallback in Free artifact: ' + name)
     if (extname(name).toLowerCase() === '.map') throw Error('Source map requires separate approval: ' + name)
-    if (!allowed.has(extname(name).toLowerCase())) throw Error('Unapproved file type in Free artifact: ' + name)
+    if (name !== '_headers' && !allowed.has(extname(name).toLowerCase())) throw Error('Unapproved file type in Free artifact: ' + name)
     const data = readFileSync(path)
     if (data.length > MAX_FILE_BYTES) throw Error('Cloudflare Pages per-file limit exceeded: ' + name)
     total += data.length

@@ -1,5 +1,7 @@
 # imgengine
 
+**F5-HOST-HDR-01 (review candidate):** [Free v1 release dossier](docs/releases/free/v1.0.0/README.md) now tracks a proposed Cloudflare Pages static `_headers` and CSP build verification milestone. F5-TRUST-01 #84 is merged, but legal/privacy/support pages remain PRE-LAUNCH DRAFT and the fail-closed publication gate blocks public hosting. No public Cloudflare account action, deploy, tags or domain purchase is authorized.
+
 **Free v1 F5-TRUST-01 draft notices (2026-11-20):** The [Free release dossier](docs/releases/free/v1.0.0/README.md) now distinguishes merged static F5-STATIC-01 from a new public-notices milestone: draft-only Free `/privacy`, `/terms`, `/support` pages with a release-blocking preflight. Operator/private contact, applicable legal review, Cloudflare analytics/TLS/CSP, security advisory audit and owner approval remain outstanding; no live site or release tag is authorized.
 
 **F5 release documentation (owner-requested 2026-11-20, review candidate):** [versioned Free v1.0.0 dossier](docs/releases/free/v1.0.0/README.md) and [shared release-documentation templates](docs/releases/README.md) define a **static-only** Cloudflare Pages Direct Upload target. This is a documentation/governance milestone, **not** a static build, release tag, product launch or authorization to deploy. All C/Rust/Nuxt/server source remains in Git; Free public assets must exclude executable server/runtime functionality.

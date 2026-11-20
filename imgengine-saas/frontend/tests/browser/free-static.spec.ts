@@ -8,18 +8,25 @@ const freeTools = [
   ['Convert locally — no upload', '/convert-image', 'Convert an image'],
 ] as const
 
-test('Free tools and legal routes are genuine static HTML, with no server layout offered', async ({ page, request }) => {
-  for (const route of ['/', ...freeTools.map(x => x[1]), '/privacy', '/terms', '/support']) {
+
+const freeRoutes = ['/', ...freeTools.map(item => item[1]), '/privacy', '/terms', '/support'] as const
+
+// Independent URLs are independent tests: each route receives its own 30 s
+// navigation budget instead of competing for one 30 s aggregate loop budget.
+for (const route of freeRoutes) {
+  test(`Free route ${route} is genuine static HTML with no server UI`, async ({ page, request }) => {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
     expect(response.headers()['content-type']).toContain('text/html')
-    await page.goto(route)
+    await page.goto(route, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('main')).toBeVisible()
     await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
     await expect(page.getByText('Create printable photo layouts.')).toHaveCount(0)
-  }
-})
+  })
+}
+
 test('Free landing page links to exactly five local tools', async ({ page }) => {
+  test.slow() // One deliberate SPA journey through all five tools.
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Edit images privately.' })).toBeVisible()
   const nav = page.getByRole('navigation', { name: 'Free image tools' })
@@ -39,6 +46,7 @@ test('forbidden dynamic endpoints are true HTTP 404, never SPA fallback success'
   }
 })
 test('static Free browsing sends no image, filename, or server-bound requests', async ({ page }) => {
+  test.slow() // Independent network/privacy audit of six page loads.
   const requests: string[] = []
   page.on('request', request => {
     if (!request.url().startsWith('http')) return
@@ -51,16 +59,16 @@ test('static Free browsing sends no image, filename, or server-bound requests', 
   expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])
 })
 
-test('pre-launch privacy, terms and support drafts are visible and clearly not approved', async ({ page, request }) => {
-  const notices = [
-    ['/privacy', 'Privacy notice'],
-    ['/terms', 'Terms of use'],
-    ['/support', 'Support and contact'],
-  ] as const
-  for (const [route, heading] of notices) {
+
+for (const [route, heading] of [
+  ['/privacy', 'Privacy notice'],
+  ['/terms', 'Terms of use'],
+  ['/support', 'Support and contact'],
+] as const) {
+  test(`Free legal notice ${route} remains visibly draft`, async ({ page, request }) => {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
-    await page.goto(route)
+    await page.goto(route, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: heading })).toBeVisible()
     await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
@@ -70,14 +78,47 @@ test('pre-launch privacy, terms and support drafts are visible and clearly not a
     for (const [name, href] of [['Privacy', '/privacy'], ['Terms', '/terms'], ['Support', '/support']] as const) {
       await expect(links.getByRole('link', { name })).toHaveAttribute('href', href)
     }
-  }
-})
+  })
+}
 
-test('Free tool routes link to privacy, terms and support without image upload', async ({ page }) => {
-  for (const [, route] of freeTools) {
-    await page.goto(route)
+for (const [, route] of freeTools) {
+  test(`Free tool ${route} links to legal notices without uploading`, async ({ page }) => {
+    await page.goto(route, { waitUntil: 'domcontentloaded' })
     const nav = page.getByRole('navigation', { name: 'Privacy, terms and support' })
     await expect(nav.getByRole('link')).toHaveCount(3)
     await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
-  }
-})
+  })
+}
+
+for (const route of freeRoutes) {
+  test(`Free route ${route} enforces CSP and Cloudflare response headers`, async ({ page, request }) => {
+    const response = await request.get(route, { maxRedirects: 0 })
+    expect(response.status(), route).toBe(200)
+    const headers = response.headers()
+    const csp = headers['content-security-policy']
+    expect(csp, route).toContain("default-src 'none'")
+    expect(csp, route).toContain("script-src 'self'")
+    expect(csp, route).toContain("connect-src 'self' blob:")
+    expect(csp, route).toContain("frame-ancestors 'none'")
+    expect(csp, route).not.toContain('unsafe-eval')
+    const scriptDirective = csp?.split('script-src ')[1]?.split(';')[0] ?? ''
+    expect(scriptDirective).not.toContain('unsafe-inline')
+    expect(headers['x-content-type-options']).toBe('nosniff')
+    expect(headers['x-frame-options']).toBe('DENY')
+    expect(headers['referrer-policy']).toBe('no-referrer')
+    expect(headers['x-robots-tag']).toContain('noindex')
+    await page.addInitScript(() => {
+      const store = window as Window & { __imgengineCspViolations?: string[] }
+      store.__imgengineCspViolations = []
+      document.addEventListener('securitypolicyviolation', event => {
+        store.__imgengineCspViolations?.push(event.violatedDirective + ': ' + event.blockedURI)
+      })
+    })
+    await page.goto(route) // Full load intentionally required for CSP observation.
+    await expect(page.getByRole('main')).toBeVisible()
+    await expect(page.locator('link[rel~="prefetch"]')).toHaveCount(0)
+    const violations = await page.evaluate(() => (window as Window & { __imgengineCspViolations?: string[] }).__imgengineCspViolations ?? [])
+    expect(violations, route).toEqual([])
+    expect((await request.get('/_headers')).status()).toBe(404)
+  })
+}
