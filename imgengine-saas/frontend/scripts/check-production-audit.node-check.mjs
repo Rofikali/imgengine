@@ -5,11 +5,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
-import {
-  TEMPORARY_PICOMATCH_OPT_IN,
-  assessTemporaryPicomatchWaiver,
-} from './picomatch-temporary-waiver.mjs'
-
 const scriptPath = fileURLToPath(new URL('./check-production-audit.mjs', import.meta.url))
 
 function audit(report, { args = [], env = {} } = {}) {
@@ -101,91 +96,40 @@ const githubFrontendContext = {
   GITHUB_JOB: 'frontend-verification',
   GITHUB_EVENT_NAME: 'pull_request',
 }
-const picomatchAdvisory = {
-  severity: 'high',
-  module_name: 'picomatch',
-  url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
-  patched_versions: '<0.0.0',
-}
-const vulnerableReport = () => report(
-  { critical: 0, high: 2, moderate: 2, low: 0 },
-  { picomatch: { ...picomatchAdvisory } },
-)
 
-test('only opted-in non-production GitHub frontend CI permits exact picomatch advisory', () => {
-  const result = audit(vulnerableReport(), {
-    args: [TEMPORARY_PICOMATCH_OPT_IN],
-    env: githubFrontendContext,
-  })
-  assert.equal(result.status, 0)
-  assert.match(result.stderr, /TEMPORARY NON-PRODUCTION SECURITY EXCEPTION/)
-  assert.match(result.stderr, /remains VULNERABLE/)
-})
-
-test('default audit remains strict even on GitHub frontend CI', () => {
-  const result = audit(vulnerableReport(), { env: githubFrontendContext })
+test('withdrawn picomatch finding is not a privileged CI bypass', () => {
+  const result = audit(report(
+    { critical: 0, high: 2, moderate: 2, low: 0 },
+    { picomatch: {
+      severity: 'high',
+      module_name: 'picomatch',
+      url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+      patched_versions: '<0.0.0',
+    } },
+  ), { env: githubFrontendContext })
   assert.equal(result.status, 1)
+  assert.match(result.stdout, /severity=high package=picomatch/)
+  assert.match(result.stderr, /require remediation/)
 })
 
-test('waiver denied on non-frontend GitHub job or local environment', () => {
-  for (const env of [
-    { ...githubFrontendContext, GITHUB_JOB: 'native-fuzz' },
-    { ...githubFrontendContext, GITHUB_ACTIONS: 'false' },
+test('every critical or high finding fails even in GitHub frontend CI', () => {
+  for (const counts of [
+    { critical: 1, high: 0, moderate: 0, low: 0 },
+    { critical: 0, high: 1, moderate: 0, low: 0 },
+    { critical: 1, high: 2, moderate: 2, low: 0 },
   ]) {
-    const result = audit(vulnerableReport(), {
-      args: [TEMPORARY_PICOMATCH_OPT_IN], env,
-    })
+    const result = audit(report(counts), { env: githubFrontendContext })
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /exception REJECTED/)
+    assert.match(result.stderr, /require remediation/)
   }
 })
 
-test('waiver denied on other high-severity advisory', () => {
-  const altered = vulnerableReport()
-  altered.advisories.other = {
-    severity: 'high', module_name: 'other-package',
-    url: 'https://github.com/advisories/GHSA-xxxx-yyyy-zzzz', patched_versions: '<0.0.0',
+test('unknown and retired picomatch audit flags fail closed', () => {
+  for (const flag of ['--ignore-all-high', '--allow-temporary-picomatch-in-frontend-ci']) {
+    const result = audit(report(
+      { critical: 0, high: 0, moderate: 2, low: 0 },
+    ), { args: [flag], env: githubFrontendContext })
+    assert.equal(result.status, 2)
+    assert.match(result.stderr, /unrecognized audit option/)
   }
-  const decision = assessTemporaryPicomatchWaiver(altered, {
-    critical: 0, high: 2, nowMs: Date.parse('2026-11-20T00:00:00Z'), env: githubFrontendContext,
-  })
-  assert.equal(decision.allowed, false)
-})
-
-test('waiver denied when upstream publishes a patched version', () => {
-  const altered = vulnerableReport()
-  altered.advisories.picomatch.patched_versions = '>=4.0.8'
-  const decision = assessTemporaryPicomatchWaiver(altered, {
-    critical: 0, high: 2, nowMs: Date.parse('2026-11-20T00:00:00Z'), env: githubFrontendContext,
-  })
-  assert.equal(decision.allowed, false)
-})
-
-test('waiver denied on critical findings, changed counts, or missing detail', () => {
-  for (const [body, critical, high] of [
-    [vulnerableReport(), 1, 2],
-    [vulnerableReport(), 0, 3],
-    [report({ critical: 0, high: 2, moderate: 2, low: 0 }), 0, 2],
-  ]) {
-    assert.equal(assessTemporaryPicomatchWaiver(body, {
-      critical, high, nowMs: Date.parse('2026-11-20T00:00:00Z'), env: githubFrontendContext,
-    }).allowed, false)
-  }
-})
-
-test('waiver expires exactly on December 2 UTC', () => {
-  assert.equal(assessTemporaryPicomatchWaiver(vulnerableReport(), {
-    critical: 0, high: 2, nowMs: Date.parse('2026-12-01T23:59:59Z'), env: githubFrontendContext,
-  }).allowed, true)
-  assert.equal(assessTemporaryPicomatchWaiver(vulnerableReport(), {
-    critical: 0, high: 2, nowMs: Date.parse('2026-12-02T00:00:00Z'), env: githubFrontendContext,
-  }).allowed, false)
-})
-
-test('unknown audit options fail closed', () => {
-  const result = audit(vulnerableReport(), {
-    args: ['--ignore-all-high'], env: githubFrontendContext,
-  })
-  assert.equal(result.status, 2)
-  assert.match(result.stderr, /unrecognized audit option/)
 })
