@@ -3,6 +3,7 @@ import { inspectPreview, loadCropPreview, type CropPreview } from '~/utils/crop-
 import { linkedEdge, MAX_LOCAL_BYTES, MAX_LOCAL_PIXELS, MAX_OUTPUT_EDGE, resizeDimensions } from '~/utils/local-resize'
 import { validatePixelCrop, type PixelCrop } from '~/utils/local-crop'
 import { rotatedSize, validateRightAngleRotation, type RightAngleRotation } from '~/utils/local-rotate'
+import { renderLocalCanvasFallback } from '~/utils/local-canvas-fallback'
 
 export function useLocalResize(cropSelection?: () => PixelCrop, rotationSelection?: () => RightAngleRotation, operation: 'resize' | 'rotate' = 'resize') {
   const source = shallowRef<CropPreview | null>(null)
@@ -73,17 +74,24 @@ export function useLocalResize(cropSelection?: () => PixelCrop, rotationSelectio
     busy.value = true; message.value = 'Processing on this device…'
     try {
       // blob: is a local object URL, not an HTTP request or server fallback.
-      const blob = await (await fetch(source.value.url, { signal: abort.signal })).blob()
+      const sourceUrl = source.value.url
+      const blob = await (await fetch(sourceUrl, { signal: abort.signal })).blob()
       if (current !== generation) return
-      const output = await new Promise<Blob>((resolve, reject) => {
-        const worker = new Worker(new URL('../workers/local-resize.ts', import.meta.url), { type: 'module' })
-        const finish = (blob?: Blob) => { clearTimeout(timer); worker.terminate(); stopWorker = undefined; blob ? resolve(blob) : reject(Error()) }
-        const timer = setTimeout(() => finish(), 10_000)
-        stopWorker = () => finish()
-        worker.onerror = () => finish()
-        worker.onmessage = event => finish(event.data.blob instanceof Blob ? event.data.blob : undefined)
-        try { worker.postMessage({ blob, width: String(outputSize.width), height: String(outputSize.height), crop, rotation }) } catch { finish() }
-      })
+      let output: Blob
+      try {
+        output = await new Promise<Blob>((resolve, reject) => {
+          const worker = new Worker(new URL('../workers/local-resize.ts', import.meta.url), { type: 'module' })
+          const finish = (blob?: Blob) => { clearTimeout(timer); worker.terminate(); stopWorker = undefined; blob ? resolve(blob) : reject(Error()) }
+          const timer = setTimeout(() => finish(), 10_000)
+          stopWorker = () => finish()
+          worker.onerror = () => finish()
+          worker.onmessage = event => finish(event.data.blob instanceof Blob ? event.data.blob : undefined)
+          try { worker.postMessage({ blob, width: String(outputSize.width), height: String(outputSize.height), crop, rotation }) } catch { finish() }
+        })
+      } catch {
+        if (current !== generation || abort.signal.aborted) throw Error()
+        output = await renderLocalCanvasFallback(sourceUrl, outputSize, crop, rotation)
+      }
       if (current !== generation) return
       result.value = URL.createObjectURL(output); message.value = `Ready: ${outputSize.width} × ${outputSize.height} pixels. Download your PNG.`
     } catch {
