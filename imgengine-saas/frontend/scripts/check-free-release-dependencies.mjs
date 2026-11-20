@@ -47,8 +47,19 @@ export function runFreeReleaseDependencyAudit(run = spawnSync) {
     // An audit command reporting an error with an otherwise clean JSON
     // summary is not proof of a clean registry scan. Reject the anomaly.
     if (audited.status !== 0 && checked.status === 0) {
-      console.error('Free release dependency audit BLOCKED: nonzero pnpm status with a clean summary')
-      return 2
+      // pnpm may exit 1 on a LOW-only advisory, which the deliberately
+      // moderate-or-higher release policy does not prohibit. Any other
+      // inconsistent nonzero result is a tool failure, not a clean audit.
+      let low
+      try {
+        low = JSON.parse(audited.stdout.replace(/^\\uFEFF/, ''))?.metadata?.vulnerabilities?.low
+      } catch {
+        low = null
+      }
+      if (!Number.isSafeInteger(low) || low <= 0) {
+        console.error('Free release dependency audit BLOCKED: nonzero pnpm status with an unsupported clean summary')
+        return 2
+      }
     }
     return checked.status
   } finally {
