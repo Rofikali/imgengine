@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { auditFreeStatic, FREE_ROUTES } from './verify-free-static.mjs'
 import { buildFreeHeaders } from './free-security-headers.mjs'
+import { FREE_STATIC_BROWSER_PROJECTS, runFreeStaticBrowserMatrix } from './run-free-static-browser-matrix.mjs'
 
 function withFixture(fn) {
   const root = mkdtempSync(join(tmpdir(), 'imgengine-free-static-'))
@@ -83,4 +84,42 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
     write('_headers', buildFreeHeaders(root).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
     assert.throws(() => auditFreeStatic(root), /do not match|unsafe/)
   })
+})
+
+
+test('Free static matrix runs all four projects with separate Playwright and server lifecycles', () => {
+  const invocations = []
+  const result = runFreeStaticBrowserMatrix((command, args, options) => {
+    invocations.push({ command, args, options })
+    return { status: 0 }
+  })
+  assert.equal(result, 0)
+  assert.deepEqual(invocations.map(({ args }) => args.at(-1)), [
+    '--project=desktop-chromium',
+    '--project=mobile-chromium',
+    '--project=desktop-firefox',
+    '--project=desktop-webkit',
+  ])
+  for (const { command, args, options } of invocations) {
+    assert.equal(command, 'pnpm')
+    assert.deepEqual(args.slice(0, 5), ['exec', 'playwright', 'test', '--config', 'playwright.free-static.config.ts'])
+    assert.equal(options.stdio, 'inherit')
+    assert.match(options.cwd, /frontend$/)
+  }
+  assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
+})
+
+test('Free static matrix fails closed and does not run further browser projects after a failure', () => {
+  const executed = []
+  const code = runFreeStaticBrowserMatrix((_command, args) => {
+    executed.push(args.at(-1))
+    return { status: executed.length === 2 ? 2 : 0 }
+  })
+  assert.equal(code, 2)
+  assert.deepEqual(executed, ['--project=desktop-chromium', '--project=mobile-chromium'])
+})
+
+test('Free static matrix treats an interrupted/unknown process status as failure', () => {
+  assert.equal(runFreeStaticBrowserMatrix(() => ({ status: null, signal: 'SIGTERM' })), 1)
+  assert.throws(() => runFreeStaticBrowserMatrix(() => ({ status: null, error: Error('spawn denied') })), /spawn denied/)
 })
