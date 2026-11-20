@@ -46,7 +46,7 @@ function expected(angle: number) {
 
 test('right angles preserve asymmetric pixels and alpha, stay private, download, and pass axe', async ({ page }) => {
   const requests: string[] = []
-  await page.goto('/rotate-image')
+  await page.goto('/rotate-image', { waitUntil: 'domcontentloaded' })
   page.on('request', request => { if (/^https?:/.test(request.url()) && (request.method() !== 'GET' || request.postData())) requests.push(`${request.method()} ${request.url()}`) })
   await choose(page, await fixture(page))
   for (const angle of [0, 90, 180, 270] as const) {
@@ -62,7 +62,7 @@ test('right angles preserve asymmetric pixels and alpha, stay private, download,
 })
 
 test('stored raster orientation is not auto-rotated, and malformed metadata is rejected', async ({ page }) => {
-  await page.goto('/rotate-image')
+  await page.goto('/rotate-image', { waitUntil: 'domcontentloaded' })
   for (const jpeg of [false, true]) for (const orientation of [2, 6, 8]) {
     await choose(page, oriented(await fixture(page, jpeg), orientation, !jpeg, true), jpeg)
     await expect(page.getByText('Source: 3 × 2 pixels.', { exact: false })).toBeVisible()
@@ -79,7 +79,7 @@ test('output bounds, cancellation and URL cleanup do not leave local image state
     URL.createObjectURL = blob => { const url = create(blob); urls.add(url); return url }; URL.revokeObjectURL = url => { urls.delete(url); revoke(url) }
     Object.defineProperty(window, 'rotateURLs', { get: () => urls.size })
   })
-  await page.goto('/rotate-image'); const buffer = await fixture(page)
+  await page.goto('/rotate-image', { waitUntil: 'domcontentloaded' }); const buffer = await fixture(page)
   const count = () => page.evaluate(() => (window as unknown as { rotateURLs: number }).rotateURLs)
   for (let i = 0; i < 3; i++) { await choose(page, buffer); await rotate(page, 90); await expect.poll(count).toBe(2) }
   await page.getByRole('button', { name: 'Rotate 180° clockwise', exact: true }).click(); await expect.poll(count).toBe(1)
