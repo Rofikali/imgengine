@@ -8,15 +8,22 @@ const freeTools = [
   ['Convert locally — no upload', '/convert-image', 'Convert an image'],
 ] as const
 
-test('Free tools and legal routes are genuine static HTML, with no server layout offered', async ({ page, request }) => {
+test('Free tools and legal routes are genuine static HTML, with no server layout offered', async ({ context, request }) => {
   for (const route of ['/', ...freeTools.map(x => x[1]), '/privacy', '/terms', '/support']) {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
     expect(response.headers()['content-type']).toContain('text/html')
-    await page.goto(route)
-    await expect(page.getByRole('main')).toBeVisible()
-    await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
-    await expect(page.getByText('Create printable photo layouts.')).toHaveCount(0)
+    // Each independent direct-URL check gets a fresh tab: a previous Nuxt
+    // hydration/navigation must never interrupt the next route under Firefox.
+    const routePage = await context.newPage()
+    try {
+      await routePage.goto(route)
+      await expect(routePage.getByRole('main')).toBeVisible()
+      await expect(routePage.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
+      await expect(routePage.getByText('Create printable photo layouts.')).toHaveCount(0)
+    } finally {
+      await routePage.close()
+    }
   }
 })
 test('Free landing page links to exactly five local tools', async ({ page }) => {
