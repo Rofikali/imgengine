@@ -57,12 +57,9 @@ test('local resize, aspect lock, PNG download, no image network/storage and acce
   expect(await output.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([1, 1])
 })
 
-test('stored-raster EXIF orientation, malformed metadata and bounded input', async ({ page }, testInfo) => {
+test('stored-raster EXIF JPEG/PNG 1–8, malformed metadata and bounded input', async ({ page }) => {
   await page.goto('/resize-image')
-  // Firefox rejects synthetic PNG eXIf chunks before app code runs. PNG eXIf
-  // parsing is unit-covered; its JPEG decoder path stays browser-covered.
-  const formats = testInfo.project.name === 'desktop-firefox' ? [true] : [false, true]
-  for (const jpeg of formats) {
+  for (const jpeg of [false, true]) {
     const buffer = await fixture(page, jpeg)
     for (let value = 1; value <= 8; value++) {
       await select(page, oriented(buffer, value, !jpeg, value % 2 === 0), jpeg)
