@@ -60,3 +60,13 @@ test('rejects Cloudflare _headers lines that exceed vendor line limit', () => {
     assert.throws(() => buildFreeHeaders(root), /line > 2000 characters/)
   })
 })
+
+test('inline Nuxt import maps have exact CSP SHA-256 and cannot be silently changed', () => {
+  const importMap = '{"imports":{"/_nuxt/entry.js":"/_nuxt/entry.js"}}'
+  fixture('<script type="importmap">' + importMap + '</script>', (root, headers) => {
+    const digest = createHash('sha256').update(importMap).digest('base64')
+    assert.ok(headers.includes("'sha256-" + digest + "'"))
+    writeFileSync(join(root, 'index.html'), '<script type="importmap">{"imports":{}}</script>')
+    assert.throws(() => verifyFreeHeaders(root), /do not match exactly/)
+  })
+})

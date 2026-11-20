@@ -54,7 +54,8 @@ export function buildFreeHeaders(dist) {
       const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
       const contentType = (type?.[1] ?? type?.[2] ?? type?.[3] ?? '').toLowerCase()
       if (contentType === 'application/json' || contentType === 'application/ld+json') continue
-      if (!['', 'module', 'text/javascript', 'application/javascript'].includes(contentType)) {
+      // Import maps influence module resolution and must receive an exact CSP hash.
+      if (!['', 'module', 'text/javascript', 'application/javascript', 'importmap'].includes(contentType)) {
         throw Error('unknown inline script type: ' + contentType)
       }
       if (body.trim()) inline.add("'sha256-" + createHash('sha256').update(body, 'utf8').digest('base64') + "'")
