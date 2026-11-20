@@ -52,7 +52,7 @@ export function runFreeReleaseDependencyAudit(run = spawnSync) {
       // inconsistent nonzero result is a tool failure, not a clean audit.
       let low
       try {
-        low = JSON.parse(audited.stdout.replace(/^\\uFEFF/, ''))?.metadata?.vulnerabilities?.low
+        low = JSON.parse(audited.stdout.replace(/^\uFEFF/, ''))?.metadata?.vulnerabilities?.low
       } catch {
         low = null
       }
