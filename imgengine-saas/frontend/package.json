@@ -17,7 +17,7 @@
     "typecheck": "nuxi typecheck",
     "build:free-static": "IMGENGINE_FREE_STATIC_BUILD=1 nuxt generate && node scripts/prepare-free-static.mjs",
     "verify:free-static": "node scripts/verify-free-static.mjs",
-    "test:browser:free-static": "playwright test --config playwright.free-static.config.ts",
+    "test:browser:free-static": "node scripts/run-free-static-browser-matrix.mjs",
     "verify:free-publication-ready": "node scripts/check-free-publication-ready.mjs"
   },
   "dependencies": {
