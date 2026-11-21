@@ -1,5 +1,7 @@
 # imgengine
 
+> **2026-11-21 milestone checkpoint.** F5-SUPPLY-05 landed in [PR #97](https://github.com/Rofikali/imgengine/pull/97). The frontend lockfile at main revision `70d6e610635e63795db2a3fb9f7b01b594483f06` matches the merge revision `c1141f1`. [Main CI](https://github.com/Rofikali/imgengine/actions/runs/44909116504) failed the Nuxt browser matrix and its required verification gate. Free v1.0.0 remains blocked.
+
 ## Current engineering workflow — written during work
 
 **Owner directive (2026-11-21):** Codex/engineers, **not PR automation**, directly update [AGENTS.md](AGENTS.md), [next.md](next.md), this README, [skills.md](skills.md), and the [live engineering activity log](docs/engineering/live-status.md) when beginning work, during meaningful changes, and at the task handoff. A PR's open/merged state never writes documentation or establishes `COMPLETED`. See the [binding agent-owned documentation protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md).
