@@ -8,7 +8,7 @@ import {
   readSync, readdirSync, realpathSync, rmSync, writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, relative, resolve, sep } from 'node:path'
+import { join, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { auditFreeStatic } from './verify-free-static.mjs'
 
@@ -65,7 +65,9 @@ function checkedTar(args, options = {}) {
 // artifact. It must be retained and verified separately before publication.
 export function writeFreeArchiveCandidate(staticRoot, detachedDir, sourceSha) {
   if (!SHA.test(sourceSha || '')) throw Error('Missing immutable 40-hex source SHA')
-  const root = realpathSync(resolve(staticRoot))
+  const requestedRoot = resolve(staticRoot)
+  if (lstatSync(requestedRoot).isSymbolicLink()) throw Error('Symlinked static root is forbidden')
+  const root = realpathSync(requestedRoot)
   if (!lstatSync(root).isDirectory()) throw Error('Invalid static output root')
   const dir = resolve(detachedDir)
   if (isInside(root, dir)) throw Error('Detached archive must be outside static output')

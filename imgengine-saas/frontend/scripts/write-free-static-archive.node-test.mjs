@@ -67,6 +67,8 @@ test('fails closed on bad SHA, embedded destination, unsafe symlink parent and i
   withFixture(({ root, dist, write }) => {
     assert.throws(() => writeFreeArchiveCandidate(dist, join(root, 'bad-sha'), 'main'), /source SHA/)
     assert.throws(() => writeFreeArchiveCandidate(dist, join(dist, 'nested-evidence'), sha), /outside static output/)
+    symlinkSync(dist, join(root, 'symlinked-static-root'))
+    assert.throws(() => writeFreeArchiveCandidate(join(root, 'symlinked-static-root'), join(root, 'root-alias-output'), sha), /Symlinked static root/)
     const safe = join(root, 'real-detached')
     mkdirSync(safe)
     symlinkSync(safe, join(root, 'alias-detached'))
