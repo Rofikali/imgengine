@@ -111,6 +111,9 @@ jobs:
           pnpm exec nuxi prepare
           pnpm run typecheck
           pnpm test
+          # The ordinary local-tool Playwright configuration serves the
+          # production Nuxt output, which must exist before starting it.
+          pnpm run build
           pnpm run test:browser:local-tools
       - name: Generate approved static-only output and validate privacy/CSP allowlist
         working-directory: imgengine-saas/frontend
