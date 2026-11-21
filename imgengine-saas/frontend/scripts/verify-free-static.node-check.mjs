@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { auditFreeStatic, FREE_ROUTES } from './verify-free-static.mjs'
 import { buildFreeHeaders } from './free-security-headers.mjs'
-import { FREE_STATIC_BROWSER_PROJECTS, FIREFOX_TEST_SHARDS, runFreeStaticBrowserMatrix } from './run-free-static-browser-matrix.mjs'
+import { FREE_STATIC_BROWSER_PROJECTS, ISOLATED_BROWSER_TEST_SHARDS, runFreeStaticBrowserMatrix } from './run-free-static-browser-matrix.mjs'
 
 function withFixture(fn) {
   const root = mkdtempSync(join(tmpdir(), 'imgengine-free-static-'))
@@ -83,11 +83,7 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
   withFixture(({root, write}) => {
     write('_headers', buildFreeHeaders(root).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
     assert.throws(() => auditFreeStatic(root), /do not match|unsafe/)
-  })
-})
-
-
-test('Free static matrix runs all projects and all fifty-five disjoint Firefox test shards', () => {
+ test('Free static matrix runs 55 independent Firefox and WebKit test shards with both Chromium projects', () => {
   const invocations = []
   const result = runFreeStaticBrowserMatrix((command, args, options) => {
     invocations.push({ command, args, options })
@@ -95,13 +91,13 @@ test('Free static matrix runs all projects and all fifty-five disjoint Firefox t
   })
   assert.equal(result, 0)
   assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
-  assert.equal(FIREFOX_TEST_SHARDS, 55)
-  assert.equal(invocations.length, FIREFOX_TEST_SHARDS + 3) // Chromium, mobile, fifty-five Firefox, WebKit.
+  assert.equal(ISOLATED_BROWSER_TEST_SHARDS, 55)
+  assert.equal(invocations.length, 2 + ISOLATED_BROWSER_TEST_SHARDS * 2)
   assert.deepEqual(invocations.map(({ args }) => args[5]), [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
-    ...Array.from({ length: FIREFOX_TEST_SHARDS }, () => '--project=desktop-firefox'),
-    '--project=desktop-webkit',
+    ...Array.from({ length: ISOLATED_BROWSER_TEST_SHARDS }, () => '--project=desktop-firefox'),
+    ...Array.from({ length: ISOLATED_BROWSER_TEST_SHARDS }, () => '--project=desktop-webkit'),
   ])
   for (const [i, { command, args, options }] of invocations.entries()) {
     assert.equal(command, 'pnpm')
@@ -109,13 +105,20 @@ test('Free static matrix runs all projects and all fifty-five disjoint Firefox t
     assert.equal(args[5].startsWith('--project='), true)
     assert.equal(options.stdio, 'inherit')
     assert.match(options.cwd, /frontend\/?$/)
-    const expectRedactedDiagnostics = i >= 2 // Firefox shards and WebKit only.
-    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, expectRedactedDiagnostics ? '1' : '0')
-    if (i >= 2 && i < FIREFOX_TEST_SHARDS + 2) {
-      assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/' + FIREFOX_TEST_SHARDS])
+    const isFirefox = i >= 2 && i < ISOLATED_BROWSER_TEST_SHARDS + 2
+    const isWebKit = i >= ISOLATED_BROWSER_TEST_SHARDS + 2
+    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, isFirefox || isWebKit ? '1' : '0')
+    if (isFirefox || isWebKit) {
+      const shard = isFirefox ? i - 1 : i - ISOLATED_BROWSER_TEST_SHARDS - 1
+      assert.deepEqual(args.slice(6), [
+        '--fully-parallel', '--shard=' + shard + '/' + ISOLATED_BROWSER_TEST_SHARDS,
+      ])
     } else {
       assert.equal(args.length, 6)
     }
+  }
+})
+}
   }
 })
 
@@ -132,6 +135,21 @@ test('Free static matrix fails closed on a failing Firefox shard, never skipping
     '--shard=1/55',
     '--shard=2/55',
     '--shard=3/55',
+  ])
+})
+
+test('Free static matrix fails closed on the first failed WebKit shard, without skipping its gate', () => {
+  const executed = []
+  const code = runFreeStaticBrowserMatrix((_command, args) => {
+    executed.push(args)
+    if (args[5] === '--project=desktop-webkit' && args.at(-1) === '--shard=4/55') {
+      return { status: 3 }
+    }
+    return { status: 0 }
+  })
+  assert.equal(code, 3)
+  assert.deepEqual(executed.filter(args => args[5] === '--project=desktop-webkit').map(args => args.at(-1)), [
+    '--shard=1/55', '--shard=2/55', '--shard=3/55', '--shard=4/55',
   ])
 })
 

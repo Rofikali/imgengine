@@ -1,18 +1,35 @@
-# Free v1.0.0 Firefox privacy route audit — test-lifetime repair
+# Free v1.0.0 browser navigation lifetime — Firefox and WebKit
+
 **Date:** 2026-11-21
-**Status:** BOUNDED CANDIDATE; production release remains blocked pending exact-head CI and independent launch approval.
-## Verified evidence, not inferred root cause
-- Merged Free candidate [PR #98](https://github.com/Rofikali/imgengine/pull/98) did not pass its full CI: [#44885261064](https://github.com/Rofikali/imgengine/actions/runs/44885261064) failed on `desktop-firefox` in the single six-route privacy test after HTTP 200 responses for the `/rotate-image` page and assets.
-- After merge, [main #44885978021](https://github.com/Rofikali/imgengine/actions/runs/44885978021) failed the same test awaiting the full `load` event on `/convert-image` after server response completion. Neither failure log shows a forbidden upload; the browser response lifecycle is **not proven to be a Nuxt defect or Firefox defect**, just the point where CI hung. Historical passing isolated WebKit and Firefox builds are not a green assertion for this SHA.
-- The original test checked six static routes with a single Playwright context/test process and six page lifetimes. The Firefox test shard runner was already isolating **tests**, but this audit remained one 90-second test. When one navigation hangs, the whole release gate blocks.
-- The milestone status PR automation still fails independently on repository-level GitHub Actions create-PR permission; that is not a reason to relax a browser gate.
-## One bounded change: six independently sharded full-load tests
-The six Free privacy visits — homepage plus resize, crop, compress, rotate, convert — are each now distinct Playwright tests. Firefox test sharding becomes **55 one-test server/browser lifetimes** rather than 50; other browser projects run the same 55 checks without artificial sharding. The existing nine-route CSP/404/static tests, all five local tool tests and full browser projects remain required.
-Within **each** isolated test, a request listener attaches to the browser context **before** navigation and rejects any external origin, non-GET HTTP method, nonempty request body or `/api/` request. The test keeps `waitUntil: 'load'`, validates a visible static main region, asserts zero localStorage, sessionStorage, IndexedDB, and asserts zero cookies. No implicit page navigation is allowed to change routes without a matching audit; all six independent tests must pass. This removes long *cross-route* accumulation without removing an individual HTTP/full-load/privacy assertion. Cross-route persistence is controlled by checking zero storage/cookies on **every** route.
-No retries, extra timeout, browser disabled flags, changed CSP, source/static generator, C/Rust code, API, cloud cost or release publication changes are included. CI policy selector and browser unit contracts explicitly require the complete 55-shard runner; failure still stops with a non-zero exit code, and the final full CI verification gate remains mandatory.
-## Acceptance and post-merge workflow
-1. Exact-head Ubuntu 24.04/Playwright 1.58.2 **full CI** passes all selected jobs including desktop Firefox privacy tests, desktop WebKit, Rust/native/Docker/fuzz/security and final CI verification gate; a partial green or cancelled CI is **not** success.
-2. If this repair fails, preserve log/artifact evidence and isolate further (for example by inspecting browser load-state resource timing). Do not bypass the test or claim the privacy boundary proven.
-3. Obtain independent review/merge of this test-only change. Re-run **merged main exact SHA** full CI before freezing a release source.
-4. Separately approve final privacy/terms/support notices, detached immutable source/archive digest, SBOM/licenses, release artifact audit, cloud cost/rollback plan, real HTTPS/CSP/404/no-upload tests and owner GO. The current `check-free-publication-ready.mjs` intentionally fails pending approval; no automatic tag `free-v1.0.0` or Pages deployment is permitted.
-**Observability:** only the existing test-server redacted request completion diagnostics are used; do not log image contents, upload bodies, cookies, tokens or personal filenames. No live telemetry is added.
+
+**Decision:** Bounded CI test-lifetime candidate. **Public release is NOT authorized.**
+
+## Evidence
+
+The Free static test server has recorded completed HTTP 200 responses for pages and JavaScript/CSS assets while Playwright occasionally never observes browser page `load`:
+
+- [PR #98 exact-head CI #44885261064](https://github.com/Rofikali/imgengine/actions/runs/44885261064): desktop Firefox timed out in the single six-route privacy audit at `/rotate-image`.
+- [Merged main CI #44885978021](https://github.com/Rofikali/imgengine/actions/runs/44885978021): the same Firefox audit timed out at `/convert-image`.
+- [Cloudflare owner-documentation PR #102 CI #44886587696](https://github.com/Rofikali/imgengine/actions/runs/44886587696): desktop WebKit timed out on the independent `/resize-image` CSP/header test after the static server had completed page HTTP 200 responses.
+
+**A browser navigation stall is not a demonstrated image upload or proven product security flaw.** The root cause within the browser loading lifecycle or CI environment remains unproven. Previous green tests on other SHAs do not clear this release source.
+
+## Independent tests without waived checks
+
+The original six-route privacy journey (home, resize, crop, compress, rotate, convert) is now **six individually isolated Playwright tests**, rather than one 90-second test with six Pages in a single context.
+
+Each test retains the complete `waitUntil: 'load'` navigation, visible static main region, context-level surveillance of prohibited HTTP requests (external origin, non-GET, request body, `/api/`), zero localStorage, zero sessionStorage, zero IndexedDB and zero cookies. The route-wide guarantees are **stronger** because all six routes must independently prove the privacy boundary. The four browser projects run the same exact test suite.
+
+**Firefox and WebKit** now each run **55 tests in 55 isolated short-lived browser/server processes** using Playwright's test-level sharding, while desktop/mobile Chromium each run the same 55 tests in their ordinary single matrix. The test-driver unit contracts verify both full shard sets, absence of empty shards, redacted diagnostics and fail-closed behavior on any failed or interrupted process. This isolates further WebKit page-runtime interference discovered in PR #102. The extra CI work is a bounded reliability trade-off for a zero-server-cost static Free product; monitor the actual GitHub Actions minute budget before optimizing.
+
+No test or browser is disabled, no test or navigation timeout increased, no retries added, no `load` downgraded to `domcontentloaded`, no security headers relaxed, no data-exfiltration controls removed, and no production source/API/ABI/deployment code changed.
+
+## Acceptance, proof and residual risk
+
+1. **Exact PR head full CI must PASS every selected native, Docker, Rust, browser, CSP, privacy and aggregate gate.** Any failing, cancelled or missing required job is NO GO.
+2. If tests still fail, keep the PR blocked; inspect the bounded test-server response and browser failure artifacts for the affected single test. Do not mask or change the test to force success.
+3. On independently reviewed merge, require a second successful merged-main exact-SHA full CI before freezing source or generating an immutable release artifact. PR #102 documentation must also pass the exact-head policy and full CI before merge.
+4. Public v1.0.0 launch additionally requires approved privacy/terms/support notices, real operator contact, detached owner/security/legal approval, source+artifact hashes, SBOM/license verification, accurate Cloudflare Free billing and provider TLS/CSP/404/no-upload/rollback checks. The existing fail-closed publication guard remains unchanged.
+5. The GitHub Actions milestone-proposal permission problem is independent and requires an owner repository setting change; CI cannot safely grant itself privilege.
+
+This engineering note is a test-harness candidate, **not** a signed release attestation, a Cloudflare deployment, or a final `free-v1.0.0` Git tag.
