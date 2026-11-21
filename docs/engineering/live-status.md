@@ -1,6 +1,6 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
-**F5 browser failure investigation — IMPLEMENTED, verification pending.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply.
+**F5 browser failure investigation — IMPLEMENTED, browser verification BLOCKED.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply. At candidate cf3d192, Ubuntu 24.04 passed the test syntax check and all 23 static verifier and matrix unit tests. Browser execution was blocked by a TLS timeout pulling the Playwright image and registry errors during frozen install. Resume with desktop-firefox shard 12/55, then required CI.
 
 **This file is written by the engineer or Codex agent doing actual work.** It is no longer a GitHub-PR-derived dashboard and is never overwritten by GitHub Actions. Its `STATUS` values mean **engineering work**, not `OPEN/MERGED` pull requests. Root [next.md](../../next.md) is the compact current task board; [protocol](DOCUMENTATION_SYNC_CONTRACT.md) defines required checkpoint behavior.
 
