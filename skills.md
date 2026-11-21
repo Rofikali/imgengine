@@ -10,7 +10,7 @@
 4. **HANDOFF:** Before stopping or committing, update the log, board and four root files with actual state and one next action. `COMPLETED` requires implemented behavior, acceptance evidence and synchronized documentation; release additionally requires independent owner/operational approval.
 5. **REVIEW/CI:** The read-only docs check (`node --test scripts/docs-sync-check.test.mjs` and `node scripts/docs-sync-check.mjs HEAD^ HEAD`) rejects changed paths without same-work documentation but **does not write docs**; reviews check semantic truth. PRs may transport code for review but cannot serve as status source or documentation automation.
 
-**Current work `DOCSYNC-ACTIVITY-01`** is `IN_PROGRESS`: retiring PR-driven milestone status updater, preserving existing code and release safety checks. This is governance work, **not** a claim of Free 1.0.0 production readiness.
+**Current checkpoint `DOCSYNC-ACTIVITY-01`** is `COMPLETED`: #106 retired the PR-driven milestone updater while preserving existing code and release safety checks; exact `main` `ad8b4a0a3ca5db71af86702b02cec2c8c8acaf92` passed [all selected CI checks](https://github.com/Rofikali/imgengine/actions/runs/44906583851). This governance work is **not** a claim of Free 1.0.0 production readiness.
 
 ## Historical work recipes and milestone snapshots
 

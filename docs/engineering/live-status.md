@@ -8,15 +8,19 @@
 | --- | --- |
 | Owner | Current engineering agent implementing the 2026-11-21 owner-requested governance correction |
 | Last updated | 2026-11-21 UTC |
-| Status | **IN_PROGRESS** — implementation is being revised; latest full exact-head verification is pending |
+| Status | **COMPLETED** — source change, documentation handoff and exact-main verification are complete |
 | Starting source | `main` inspected at `c6f1c90dfff73edc77b821a1881b6b9cdd120500` |
 | Goal | Remove all PR/scheduled milestone-status document generation and make every agent directly update task status/docs when working |
 | Changed boundaries | `AGENTS.md`, `next.md`, `README.md`, `skills.md`, this log and the mandatory work-protocol doc, retired milestone workflow/scripts, prior PR-oriented guard and related handoff/runbook |
 | Scope | Documentation governance and CI read-only missing-doc guard; **no** C, Rust, Nuxt runtime implementation or production deployment |
 | Review lenses | L1–L7 for reliable work handoff; CISSP for GitHub permissions; CCIE not applicable (no network changes); Linux/SRE for Actions run; CA/MBA for ensuring no unapproved spend/publication |
-| Test evidence | Previous PR revision passed policy unit checks (98/98), **but those checks do not verify this revised task**. Current head: `NOT RUN / PENDING` until actual test or Actions result |
+| Completion evidence | Source change merged through #106 at `ad8b4a0a3ca5db71af86702b02cec2c8c8acaf92`; [exact-main run 44906583851](https://github.com/Rofikali/imgengine/actions/runs/44906583851) passed CI policy/scope, native build/fuzz/sanitizers, Nuxt frontend and browser quality, P8 parser, Rust API container, SaaS integration, Ubuntu Docker verification and the CI verification gate. |
+| Automation cleanup | Stale bot-authored PR #107, based on pre-#106 `main` and proposing only PR-derived status edits, was closed unmerged. No bot branch, scheduled workflow or PR lifecycle event may update task records. |
+| Local verification | **NOT RUN** — this checkpoint records an already merged governance-only change; Docker Desktop Linux availability and approved P7 definitions were inspected, and no Windows runtime was used. Exact-main GitHub CI above is the authoritative verification. |
+| Remaining risk / next action | Free v1.0.0 remains **BLOCKED — NOT_RELEASED** pending independent legal/privacy/support, frozen artifact/supply-chain, live host/TLS/rollback, financial and owner go/no-go evidence. The next substantive task must create its own agent-authored `IN_PROGRESS` entry before changes. |
+| Test evidence | Ubuntu 24.04 Docker / Node `v24.22.0`: `node --test scripts/docs-sync-check.test.mjs` **PASS (4/4)** and `node scripts/docs-sync-check.mjs HEAD^ HEAD` **PASS** (`engineer-updated`, 5 changed paths). #106's exact-main CI evidence is recorded above. |
 | Known limitation | AGENTS instructions govern compliant agents; a static instruction does not asynchronously run Codex or guarantee an untrusted agent follows rules. Read-only CI can check files, not accuracy |
-| Next action | Run docs checker tests against the updated task, verify removed workflow triggers, review exact-head CI; record actual outcome here before marking `VERIFIED` or `COMPLETED` |
+| Next action | Maintain these records directly on every future substantive task. Free v1.0.0 has no eligible autonomous release action while its independent owner/legal/hosting gates remain blocked. |
 
 ### Change history — activity-based
 

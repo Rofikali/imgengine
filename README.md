@@ -4,7 +4,7 @@
 
 **Owner directive (2026-11-21):** Codex/engineers, **not PR automation**, directly update [AGENTS.md](AGENTS.md), [next.md](next.md), this README, [skills.md](skills.md), and the [live engineering activity log](docs/engineering/live-status.md) when beginning work, during meaningful changes, and at the task handoff. A PR's open/merged state never writes documentation or establishes `COMPLETED`. See the [binding agent-owned documentation protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md).
 
-**Current work:** `DOCSYNC-ACTIVITY-01 — IN_PROGRESS` on an engineering branch: remove the PR-triggered/scheduled milestone bot and migrate progress reporting to evidence-based agent-authored statuses; the code and test run for this revision must be checked separately. **Free v1.0.0 is NOT RELEASED**; a candidate tar is not final owner/legal/hosting authorization. Existing C17 native core, Rust FFI/API and Nuxt frontend product behavior are not modified by this documentation-governance change.
+**Current checkpoint:** `DOCSYNC-ACTIVITY-01 — COMPLETED`. #106 removed the PR-triggered/scheduled milestone bot and migrated work reporting to agent-authored records; exact `main` `ad8b4a0a3ca5db71af86702b02cec2c8c8acaf92` passed [all selected CI checks](https://github.com/Rofikali/imgengine/actions/runs/44906583851). **Free v1.0.0 is NOT RELEASED**; a candidate tar is not final owner/legal/hosting authorization. Existing C17 native core, Rust FFI/API and Nuxt frontend product behavior were not modified by this documentation-governance work.
 
 ## Dated historical checkpoints (not active instructions)
 
