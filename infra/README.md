@@ -6,6 +6,10 @@
 
 **Read first:** [infra AGENTS](AGENTS.md), [dated source/security/operations audit](../docs/INFRA_SECURITY_OPERATIONS_AUDIT_2026-11-15.md), [Astra handoff](../docs/ASTRA_ENGINEERING_START_HERE.md), [P14 release checklist](../docs/MVP_RELEASE_CHECKLIST.md), and [actual-VPS runbook](../docs/P14_ACTUAL_VPS_EVIDENCE_RUNBOOK.md). **Status: local/release-candidate infrastructure exists, but public deployment is not approved or verified.**
 
+## PRO-00 native-first reuse (2026-11-21, review candidate)
+
+IMGENGINE Pro's [native-only testing plan](../features/pro/NATIVE_TESTING.md) reuses **the existing P7** `Dockerfile.p7-frontend-dev` and `docker-compose.p7-frontend-dev.yml` `rust-api` service. Invoke `docker compose --env-file infra/p7-frontend-dev.env -f infra/docker-compose.p7-frontend-dev.yml run --rm --no-deps --entrypoint bash rust-api -lc '...'` with focused `make native-test` / `make rust-test` commands; this overrides the API server launch and **does not start the frontend**. Use synthetic, untracked local credentials and a separate clean worktree to avoid interference with Free work. No new Pro Compose, Dockerfile or CI workflow is necessary. This does **not** verify runtime, native correctness, P8/P14 or commercial release; current Pro Docker results are **NOT RUN**. Do not use deprecated P8 runtime or P14 production configuration for Pro development.
+
 ## Select the right environment
 
 | Purpose | Files | Do not infer |
