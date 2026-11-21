@@ -40,7 +40,7 @@
     },
     {
       "id": "F5-SUPPLY-05",
-      "title": "Permanent upstream-compatible dependency and lockfile remediation",
+      "title": "Production glob/minimatch dependency remediation — major-version override under review",
       "priority": 10,
       "pr": 97,
       "declared_state": "IN_PROGRESS",
