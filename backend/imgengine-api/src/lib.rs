@@ -1727,19 +1727,6 @@ mod tests {
         }
     }
 
-    async fn start_loopback(app: axum::Router) -> (SocketAddr, tokio::task::JoinHandle<()>) {
-        let listener = TcpListener::bind(("127.0.0.1", 0))
-            .await
-            .expect("bind loopback listener");
-        let address = listener.local_addr().expect("read loopback address");
-        let server = tokio::spawn(async move {
-            axum::serve(listener, app)
-                .await
-                .expect("serve loopback application");
-        });
-        (address, server)
-    }
-
     async fn start_runtime_server(runtime: ApiRuntime) -> (SocketAddr, Arc<ApiServer>) {
         let listener = TcpListener::bind(("127.0.0.1", 0))
             .await
@@ -2446,8 +2433,10 @@ mod tests {
         let mut state = ApiState::start_inner(config, Some(observer), Some(execution_gate.clone()))
             .expect("start API state");
         state.response_wait_gate = Some(response_wait_gate.clone());
-        let runtime = ApiRuntime { state };
-        let (address, server) = start_loopback(runtime.router()).await;
+        // Keep the server and its connection tasks under the same lifecycle
+        // owner used by the production graceful-drain path. Aborting only the
+        // listener can leave a detached connection holding the native engine.
+        let (address, server) = start_runtime_server(ApiRuntime { state }).await;
 
         let (content_type, body) = multipart_body(&[("file", "image/png", REAL_PNG)]);
         let mut client = TcpStream::connect(address).await.expect("connect loopback");
@@ -2460,8 +2449,8 @@ mod tests {
             execution_gate.wait_until_entered(Duration::from_secs(2)),
             "accepted request must reach the native-processing boundary"
         );
-        assert_eq!(runtime.admission_metrics().accepted, 1);
-        assert_eq!(runtime.admission_metrics().completed, 0);
+        assert_eq!(server.runtime().admission_metrics().accepted, 1);
+        assert_eq!(server.runtime().admission_metrics().completed, 0);
 
         client.shutdown().await.expect("close client write side");
         drop(client);
@@ -2475,20 +2464,22 @@ mod tests {
         .expect("join abandonment receiver");
         assert_eq!(abandoned.state, RequestState::ResponseAbandoned);
         assert!(abandoned.result.is_none());
-        assert_eq!(runtime.lifecycle_metrics().response_abandoned, 1);
+        assert_eq!(server.runtime().lifecycle_metrics().response_abandoned, 1);
 
         execution_gate.release();
         let response = successful_loopback_request(address).await;
         assert!(response.starts_with(b"HTTP/1.1 200"));
         assert!(response.ends_with(&[0xff, 0xd9]));
-        let admission = runtime.admission_metrics();
+        let admission = server.runtime().admission_metrics();
         assert_eq!(admission.accepted, 2);
         assert_eq!(admission.completed, 2);
-        assert_eq!(runtime.lifecycle_metrics().response_abandoned, 1);
+        assert_eq!(server.runtime().lifecycle_metrics().response_abandoned, 1);
 
-        server.abort();
-        let _ = server.await;
-        drop(runtime);
+        // This is the lifecycle boundary: all admitted native work is drained
+        // and the listener's connection tasks finish before the next test
+        // attempts to create the process-scoped ABI-v1 engine.
+        server.shutdown().await.expect("drain TCP test server");
+        drop(server);
         assert!(fs::read_dir(&root)
             .expect("read workspace root")
             .next()
@@ -2508,8 +2499,10 @@ mod tests {
         });
         let config = ApiConfig::new("test-key", root.clone()).expect("configuration");
         let state = ApiState::start_inner(config, Some(observer), None).expect("start API state");
-        let runtime = ApiRuntime { state };
-        let (address, server) = start_loopback(runtime.router()).await;
+        // Keep the server and its connection tasks under the same lifecycle
+        // owner used by the production graceful-drain path. Aborting only the
+        // listener can leave a detached connection holding the native engine.
+        let (address, server) = start_runtime_server(ApiRuntime { state }).await;
 
         let (content_type, body) = multipart_body(&[("file", "image/png", REAL_PNG)]);
         let mut client = TcpStream::connect(address).await.expect("connect loopback");
@@ -2525,15 +2518,17 @@ mod tests {
 
         let response = successful_loopback_request(address).await;
         assert!(response.starts_with(b"HTTP/1.1 200"));
-        let admission = runtime.admission_metrics();
+        let admission = server.runtime().admission_metrics();
         assert_eq!(admission.accepted, 1);
         assert_eq!(admission.completed, 1);
-        assert_eq!(runtime.lifecycle_metrics().response_abandoned, 0);
+        assert_eq!(server.runtime().lifecycle_metrics().response_abandoned, 0);
         assert!(event_receiver.try_recv().is_err());
 
-        server.abort();
-        let _ = server.await;
-        drop(runtime);
+        // This is the lifecycle boundary: all admitted native work is drained
+        // and the listener's connection tasks finish before the next test
+        // attempts to create the process-scoped ABI-v1 engine.
+        server.shutdown().await.expect("drain TCP test server");
+        drop(server);
         assert!(fs::read_dir(&root)
             .expect("read workspace root")
             .next()
