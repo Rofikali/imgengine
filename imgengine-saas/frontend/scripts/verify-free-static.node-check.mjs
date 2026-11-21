@@ -109,7 +109,8 @@ test('Free static matrix runs all projects and all fifty disjoint Firefox test s
     assert.equal(args[5].startsWith('--project='), true)
     assert.equal(options.stdio, 'inherit')
     assert.match(options.cwd, /frontend\/?$/)
-    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, i >= 2 && i < FIREFOX_TEST_SHARDS + 2 ? '1' : '0')
+    const expectRedactedDiagnostics = i >= 2 // Firefox shards and WebKit only.
+    assert.equal(options.env.IMGENGINE_STATIC_TEST_DIAGNOSTICS, expectRedactedDiagnostics ? '1' : '0')
     if (i >= 2 && i < FIREFOX_TEST_SHARDS + 2) {
       assert.deepEqual(args.slice(6), ['--fully-parallel', '--shard=' + (i - 1) + '/' + FIREFOX_TEST_SHARDS])
     } else {
