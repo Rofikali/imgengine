@@ -65,7 +65,8 @@ jobs:
       - name: Validate selector and fail-closed gate truth table
         run: |
           set -euo pipefail
-          node --test scripts/ci-scope-select.test.mjs scripts/ci-scope-gate.test.mjs scripts/ci-scope.test.mjs
+          node --test scripts/ci-scope-select.test.mjs scripts/ci-scope-gate.test.mjs scripts/ci-scope.test.mjs scripts/docs-sync-check.test.mjs
+          node scripts/docs-sync-check.mjs HEAD^ HEAD
           git diff --check HEAD^ HEAD
 
   infra-p8-parser:

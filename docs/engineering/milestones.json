@@ -4,7 +4,7 @@
   "release_state": "NOT_RELEASED",
   "release_blockers": [
     "Production glob/minimatch overrides merged (#97); final frozen-source compatibility and supply-chain review still required",
-    "Immutable Free-only approved archive, detached owner attestation, SBOM/licenses and release artifact audit not yet complete",
+    "Deterministic candidate tar merged (#104), but frozen approved artifact, independent attestation, SBOM/licenses and release audit are not complete",
     "Privacy, terms, support and operator/legal contact notices remain draft",
     "Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified",
     "Explicit owner release go/no-go and production deployment not authorized"
@@ -115,6 +115,60 @@
       "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-05"
+      ]
+    },
+    {
+      "id": "F5-RUST-TCP-01",
+      "title": "Graceful Rust TCP shutdown preventing native lifecycle overlap",
+      "priority": 115,
+      "pr": 99,
+      "declared_state": "PLANNED",
+      "depends_on": []
+    },
+    {
+      "id": "F5-BROWSER-01",
+      "title": "WebKit privacy navigation isolation evidence",
+      "priority": 116,
+      "pr": 101,
+      "declared_state": "PLANNED",
+      "depends_on": []
+    },
+    {
+      "id": "F5-BROWSER-02",
+      "title": "Firefox and WebKit isolated browser shards and privacy regression",
+      "priority": 117,
+      "pr": 103,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-BROWSER-01"
+      ]
+    },
+    {
+      "id": "F5-HOST-GUIDE-01",
+      "title": "Owner-only Cloudflare Free launch guide and signoff checklist",
+      "priority": 118,
+      "pr": 102,
+      "declared_state": "PLANNED",
+      "depends_on": []
+    },
+    {
+      "id": "F5-RC-ARCHIVE-01",
+      "title": "Deterministic detached Free static candidate tar (not published)",
+      "priority": 119,
+      "pr": 104,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-RC-EVID-01"
+      ]
+    },
+    {
+      "id": "F5-RC-PREFLIGHT-01",
+      "title": "Build Nuxt before manual release browser preflight",
+      "priority": 121,
+      "pr": 105,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-RC-ARCHIVE-01"
       ]
     }
   ]

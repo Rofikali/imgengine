@@ -6,7 +6,9 @@
 - Seven GitHub CI job results (native build, sanitizer, fuzz, Docker, Rust API, Nuxt, SaaS) and link:
 - Security/privacy/ABI, rollback and remaining risks:
 
-## Documentation synchronization
+## Documentation synchronization — CI-enforced mandatory four-file transaction
+- [ ] All four root files **AGENTS.md, next.md, README.md, skills.md** changed for this substantive PR (see [DOCSYNC contract](../docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md)); only bot-generated status PRs are exempt.
+- [ ] `node --test scripts/docs-sync-check.test.mjs` and `node scripts/docs-sync-check.mjs HEAD^ HEAD` pass (or record NOT RUN); reviewers verify the content is accurate, not merely touched.
 - [ ] Required milestone documentation-impact transaction completed: actual tested SHA, code/tests, `next.md` and next READY job are synchronized; statuses are not prematurely MERGED/RELEASED.
 - [ ] Docs impact summary: updated paths/reasons; root/scoped AGENTS, skills, READMEs, contracts, security/CI/finance/ops reviewed as relevant; unrelated docs N/A.
 - [ ] Any CI optimization preserves all existing security/browser projects and must report actual before/after measured times, not inferred speedups.
