@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+**Firefox verification retry — IN_PROGRESS.** Retrying the Ubuntu browser check for cf3d192 and recording evidence here and in the companion activity record.
+
 **F5 browser failure investigation — IMPLEMENTED, browser verification BLOCKED.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply. At candidate cf3d192, Ubuntu 24.04 passed the test syntax check and all 23 static verifier and matrix unit tests. Browser execution was blocked by a TLS timeout pulling the Playwright image and registry errors during frozen install. Resume with desktop-firefox shard 12/55, then required CI.
 
 **Governance (2026-11-21):** This board is edited directly by the **Codex/engineer doing work**, alongside the actual source/config/test change. No PR event, scheduled bot, generated block or merge-status inference may update or set this board. See [mandatory protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and [detailed activity log](docs/engineering/live-status.md). Last observed `main` baseline was `c6f1c90dfff73edc77b821a1881b6b9cdd120500`; this is a recorded inspection, **not** a claim of current HEAD or full CI PASS.
