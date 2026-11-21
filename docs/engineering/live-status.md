@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+**F5 browser failure investigation — IMPLEMENTED, verification pending.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply.
+
 **This file is written by the engineer or Codex agent doing actual work.** It is no longer a GitHub-PR-derived dashboard and is never overwritten by GitHub Actions. Its `STATUS` values mean **engineering work**, not `OPEN/MERGED` pull requests. Root [next.md](../../next.md) is the compact current task board; [protocol](DOCUMENTATION_SYNC_CONTRACT.md) defines required checkpoint behavior.
 
 **READY-board reconciliation — COMPLETED (2026-11-21).** F5-SUPPLY-05 landed in [PR #97](https://github.com/Rofikali/imgengine/pull/97). The frontend lockfile at main revision `70d6e610635e63795db2a3fb9f7b01b594483f06` matches the merge revision `c1141f1`. [Main CI](https://github.com/Rofikali/imgengine/actions/runs/44909116504) failed the Nuxt browser matrix and its required verification gate. Free v1.0.0 remains blocked.

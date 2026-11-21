@@ -64,8 +64,13 @@ for (const route of privacyRoutes) {
 
     const page = await context.newPage()
     try {
-      // Keep the full-load requirement. One route per test, not six serial loads.
-      await page.goto(route, { waitUntil: 'load' })
+      // Check full load on the committed document using its own navigation timing.
+      // loadEventEnd is positive only after its load handlers have finished.
+      await page.goto(route, { waitUntil: 'commit' })
+      await page.waitForFunction(() => {
+        const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+        return navigation && navigation.loadEventEnd > 0
+      })
       await expect(page.getByRole('main')).toBeVisible()
       expect(await page.evaluate(async () => [
         localStorage.length, sessionStorage.length, (await indexedDB.databases()).length,

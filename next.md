@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+**F5 browser failure investigation — IMPLEMENTED, verification pending.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply.
+
 **Governance (2026-11-21):** This board is edited directly by the **Codex/engineer doing work**, alongside the actual source/config/test change. No PR event, scheduled bot, generated block or merge-status inference may update or set this board. See [mandatory protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and [detailed activity log](docs/engineering/live-status.md). Last observed `main` baseline was `c6f1c90dfff73edc77b821a1881b6b9cdd120500`; this is a recorded inspection, **not** a claim of current HEAD or full CI PASS.
 
 **READY-board reconciliation — COMPLETED (2026-11-21).** F5-SUPPLY-05 landed in [PR #97](https://github.com/Rofikali/imgengine/pull/97). The frontend lockfile at main revision `70d6e610635e63795db2a3fb9f7b01b594483f06` matches the merge revision `c1141f1`. [Main CI](https://github.com/Rofikali/imgengine/actions/runs/44909116504) failed the Nuxt browser matrix and its required verification gate. Free v1.0.0 remains blocked.
