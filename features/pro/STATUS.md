@@ -45,8 +45,8 @@
 | Rust facade and external FFI consumer | `backend/imgengine/`, `backend/imgengine-ffi-smoke/` | **NOT RUN for Pro** |
 | Rust supervisor resource/lifecycle tests | `backend/imgengine-supervisor/` | **NOT RUN for Pro** |
 | ASan/UBSan and malformed-image fuzz | existing native verification | **NOT RUN for Pro** |
-| Ubuntu 24.04 Docker Desktop compose | `features/pro/compose.native-test.yml` | **CONFIGURATION PROPOSED, NOT RUN** |
-| Separate optional native-only GitHub Actions | `.github/workflows/pro-native-smoke.yml` | **PROPOSED, NOT RUN** |
+| Existing P7 Ubuntu 24.04 Docker Desktop service | `infra/docker-compose.p7-frontend-dev.yml` with `rust-api` **run --no-deps** | **EXISTING CONFIG; PRO TEST NOT RUN** |
+| Separate Pro-specific workflow | **NONE**; reuse existing required `.github/workflows/ci.yml` | **NO NEW CI WORKFLOW** |
 | Required existing repo CI checks | `.github/workflows/ci.yml` | **MUST verify for the new PR head; not inherited** |
 | Frontend/Playwright Pro behavior | deferred | **NOT IMPLEMENTED / NOT RUN** |
 | Real public host, billing and customer tests | future ADR | **NOT RUN / NOT APPROVED** |
