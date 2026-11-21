@@ -1,6 +1,6 @@
 # IMGENGINE Documentation
 
-**Free F5 supply-chain candidate:** [Dependency remediation PR #97](https://github.com/Rofikali/imgengine/pull/97) has a [pnpm-generated lockfile and zero-severity candidate audit](https://github.com/Rofikali/imgengine/actions/runs/44876436903), recorded in the [reviewed risk-evidence document](releases/free/v1.0.0/F5_SUPPLY_05_REMEDIATION_EVIDENCE.md). PR-head CI and upstream major-version range compatibility review are pending; the public release remains blocked.
+**IMGENGINE Free release candidate stage (2026-11-21):** Dependency [PR #97](https://github.com/Rofikali/imgengine/pull/97) is merged and the [post-merge source-lockfile security check](https://github.com/Rofikali/imgengine/actions/runs/44877676779) passed. [F5-RC-EVID-01 / PR #98](https://github.com/Rofikali/imgengine/pull/98) adds [detached, review-only candidate provenance](releases/free/v1.0.0/F5_RC_EVID_01.md). Final immutable archive, legal/security/owner attestation, Cloudflare verification and Free `free-v1.0.0` tag are **not complete**.
 
 **Free v1.0.0 operator preparation (not public release):** [Cloudflare Pages Direct Upload and tag runbook](releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md), [draft release notes](releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md) and [read-only release preflight](../.github/workflows/free-v1-release-preflight.yml). Existing source `free-v1.0.0` tag is not created, Cloudflare is not deployed, and all independent release gates remain fail-closed. F5-SUPPLY-05 remains the blocking product milestone.
 
