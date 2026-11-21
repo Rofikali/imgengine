@@ -42,8 +42,8 @@
       "id": "F5-SUPPLY-05",
       "title": "Permanent upstream-compatible dependency and lockfile remediation",
       "priority": 10,
-      "pr": null,
-      "declared_state": "READY",
+      "pr": 97,
+      "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-04"
       ]
