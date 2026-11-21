@@ -1,5 +1,9 @@
 # IMGENGINE Documentation
 
+
+**Pro native-first product program (review candidate, 2026-11-21):** [Pro A–Z product requirements](../features/pro/README.md), [NOW/STARTED/IN_PROGRESS/COMPLETED/MERGED/NOT_MERGED truth register](../features/pro/STATUS.md), and [Docker Desktop Ubuntu 24.04 C17/Rust verification](../features/pro/NATIVE_TESTING.md). Pro frontend is explicitly deferred. No Pro implementation, paid license or release is claimed, and the existing Free/CI gates remain independent.
+
+
 **Free v1.0.0 operator preparation (not public release):** [Cloudflare Pages Direct Upload and tag runbook](releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md), [draft release notes](releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md) and [read-only release preflight](../.github/workflows/free-v1-release-preflight.yml). Existing source `free-v1.0.0` tag is not created, Cloudflare is not deployed, and all independent release gates remain fail-closed. F5-SUPPLY-05 remains the blocking product milestone.
 
 **Milestone sync (live generator; PR opening not yet autonomous):** [PR #91](https://github.com/Rofikali/imgengine/pull/91) merged the [GitHub-based status contract](engineering/MILESTONE_AUTOMATION.md). The generated [status PR #92](https://github.com/Rofikali/imgengine/pull/92) was manually opened because Actions PR creation is disabled by repository policy. F5-DOCSYNC-02 addresses the misleading successful retry when a matching bot branch has no PR. Free v1.0.0 is NOT RELEASED.
