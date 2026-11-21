@@ -1,0 +1,33 @@
+# Optional manually-triggered Pro C17/Rust foundation smoke, NOT required CI or CD.
+# Existing .github/workflows/ci.yml remains authoritative for PR and main.
+name: pro-native-ubuntu24-smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-native-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-smoke:
+    name: Pro C17 Rust native smoke (no Pro frontend)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Check out exact selected ref
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate Compose native-only configuration
+        run: |
+          set -euo pipefail
+          docker info --format '{{.OSType}}' | grep -Fx linux
+          docker compose -f features/pro/compose.native-test.yml config --quiet
+      - name: Build existing Ubuntu 24.04 native verification image
+        run: docker compose -f features/pro/compose.native-test.yml build native-tests
+      - name: Run existing native C and Rust smoke only
+        run: docker compose -f features/pro/compose.native-test.yml run --rm --no-deps native-tests
