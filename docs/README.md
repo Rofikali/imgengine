@@ -1,6 +1,6 @@
 # IMGENGINE Documentation
 
-**F5-DOCSYNC-01 (review candidate, not running):** [Milestone registry, GitHub PR events and security runbook](engineering/MILESTONE_AUTOMATION.md) describe the automated status snapshot in [next.md](../next.md), plus an optional generated dashboard after activation. Task and PR state are dynamic; older notes below are historical. No self-merging agent, cloud publication or security-policy override is implied.
+**Milestone sync (live generator; PR opening not yet autonomous):** [PR #91](https://github.com/Rofikali/imgengine/pull/91) merged the [GitHub-based status contract](engineering/MILESTONE_AUTOMATION.md). The generated [status PR #92](https://github.com/Rofikali/imgengine/pull/92) was manually opened because Actions PR creation is disabled by repository policy. F5-DOCSYNC-02 addresses the misleading successful retry when a matching bot branch has no PR. Free v1.0.0 is NOT RELEASED.
 
 **CURRENT VERIFIED MAIN (2026-11-20 UTC):** [PR #89](https://github.com/Rofikali/imgengine/pull/89) **MERGED** as `6c9e5ff7846d6d4e3b4ec63d62b19ac0d3af3008`, with [post-merge main CI SUCCESS](https://github.com/Rofikali/imgengine/actions/runs/44771824270). Strict zero-moderate release-only audit is implemented, not a dependency fix. The tracked frontend lockfile retains the moderate `glob@13.0.7` / `minimatch@10.2.6` findings; the #88 patched-major trial was disposable. **NEXT: F5-SUPPLY-05 permanent upstream-compatible package-manager-generated lockfile patch, exact-head Docker/CI/browser/security proof. Free v1.0.0 NOT RELEASED.**
 

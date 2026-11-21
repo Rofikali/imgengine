@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: Test deterministic reconciliation
-        run: node --test scripts/milestone-sync.test.mjs
+        run: node --test scripts/milestone-sync.test.mjs scripts/milestone-status-publication.test.mjs
 
       - name: Generate snapshot from GitHub API
         env:
@@ -70,30 +70,50 @@ jobs:
           git commit -m "docs(status): sync PR-verified NOW NEXT and completed milestones"
 
           remote_sha="$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)"
+          remote_author=""
+          same_tree=false
           if [ -n "$remote_sha" ]; then
             git fetch --quiet origin "refs/heads/$branch"
             remote_author="$(git log -1 --format=%ae FETCH_HEAD)"
-            if [ "$remote_author" != "41898282+github-actions[bot]@users.noreply.github.com" ]; then
-              echo "::error::Status branch has a non-bot author; refuse to overwrite."
-              exit 1
-            fi
             if [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse 'FETCH_HEAD^{tree}')" ]; then
-              echo "Existing bot branch already has identical generated status."
-              exit 0
+              same_tree=true
             fi
           fi
 
-          # Bot-branch only; no automatic merge, deployment or release tagging.
-          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
-            push --quiet origin "HEAD:refs/heads/$branch" \
-            "--force-with-lease=refs/heads/$branch:$remote_sha"
+          # An identical branch is NOT success unless a review PR exists.
+          # The deterministic planner is tested separately and fails closed on
+          # non-bot branches, invalid refs or unexpected GitHub observations.
+          open_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // ""')"
+          decision="$(node scripts/milestone-status-publication.mjs \
+            "$remote_sha" "$remote_author" "$same_tree" "$open_pr")"
+          case "$decision" in
+            push-open|push-reuse)
+              # Bot-branch only; no automatic merge, deployment or release.
+              auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+              git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+                push --quiet origin "HEAD:refs/heads/$branch" \
+                "--force-with-lease=refs/heads/$branch:$remote_sha"
+              ;;
+            keep-open|keep-reuse)
+              echo "Identical bot branch present; checking review PR."
+              ;;
+            *)
+              echo "::error::Unexpected publication decision"
+              exit 1
+              ;;
+          esac
 
-          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // ""')" ]; then
-            echo "Existing status PR refreshed; owner review remains required."
-          else
-            gh pr create \
-              --base main --head "$branch" \
-              --title "docs(status): reconcile GitHub PR and milestone board" \
-              --body "Automated, review-only milestone snapshot from the approved registry and GitHub PR/check APIs. Changes are limited to next.md and docs/engineering/live-status.md. No automatic merges, security waivers, deployment or public release; review required."
-          fi
+          case "$decision" in
+            keep-open|push-open)
+              if ! gh pr create \
+                --base main --head "$branch" \
+                --title "docs(status): reconcile GitHub PR and milestone board" \
+                --body "Automated, review-only milestone snapshot from the approved registry and GitHub PR/check APIs. Changes are limited to next.md and docs/engineering/live-status.md. No automatic merges, security waivers, deployment or public release; review required."; then
+                echo "::error::Unable to create review PR. Check repository Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests. Status branch is not a reviewed PR."
+                exit 1
+              fi
+              ;;
+            keep-reuse|push-reuse)
+              echo "Existing status PR #$open_pr is available for owner review."
+              ;;
+          esac

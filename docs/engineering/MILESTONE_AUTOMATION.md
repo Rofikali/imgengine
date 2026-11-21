@@ -1,6 +1,6 @@
 # IMGENGINE — PR-driven milestone synchronization (F5-DOCSYNC-01)
 
-**Status: implementation proposed; activate only after owner review and merge.** No GitHub Actions workflow executes from this document alone.
+**Verified operational checkpoint (2026-11-21):** [PR #91](https://github.com/Rofikali/imgengine/pull/91) **MERGED** as `76d42f094e5df13d8eefe0ad8a417f9214e5a2a7`; [scheduled generator run #44840635463](https://github.com/Rofikali/imgengine/actions/runs/44840635463) **SUCCESS** with a generated bot branch. [Initial post-merge run #44780901126](https://github.com/Rofikali/imgengine/actions/runs/44780901126) **FAILED** because GitHub refused Actions PR creation. Subsequent identical-branch runs exited success without opening a PR; this is a confirmed workflow defect, not a successful end-to-end automation. The generated snapshot is under [manually opened PR #92](https://github.com/Rofikali/imgengine/pull/92). F5-DOCSYNC-02 is a **review candidate** to require an actual open review PR or explicitly fail and retry. Repository owner must enable GitHub Actions PR creation; this PR does not change that account setting. **No automatic merge, release, cloud action or spending.**
 
 ## Authority and scope
 

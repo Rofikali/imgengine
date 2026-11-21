@@ -75,6 +75,26 @@
       "depends_on": [
         "F5-RC-01"
       ]
+    },
+    {
+      "id": "F5-DOCSYNC-01",
+      "title": "GitHub PR-driven milestone status generator",
+      "priority": 130,
+      "pr": 91,
+      "declared_state": "PLANNED",
+      "depends_on": [
+        "F5-DOC-RECON-01"
+      ]
+    },
+    {
+      "id": "F5-DOCSYNC-02",
+      "title": "Recover missing review PR on identical bot branch and preserve fail-closed permissions",
+      "priority": 140,
+      "pr": 93,
+      "declared_state": "IN_PROGRESS",
+      "depends_on": [
+        "F5-DOCSYNC-01"
+      ]
     }
   ]
 }
