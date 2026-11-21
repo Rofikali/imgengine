@@ -1,0 +1,63 @@
+name: IMGENGINE Free lockfile release security
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "imgengine-saas/frontend/package.json"
+      - "imgengine-saas/frontend/pnpm-lock.yaml"
+      - ".github/workflows/free-lockfile-security.yml"
+  push:
+    branches: [main]
+    paths:
+      - "imgengine-saas/frontend/package.json"
+      - "imgengine-saas/frontend/pnpm-lock.yaml"
+      - ".github/workflows/free-lockfile-security.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-locked-audit:
+    name: Source-locked Free zero-moderate security audit
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --shm-size=1g
+    timeout-minutes: 20
+    env:
+      HOME: /root
+    steps:
+      - name: Checkout exact PR/main source without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Use Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Confirm pinned Ubuntu and pnpm
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+          test "$(node -p 'require("./package.json").packageManager')" = "pnpm@10.34.9"
+          corepack enable
+          test "$(pnpm --version)" = 10.34.9
+          echo "Source SHA: $GITHUB_SHA"
+      - name: Frozen install from committed lockfile
+        working-directory: imgengine-saas/frontend
+        run: pnpm install --frozen-lockfile
+      - name: Fail on any critical high or moderate production vulnerability
+        working-directory: imgengine-saas/frontend
+        run: pnpm run verify:free-release-dependencies
+      - name: Verify Nuxt prepare typecheck and unit tests
+        working-directory: imgengine-saas/frontend
+        run: |
+          pnpm exec nuxi prepare
+          pnpm run typecheck
+          pnpm test
