@@ -16,7 +16,7 @@ export const FREE_STATIC_BROWSER_PROJECTS = Object.freeze([
   'desktop-firefox',
   'desktop-webkit',
 ])
-export const FIREFOX_TEST_SHARDS = 50
+export const FIREFOX_TEST_SHARDS = 55
 
 const frontendRoot = fileURLToPath(new URL('../', import.meta.url))
 

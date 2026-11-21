@@ -87,7 +87,7 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
 })
 
 
-test('Free static matrix runs all projects and all fifty disjoint Firefox test shards', () => {
+test('Free static matrix runs all projects and all fifty-five disjoint Firefox test shards', () => {
   const invocations = []
   const result = runFreeStaticBrowserMatrix((command, args, options) => {
     invocations.push({ command, args, options })
@@ -95,8 +95,8 @@ test('Free static matrix runs all projects and all fifty disjoint Firefox test s
   })
   assert.equal(result, 0)
   assert.equal(FREE_STATIC_BROWSER_PROJECTS.length, 4)
-  assert.equal(FIREFOX_TEST_SHARDS, 50)
-  assert.equal(invocations.length, FIREFOX_TEST_SHARDS + 3) // Chromium, mobile, fifty Firefox, WebKit.
+  assert.equal(FIREFOX_TEST_SHARDS, 55)
+  assert.equal(invocations.length, FIREFOX_TEST_SHARDS + 3) // Chromium, mobile, fifty-five Firefox, WebKit.
   assert.deepEqual(invocations.map(({ args }) => args[5]), [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
@@ -129,9 +129,9 @@ test('Free static matrix fails closed on a failing Firefox shard, never skipping
   assert.deepEqual(executed, [
     '--project=desktop-chromium',
     '--project=mobile-chromium',
-    '--shard=1/50',
-    '--shard=2/50',
-    '--shard=3/50',
+    '--shard=1/55',
+    '--shard=2/55',
+    '--shard=3/55',
   ])
 })
 
