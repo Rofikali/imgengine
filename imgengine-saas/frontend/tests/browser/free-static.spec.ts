@@ -45,36 +45,38 @@ test('forbidden dynamic endpoints are true HTTP 404, never SPA fallback success'
     expect((await response.text()).slice(0, 300)).not.toContain('Create printable photo layouts.')
   }
 })
-test('static Free browsing sends no image, filename, or server-bound requests', async ({ context }) => {
-  test.slow() // Independent privacy audit of all six fully loaded Free tool routes.
-  const requests: string[] = []
-  // Observe the browser CONTEXT, not one Page: every fresh route remains under
-  // the same network audit and the same persistent storage/cookie boundary.
-  context.on('request', request => {
-    if (!request.url().startsWith('http')) return
-    const url = new URL(request.url())
-    if (url.origin !== 'http://127.0.0.1:3100' || request.method() !== 'GET' || request.postData() || url.pathname.startsWith('/api/')) requests.push(request.url())
-  })
-  // Repeated navigation through six compiled Nuxt routes in a single WebKit
-  // Page produced an INTERNAL browser error at /convert-image on CI.
-  // Close each loaded Page before opening the next, without restarting the
-  // browser Context, reducing page-lifetime pressure while preserving all six
-  // full-load, image/network and storage assertions.
-  for (const route of ['/', ...freeTools.map(([, path]) => path)]) {
+// Each independently sharded route gets a fresh browser/server lifetime in
+// Firefox. CI demonstrated that even separate Pages in one six-route test
+// sometimes stall on the fifth/sixth full-load navigation despite 200 responses.
+// Do not weaken the privacy assertions or the load event to hide this failure.
+const privacyRoutes = ['/', ...freeTools.map(([, path]) => path)] as const
+for (const route of privacyRoutes) {
+  test(`Free privacy audit on ${route}: no image, filename or server-bound requests`, async ({ context }) => {
+    const requests: string[] = []
+    context.on('request', request => {
+      if (!request.url().startsWith('http')) return
+      const url = new URL(request.url())
+      if (url.origin !== 'http://127.0.0.1:3100' ||
+          request.method() !== 'GET' ||
+          request.postData() ||
+          url.pathname.startsWith('/api/')) requests.push(request.url())
+    })
+
     const page = await context.newPage()
     try {
-      await page.goto(route) // Full "load", not merely DOMContentLoaded.
+      // Keep the full-load requirement. One route per test, not six serial loads.
+      await page.goto(route, { waitUntil: 'load' })
       await expect(page.getByRole('main')).toBeVisible()
       expect(await page.evaluate(async () => [
         localStorage.length, sessionStorage.length, (await indexedDB.databases()).length,
       ]), 'No persistent browser storage on ' + route).toEqual([0, 0, 0])
+      expect(await context.cookies(), 'No cookies on ' + route).toEqual([])
+      expect(requests, 'No outbound, upload or server-bound requests on ' + route).toEqual([])
     } finally {
       await page.close()
     }
-  }
-  expect(requests, 'No outbound, upload or server-bound requests on any route').toEqual([])
-  expect(await context.cookies(), 'No cookies across all six routes').toEqual([])
-})
+  })
+}
 
 
 for (const [route, heading] of [

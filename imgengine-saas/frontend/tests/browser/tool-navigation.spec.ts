@@ -9,7 +9,9 @@ const freeTools = [
 ] as const
 
 test('the landing page exposes every browser-local Free tool in a labelled navigation region', async ({ page }) => {
-  await page.goto('/')
+  // This test verifies the navigable DOM and link destinations, not the
+  // resource-load lifecycle. Keep full-load checks in Free privacy/CSP tests.
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
 
   const navigation = page.getByRole('navigation', { name: 'Free image tools' })
   await expect(navigation).toBeVisible()
