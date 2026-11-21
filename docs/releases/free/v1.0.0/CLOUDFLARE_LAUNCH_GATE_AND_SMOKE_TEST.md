@@ -4,6 +4,8 @@
 
 See [owner A-to-Z guide](HOST_ON_CLOUDFLARE_A_TO_Z.md), [policy runbook](CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md), [release plan](release-manifest.json), [security evidence](evidence-matrix.md).
 
+**Candidate reproducibility milestone:** [F5-RC-ARCHIVE-01](F5_RC_ARCHIVE_01.md) prepares a normalized deterministic static tar + separately re-audited SHA-256 evidence. Only `candidate-archive.json` and `candidate-manifest.json` are CI-uploaded for review, never an unapproved website. A reproducible candidate is **not** an immutable owner-approved archive, independent SBOM/license sign-off, or permission to create `free-v1.0.0`.
+
 ## A. Verified release identity (fill after independent frozen build)
 
 | Item | Actual value / evidence | Current decision |
