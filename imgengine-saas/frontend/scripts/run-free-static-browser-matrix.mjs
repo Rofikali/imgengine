@@ -3,26 +3,26 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 
 // Every verified browser project and every static-route assertion must run.
-// Desktop Firefox intermittently stalls waiting for domcontentloaded after
-// Node has already sent the static resources (confirmed by request timings).
-// Repro on 10-shard optional trial means five-test process lifetimes are not
-// sufficient. One-test processes keep the same tests and original deadlines,
-// while making navigation failures diagnosable by isolated server lifetime.
+// Firefox and WebKit occasionally stall on full-load navigation even after
+// the static server finishes all responses. One-test browser/server process
+// lifetimes preserve every assertion and the original per-test deadlines,
+// while removing cross-test accumulation. A failure remains a hard failure.
 // Playwright with --fully-parallel uses TEST-level sharding, not file-level.
-// A missing/extra test fails rather than silently running an empty shard.
+// The locked shard count must match the 55 discovered browser tests: empty
+// shards cannot pass. Keep the count contract synchronized with the tests.
 export const FREE_STATIC_BROWSER_PROJECTS = Object.freeze([
   'desktop-chromium',
   'mobile-chromium',
   'desktop-firefox',
   'desktop-webkit',
 ])
-export const FIREFOX_TEST_SHARDS = 50
+export const ISOLATED_BROWSER_TEST_SHARDS = 55
 
 const frontendRoot = fileURLToPath(new URL('../', import.meta.url))
 
 export function runFreeStaticBrowserMatrix(run = spawnSync) {
   for (const project of FREE_STATIC_BROWSER_PROJECTS) {
-    const shards = project === 'desktop-firefox' ? FIREFOX_TEST_SHARDS : 1
+    const shards = ['desktop-firefox', 'desktop-webkit'].includes(project) ? ISOLATED_BROWSER_TEST_SHARDS : 1
     for (let i = 1; i <= shards; i++) {
       const label = project + (shards > 1 ? ' shard ' + i + '/' + shards : '')
       console.log('Free static browser matrix: running ' + label + ' with a new static test server')
@@ -51,7 +51,7 @@ export function runFreeStaticBrowserMatrix(run = spawnSync) {
       }
     }
   }
-  console.log('Free static browser matrix: all projects and all Firefox test shards passed')
+  console.log('Free static browser matrix: all Chromium, Firefox and WebKit privacy/static tests passed')
   return 0
 }
 
