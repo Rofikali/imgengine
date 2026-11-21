@@ -1,5 +1,9 @@
 # IMGENGINE — Commercial readiness, finance, pricing hypotheses and release gates
 
+
+**Pro selected for native-first planning (2026-11-21; proposed review PR):** The current [Pro program](../features/pro/README.md) and [status evidence](../features/pro/STATUS.md) outline repeatable recipes, bounded batch/multi-output workflows, commercial research and release gates. Pro features, UI, subscriptions, taxes, price points and revenue remain **unimplemented/unapproved**; retain actual customer and contribution-margin evidence before charging. [Pro C17/Rust Ubuntu 24.04 verification](../features/pro/NATIVE_TESTING.md) is a separate non-commercial lane.
+
+
 **SDK/Desktop fifth-family commercial extension (proposed only):** See [ADR-PORTFOLIO-005](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md) and the [compatibility/release matrix](IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md). Keep the four-product financial model below unchanged until separately approved customer discovery. Native SDK redistribution/IP/codec licenses, desktop distribution signing/updates, offline licensing, customer support and possible shop SKU overlap need independent cost and legal analysis. No SDK/Desktop price, customer revenue, entitlement provider or release is approved by this add-on.
 
 **Status:** FUTURE DECISION CHECKLIST, not launched software, an accepted price list, tax/legal advice or a budget authorization. Companion to the [four-product portfolio](IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md) and [Developer API capacity/metering blueprint](IMGENGINE_DEVELOPER_API_USAGE_BILLING_CAPACITY_BLUEPRINT.md). [Live source of truth](../next.md) holds current milestone states. No account, ad account, payment provider, tax registration, domain or cloud service is created by this document.
