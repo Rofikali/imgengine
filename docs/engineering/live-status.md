@@ -8,11 +8,11 @@ Generated from the owner-reviewed milestone registry and GitHub PR/check facts. 
 
 ### NOW
 
-**F5-SUPPLY-05** — Permanent upstream-compatible dependency and lockfile remediation (READY)
+None declared; an owner-reviewed update is required.
 
 ### NEXT
 
-**F5-RC-01** — Immutable source-frozen static release artifact and independent verification (PLANNED) — waiting on: F5-SUPPLY-05
+**F5-RC-01** — Immutable source-frozen static release artifact and independent verification (PLANNED)
 
 ### WORKING / REVIEW
 
@@ -23,13 +23,15 @@ No tracked PR is currently in progress.
 - **F5-SUPPLY-03** — Disposable patched-major compatibility verification and Firefox isolation (MERGED) — [PR #88](https://github.com/Rofikali/imgengine/pull/88) — merge ec213cfc1814
 - **F5-SUPPLY-04** — Strict no-moderate release dependency audit gate (MERGED) — [PR #89](https://github.com/Rofikali/imgengine/pull/89) — merge 6c9e5ff7846d
 - **F5-DOC-RECON-01** — Post-merge release documentation reconciliation (MERGED) — [PR #90](https://github.com/Rofikali/imgengine/pull/90) — merge aaee4a259842
+- **F5-SUPPLY-05** — Production glob/minimatch dependency remediation — major-version override under review (MERGED) — [PR #97](https://github.com/Rofikali/imgengine/pull/97) — merge c1141f13c4b0
 - **F5-DOCSYNC-01** — GitHub PR-driven milestone status generator (MERGED) — [PR #91](https://github.com/Rofikali/imgengine/pull/91) — merge 76d42f094e5d
 - **F5-DOCSYNC-02** — Recover missing review PR on identical bot branch and preserve fail-closed permissions (MERGED) — [PR #93](https://github.com/Rofikali/imgengine/pull/93) — merge 8d25ac9235c1
 - **F5-HOST-PREP-01** — Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness (MERGED) — [PR #94](https://github.com/Rofikali/imgengine/pull/94) — merge d4048d7a119b
 
 ### Other open PRs (not automatically assigned a milestone)
 
-- [PR #97](https://github.com/Rofikali/imgengine/pull/97) — fix(free): remediate glob/minimatch production lockfile with pinned pnpm
+- [PR #99](https://github.com/Rofikali/imgengine/pull/99) — test(rust): graceful TCP server shutdown to prevent native-engine lifecycle overlap
+- [PR #98](https://github.com/Rofikali/imgengine/pull/98) — feat(free): detached source-bound static release-candidate evidence
 - [PR #95](https://github.com/Rofikali/imgengine/pull/95) — docs(pro): native-first feature roadmap and reuse existing infra P7
 - [PR #69](https://github.com/Rofikali/imgengine/pull/69) — docs(infra): record P8 Docker smoke evidence
 - [PR #63](https://github.com/Rofikali/imgengine/pull/63) — docs(codex): reusable milestone Agent Skill and lean AGENTS.md startup
