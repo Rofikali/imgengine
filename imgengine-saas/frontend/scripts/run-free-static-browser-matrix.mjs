@@ -39,7 +39,9 @@ export function runFreeStaticBrowserMatrix(run = spawnSync) {
           ...process.env,
           // Test-only server instrumentation: logs bounded static-route names,
           // status and completion times, never image/filename/metadata bytes.
-          IMGENGINE_STATIC_TEST_DIAGNOSTICS: project === 'desktop-firefox' ? '1' : '0',
+          // Keep bounded, metadata-free request-completion diagnostics for
+          // browser engines that have exhibited navigation-level failures.
+          IMGENGINE_STATIC_TEST_DIAGNOSTICS: ['desktop-firefox', 'desktop-webkit'].includes(project) ? '1' : '0',
         },
       })
       if (result.error) throw result.error
