@@ -28,10 +28,12 @@ No tracked PR is currently in progress.
 - **F5-DOC-RECON-01** — Post-merge release documentation reconciliation (MERGED) — [PR #90](https://github.com/Rofikali/imgengine/pull/90) — merge aaee4a259842
 - **F5-DOCSYNC-01** — GitHub PR-driven milestone status generator (MERGED) — [PR #91](https://github.com/Rofikali/imgengine/pull/91) — merge 76d42f094e5d
 - **F5-DOCSYNC-02** — Recover missing review PR on identical bot branch and preserve fail-closed permissions (MERGED) — [PR #93](https://github.com/Rofikali/imgengine/pull/93) — merge 8d25ac9235c1
+- **F5-HOST-PREP-01** — Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness (MERGED) — [PR #94](https://github.com/Rofikali/imgengine/pull/94) — merge d4048d7a119b
 
 ### Other open PRs (not automatically assigned a milestone)
 
-- [PR #94](https://github.com/Rofikali/imgengine/pull/94) — release(free): prepare gated v1.0.0 Cloudflare Pages Direct Upload
+- [PR #97](https://github.com/Rofikali/imgengine/pull/97) — fix(free): remediate glob/minimatch production lockfile with pinned pnpm
+- [PR #95](https://github.com/Rofikali/imgengine/pull/95) — docs(pro): native-first feature roadmap and reuse existing infra P7
 - [PR #69](https://github.com/Rofikali/imgengine/pull/69) — docs(infra): record P8 Docker smoke evidence
 - [PR #63](https://github.com/Rofikali/imgengine/pull/63) — docs(codex): reusable milestone Agent Skill and lean AGENTS.md startup
 - [PR #27](https://github.com/Rofikali/imgengine/pull/27) — Feat/p12 abi 22 native sheet
