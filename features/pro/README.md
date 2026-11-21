@@ -77,6 +77,6 @@ Frontend implementation now; cloud sync, permanent image uploads, shared team wo
 
 ## 6. Technical governance and dependencies
 
-See [NATIVE_TESTING.md](NATIVE_TESTING.md) for Docker Desktop/Ubuntu 24.04 and CI; [STATUS.md](STATUS.md) for NOW/STARTED/IN_PROGRESS/COMPLETED/MERGED/NOT_MERGED; [portfolio](../../docs/IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md), [technology policy](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [C/Rust evidence](../../docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md), and [live next](../../next.md).
+See [ARCHITECTURE.md](ARCHITECTURE.md) for HLD/LLD, DDD/Hexagonal boundaries, FFI and threat model; [NATIVE_TESTING.md](NATIVE_TESTING.md) for Docker Desktop/Ubuntu 24.04 and CI; [STATUS.md](STATUS.md) for NOW/STARTED/IN_PROGRESS/COMPLETED/MERGED/NOT_MERGED; [portfolio](../../docs/IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md), [technology policy](../../docs/TECHNOLOGY_AND_REPOSITORY_POLICY.md), [C/Rust evidence](../../docs/NATIVE_RUST_CONTRACT_EVIDENCE_MATRIX.md), and [live next](../../next.md).
 
 Keep `main` as integration source of truth; use short-lived `feat/pro/<milestone>` branches (e.g. `feat/pro/pro-01-recipe-contract`), one bounded, tested PR per feature. `features/pro/` is a documentation/Pro test namespace, not a permanent product fork or authorization to move existing C/Rust source. Each merged feature updates affected docs and status while main Free release takes its own owner-approved route.
