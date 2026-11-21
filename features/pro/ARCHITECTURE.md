@@ -82,7 +82,7 @@ No assertion that ordinary conversion guarantees malware removal, marketplace ph
 ## 6. CI/CD, performance and finance acceptance
 
 - **Native milestone CI:** C17 debug/release/CTest; C11/public ABI compatibility; Rust safe FFI & external consumer; fixture correctness; change-scoped native sanitizers/fuzz, then all required exact-head GitHub CI.
-- **Docker:** Windows host uses Docker Desktop Linux engine; Ubuntu 24.04 `features/pro/compose.native-test.yml` runs only C/Rust tests; existing Dockerfile reused. Actual results are **NOT_RUN** until executed.
+- **Docker:** Windows host uses Docker Desktop Linux engine; Ubuntu 24.04 existing `infra/docker-compose.p7-frontend-dev.yml` `rust-api` service is invoked with `run --no-deps` and an overridden shell command for C/Rust-only tests; existing `infra/Dockerfile.p7-frontend-dev` reused. Actual results are **NOT_RUN** until executed.
 - **Pro frontend:** no frontend code/config or Pro Playwright/UI tests authorized at this stage. Existing required repo-wide CI still applies.
 - **CD:** **NOT AUTHORIZED**. No Pro hosted endpoint, container push, secrets, tag, payment, deploy, cloud account or SLA.
 - **Measured performance:** p50/p95/p99 throughput and memory under standardized image size/codec, warm/cold repeated runs and all errors counted. Compare serial vs bounded concurrent variants and scalar vs SIMD only with correctness parity.
