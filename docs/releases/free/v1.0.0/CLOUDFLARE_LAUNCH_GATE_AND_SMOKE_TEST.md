@@ -15,7 +15,7 @@ See [owner A-to-Z guide](HOST_ON_CLOUDFLARE_A_TO_Z.md), [policy runbook](CLOUDFL
 | Detached candidate JSON/tree digest | **NOT APPROVAL**; record exact workflow run and file provenance | CANDIDATE ONLY |
 | Complete license/SBOM provenance review | **NOT ATTACHED** | NOT VERIFIED |
 | Clean production lockfile audit on frozen SHA | **NOT ATTACHED**; link run and severities | NOT VERIFIED |
-| Exact-head main/full CI | PR #98 merged despite [full CI #44885261064](https://github.com/Rofikali/imgengine/actions/runs/44885261064) **FAIL**, desktop Firefox `page.goto` full-`load` timeout; latest run requires separate review | FAIL / NOT VERIFIED |
+| Exact-head main/full CI | Current main `889be673220d4489325ff63a7a1ad6642b17fa2b` [full CI #44888710794](https://github.com/Rofikali/imgengine/actions/runs/44888710794) passed after #103's Firefox/WebKit test-lifecycle repair; no frozen release SHA has been selected | PASS ON CURRENT MAIN / NOT A RELEASE ATTESTATION |
 | Owner security/privacy/legal written approvals | **NOT ATTACHED** | NOT VERIFIED |
 | Hosting account / Free-only product selection | **NOT ENTERED** (non-secret reference only) | NOT VERIFIED |
 | Cloudflare project & deployment ID | **NOT CREATED / NOT OBSERVED** | NOT DEPLOYED |
