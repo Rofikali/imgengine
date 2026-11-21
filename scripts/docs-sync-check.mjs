@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 
 export const REQUIRED_DOCS = Object.freeze(['AGENTS.md', 'next.md', 'README.md', 'skills.md'])
-const GENERATED_ONLY = new Set(['next.md', 'docs/engineering/live-status.md'])
+export const REQUIRED_WORK_LOG = 'docs/engineering/live-status.md'
 
 export function parseDiff(raw) {
   if (typeof raw !== 'string' || !raw.endsWith('\0')) throw Error('invalid NUL-delimited git diff')
@@ -23,18 +23,11 @@ export function parseDiff(raw) {
 export function checkDocsSync(changes) {
   if (!Array.isArray(changes)) throw Error('changes must be an array')
   if (!changes.length) return { mode: 'empty', count: 0 }
-  const paths = new Set(changes.map(c => c.path))
-  const material = changes.some(c => !GENERATED_ONLY.has(c.path))
-  if (!material) {
-    if (changes.some(c => c.status === 'D')) throw Error('cannot delete generated status files')
-    return { mode: 'generated-only', count: changes.length }
-  }
-  const missing = REQUIRED_DOCS.filter(path => !changes.some(c => c.path === path && ['A','M'].includes(c.status)))
-  if (missing.length) throw Error('mandatory docs-sync missing: ' + missing.join(', '))
-  if (changes.some(c => REQUIRED_DOCS.includes(c.path) && c.status === 'D'))
-    throw Error('canonical root document deletion prohibited')
-  if (!paths.has('AGENTS.md') || !paths.has('README.md')) throw Error('incomplete docs-sync')
-  return { mode: 'four-file', count: changes.length }
+  const required = [...REQUIRED_DOCS, REQUIRED_WORK_LOG]
+  const missing = required.filter(path => !changes.some(c => c.path === path && ['A', 'M'].includes(c.status)))
+  if (missing.length) throw Error('agent-owned documentation missing in same change: ' + missing.join(', '))
+  if (changes.some(c => required.includes(c.path) && c.status === 'D')) throw Error('required agent documentation deleted')
+  return { mode: 'engineer-updated', count: changes.length }
 }
 
 export function readDiff(base, head) {

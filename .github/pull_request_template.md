@@ -1,34 +1,22 @@
-# IMGENGINE bounded engineering PR
+# IMGENGINE bounded engineering change — review transport only
 
-## Task and evidence
-- Milestone / parent, exact head SHA, changed boundary:
-- Tests PASS / FAIL / NOT RUN, exact SHA and reproducible commands:
-- Seven GitHub CI job results (native build, sanitizer, fuzz, Docker, Rust API, Nuxt, SaaS) and link:
-- Security/privacy/ABI, rollback and remaining risks:
+A pull request, when used, is **only** for code review/merge. It must **never generate docs** or determine `IN_PROGRESS`, `VERIFIED`, `COMPLETED` or `RELEASED`. The implementation agent must already have updated docs **while writing code**, before asking for review. See [agent-owned documentation procedure](../docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md).
 
-## Documentation synchronization — CI-enforced mandatory four-file transaction
-- [ ] All four root files **AGENTS.md, next.md, README.md, skills.md** changed for this substantive PR (see [DOCSYNC contract](../docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md)); only bot-generated status PRs are exempt.
-- [ ] `node --test scripts/docs-sync-check.test.mjs` and `node scripts/docs-sync-check.mjs HEAD^ HEAD` pass (or record NOT RUN); reviewers verify the content is accurate, not merely touched.
-- [ ] Required milestone documentation-impact transaction completed: actual tested SHA, code/tests, `next.md` and next READY job are synchronized; statuses are not prematurely MERGED/RELEASED.
-- [ ] Docs impact summary: updated paths/reasons; root/scoped AGENTS, skills, READMEs, contracts, security/CI/finance/ops reviewed as relevant; unrelated docs N/A.
-- [ ] Any CI optimization preserves all existing security/browser projects and must report actual before/after measured times, not inferred speedups.
+## Engineering evidence
+- Work/task ID and current agent-maintained status (from `next.md`):
+- Actual changed source/config/test paths and acceptance criteria:
+- Scope, exact tested SHA/environment, commands: PASS / FAIL / NOT RUN:
+- Risk/security/privacy, C ABI/Rust FFI, Linux/SRE, CCIE/network, CA/MBA/operating costs as applicable:
+- Rollback, remaining blocker and next work:
 
-- [ ] `next.md` contains truthful proposed PR status and one next READY task, not a premature MERGED claim.
-- [ ] `README.md`, `skills.md`, root/scoped `AGENTS.md`, `docs/README.md` checked for affected stale facts; updated or N/A explained.
-- [ ] Relevant HLD/LLD, security, contract, finance and release documents updated only if applicable.
-- [ ] Temporary security exceptions show exact advisory, scope, expiry, non-production restrictions and remediation trigger; waived is not patched.
-- [ ] After owner merges externally, next authorized review PR reconciles actual merge SHA and affected docs. This checklist is **not an automatic agent**.
+## Confirm agent-owned documentation already updated during work
+- [ ] `AGENTS.md` records task implications and current handoff
+- [ ] `next.md` records actual engineering state and one next action
+- [ ] `README.md` describes changed behavior/limits or task checkpoint
+- [ ] `skills.md` records verification recipe and impact
+- [ ] `docs/engineering/live-status.md` has a dated, task-linked change record and evidence
+- [ ] Affected scoped AGENTS, HLD/LLD/ADR, API/ABI, security, SRE and finance docs are accurate or explicitly not applicable
+- [ ] Check `node --test scripts/docs-sync-check.test.mjs` and `node scripts/docs-sync-check.mjs HEAD^ HEAD` if locally available; record NOT RUN instead of guessing
+- [ ] Exact-head CI verification and reviewer checks meet existing security and release controls
 
-**Docs updated (why):**
-
-**Docs reviewed, not applicable:**
-
-**After owner merge, sync needed:**
-
-## Selective CI verification (CI-SCOPE-02)
-- [ ] Record `CI scope selection (trusted base)` version/mode and selected lanes for this exact PR SHA; any fork, unknown, ABI/FFI, dependency or workflow change must fail closed to the full matrix.
-- [ ] Confirm the **`CI verification gate` actually passed** and that all selected jobs have real SUCCESS. A skipped job is N/A, **never** a passed test.
-- [ ] For release/readiness, verify full matrix at the exact candidate SHA; document branch protection/required-check status and any pending owner decision.
-
-## Approval
-All seven CI jobs remain required. Pushing, merging, production deployment, billing, account or cloud settings and security policy changes need appropriate owner approval.
+**Do not open a standalone documentation-status PR as a substitute for the implementing engineer's work.** Review and merge remain subject to owner permissions. A merged PR is neither completion proof nor product release.

@@ -1,59 +1,24 @@
-# IMGENGINE — Live product, feature and infrastructure milestones
+# IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
-**Documentation synchronization and actual GitHub checkpoint (2026-11-21):** At reviewed `main` head [`c6f1c90d`](https://github.com/Rofikali/imgengine/commit/c6f1c90dfff73edc77b821a1881b6b9cdd120500), [PR #98](https://github.com/Rofikali/imgengine/pull/98) (detached candidate evidence), [#99](https://github.com/Rofikali/imgengine/pull/99) (Rust TCP shutdown), [#101](https://github.com/Rofikali/imgengine/pull/101)/[#103](https://github.com/Rofikali/imgengine/pull/103) (browser test lifecycle), [#102](https://github.com/Rofikali/imgengine/pull/102) (Cloudflare guide), [#104](https://github.com/Rofikali/imgengine/pull/104) (deterministic **candidate**, not approved final archive) and [#105](https://github.com/Rofikali/imgengine/pull/105) (build-order fix) are **MERGED**. The `main` CI for that head was **in progress at inspection**, not certified PASS. [Milestone sync run #44904194415](https://github.com/Rofikali/imgengine/actions/runs/44904194415) **FAILED** because GitHub Actions is prohibited from opening a PR. Generated status sections are dated until an owner-reviewed PR updates them. **Free v1.0.0 remains NOT RELEASED**, with independent legal, supply-chain/frozen-artifact, hosting and owner approval still outstanding. All future material changes must use the [mandatory four-file documentation policy](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and CI gate; no automatic release or merge is authorized.
+**Governance (2026-11-21):** This board is edited directly by the **Codex/engineer doing work**, alongside the actual source/config/test change. No PR event, scheduled bot, generated block or merge-status inference may update or set this board. See [mandatory protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and [detailed activity log](docs/engineering/live-status.md). Last observed `main` baseline was `c6f1c90dfff73edc77b821a1881b6b9cdd120500`; this is a recorded inspection, **not** a claim of current HEAD or full CI PASS.
 
-**NOW — DOCSYNC-03:** Review this four-file synchronization and CI enforcement PR, preserve the existing generated snapshot, and request a human decision on GitHub Actions PR-creation permission and required-check branch protection. **NEXT — F5-RC-01:** independently approved frozen Free static artifact, legal/support/privacy, hosting and owner go/no-go; candidate tar is **not final release approval**. Full evidence requires the exact tested SHA and post-merge main CI result; no current PASS is asserted here.
+## NOW / IN_PROGRESS (agent-maintained)
 
-<!-- BEGIN AUTO-GENERATED PR MILESTONES -->
-## GitHub-verified NOW / NEXT / WORKING / COMPLETED
+| Task | Engineering state | Actual work / evidence | Next action |
+| --- | --- | --- | --- |
+| `DOCSYNC-ACTIVITY-01` | **IN_PROGRESS** | Engineering agent is replacing PR-status-generated documentation with task-authored updates and removing its workflows/scripts. A new exact-head CI result is not yet verified for this revision. | Run local/CI policy tests for changed documentation checks; review and hand off actual evidence |
+| `PRODUCT-FREE-01 / Free v1.0.0` | **BLOCKED — NOT_RELEASED** | Native/browser and Free static *candidate* work exists; a candidate archive is not owner-approved release evidence. | Exact-source full CI, independent artifact/SBOM/licenses, legal/privacy/support, live host/TLS/rollback, financial and owner GO/NO-GO |
 
-Generated from the owner-reviewed milestone registry and GitHub PR/check facts. This is a **snapshot**, not a live GitHub view or release approval. Historical notes elsewhere in this repository may describe older PR states.
+## Status rules (not GitHub PR statuses)
 
-**Product:** IMGENGINE Free v1.0.0 — **release state: NOT_RELEASED** (owner approval required).
+`PLANNED` = not started; `IN_PROGRESS` = actual edits ongoing; `BLOCKED` = recorded obstacle; `IMPLEMENTED` = code written but verification pending; `VERIFIED` = required scoped evidence passed at identified SHA; `COMPLETED` = acceptance tests and task documentation done. Merged is **not** completed; completed is **not** released. Record actual files, command results and next task in [engineering log](docs/engineering/live-status.md).
 
-### NOW
+## Recently verified historical source changes (not automatically assigned work status)
 
-None declared; an owner-reviewed update is required.
+Previous GitHub history includes merged #98 (detached candidate evidence), #99 (Rust TCP shutdown), #101/#103 (browser test lifecycle), #102 (Cloudflare guide), #104 (candidate static tar), and #105 (Nuxt preflight build order), as inspected 2026-11-21. Their merges are source-history facts, **not** an assertion of current task verification or release permission.
 
-### NEXT
+## Historical notes (not authoritative for active work)
 
-**F5-RC-01** — Immutable source-frozen static release artifact and independent verification (PLANNED)
-
-### WORKING / REVIEW
-
-No tracked PR is currently in progress.
-
-### COMPLETED (merged PRs)
-
-- **F5-SUPPLY-03** — Disposable patched-major compatibility verification and Firefox isolation (MERGED) — [PR #88](https://github.com/Rofikali/imgengine/pull/88) — merge ec213cfc1814
-- **F5-SUPPLY-04** — Strict no-moderate release dependency audit gate (MERGED) — [PR #89](https://github.com/Rofikali/imgengine/pull/89) — merge 6c9e5ff7846d
-- **F5-DOC-RECON-01** — Post-merge release documentation reconciliation (MERGED) — [PR #90](https://github.com/Rofikali/imgengine/pull/90) — merge aaee4a259842
-- **F5-SUPPLY-05** — Production glob/minimatch dependency remediation — major-version override under review (MERGED) — [PR #97](https://github.com/Rofikali/imgengine/pull/97) — merge c1141f13c4b0
-- **F5-DOCSYNC-01** — GitHub PR-driven milestone status generator (MERGED) — [PR #91](https://github.com/Rofikali/imgengine/pull/91) — merge 76d42f094e5d
-- **F5-DOCSYNC-02** — Recover missing review PR on identical bot branch and preserve fail-closed permissions (MERGED) — [PR #93](https://github.com/Rofikali/imgengine/pull/93) — merge 8d25ac9235c1
-- **F5-HOST-PREP-01** — Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness (MERGED) — [PR #94](https://github.com/Rofikali/imgengine/pull/94) — merge d4048d7a119b
-
-### Other open PRs (not automatically assigned a milestone)
-
-- [PR #99](https://github.com/Rofikali/imgengine/pull/99) — test(rust): graceful TCP server shutdown to prevent native-engine lifecycle overlap
-- [PR #98](https://github.com/Rofikali/imgengine/pull/98) — feat(free): detached source-bound static release-candidate evidence
-- [PR #95](https://github.com/Rofikali/imgengine/pull/95) — docs(pro): native-first feature roadmap and reuse existing infra P7
-- [PR #69](https://github.com/Rofikali/imgengine/pull/69) — docs(infra): record P8 Docker smoke evidence
-- [PR #63](https://github.com/Rofikali/imgengine/pull/63) — docs(codex): reusable milestone Agent Skill and lean AGENTS.md startup
-- [PR #27](https://github.com/Rofikali/imgengine/pull/27) — Feat/p12 abi 22 native sheet
-
-### Independent public-release blockers
-
-- Production source-lockfile moderate advisories (glob and minimatch) remain unremediated
-- Immutable Free-only release artifact, SBOM/provenance and independent release audit not approved
-- Privacy, terms, support and operator/legal contact notices remain draft
-- Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified
-- Explicit owner release go/no-go and production deployment not authorized
-
-**Safety:** PR merge is not product release. Exact-SHA CI, dependency audit, static privacy/security, legal/support, hosting/rollback, cost and owner go/no-go remain independent. No automatic merge, deployment, tag, audit waiver or change of authorization is performed.
-<!-- END AUTO-GENERATED PR MILESTONES -->
-
-## Historical and human-maintained notes (dated; current facts above take precedence)
 
 **F5-DOCSYNC-01 REVIEW CANDIDATE (not yet active):** [PR-driven status synchronization design](docs/engineering/MILESTONE_AUTOMATION.md) proposes to automatically reconcile verified GitHub PR/CI evidence into a clearly delimited NOW/NEXT/WORKING/COMPLETED section and [live generated dashboard](docs/engineering/MILESTONE_AUTOMATION.md). The automation will run only after this workflow is merged and a real Actions run succeeds; no manual release approval is automated. F5-SUPPLY-05 dependency remediation remains the next Free product blocker.
 
