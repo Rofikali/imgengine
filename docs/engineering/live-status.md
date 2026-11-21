@@ -27,11 +27,11 @@ No tracked PR is currently in progress.
 - **F5-DOCSYNC-01** — GitHub PR-driven milestone status generator (MERGED) — [PR #91](https://github.com/Rofikali/imgengine/pull/91) — merge 76d42f094e5d
 - **F5-DOCSYNC-02** — Recover missing review PR on identical bot branch and preserve fail-closed permissions (MERGED) — [PR #93](https://github.com/Rofikali/imgengine/pull/93) — merge 8d25ac9235c1
 - **F5-HOST-PREP-01** — Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness (MERGED) — [PR #94](https://github.com/Rofikali/imgengine/pull/94) — merge d4048d7a119b
+- **F5-RC-EVID-01** — Detached source-bound Free static candidate provenance and preflight hardening (MERGED) — [PR #98](https://github.com/Rofikali/imgengine/pull/98) — merge f00a7ac522d0
 
 ### Other open PRs (not automatically assigned a milestone)
 
-- [PR #99](https://github.com/Rofikali/imgengine/pull/99) — test(rust): graceful TCP server shutdown to prevent native-engine lifecycle overlap
-- [PR #98](https://github.com/Rofikali/imgengine/pull/98) — feat(free): detached source-bound static release-candidate evidence
+- [PR #106](https://github.com/Rofikali/imgengine/pull/106) — refactor(governance): agents write docs during work; retire PR-status milestone bot
 - [PR #95](https://github.com/Rofikali/imgengine/pull/95) — docs(pro): native-first feature roadmap and reuse existing infra P7
 - [PR #69](https://github.com/Rofikali/imgengine/pull/69) — docs(infra): record P8 Docker smoke evidence
 - [PR #63](https://github.com/Rofikali/imgengine/pull/63) — docs(codex): reusable milestone Agent Skill and lean AGENTS.md startup
@@ -39,8 +39,8 @@ No tracked PR is currently in progress.
 
 ### Independent public-release blockers
 
-- Production source-lockfile moderate advisories (glob and minimatch) remain unremediated
-- Immutable Free-only release artifact, SBOM/provenance and independent release audit not approved
+- Production glob/minimatch overrides merged (#97); final frozen-source compatibility and supply-chain review still required
+- Immutable Free-only approved archive, detached owner attestation, SBOM/licenses and release artifact audit not yet complete
 - Privacy, terms, support and operator/legal contact notices remain draft
 - Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified
 - Explicit owner release go/no-go and production deployment not authorized
