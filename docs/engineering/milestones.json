@@ -90,7 +90,7 @@
       "id": "F5-DOCSYNC-02",
       "title": "Recover missing review PR on identical bot branch and preserve fail-closed permissions",
       "priority": 140,
-      "pr": null,
+      "pr": 93,
       "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-DOCSYNC-01"
