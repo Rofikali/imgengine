@@ -59,6 +59,9 @@ export function writeCandidateEvidence(staticRoot, output, sourceSha) {
   const target = assertDetachedLocation(staticRoot, output)
   const manifest = createCandidateManifest(sourceSha, auditFreeStatic(staticRoot))
   mkdirSync(dirname(target), { recursive: true, mode: 0o700 })
+  if (realpathSync(dirname(target)) !== resolve(dirname(target))) {
+    throw Error('Detached candidate evidence parent must not be a symlink')
+  }
   writeFileSync(target, JSON.stringify(manifest, null, 2) + '\n', {
     flag: 'wx', mode: 0o600
   })
