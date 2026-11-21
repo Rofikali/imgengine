@@ -133,9 +133,9 @@ jobs:
           fi
           printf 'Source SHA: %s\n' "$GITHUB_SHA"
           echo "Free static candidate is verified locally; generating DETACHED evidence only"
-      - name: Verify candidate evidence writer safety contracts
+      - name: Verify detached candidate and deterministic archive safety contracts
         working-directory: imgengine-saas/frontend
-        run: node --test scripts/write-free-candidate-evidence.node-test.mjs
+        run: node --test scripts/write-free-candidate-evidence.node-test.mjs scripts/write-free-static-archive.node-test.mjs
       - name: Generate detached source-bound static-tree evidence
         working-directory: imgengine-saas/frontend
         shell: bash
@@ -146,11 +146,25 @@ jobs:
             .output/public \
             "$RUNNER_TEMP/imgengine-free-rc-evidence/candidate-manifest.json" \
             "$GITHUB_SHA"
-          echo "CANDIDATE ONLY: no production archive, site, tag or Cloudflare deployment was created"
+          echo "CANDIDATE ONLY: no approved immutable production archive, site, tag or Cloudflare deployment was created"
+      - name: Serialize independently audited deterministic Free static candidate archive
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/write-free-static-archive.mjs \
+            .output/public \
+            "$RUNNER_TEMP/imgengine-free-rc-evidence" \
+            "$GITHUB_SHA"
+          test -s "$RUNNER_TEMP/imgengine-free-rc-evidence/candidate-static.tar"
+          test -s "$RUNNER_TEMP/imgengine-free-rc-evidence/candidate-archive.json"
+          echo "REVIEW ONLY: archive stays in runner temporary storage; upload JSON evidence only"
       - name: Attach REVIEW-ONLY candidate evidence JSON, never the unapproved static site
         uses: actions/upload-artifact@v4
         with:
           name: free-v1-candidate-evidence
-          path: ${{ runner.temp }}/imgengine-free-rc-evidence/candidate-manifest.json
+          path: |
+            ${{ runner.temp }}/imgengine-free-rc-evidence/candidate-manifest.json
+            ${{ runner.temp }}/imgengine-free-rc-evidence/candidate-archive.json
           if-no-files-found: error
           retention-days: 7

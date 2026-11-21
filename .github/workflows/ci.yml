@@ -378,7 +378,7 @@ jobs:
         run: pnpm exec nuxi prepare
       - name: Test Free static artifact allowlist and forbidden-server cases
         working-directory: imgengine-saas/frontend
-        run: node --test scripts/verify-free-static.node-check.mjs scripts/free-security-headers.node-check.mjs
+        run: node --test scripts/verify-free-static.node-check.mjs scripts/free-security-headers.node-check.mjs scripts/write-free-static-archive.node-test.mjs
       - name: Verify draft legal notices block public publication (expected fail-closed)
         working-directory: imgengine-saas/frontend
         run: node --test scripts/check-free-publication-ready.node-check.mjs
