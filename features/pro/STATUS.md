@@ -59,4 +59,4 @@
 4. Track all Free, Studio, API, SDK and infrastructure prerequisites independently. A Pro status update cannot publish Free, deploy Docker, activate API billing or authorize spending.
 5. Next handoff must contain date, repo/branch/head, status by feature ID, PR numbers, exact CI/test outcomes, known blockers, docs updated and one next eligible step.
 
-See [product contract](README.md), [native verification](NATIVE_TESTING.md), root [next.md](../../next.md), and [release compatibility matrix](../../docs/IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md).
+See [product contract](README.md), [C17/Rust architecture](ARCHITECTURE.md), [native verification](NATIVE_TESTING.md), root [next.md](../../next.md), and [release compatibility matrix](../../docs/IMGENGINE_FIVE_PRODUCT_RELEASE_COMPATIBILITY_MATRIX.md).
