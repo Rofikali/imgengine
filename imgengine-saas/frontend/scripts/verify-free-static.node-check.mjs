@@ -83,7 +83,11 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
   withFixture(({root, write}) => {
     write('_headers', buildFreeHeaders(root).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
     assert.throws(() => auditFreeStatic(root), /do not match|unsafe/)
- test('Free static matrix runs 55 independent Firefox and WebKit test shards with both Chromium projects', () => {
+  })
+})
+
+
+test('Free static matrix runs 55 independent Firefox and WebKit test shards with both Chromium projects', () => {
   const invocations = []
   const result = runFreeStaticBrowserMatrix((command, args, options) => {
     invocations.push({ command, args, options })
@@ -118,9 +122,6 @@ test('tampered CSP is rejected even if other artifact files are safe', () => {
     }
   }
 })
-}
-  }
-})
 
 test('Free static matrix fails closed on a failing Firefox shard, never skipping remaining checks', () => {
   const executed = []
@@ -138,19 +139,18 @@ test('Free static matrix fails closed on a failing Firefox shard, never skipping
   ])
 })
 
-test('Free static matrix fails closed on the first failed WebKit shard, without skipping its gate', () => {
+test('Free static matrix fails closed on a failed WebKit shard, never ignoring other browser results', () => {
   const executed = []
   const code = runFreeStaticBrowserMatrix((_command, args) => {
     executed.push(args)
-    if (args[5] === '--project=desktop-webkit' && args.at(-1) === '--shard=4/55') {
-      return { status: 3 }
-    }
+    if (args[5] === '--project=desktop-webkit' && args.at(-1) === '--shard=4/55') return { status: 3 }
     return { status: 0 }
   })
   assert.equal(code, 3)
-  assert.deepEqual(executed.filter(args => args[5] === '--project=desktop-webkit').map(args => args.at(-1)), [
-    '--shard=1/55', '--shard=2/55', '--shard=3/55', '--shard=4/55',
-  ])
+  assert.deepEqual(
+    executed.filter(args => args[5] === '--project=desktop-webkit').map(args => args.at(-1)),
+    ['--shard=1/55', '--shard=2/55', '--shard=3/55', '--shard=4/55'],
+  )
 })
 
 test('Free static matrix treats an interrupted/unknown process status as failure', () => {
