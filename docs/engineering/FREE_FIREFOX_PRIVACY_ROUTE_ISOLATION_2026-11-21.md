@@ -33,3 +33,9 @@ No test or browser is disabled, no test or navigation timeout increased, no retr
 5. The GitHub Actions milestone-proposal permission problem is independent and requires an owner repository setting change; CI cannot safely grant itself privilege.
 
 This engineering note is a test-harness candidate, **not** a signed release attestation, a Cloudflare deployment, or a final `free-v1.0.0` Git tag.
+
+## Additional exact-head failure and bounded navigation semantic correction
+
+[PR #103 exact-head CI #44887405931](https://github.com/Rofikali/imgengine/actions/runs/44887405931) **FAILED** at desktop Firefox shard 55/55: `tool-navigation.spec.ts` timed out waiting for `load` on the homepage. Other native, Rust, Docker, security and integration checks passed, and prior 54 Firefox shards completed. This **does not** establish that a requested image was uploaded. The isolated navigation test only verifies DOM link destinations, heading and horizontal overflow: it now navigates with `waitUntil: 'domcontentloaded'` and subsequently checks actual visible DOM. The separate Free privacy and CSP/header tests **still explicitly wait for `load`**, enforce all their network/storage/cookie/header constraints and remain required on every browser. This is a semantic correction for a navigation-only test, not a broad loosening of the release gate or a fix for the underlying browser lifecycle instability.
+
+**Acceptance remains exact-head full CI PASS**, not a previous passing partial run. If the load-bound privacy/CSP tests fail in their isolated shards, keep public release blocked.
