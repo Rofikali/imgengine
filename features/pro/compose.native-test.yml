@@ -1,0 +1,34 @@
+# IMGENGINE Pro C17/Rust-only local verification.
+# Uses existing Ubuntu 24.04 Dockerfile; no Pro UI, public service, DB or exposed ports.
+# IMPORTANT: This is a proposed testing lane, not proof that any Pro feature exists.
+name: imgengine-pro-native
+
+services:
+  native-tests:
+    build:
+      context: ../..
+      dockerfile: imgengine/Dockerfile.verify
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace
+    init: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 4g
+    environment:
+      CARGO_HOME: /tmp/pro-cargo
+      CARGO_TARGET_DIR: /tmp/pro-cargo-target
+    command:
+      - bash
+      - -lc
+      - |
+        set -euo pipefail
+        echo "Pro native-only foundation smoke; NOT a Pro feature test"
+        make native-test JOBS=2
+        make rust-test JOBS=2 RUST_CRATE=imgengine
+        make rust-test JOBS=2 RUST_CRATE=imgengine-ffi-smoke
+        make rust-test JOBS=2 RUST_CRATE=imgengine-supervisor
+        LD_LIBRARY_PATH="/workspace/imgengine/build/make-debug" RUSTFLAGS="-L native=/workspace/imgengine/build/make-debug" cargo run --manifest-path backend/imgengine-ffi-smoke/Cargo.toml
