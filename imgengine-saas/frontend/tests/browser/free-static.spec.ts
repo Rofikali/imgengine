@@ -45,18 +45,35 @@ test('forbidden dynamic endpoints are true HTTP 404, never SPA fallback success'
     expect((await response.text()).slice(0, 300)).not.toContain('Create printable photo layouts.')
   }
 })
-test('static Free browsing sends no image, filename, or server-bound requests', async ({ page }) => {
-  test.slow() // Independent network/privacy audit of six page loads.
+test('static Free browsing sends no image, filename, or server-bound requests', async ({ context }) => {
+  test.slow() // Independent privacy audit of all six fully loaded Free tool routes.
   const requests: string[] = []
-  page.on('request', request => {
+  // Observe the browser CONTEXT, not one Page: every fresh route remains under
+  // the same network audit and the same persistent storage/cookie boundary.
+  context.on('request', request => {
     if (!request.url().startsWith('http')) return
     const url = new URL(request.url())
     if (url.origin !== 'http://127.0.0.1:3100' || request.method() !== 'GET' || request.postData() || url.pathname.startsWith('/api/')) requests.push(request.url())
   })
-  await page.goto('/')
-  for (const [, path] of freeTools) await page.goto(path)
-  expect(requests).toEqual([])
-  expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])
+  // Repeated navigation through six compiled Nuxt routes in a single WebKit
+  // Page produced an INTERNAL browser error at /convert-image on CI.
+  // Close each loaded Page before opening the next, without restarting the
+  // browser Context, reducing page-lifetime pressure while preserving all six
+  // full-load, image/network and storage assertions.
+  for (const route of ['/', ...freeTools.map(([, path]) => path)]) {
+    const page = await context.newPage()
+    try {
+      await page.goto(route) // Full "load", not merely DOMContentLoaded.
+      await expect(page.getByRole('main')).toBeVisible()
+      expect(await page.evaluate(async () => [
+        localStorage.length, sessionStorage.length, (await indexedDB.databases()).length,
+      ]), 'No persistent browser storage on ' + route).toEqual([0, 0, 0])
+    } finally {
+      await page.close()
+    }
+  }
+  expect(requests, 'No outbound, upload or server-bound requests on any route').toEqual([])
+  expect(await context.cookies(), 'No cookies across all six routes').toEqual([])
 })
 
 
