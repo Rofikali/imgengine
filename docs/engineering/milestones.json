@@ -3,8 +3,8 @@
   "release": "IMGENGINE Free v1.0.0",
   "release_state": "NOT_RELEASED",
   "release_blockers": [
-    "Production source-lockfile moderate advisories (glob and minimatch) remain unremediated",
-    "Immutable Free-only release artifact, SBOM/provenance and independent release audit not approved",
+    "Production glob/minimatch overrides merged (#97); final frozen-source compatibility and supply-chain review still required",
+    "Immutable Free-only approved archive, detached owner attestation, SBOM/licenses and release artifact audit not yet complete",
     "Privacy, terms, support and operator/legal contact notices remain draft",
     "Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified",
     "Explicit owner release go/no-go and production deployment not authorized"
@@ -55,7 +55,8 @@
       "pr": null,
       "declared_state": "PLANNED",
       "depends_on": [
-        "F5-SUPPLY-05"
+        "F5-SUPPLY-05",
+        "F5-RC-EVID-01"
       ]
     },
     {
@@ -104,6 +105,16 @@
       "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-04"
+      ]
+    },
+    {
+      "id": "F5-RC-EVID-01",
+      "title": "Detached source-bound Free static candidate provenance and preflight hardening",
+      "priority": 19,
+      "pr": 98,
+      "declared_state": "IN_PROGRESS",
+      "depends_on": [
+        "F5-SUPPLY-05"
       ]
     }
   ]
