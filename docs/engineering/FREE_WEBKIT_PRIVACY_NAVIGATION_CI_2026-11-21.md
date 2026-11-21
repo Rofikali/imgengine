@@ -18,6 +18,10 @@ The request listener is upgraded from `page.on('request')` to **`context.on('req
 
 The test retains all six routes and their full-load waits and now asserts **no localStorage, sessionStorage, or IndexedDB after each route**, **no cookies after the entire journey**, and a visible main region for each page. Privacy controls are stricter, not skipped. No retry, timeout increase, WebKit bypass, degraded CSP check, early-exit waiver, relaxed browser matrix, or cherry-picking of passed tests was introduced.
 
+## Bounded SRE telemetry
+
+The existing `run-free-static-browser-matrix.mjs` test runner now enables its already-implemented metadata-redacted static response diagnostics for desktop WebKit as well as desktop Firefox. The test-only server logs method, sanitized path, HTTP status, response completion/incomplete state and elapsed milliseconds. Query strings, filenames supplied in upload bodies, image data, cookies, credentials, response bodies and client metadata are not logged; this is not a deployed production component. This does not change test count, timeouts, retries, browser coverage or the fail-closed exit code.
+
 ## Acceptance criteria and limitations
 
 1. The exact-head test in pinned Playwright v1.58.2 / Ubuntu 24.04 must pass in **desktop WebKit**, and the full Free static and local-tool browser matrix must pass all projects.
