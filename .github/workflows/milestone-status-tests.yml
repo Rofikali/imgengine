@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/milestone-sync.mjs"
       - "scripts/milestone-sync.test.mjs"
+      - "scripts/milestone-status-publication.mjs"
+      - "scripts/milestone-status-publication.test.mjs"
       - "docs/engineering/milestones.json"
       - ".github/workflows/milestone-status-sync.yml"
       - ".github/workflows/milestone-status-tests.yml"
@@ -31,4 +33,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify deterministic states, dependency ordering and no release escalation
-        run: node --test scripts/milestone-sync.test.mjs
+        run: node --test scripts/milestone-sync.test.mjs scripts/milestone-status-publication.test.mjs
