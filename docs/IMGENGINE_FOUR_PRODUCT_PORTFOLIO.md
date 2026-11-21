@@ -54,6 +54,10 @@ Keep offers distinct. **Pro includes the five Free tools** and adds repeatable c
 
 ## 3. IMGENGINE Pro — paid creator workflow, not paid basic pixels
 
+
+**Owner selection / expanded Pro scope (2026-11-21, review candidate):** Pro is selected as the next commercial direction. See [canonical Pro requirements and proposed PRO-00..PRO-18 features](../features/pro/README.md), [verified truth/status register](../features/pro/STATUS.md) and [native-only Docker/CI plan](../features/pro/NATIVE_TESTING.md). The original PRO-01..PRO-04 names below remain historical umbrella milestones; expanded child features in the register are not yet implemented. For now the owner authorizes **C17/Rust specification/verification only**, postpones Pro frontend discussion, and does not approve billing or launch.
+
+
 **Target customers:** frequent creators, listing sellers, freelancers and people repeating the same job. Discovery hypothesis: they pay to reduce manual steps, not because a single local resize is exclusive.
 
 **Initial candidate paid differentiators** (one feature per separately reviewed PR):

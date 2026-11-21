@@ -47,6 +47,11 @@ No tracked PR is currently in progress.
 **Safety:** PR merge is not product release. Exact-SHA CI, dependency audit, static privacy/security, legal/support, hosting/rollback, cost and owner go/no-go remain independent. No automatic merge, deployment, tag, audit waiver or change of authorization is performed.
 <!-- END AUTO-GENERATED PR MILESTONES -->
 
+
+
+**PRO OWNER DECISION / SEPARATE PRODUCT BOARD (2026-11-21, [draft PR #95](https://github.com/Rofikali/imgengine/pull/95) OPEN / NOT_MERGED):** Pro is the chosen paid-product direction, but only **PRO-00 documentation and C17/Rust native-first planning** has STARTED. Existing `infra/` P7 Ubuntu Docker and repository CI are reused (no Pro-specific Compose/CI duplicates); all PRO-01..PRO-18 feature requirements live in [features/pro/README.md](features/pro/README.md), [status register](features/pro/STATUS.md) and [Ubuntu 24.04 native verification guide](features/pro/NATIVE_TESTING.md). **No Pro implementation or product release is completed/merged by this plan; Pro frontend is deferred.** This does not replace auto-generated Free NOW (F5-SUPPLY-05), waive CI/release gates, or authorize pricing, accounts, cloud or deployment.
+
+
 ## Historical and human-maintained notes (dated; current facts above take precedence)
 
 **F5-DOCSYNC-01 REVIEW CANDIDATE (not yet active):** [PR-driven status synchronization design](docs/engineering/MILESTONE_AUTOMATION.md) proposes to automatically reconcile verified GitHub PR/CI evidence into a clearly delimited NOW/NEXT/WORKING/COMPLETED section and [live generated dashboard](docs/engineering/MILESTONE_AUTOMATION.md). The automation will run only after this workflow is merged and a real Actions run succeeds; no manual release approval is automated. F5-SUPPLY-05 dependency remediation remains the next Free product blocker.

@@ -1,5 +1,9 @@
 # imgengine
 
+
+> **IMGENGINE Pro owner selection (2026-11-21) — review candidate:** C17/Rust **native-first** product features, status, Docker Desktop Ubuntu 24.04 Compose and optional native CI are specified under [features/pro/](features/pro/README.md) ([evidence/status](features/pro/STATUS.md), [native testing](features/pro/NATIVE_TESTING.md)). This is *documentation and testing scaffolding*, not implemented Pro workflows, a Pro frontend, paid release or a change to Free's independent launch gates.
+
+
 **Free v1.0.0 Cloudflare launch preparation (2026-11-21):** A [read-only manual release preflight](.github/workflows/free-v1-release-preflight.yml), [Cloudflare Pages Direct Upload runbook](docs/releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md) and [draft release notes](docs/releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md) are proposed for review. The source plan's final version tag is `free-v1.0.0`, **NOT CREATED**. Free is **NOT RELEASED**: two moderate production dependencies remain, notices are draft, detached publication attestation is unimplemented, Cloudflare is not connected/deployed. This prep must not bypass `verify:free-publication-ready` or publish from `main` automatically.
 
 **Milestone synchronization — F5-DOCSYNC-01 merged via [PR #91](https://github.com/Rofikali/imgengine/pull/91):** GitHub Actions has generated the [review-only status snapshot](https://github.com/Rofikali/imgengine/pull/92), but the owner must enable GitHub Actions PR creation before future review PRs can be opened autonomously. F5-DOCSYNC-02 repairs the missing-PR retry path; [runbook](docs/engineering/MILESTONE_AUTOMATION.md). Durable README/AGENTS/skills content is maintained by reviewed engineering changes, not rewritten from PR titles.
