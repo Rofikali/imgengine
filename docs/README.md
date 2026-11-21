@@ -1,7 +1,7 @@
 # IMGENGINE Documentation
 
 
-**Pro native-first product program (review candidate, 2026-11-21):** [Pro A–Z product requirements](../features/pro/README.md), [NOW/STARTED/IN_PROGRESS/COMPLETED/MERGED/NOT_MERGED truth register](../features/pro/STATUS.md), and [Docker Desktop Ubuntu 24.04 C17/Rust verification](../features/pro/NATIVE_TESTING.md). Pro frontend is explicitly deferred. No Pro implementation, paid license or release is claimed, and the existing Free/CI gates remain independent.
+**Pro native-first product program (review candidate, 2026-11-21):** [Pro A–Z product requirements](../features/pro/README.md), [C17/Rust HLD and LLD](../features/pro/ARCHITECTURE.md), [NOW/STARTED/IN_PROGRESS/COMPLETED/MERGED/NOT_MERGED truth register](../features/pro/STATUS.md), and [Docker Desktop Ubuntu 24.04 C17/Rust verification](../features/pro/NATIVE_TESTING.md). Pro frontend is explicitly deferred. No Pro implementation, paid license or release is claimed, and the existing Free/CI gates remain independent.
 
 
 **Free v1.0.0 operator preparation (not public release):** [Cloudflare Pages Direct Upload and tag runbook](releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md), [draft release notes](releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md) and [read-only release preflight](../.github/workflows/free-v1-release-preflight.yml). Existing source `free-v1.0.0` tag is not created, Cloudflare is not deployed, and all independent release gates remain fail-closed. F5-SUPPLY-05 remains the blocking product milestone.
