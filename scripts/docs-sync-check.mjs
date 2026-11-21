@@ -5,14 +5,14 @@ export const REQUIRED_DOCS = Object.freeze(['AGENTS.md', 'next.md', 'README.md',
 const GENERATED_ONLY = new Set(['next.md', 'docs/engineering/live-status.md'])
 
 export function parseDiff(raw) {
-  if (typeof raw !== 'string' || !raw.endsWith('\\0')) throw Error('invalid NUL-delimited git diff')
-  const fields = raw.slice(0, -1).split('\\0')
+  if (typeof raw !== 'string' || !raw.endsWith('\0')) throw Error('invalid NUL-delimited git diff')
+  const fields = raw.slice(0, -1).split('\0')
   if (fields.length % 2 || fields.length > 40000) throw Error('malformed or oversized diff')
   const changes = []
   for (let i = 0; i < fields.length; i += 2) {
     const status = fields[i], path = fields[i + 1]
     if (!/^[AMDT]$/.test(status)) throw Error('unsupported diff status: ' + status)
-    if (!path || path.length > 2048 || /[\\\\\\x00-\\x1f\\x7f]/.test(path) ||
+    if (!path || path.length > 2048 || /[\\\x00-\x1f\x7f]/.test(path) ||
         path.startsWith('/') || path.split('/').some(x => !x || x === '.' || x === '..'))
       throw Error('unsafe diff path')
     changes.push({ status, path })
@@ -38,8 +38,8 @@ export function checkDocsSync(changes) {
 }
 
 export function readDiff(base, head) {
-  if (!/^(?:HEAD(?:\\^)?|[a-f0-9]{40})$/.test(base) ||
-      !/^(?:HEAD(?:\\^)?|[a-f0-9]{40})$/.test(head)) throw Error('unsafe revision argument')
+  if (!/^(?:HEAD(?:\^)?|[a-f0-9]{40})$/.test(base) ||
+      !/^(?:HEAD(?:\^)?|[a-f0-9]{40})$/.test(head)) throw Error('unsafe revision argument')
   return execFileSync('git', ['diff', '--name-status', '-z', '--no-renames', base, head, '--'],
     { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
 }
