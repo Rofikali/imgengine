@@ -49,7 +49,7 @@ No tracked PR is currently in progress.
 
 
 
-**PRO OWNER DECISION / SEPARATE PRODUCT BOARD (2026-11-21, [draft PR #95](https://github.com/Rofikali/imgengine/pull/95) OPEN / NOT_MERGED):** Pro is the chosen paid-product direction, but only **PRO-00 documentation and C17/Rust native-first planning** has STARTED. Pro native Docker/CI assets and all PRO-01..PRO-18 feature requirements live in [features/pro/README.md](features/pro/README.md), [status register](features/pro/STATUS.md) and [Ubuntu 24.04 native verification guide](features/pro/NATIVE_TESTING.md). **No Pro implementation or product release is completed/merged by this plan; Pro frontend is deferred.** This does not replace auto-generated Free NOW (F5-SUPPLY-05), waive CI/release gates, or authorize pricing, accounts, cloud or deployment.
+**PRO OWNER DECISION / SEPARATE PRODUCT BOARD (2026-11-21, [draft PR #95](https://github.com/Rofikali/imgengine/pull/95) OPEN / NOT_MERGED):** Pro is the chosen paid-product direction, but only **PRO-00 documentation and C17/Rust native-first planning** has STARTED. Existing `infra/` P7 Ubuntu Docker and repository CI are reused (no Pro-specific Compose/CI duplicates); all PRO-01..PRO-18 feature requirements live in [features/pro/README.md](features/pro/README.md), [status register](features/pro/STATUS.md) and [Ubuntu 24.04 native verification guide](features/pro/NATIVE_TESTING.md). **No Pro implementation or product release is completed/merged by this plan; Pro frontend is deferred.** This does not replace auto-generated Free NOW (F5-SUPPLY-05), waive CI/release gates, or authorize pricing, accounts, cloud or deployment.
 
 
 ## Historical and human-maintained notes (dated; current facts above take precedence)
