@@ -1,6 +1,8 @@
 # IMGENGINE Free v1.0.0 — Cloudflare Pages release operator playbook
 
-**Release state (2026-11-21): HOLD — no final tag, GitHub Release, Pages project or public deployment created by this milestone.** The owner requested the `v1.0.0` public launch and Cloudflare hosting. This is authorization to **prepare the release procedure**, not evidence that security, legal or provider acceptance tests have passed.
+**Release state (2026-11-21): HOLD — no final tag, GitHub Release or public deployment authorized or performed by this documentation work.** The owner requested the `v1.0.0` public launch and Cloudflare hosting. This is authorization to **prepare the release procedure**, not evidence that security, legal or provider acceptance tests have passed.
+
+**Owner action guide:** [Cloudflare Pages Free A-to-Z](HOST_ON_CLOUDFLARE_A_TO_Z.md) and [external release decision + live smoke record](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). **Important:** [merged PR #98](https://github.com/Rofikali/imgengine/pull/98) had a historical desktop-Firefox full-load failure. [PR #103](https://github.com/Rofikali/imgengine/pull/103) repaired the test lifecycle, and current `main` `889be673220d4489325ff63a7a1ad6642b17fa2b` passed [full CI #44888710794](https://github.com/Rofikali/imgengine/actions/runs/44888710794). That CI repair does not clear the publication guard, immutable-artifact, legal, detached-attestation or Cloudflare real-host gates. Do not create a tag or publish a Pages site without separately verified GO.
 
 ## 0. Exact release identity and scope
 
@@ -13,7 +15,7 @@
 
 | Gate | Required evidence | Current status |
 | --- | --- | --- |
-| Source dependency audit | Pinned `pnpm install --frozen-lockfile` and `pnpm run verify:free-release-dependencies` return success with **zero critical/high/moderate** advisories | **BLOCKED**: tracked `glob@13.0.7`, `minimatch@10.2.6` moderates; F5-SUPPLY-05 not implemented |
+| Source dependency audit | Pinned `pnpm install --frozen-lockfile` and `pnpm run verify:free-release-dependencies` return success with **zero critical/high/moderate** advisories | **Historical PASS**: PR #97 merged pinned remediation; [source-locked audit #44877676779](https://github.com/Rofikali/imgengine/actions/runs/44877676779) passed. **Final frozen SHA re-audit and cross-major compatibility approval still required** |
 | Public notices | Actual operator-approved privacy, terms and support pages with reviewed privacy/retention/contact details | **BLOCKED**: intentionally PRE-LAUNCH DRAFT |
 | Publication guard | `node scripts/check-free-publication-ready.mjs` succeeds only with independently verifiable, source-frozen owner/legal/security/host attestations, not an ad hoc flag or bypass | **BLOCKED**: implementation deliberately fails closed |
 | Exact-source evidence | All required GitHub CI plus local tools, Free static browser matrix, privacy/CSP allowlist and static output inventory on frozen source SHA | **NOT VERIFIED** for final release |
@@ -26,9 +28,9 @@
 
 After this preparation PR is merged (not before), open GitHub **Actions → IMGENGINE Free v1.0.0 manual release preflight → Run workflow** on the intended review commit. The [manual workflow](../../../../.github/workflows/free-v1-release-preflight.yml) uses Ubuntu 24.04 / Playwright v1.58.2, pinned Node 24 and pnpm 10.34.9. It has **read-only** repository permissions and separate jobs for source-lockfile zero-moderate audit, fail-closed publication/owner/legal guard, and Free static generation/verification with full browser regression.
 
-The **expected current result is FAILED/BLOCKED** for dependency and publication gates. Green artifact generation does not override those failures. The workflow **does not** create a Git tag, publish to Cloudflare, store secrets or create a GitHub Release. GitHub Actions usage has plan-specific limits; avoid unnecessary reruns.
+The **expected current result remains FAILED/BLOCKED** for publication/legal/independent-attestation gates; production dependency findings must be rechecked on the exact selected SHA, rather than assumed blocked from an obsolete lockfile. Green artifact generation does not override those failures. The workflow **does not** create a Git tag, publish to Cloudflare, store secrets or create a GitHub Release. GitHub Actions usage has plan-specific limits; avoid unnecessary reruns.
 
-After source remediation and approved notices, freeze a specific source SHA and rerun the complete set of gates. Record exact SHA, workflow URLs, native/Rust/Docker CI, static inventory tree hash, source+artifact contents, privacy/legal owner signoff, license/SBOM review and intended Cloudflare project in a detached attestation. A Git commit of this document does not provide such attestation.
+After successful source-locked re-audit, compatibility review and approved notices, freeze a specific source SHA and rerun the complete set of gates. Record exact SHA, workflow URLs, native/Rust/Docker CI, static inventory tree hash, source+artifact contents, privacy/legal owner signoff, license/SBOM review and intended Cloudflare project in a detached attestation. A Git commit of this document does not provide such attestation.
 
 ## 3. Prepare Cloudflare Pages, without deploying yet
 
