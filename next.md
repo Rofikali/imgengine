@@ -6,7 +6,7 @@
 
 | Task | Engineering state | Actual work / evidence | Next action |
 | --- | --- | --- | --- |
-| `DOCSYNC-ACTIVITY-01` | **IN_PROGRESS** | Engineering agent is replacing PR-status-generated documentation with task-authored updates and removing its workflows/scripts. A new exact-head CI result is not yet verified for this revision. | Run local/CI policy tests for changed documentation checks; review and hand off actual evidence |
+| `DOCSYNC-ACTIVITY-01` | **COMPLETED** | #106 retired PR/scheduled documentation generation and made task records agent-authored. Exact `main` `ad8b4a0a3ca5db71af86702b02cec2c8c8acaf92` passed all selected CI checks in [run 44906583851](https://github.com/Rofikali/imgengine/actions/runs/44906583851), including browser quality and the CI verification gate. Stale bot PR #107 was closed unmerged. | For every future substantive task, create a new agent-authored entry before changes; do not revive PR-status automation. |
 | `PRODUCT-FREE-01 / Free v1.0.0` | **BLOCKED — NOT_RELEASED** | Native/browser and Free static *candidate* work exists; a candidate archive is not owner-approved release evidence. | Exact-source full CI, independent artifact/SBOM/licenses, legal/privacy/support, live host/TLS/rollback, financial and owner GO/NO-GO |
 
 ## Status rules (not GitHub PR statuses)
