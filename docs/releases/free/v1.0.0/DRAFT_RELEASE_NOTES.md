@@ -18,13 +18,13 @@ The intended Free distribution is a static, browser-local Nuxt build on Cloudfla
 
 ## Verification and release evidence — not complete
 
-**Release tag:** `free-v1.0.0` — NOT CREATED  
-**GitHub Release:** NOT PUBLISHED  
-**Cloudflare Pages public URL:** UNKNOWN / NOT VERIFIED  
-**Frozen source commit:** NOT APPROVED  
-**Immutable static artifact digest:** NOT RECORDED  
-**Dependency audit:** BLOCKED — two moderate transitive findings pending source-lockfile remediation  
-**Public notices and detached publication attestation:** NOT APPROVED  
+**Release tag:** `free-v1.0.0` — NOT CREATED
+**GitHub Release:** NOT PUBLISHED
+**Cloudflare Pages public URL:** UNKNOWN / NOT VERIFIED
+**Frozen source commit:** NOT APPROVED
+**Immutable static artifact digest:** NOT RECORDED
+**Dependency audit:** BLOCKED — two moderate transitive findings pending source-lockfile remediation
+**Public notices and detached publication attestation:** NOT APPROVED
 **Provider HTTPS/CSP/privacy/rollback and owner financial/launch checks:** NOT RUN
 
 See the [Cloudflare operator playbook](CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md) and [release evidence matrix](evidence-matrix.md). Change this file to final release notes **only after** the full release check and an explicit owner go/no-go.
