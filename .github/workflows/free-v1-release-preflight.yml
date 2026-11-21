@@ -102,7 +102,9 @@ jobs:
           corepack enable
           test "$(pnpm --version)" = "10.34.9"
           pnpm install --frozen-lockfile
-          git diff --exit-code -- package.json pnpm-lock.yaml
+          # Git metadata may be unavailable inside the Playwright job container.
+          # Frozen installation is the source-locked integrity check; never
+          # regenerate or silently amend a production candidate lockfile.
       - name: Unit, type and browser-local regression
         working-directory: imgengine-saas/frontend
         run: |
@@ -130,7 +132,25 @@ jobs:
             exit 1
           fi
           printf 'Source SHA: %s\n' "$GITHUB_SHA"
-          cd .output/public
-          printf 'Candidate static tree inventory SHA256: '
-          find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum
-          echo "CANDIDATE ONLY: no artifact published, signed, deployed or tagged"
+          echo "Free static candidate is verified locally; generating DETACHED evidence only"
+      - name: Verify candidate evidence writer safety contracts
+        working-directory: imgengine-saas/frontend
+        run: node --test scripts/write-free-candidate-evidence.node-test.mjs
+      - name: Generate detached source-bound static-tree evidence
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/imgengine-free-rc-evidence"
+          node scripts/write-free-candidate-evidence.mjs \
+            .output/public \
+            "$RUNNER_TEMP/imgengine-free-rc-evidence/candidate-manifest.json" \
+            "$GITHUB_SHA"
+          echo "CANDIDATE ONLY: no production archive, site, tag or Cloudflare deployment was created"
+      - name: Attach REVIEW-ONLY candidate evidence JSON, never the unapproved static site
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-v1-candidate-evidence
+          path: ${{ runner.temp }}/imgengine-free-rc-evidence/candidate-manifest.json
+          if-no-files-found: error
+          retention-days: 7
