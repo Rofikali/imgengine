@@ -1,7 +1,7 @@
 # Free static WebKit privacy navigation: CI regression investigation
 
-**Date:** 2026-11-21  
-**Status:** test-harness repair candidate, NOT RELEASED.  
+**Date:** 2026-11-21
+**Status:** test-harness repair candidate, NOT RELEASED.
 **Issue scope:** browser test runtime; no product JavaScript, C/Rust API/ABI, hosting or release security policy changes.
 
 ## Exact failure
