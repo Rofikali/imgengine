@@ -55,6 +55,10 @@ docker compose --env-file infra/p7-frontend-dev.env -f infra/docker-compose.p7-f
 
 The frontend pins `pnpm@10.34.9` and supports Node `^24.15.0`; **check actual container versions** rather than trusting the broad NodeSource 24.x major. If version mismatch or Linux package failure occurs, correct the Docker image in a separate authorized scope—not the Windows host. For Playwright, install pinned browser packages **inside Linux** and run the relevant browser suite there. Do not claim Playwright PASS unless executed. GitHub's mandatory native, sanitizer/fuzz, Rust, frontend and browser gates remain intact for a published PR; unpushed F4 changes have **no exact-head GitHub verification**.
 
+## Pro C17/Rust-only reuse of P7 (2026-11-21 review candidate)
+
+The [Pro native-first plan](../features/pro/NATIVE_TESTING.md) uses the already-defined `infra/docker-compose.p7-frontend-dev.yml` and `infra/Dockerfile.p7-frontend-dev` **without adding another Compose file or CI workflow**. Use a synthetic ignored P7 development env, `docker compose ... build rust-api`, then `docker compose ... run --rm --no-deps --entrypoint bash rust-api -lc 'make native-test ...; make rust-test ...'` to override the API server command. This runs in the Ubuntu 24.04 container, does **not start frontend**, and is NOT_RUN until actual local execution. Existing mandatory repository CI and distinct P8/P12/P14 gates remain unchanged.
+
 ## E. F4 recovery, evidence and clean continuation
 
 Keep the existing F4 branch, worktree, commits and uncommitted code. Navigation links alone do **not** prove conversion correctness, privacy, cancellation, metadata handling or resource limits. The former agent attempted `E:\imgengine\.tmp-test-tools\node-v24.15.0\node-verified.exe`; **never resume or run it**. Before any cleanup, identify the specific owning process and exact partial download; remove only confirmed temporary artifacts, not unrelated test logs or source. No blanket deletion of `.tmp-*`.
