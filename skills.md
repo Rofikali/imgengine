@@ -1,5 +1,21 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+## Skill 0 — REQUIRED: document engineering activity as it happens
+
+**Trigger:** Every Codex/AI agent/human starts, edits or completes any nontrivial code, test, CI, documentation, infrastructure or contract work. **Not** a GitHub PR event. **No PR-driven document writer exists.** Follow [Agent-owned documentation protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md).
+
+1. **START:** Inspect current files and [next.md](next.md); immediately create/reconcile the work ID in [engineering activity log](docs/engineering/live-status.md) as `IN_PROGRESS` (or `PLANNED` before touching code), with goal, baseline, affected files, planned verification and next step.
+2. **AFTER EACH MEANINGFUL CHANGE:** Write what changed and why in the same activity entry. Synchronize root `AGENTS.md`, `next.md`, `README.md` and `skills.md` directly **in the same task/working tree**, plus applicable scoped AGENTS, design/security/API/ABI, Linux/SRE, CCIE or CA/MBA docs. Do not wait for, create, or rely on a documentation-only PR.
+3. **VERIFY:** Run appropriate scoped tests; record exact commands, environment, SHA and PASS/FAIL/NOT RUN. Never convert a pending test or PR merge to `COMPLETED`. For partial work mark `IN_PROGRESS`, `BLOCKED`, or `IMPLEMENTED`.
+4. **HANDOFF:** Before stopping or committing, update the log, board and four root files with actual state and one next action. `COMPLETED` requires implemented behavior, acceptance evidence and synchronized documentation; release additionally requires independent owner/operational approval.
+5. **REVIEW/CI:** The read-only docs check (`node --test scripts/docs-sync-check.test.mjs` and `node scripts/docs-sync-check.mjs HEAD^ HEAD`) rejects changed paths without same-work documentation but **does not write docs**; reviews check semantic truth. PRs may transport code for review but cannot serve as status source or documentation automation.
+
+**Current work `DOCSYNC-ACTIVITY-01`** is `IN_PROGRESS`: retiring PR-driven milestone status updater, preserving existing code and release safety checks. This is governance work, **not** a claim of Free 1.0.0 production readiness.
+
+## Historical work recipes and milestone snapshots
+
+The older dated procedures below may reference the retired PR-status bot. These are **history**, not instructions to re-enable PR-based documentation.
+
 **F5-RC-EVID-01 workflow (2026-11-21):** F5-SUPPLY-05 [PR #97](https://github.com/Rofikali/imgengine/pull/97) is **MERGED**, with [exact-head full CI](https://github.com/Rofikali/imgengine/actions/runs/44876698219) and [source-locked postmerge audit](https://github.com/Rofikali/imgengine/actions/runs/44877676779) passing. [PR #98](https://github.com/Rofikali/imgengine/pull/98) proposes a [detached source-bound candidate evidence mechanism](docs/releases/free/v1.0.0/F5_RC_EVID_01.md): audit the static-only artifact, run existing local/four-browser tests, reject malformed or embedded evidence, and upload **metadata only** for review. No archive, signature, legal waiver, automatic tag, deployment or credential change. Continue to update root/scoped AGENTS, HLD/LLD and policies only on actual reviewed engineering contract changes.
 
 **F5 Free release engineering / Cloudflare runbook (2026-11-21):** [Read-only manual release audit](.github/workflows/free-v1-release-preflight.yml), [Cloudflare Direct Upload operator procedure](docs/releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md) and [draft notes](docs/releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md). Select immutable reviewed source; execute pinned Ubuntu24 Docker, frozen lockfile zero-moderate release audit and separate fail-closed `verify:free-publication-ready`, full exact-head CI, 84 local and 200 static browser cases, CSP/no-upload allowlist, detached artifact digest, real legal/support owner contacts and provider TLS/rollback evidence. **Only after full owner go/no-go** tag `free-v1.0.0` and perform a separate explicit Cloudflare Pages Direct Upload. No tag, deployment or cloud account action is accomplished by a preparation PR; do not auto-Git-deploy `main`, invent a URL or weaken a check.

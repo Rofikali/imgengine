@@ -1,5 +1,15 @@
 # imgengine
 
+## Current engineering workflow — written during work
+
+**Owner directive (2026-11-21):** Codex/engineers, **not PR automation**, directly update [AGENTS.md](AGENTS.md), [next.md](next.md), this README, [skills.md](skills.md), and the [live engineering activity log](docs/engineering/live-status.md) when beginning work, during meaningful changes, and at the task handoff. A PR's open/merged state never writes documentation or establishes `COMPLETED`. See the [binding agent-owned documentation protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md).
+
+**Current work:** `DOCSYNC-ACTIVITY-01 — IN_PROGRESS` on an engineering branch: remove the PR-triggered/scheduled milestone bot and migrate progress reporting to evidence-based agent-authored statuses; the code and test run for this revision must be checked separately. **Free v1.0.0 is NOT RELEASED**; a candidate tar is not final owner/legal/hosting authorization. Existing C17 native core, Rust FFI/API and Nuxt frontend product behavior are not modified by this documentation-governance change.
+
+## Dated historical checkpoints (not active instructions)
+
+The paragraphs below contain older PR and release planning snapshots. Consult the live agent-maintained `next.md` and actual source/test evidence for current status. The old PR-driven milestone sync is retired by the current protocol.
+
 **Free v1.0.0 release checkpoint (2026-11-21):** F5-SUPPLY-05 [PR #97](https://github.com/Rofikali/imgengine/pull/97) **MERGED** into main `c1141f13c4b0b2742013a39493244c8ab9b4a1e9`. Its [PR-head full CI](https://github.com/Rofikali/imgengine/actions/runs/44876698219) and [post-merge zero-moderate source-lockfile audit](https://github.com/Rofikali/imgengine/actions/runs/44877676779) **PASSED**. **NOW:** [F5-RC-EVID-01 PR #98](https://github.com/Rofikali/imgengine/pull/98) is preparing [detached source-bound Free static candidate evidence](docs/releases/free/v1.0.0/F5_RC_EVID_01.md). Final source freeze, archive/attestation, approved legal notices, Cloudflare and tag `free-v1.0.0` remain **NOT RELEASED**.
 
 **Free v1.0.0 Cloudflare launch preparation (2026-11-21):** A [read-only manual release preflight](.github/workflows/free-v1-release-preflight.yml), [Cloudflare Pages Direct Upload runbook](docs/releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md) and [draft release notes](docs/releases/free/v1.0.0/DRAFT_RELEASE_NOTES.md) are proposed for review. The source plan's final version tag is `free-v1.0.0`, **NOT CREATED**. Free is **NOT RELEASED**: two moderate production dependencies remain, notices are draft, detached publication attestation is unimplemented, Cloudflare is not connected/deployed. This prep must not bypass `verify:free-publication-ready` or publish from `main` automatically.

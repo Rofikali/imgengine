@@ -1,10 +1,12 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "mode": "agent-maintained-planning-only",
+  "status_authority": "next.md and docs/engineering/live-status.md; never infer task status from PR numbers or merged_at",
   "release": "IMGENGINE Free v1.0.0",
   "release_state": "NOT_RELEASED",
   "release_blockers": [
     "Production glob/minimatch overrides merged (#97); final frozen-source compatibility and supply-chain review still required",
-    "Immutable Free-only approved archive, detached owner attestation, SBOM/licenses and release artifact audit not yet complete",
+    "Deterministic candidate tar merged (#104), but frozen approved artifact, independent attestation, SBOM/licenses and release audit are not complete",
     "Privacy, terms, support and operator/legal contact notices remain draft",
     "Live Cloudflare TLS/CSP/privacy, rollback and operating-cost evidence not verified",
     "Explicit owner release go/no-go and production deployment not authorized"
@@ -14,16 +16,12 @@
       "id": "F5-SUPPLY-03",
       "title": "Disposable patched-major compatibility verification and Firefox isolation",
       "priority": 100,
-      "pr": 88,
-      "declared_state": "PLANNED",
       "depends_on": []
     },
     {
       "id": "F5-SUPPLY-04",
       "title": "Strict no-moderate release dependency audit gate",
       "priority": 110,
-      "pr": 89,
-      "declared_state": "PLANNED",
       "depends_on": [
         "F5-SUPPLY-03"
       ]
@@ -32,8 +30,6 @@
       "id": "F5-DOC-RECON-01",
       "title": "Post-merge release documentation reconciliation",
       "priority": 120,
-      "pr": 90,
-      "declared_state": "PLANNED",
       "depends_on": [
         "F5-SUPPLY-04"
       ]
@@ -42,8 +38,6 @@
       "id": "F5-SUPPLY-05",
       "title": "Production glob/minimatch dependency remediation — major-version override under review",
       "priority": 10,
-      "pr": 97,
-      "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-04"
       ]
@@ -52,8 +46,6 @@
       "id": "F5-RC-01",
       "title": "Immutable source-frozen static release artifact and independent verification",
       "priority": 20,
-      "pr": null,
-      "declared_state": "PLANNED",
       "depends_on": [
         "F5-SUPPLY-05",
         "F5-RC-EVID-01"
@@ -63,16 +55,12 @@
       "id": "F5-TRUST-FINAL",
       "title": "Owner-reviewed legal, privacy and support notices",
       "priority": 30,
-      "pr": null,
-      "declared_state": "PLANNED",
       "depends_on": []
     },
     {
       "id": "F5-HOST-VERIFY",
       "title": "Cloudflare live hosting, rollback and financial gate",
       "priority": 40,
-      "pr": null,
-      "declared_state": "PLANNED",
       "depends_on": [
         "F5-RC-01"
       ]
@@ -81,8 +69,6 @@
       "id": "F5-DOCSYNC-01",
       "title": "GitHub PR-driven milestone status generator",
       "priority": 130,
-      "pr": 91,
-      "declared_state": "PLANNED",
       "depends_on": [
         "F5-DOC-RECON-01"
       ]
@@ -91,8 +77,6 @@
       "id": "F5-DOCSYNC-02",
       "title": "Recover missing review PR on identical bot branch and preserve fail-closed permissions",
       "priority": 140,
-      "pr": 93,
-      "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-DOCSYNC-01"
       ]
@@ -101,8 +85,6 @@
       "id": "F5-HOST-PREP-01",
       "title": "Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness",
       "priority": 18,
-      "pr": 94,
-      "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-04"
       ]
@@ -111,10 +93,50 @@
       "id": "F5-RC-EVID-01",
       "title": "Detached source-bound Free static candidate provenance and preflight hardening",
       "priority": 19,
-      "pr": 98,
-      "declared_state": "IN_PROGRESS",
       "depends_on": [
         "F5-SUPPLY-05"
+      ]
+    },
+    {
+      "id": "F5-RUST-TCP-01",
+      "title": "Graceful Rust TCP shutdown preventing native lifecycle overlap",
+      "priority": 115,
+      "depends_on": []
+    },
+    {
+      "id": "F5-BROWSER-01",
+      "title": "WebKit privacy navigation isolation evidence",
+      "priority": 116,
+      "depends_on": []
+    },
+    {
+      "id": "F5-BROWSER-02",
+      "title": "Firefox and WebKit isolated browser shards and privacy regression",
+      "priority": 117,
+      "depends_on": [
+        "F5-BROWSER-01"
+      ]
+    },
+    {
+      "id": "F5-HOST-GUIDE-01",
+      "title": "Owner-only Cloudflare Free launch guide and signoff checklist",
+      "priority": 118,
+      "depends_on": []
+    },
+    {
+      "id": "F5-RC-ARCHIVE-01",
+      "title": "Deterministic detached Free static candidate tar (not published)",
+      "priority": 119,
+      "depends_on": [
+        "F5-RC-EVID-01"
+      ]
+    },
+    {
+      "id": "F5-RC-PREFLIGHT-01",
+      "title": "Build Nuxt before manual release browser preflight",
+      "priority": 121,
+      "depends_on": [
+        "F5-RC-ARCHIVE-01"
       ]
     }
   ]
