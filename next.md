@@ -1,6 +1,12 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+**Firefox verification retry — IN_PROGRESS.** Retrying the Ubuntu browser check for cf3d192 and recording evidence here and in the companion activity record.
+
+**F5 browser failure investigation — IMPLEMENTED, browser verification BLOCKED.** The Firefox landing-page privacy audit timed out waiting for load in shard 12/55 on main 70d6e61. The candidate test waits for a committed navigation and then for the document navigation timing entry to report loadEventEnd. The 30-second deadline and request, cookie and storage checks still apply. At candidate cf3d192, Ubuntu 24.04 passed the test syntax check and all 23 static verifier and matrix unit tests. Browser execution was blocked by a TLS timeout pulling the Playwright image and registry errors during frozen install. Resume with desktop-firefox shard 12/55, then required CI.
+
 **Governance (2026-11-21):** This board is edited directly by the **Codex/engineer doing work**, alongside the actual source/config/test change. No PR event, scheduled bot, generated block or merge-status inference may update or set this board. See [mandatory protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and [detailed activity log](docs/engineering/live-status.md). Last observed `main` baseline was `c6f1c90dfff73edc77b821a1881b6b9cdd120500`; this is a recorded inspection, **not** a claim of current HEAD or full CI PASS.
+
+**READY-board reconciliation — COMPLETED (2026-11-21).** F5-SUPPLY-05 landed in [PR #97](https://github.com/Rofikali/imgengine/pull/97). The frontend lockfile at main revision `70d6e610635e63795db2a3fb9f7b01b594483f06` matches the merge revision `c1141f1`. [Main CI](https://github.com/Rofikali/imgengine/actions/runs/44909116504) failed the Nuxt browser matrix and its required verification gate. Free v1.0.0 remains blocked.
 
 ## NOW / IN_PROGRESS (agent-maintained)
 
@@ -79,7 +85,7 @@ Previous GitHub history includes merged #98 (detached candidate evidence), #99 (
 
 | Priority | ID | Next bounded step and mandatory gates |
 | --- | --- | --- |
-| **NOW — F5-SUPPLY-05 / READY; implementation NOT RUN** | **Permanent source-lockfile dependency remediation** | In approved Ubuntu 24.04 Docker, inspect transitive ranges, select upstream-compatible `glob` / `minimatch` fixes, regenerate and commit pnpm lockfile with pinned pnpm, verify frozen install and **zero moderate/high/critical** release audit, run all required CI and full 84 + 200 four-browser/privacy checks on exact head. No blind major override, audit waiver, release tag or deployment. [Bounded handoff](docs/releases/free/v1.0.0/dependency-remediation-handoff.md). |
+| **F5-SUPPLY-05 / MERGED** | Permanent source-lockfile dependency remediation | See [PR #97](https://github.com/Rofikali/imgengine/pull/97) and the current CI evidence above. |
 | **NOW — product work** | **F5 FREE V1 RELEASE-READINESS AUDIT / NOT RELEASED** | Five Free tools are merged through [F4 PR #76](https://github.com/Rofikali/imgengine/pull/76), merge SHA `9216306c93dd21c5011992b11ed68dc1051ac12d` (PR-head CI 9/9 PASS). Independent public launch gates remain: privacy, browser/a11y/mobile, security, host/service, legal/ads, capacity and rollback; collect exact-head evidence and owner release approval. No automatic deployment, billing or public launch. |
 | **MERGED — Free release documentation** | **F5-RELEASE-DOCS-01 PR #82** | [PR #82](https://github.com/Rofikali/imgengine/pull/82) merged as `47753c19eef8902a2f4c2677d83940282ec51dde`; versioned dossier, shared templates and release plan schema. No release tag, immutable candidate or hosting deployment. |
 | **MERGED — Free public trust draft** | **F5-TRUST-01 PR #84** | Merged as `cffe893c03bed4203e75d03703fbb4c5238c1ebb`; exact PR head [12/12 CI PASS](https://github.com/Rofikali/imgengine/actions/runs/44704589708), 108/108 static browser tests. Privacy/terms/support are **explicitly PRE-LAUNCH DRAFT**, publication guard must fail until real legal/operator/support and independent release attestation. |
