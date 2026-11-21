@@ -20,7 +20,7 @@
 | Work item | NOW / state | PR / evidence | Next gate |
 | --- | --- | --- | --- |
 | PRODUCT-PRO-01 parent | **SELECTED; PLANNED; NOT RELEASED** | Owner decision 2026-11-21, portfolio docs established | Independent security/commercial/product acceptance and release approval |
-| PRO-00 documentation | **NOW / STARTED — DOCUMENTATION ONLY / NOT_MERGED** | `feat/pro/pro-00-native-first-blueprint-20261121`; PR number updated after opening | Owner review; link and status verification |
+| PRO-00 documentation | **NOW / STARTED — DOCUMENTATION ONLY / NOT_MERGED** | [`feat/pro/pro-00-native-first-blueprint-20261121`](https://github.com/Rofikali/imgengine/tree/feat/pro/pro-00-native-first-blueprint-20261121); [draft PR #95](https://github.com/Rofikali/imgengine/pull/95) **OPEN / NOT_MERGED** | Owner review; link and status verification |
 | PRO-00 customer discovery | **PLANNED / NOT_STARTED** | No recorded Pro interviews or paid pilots | Interview users and measure saved time |
 | PRO-00 native C/Rust capability audit | **PLANNED / NOT_STARTED** | Existing core/FFI foundation is shared but no Pro-specific acceptance | Read ABI, fixture, API ownership; define smallest implementation |
 | PRO-01 through PRO-05 | **PLANNED / NOT_STARTED** | No verified Pro implementation PR, test pass or merge | One bounded feature PR per ID |
