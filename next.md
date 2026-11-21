@@ -1,5 +1,7 @@
 # IMGENGINE — Live product, feature and infrastructure milestones
 
+**FREE V1.0.0 OWNER LAUNCH REQUEST (2026-11-21):** Prepare `free-v1.0.0` release tag and Cloudflare Pages Direct Upload from an **approved frozen static artifact**. Proposed read-only [manual release preflight](.github/workflows/free-v1-release-preflight.yml) and [Cloudflare release operator playbook](docs/releases/free/v1.0.0/CLOUDFLARE_PAGES_RELEASE_PLAYBOOK.md) retain fail-closed security, legal, artifact and hosting checks. **TAG NOT CREATED, NOT DEPLOYED, NOT RELEASED.** **NOW product blocking work remains F5-SUPPLY-05** upstream-compatible pinned-pnpm lockfile remediation; host preparation may proceed in parallel but may not go live until source-locked zero-moderate audit, owner/legal approved notices and detached attestation pass.
+
 <!-- BEGIN AUTO-GENERATED PR MILESTONES -->
 ## GitHub-verified NOW / NEXT / WORKING / COMPLETED
 

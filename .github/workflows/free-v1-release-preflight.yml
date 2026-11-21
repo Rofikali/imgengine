@@ -1,0 +1,136 @@
+name: IMGENGINE Free v1.0.0 manual release preflight
+
+# On-demand read-only release evidence. Intentionally does not create a tag,
+# GitHub Release, Pages project, deployment, domain, token or paid resource.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: free-v1-release-preflight
+  cancel-in-progress: false
+
+jobs:
+  source-release-audit:
+    name: F5 release source-lockfile security gate
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --shm-size=1g
+    timeout-minutes: 25
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Assert approved operating environment and exact source
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu && test "$VERSION_ID" = "24.04"
+          node -e 'if (Number(process.versions.node.split(".")[0]) !== 24) process.exit(1)'
+          test "$(node -p 'require("./package.json").packageManager')" = "pnpm@10.34.9"
+          corepack enable
+          test "$(pnpm --version)" = "10.34.9"
+          echo "Source SHA: $GITHUB_SHA"
+      - name: Install committed lockfile unchanged
+        working-directory: imgengine-saas/frontend
+        run: pnpm install --frozen-lockfile
+      - name: Require zero moderate, high and critical production advisories
+        working-directory: imgengine-saas/frontend
+        run: pnpm run verify:free-release-dependencies
+
+  owner-legal-and-publication-gate:
+    name: F5 owner/legal/publication guard (fail closed)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate release plan and conservative tag identity
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const p=JSON.parse(readFileSync('docs/releases/free/v1.0.0/release-manifest.json','utf8'))
+          if (p.product !== 'imgengine-free' || p.version !== '1.0.0' ||
+              p.source_control?.proposed_immutable_tag !== 'free-v1.0.0' ||
+              p.distribution?.type !== 'verified-static-assets-only' ||
+              p.distribution?.hosting_target !== 'cloudflare-pages' ||
+              p.distribution?.upload_method !== 'direct-upload' ||
+              p.distribution?.automatic_git_deployment_allowed !== false ||
+              p.distribution?.cloudflare_pages_functions_allowed !== false) {
+            throw Error('Release plan deviates from approved Free-only scope')
+          }
+          console.log('Release-plan identity and Free-only Cloudflare boundary valid')
+          NODE
+      - name: Require approved public privacy, terms, support, and detached attestations
+        working-directory: imgengine-saas/frontend
+        run: node scripts/check-free-publication-ready.mjs
+
+  reproduce-static-candidate:
+    name: F5 Free static artifact and four-browser QA (NOT a release)
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --shm-size=1g
+    timeout-minutes: 55
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Pinned package toolchain and immutable dependency resolution
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu && test "$VERSION_ID" = "24.04"
+          corepack enable
+          test "$(pnpm --version)" = "10.34.9"
+          pnpm install --frozen-lockfile
+          git diff --exit-code -- package.json pnpm-lock.yaml
+      - name: Unit, type and browser-local regression
+        working-directory: imgengine-saas/frontend
+        run: |
+          pnpm exec nuxi prepare
+          pnpm run typecheck
+          pnpm test
+          pnpm run test:browser:local-tools
+      - name: Generate approved static-only output and validate privacy/CSP allowlist
+        working-directory: imgengine-saas/frontend
+        run: |
+          pnpm run build:free-static
+          pnpm run verify:free-static
+      - name: Test published-shape static output in desktop/mobile Chromium, Firefox and WebKit
+        working-directory: imgengine-saas/frontend
+        run: pnpm run test:browser:free-static
+      - name: Record candidate source and deterministic content inventory digest
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .output/public/_headers
+          test -f .output/public/404.html
+          if test -f .output/public/_worker.js || test -f .output/public/_routes.json; then
+            echo "::error::Pages Functions/Workers output forbidden for Free release"
+            exit 1
+          fi
+          printf 'Source SHA: %s\n' "$GITHUB_SHA"
+          cd .output/public
+          printf 'Candidate static tree inventory SHA256: '
+          find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum
+          echo "CANDIDATE ONLY: no artifact published, signed, deployed or tagged"

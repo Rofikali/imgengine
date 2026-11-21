@@ -95,6 +95,16 @@
       "depends_on": [
         "F5-DOCSYNC-01"
       ]
+    },
+    {
+      "id": "F5-HOST-PREP-01",
+      "title": "Manual Free 1.0.0 source-freeze preflight and Cloudflare Direct Upload operator readiness",
+      "priority": 18,
+      "pr": 94,
+      "declared_state": "IN_PROGRESS",
+      "depends_on": [
+        "F5-SUPPLY-04"
+      ]
     }
   ]
 }
