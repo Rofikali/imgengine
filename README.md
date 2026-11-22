@@ -1,5 +1,7 @@
 # imgengine
 
+**Free notices — IMPLEMENTED for independent review.** The three draft pages share operator and pending-date metadata. The 12-month support retention proposal requires a manual rehearsal and operator approval. Three local notice/guard tests passed. See the [operator review packet](docs/releases/free/v1.0.0/operator-review.md) for Gmail handling, Indian commencement dates and Cloudflare verification.
+
 **Convert picker VERIFIED and candidate review (22 November 2026).** [PR #111](https://github.com/Rofikali/imgengine/pull/111) passed all 12 jobs at 9242d51 and [merged-main CI](https://github.com/Rofikali/imgengine/actions/runs/44990709168) passed at 27ee446. The review build contains 47 static files. The detached candidate tar SHA-256 is 2fb4da2bf5c5dd18b9e70675024db1d277f33ace1d3498d2fd5edf8b2beb618b. The local production dependency inventory covers 511 package versions. Final artifact freeze, shipped-license review, approved notices and hosting gates remain open.
 
 

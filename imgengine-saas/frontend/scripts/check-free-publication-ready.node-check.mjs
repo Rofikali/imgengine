@@ -8,10 +8,15 @@ test('Free public notice sources contain unmistakable pre-launch draft state', (
   for (const name of ['privacy', 'terms', 'support']) {
     const source = readFileSync(fileURLToPath(new URL('../free-static/' + name + '.vue', import.meta.url)), 'utf8')
     assert.match(source, /PRE-LAUNCH DRAFT/)
-    assert.match(source, /Rofik Ali — Independent operator of IMGENGINE/)
-    assert.ok(source.includes('href="mailto:alirofikr@gmail.com"'))
-    assert.ok(source.includes('<time datetime="2026-11-22">22 November 2026</time>'))
+    assert.ok(source.includes('<FreeNoticeContact />'))
   }
+})
+
+test('Shared metadata identifies the contact and pending date', () => {
+  const source = readFileSync(new URL('../free-static/FreeNoticeContact.vue', import.meta.url), 'utf8')
+  assert.match(source, /Rofik Ali — Independent operator of IMGENGINE/)
+  assert.ok(source.includes('href="mailto:alirofikr@gmail.com"'))
+  assert.match(source, /Effective date pending publication approval/)
 })
 
 test('Free public release preflight refuses unsigned/unapproved draft publication', () => {
