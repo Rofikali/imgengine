@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useLocalConvert } from '~/composables/useLocalConvert'
 const { source, result, format, busy, error, message, select, changeFormat, convert, cancel, reset, extension } = useLocalConvert()
 const input = ref<HTMLInputElement | null>(null)
+const ready = ref(false)
+onMounted(() => { ready.value = true })
 function choose(event: Event) { const target = event.target as HTMLInputElement; void select(target.files?.[0]); target.value = '' }
 function remove() { reset(); input.value?.focus() }
 useHead({ title: 'Convert an image locally — IMGENGINE' })
@@ -12,7 +14,7 @@ useHead({ title: 'Convert an image locally — IMGENGINE' })
     <p class="eyebrow">IMGENGINE · LOCAL TOOL</p><h1 id="convert-title">Convert an image</h1>
     <p class="intro">Convert one JPEG or PNG on this device. No upload or account.</p>
     <p class="help">Up to 4 MiB, 4 megapixels and 8192 pixels per side. Output keeps stored pixel dimensions, removes metadata, and can vary slightly by browser. JPEG composites transparency onto white; PNG preserves transparency.</p>
-    <form class="render-form" @submit.prevent="convert"><label for="convert-file">Choose a JPEG or PNG</label><input id="convert-file" ref="input" type="file" accept="image/jpeg,image/png" @change="choose">
+    <form class="render-form" @submit.prevent="convert"><label for="convert-file">Choose a JPEG or PNG</label><input id="convert-file" ref="input" :disabled="!ready" type="file" accept="image/jpeg,image/png" @change="choose">
       <fieldset v-if="source" class="layout-fields" :disabled="busy"><legend>Output format</legend><label>Format <select aria-label="Format" :value="format" aria-describedby="convert-help" @change="changeFormat(($event.target as HTMLSelectElement).value)"><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select></label><p id="convert-help" class="help layout-note">Conversion re-encodes the image locally; EXIF and other source metadata are not preserved.</p></fieldset>
       <div class="selection-actions"><button v-if="source" type="submit" class="primary" :disabled="busy">Convert locally</button><button v-if="busy" type="button" class="secondary" @click="cancel">Cancel</button><button v-if="source || busy || error" type="button" class="secondary" @click="remove">Remove image</button></div>
     </form>

@@ -1,5 +1,8 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+**Convert picker — IMPLEMENTED, verification pending.** PR #111 Firefox static shard 41/55 missed the malformed-file alert on 07fcd31. Convert now enables file selection after Vue mounts its change handler. Browser tests wait for the enabled control before selecting a file.
+
+
 **Free launch notices — IMPLEMENTED, publication BLOCKED (22 November 2026).** Rofik Ali approved the operator identity, Gmail contact and intended date on the three Free notices. Before freezing the artifact, confirm actual mailbox and host retention, obtain independent legal review, and update all notice dates and their test to the publication date if it changes. The publication guard still applies.
 
 
