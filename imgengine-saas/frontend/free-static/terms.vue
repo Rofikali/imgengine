@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import FreeNoticeContact from './FreeNoticeContact.vue'
+
 useSeoMeta({
   title: 'Terms — IMGENGINE Free (draft)',
   description: 'Terms for using the five browser-local IMGENGINE Free tools.',
@@ -15,9 +17,7 @@ useSeoMeta({
       <p>Respect applicable law, confidentiality and the rights of others. Do not use the tools to create fraudulent identity documents.</p>
       <h2>Checking your results</h2>
       <p>Processing depends on the supported format, image size, browser and available memory. Review the output before using it for printing or an official application. The receiving authority decides whether an image meets its requirements.</p>
-      <h2>Operator and contact</h2>
-      <p>Rofik Ali — Independent operator of IMGENGINE. Email <a href="mailto:alirofikr@gmail.com">alirofikr@gmail.com</a>.</p>
-      <p>Intended effective date: <time datetime="2026-11-22">22 November 2026</time>, subject to publication.</p>
+      <FreeNoticeContact />
       <p><NuxtLink to="/privacy">Privacy notice</NuxtLink> · <NuxtLink to="/support">Support and contact</NuxtLink></p>
     </article>
   </main>
