@@ -1,5 +1,11 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+**Convert picker — IMPLEMENTED, verification pending.** PR #111 Firefox static shard 41/55 missed the malformed-file alert on 07fcd31. Convert now enables file selection after Vue mounts its change handler. Browser tests wait for the enabled control before selecting a file.
+
+
+**Free launch notices — IMPLEMENTED, publication BLOCKED (22 November 2026).** Rofik Ali approved the operator identity, Gmail contact and intended date on the three Free notices. Before freezing the artifact, confirm actual mailbox and host retention, obtain independent legal review, and update all notice dates and their test to the publication date if it changes. The publication guard still applies.
+
+
 **Firefox static privacy verification — COMPLETED (2026-11-21).** All 12 jobs passed on merged main `aa5b834f97e7e000ee86aaa17b127e66f979f1d4`, including the Nuxt browser matrix and required verification gate. Free v1.0.0 remains blocked. [post-merge CI](https://github.com/Rofikali/imgengine/actions/runs/44914244032)
 
 **Governance (2026-11-21):** This board is edited directly by the **Codex/engineer doing work**, alongside the actual source/config/test change. No PR event, scheduled bot, generated block or merge-status inference may update or set this board. See [mandatory protocol](docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md) and [detailed activity log](docs/engineering/live-status.md). Last observed `main` baseline was `c6f1c90dfff73edc77b821a1881b6b9cdd120500`; this is a recorded inspection, **not** a claim of current HEAD or full CI PASS.

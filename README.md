@@ -1,5 +1,9 @@
 # imgengine
 
+**Convert picker — IMPLEMENTED, verification pending.** PR #111 Firefox static shard 41/55 missed the malformed-file alert on 07fcd31. Convert now enables file selection after Vue mounts its change handler. Browser tests wait for the enabled control before selecting a file.
+
+**Free launch notices — IMPLEMENTED, publication BLOCKED (22 November 2026).** Rofik Ali approved the operator identity, Gmail contact and intended date on the three Free notices. Before freezing the artifact, confirm actual mailbox and host retention, obtain independent legal review, and update all notice dates and their test to the publication date if it changes. The publication guard still applies.
+
 The Free static browser privacy checks passed on merged main aa5b834. Free v1.0.0 remains unreleased pending the gates in the release dossier. [post-merge CI](https://github.com/Rofikali/imgengine/actions/runs/44914244032)
 
 > **2026-11-21 milestone checkpoint.** F5-SUPPLY-05 landed in [PR #97](https://github.com/Rofikali/imgengine/pull/97). The frontend lockfile at main revision `70d6e610635e63795db2a3fb9f7b01b594483f06` matches the merge revision `c1141f1`. [Main CI](https://github.com/Rofikali/imgengine/actions/runs/44909116504) failed the Nuxt browser matrix and its required verification gate. Free v1.0.0 remains blocked.

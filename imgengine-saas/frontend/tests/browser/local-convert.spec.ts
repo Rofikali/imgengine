@@ -10,7 +10,9 @@ async function fixture(page: import('@playwright/test').Page) {
 }
 
 async function choose(page: import('@playwright/test').Page, buffer: Buffer) {
-  await page.getByLabel('Choose a JPEG or PNG', { exact: true }).setInputFiles({ name: 'private-source.png', mimeType: 'image/png', buffer })
+  const picker = page.getByLabel('Choose a JPEG or PNG', { exact: true })
+  await expect(picker).toBeEnabled()
+  await picker.setInputFiles({ name: 'private-source.png', mimeType: 'image/png', buffer })
   await expect(page.getByAltText('Local source image')).toBeVisible()
 }
 
@@ -45,7 +47,9 @@ test('rejects malformed or oversized input and releases local URLs after remove'
     Object.defineProperty(window, 'convertURLs', { get: () => urls.size })
   })
   await page.goto('/convert-image', { waitUntil: 'domcontentloaded' })
-  await page.getByLabel('Choose a JPEG or PNG', { exact: true }).setInputFiles({ name: 'bad', mimeType: 'image/png', buffer: Buffer.from('not an image') })
+  const picker = page.getByLabel('Choose a JPEG or PNG', { exact: true })
+  await expect(picker).toBeEnabled()
+  await picker.setInputFiles({ name: 'bad', mimeType: 'image/png', buffer: Buffer.from('not an image') })
   await expect(page.getByRole('alert')).toContainText('Cannot open')
   await choose(page, await fixture(page)); await page.getByRole('button', { name: 'Convert locally', exact: true }).click(); await expect(page.getByAltText('Converted PNG preview')).toBeVisible()
   await page.getByRole('button', { name: 'Remove image', exact: true }).click()
