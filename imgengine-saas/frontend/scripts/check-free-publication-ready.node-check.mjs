@@ -8,7 +8,9 @@ test('Free public notice sources contain unmistakable pre-launch draft state', (
   for (const name of ['privacy', 'terms', 'support']) {
     const source = readFileSync(fileURLToPath(new URL('../free-static/' + name + '.vue', import.meta.url)), 'utf8')
     assert.match(source, /PRE-LAUNCH DRAFT/)
-    assert.match(source, /launch|Launch/)
+    assert.match(source, /Rofik Ali — Independent operator of IMGENGINE/)
+    assert.ok(source.includes('href="mailto:alirofikr@gmail.com"'))
+    assert.ok(source.includes('<time datetime="2026-11-22">22 November 2026</time>'))
   }
 })
 

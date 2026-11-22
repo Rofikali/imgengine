@@ -1,5 +1,8 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+**Free launch notices — IMPLEMENTED, publication BLOCKED (22 November 2026).** Rofik Ali approved the operator identity, Gmail contact and intended date on the three Free notices. Before freezing the artifact, confirm actual mailbox and host retention, obtain independent legal review, and update all notice dates and their test to the publication date if it changes. The publication guard still applies.
+
+
 **Firefox static privacy verification — COMPLETED (2026-11-21).** All 12 jobs passed on merged main `aa5b834f97e7e000ee86aaa17b127e66f979f1d4`, including the Nuxt browser matrix and required verification gate. Free v1.0.0 remains blocked. [post-merge CI](https://github.com/Rofikali/imgengine/actions/runs/44914244032) Ubuntu 24.04 passed the frozen install, Free static build and nine-route verifier (47 files) on the cf3d192 frontend tree. [PR-head CI](https://github.com/Rofikali/imgengine/actions/runs/44913355058) passed at 418f2e6.
 
 **This file is written by the engineer or Codex agent doing actual work.** It is no longer a GitHub-PR-derived dashboard and is never overwritten by GitHub Actions. Its `STATUS` values mean **engineering work**, not `OPEN/MERGED` pull requests. Root [next.md](../../next.md) is the compact current task board; [protocol](DOCUMENTATION_SYNC_CONTRACT.md) defines required checkpoint behavior.
