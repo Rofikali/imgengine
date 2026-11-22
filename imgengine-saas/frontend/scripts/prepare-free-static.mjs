@@ -1,4 +1,4 @@
-import { existsSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { buildFreeHeaders, parseFreeHeaders, stripFreeSpeculativePrefetch, assertNoFreeSpeculativePrefetch } from './free-security-headers.mjs'
 import { fileURLToPath } from 'node:url'
 
@@ -14,6 +14,9 @@ if (existsSync(spaFallback)) {
 if (!existsSync(fileURLToPath(new URL('../.output/public/404.html', import.meta.url)))) {
   throw Error('Free static build requires an explicit 404.html')
 }
+
+const licenseFile = new URL('../.output/public/_nuxt/third-party-licenses.txt', import.meta.url)
+if (!/^## .+/m.test(readFileSync(licenseFile, 'utf8'))) throw Error('Free bundle license report is empty')
 
 const strippedPrefetch = stripFreeSpeculativePrefetch(folder)
 assertNoFreeSpeculativePrefetch(folder)
