@@ -1,5 +1,7 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+**23 November 2026 — governance proposal prepared, publication BLOCKED.** The [owner compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md) records source evidence, legal uncertainties, synthetic Gmail decisions and account checks awaiting verification. Independent legal review remains required pending a separate governance decision.
+
 **Free browser bundle licenses (22 November 2026).** Vite emits client dependency licenses to _nuxt/third-party-licenses.txt and Terms links to them. The local review matched all 16 MIT-labelled package versions to the production inventory. Independent notice and artifact approval remain pending.
 
 **Free notices — IMPLEMENTED for independent review.** The three draft pages share operator and pending-date metadata. The 12-month support retention proposal requires a manual rehearsal and operator approval. Three local notice/guard tests passed. See the [operator review packet](docs/releases/free/v1.0.0/operator-review.md) for Gmail handling, Indian commencement dates and Cloudflare verification.
