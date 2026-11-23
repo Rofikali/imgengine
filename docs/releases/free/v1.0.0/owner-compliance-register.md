@@ -37,7 +37,11 @@ On 23 November a network-disabled Ubuntu container executed ten classification a
 
 ## Account verification
 
-Cloudflare plan, active subscriptions, Pages project existence, analytics and logging are each **unverified**. A repository reference proves only an intended architecture. No authenticated Cloudflare account evidence was available. In the correct dashboard account, record Billing → subscriptions and plan, Workers & Pages → projects, then any project's analytics, zone analytics/script injection, logs/exports, destinations and retention. Record the account scope and inspection date. Supply redacted results, including an empty project list if observed. Omit tokens and account secrets. Distinguish provider infrastructure processing from operator-accessible logs. Collect the [Cloudflare evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). Netlify is deferred.
+On 23 November 2026 the owner inspected Cloudflare Settings → Billing → Subscriptions. Workers Free was active at $0/month. No paid subscriptions were listed and no payment method was on file. Workers Paid appeared as an available upgrade only.
+
+An earlier Workers & Pages screenshot, as reported by the owner, showed no projects in the inspected account. Its capture date was not supplied.
+
+Billable Usage, account-level Web Analytics, script injection, logging, retention, CERT-In applicability and provider limitations, and Pages production configuration and release checks remain open. Publication is BLOCKED. Review Billable Usage for the applicable period and record the date, selected period and displayed usage or charges. The subscription price alone does not establish the usage balance. See the [owner evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md).
 
 ## Proposed decision rule and trade-offs
 

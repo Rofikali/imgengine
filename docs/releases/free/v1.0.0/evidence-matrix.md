@@ -1,6 +1,14 @@
 # IMGENGINE Free v1.0.0 — Release evidence and go/no-go
 
-**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Account verification is BLOCKED_PENDING_OWNER_EVIDENCE. Use the [read-only evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
+## Cloudflare account evidence — 23 November 2026
+
+On 23 November 2026 the owner inspected Cloudflare Settings → Billing → Subscriptions. Workers Free was active at $0/month. No paid subscriptions were listed and no payment method was on file. Workers Paid appeared as an available upgrade only.
+
+An earlier Workers & Pages screenshot, as reported by the owner, showed no projects in the inspected account. Its capture date was not supplied.
+
+Billable Usage, account-level Web Analytics, script injection, logging, retention, CERT-In applicability and provider limitations, and Pages production configuration and release checks remain open. Publication is BLOCKED.
+
+**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Billable Usage and hosting/privacy checks are BLOCKED_PENDING_OWNER_EVIDENCE. Use the [read-only evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
 
 **23 November 2026 — governance proposal prepared, publication BLOCKED.** The [owner compliance register](owner-compliance-register.md) records source evidence, legal uncertainties, synthetic Gmail decisions and account checks awaiting verification. Independent legal review remains required pending a separate governance decision.
 
