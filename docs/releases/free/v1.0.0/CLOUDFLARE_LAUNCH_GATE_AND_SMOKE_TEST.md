@@ -6,6 +6,22 @@ See [owner A-to-Z guide](HOST_ON_CLOUDFLARE_A_TO_Z.md), [policy runbook](CLOUDFL
 
 **Candidate reproducibility milestone:** [F5-RC-ARCHIVE-01](F5_RC_ARCHIVE_01.md) prepares a normalized deterministic static tar + separately re-audited SHA-256 evidence. Only `candidate-archive.json` and `candidate-manifest.json` are CI-uploaded for review, never an unapproved website. A reproducible candidate is **not** an immutable owner-approved archive, independent SBOM/license sign-off, or permission to create `free-v1.0.0`.
 
+
+## Read-only owner evidence collection, 23 November 2026
+
+Cloudflare Pages is primary. Each row below is **BLOCKED_PENDING_OWNER_EVIDENCE**. Record inspection date, account or zone alias, observed setting and scope. Share redacted summaries. Omit credentials, customer records, full identifiers and raw logs. If an account feature is unavailable, record the dashboard result and its scope. An empty project list only establishes absence within the inspected account.
+
+| Check | Where to inspect and what to record |
+|---|---|
+| Plan and charges | Account Billing → Subscriptions, invoices and usage. Record the zone plan separately from account subscriptions, active paid products, metered usage, outstanding charges and billing alerts. |
+| Pages project | Workers & Pages → overview, filter Pages. Record project existence, domain, production branch and any Functions or bindings. If absent, stop at the list. |
+| Analytics and injection | Inspect Web Analytics for the site, Pages settings and the corresponding zone settings for Zaraz, Rocket Loader and other HTML/script transformations. Record each enabled control and intended purpose. Later compare served HTML and network traffic with the archive. |
+| Request logs and locations | In zone Analytics & Logs and account Logpush, inventory available datasets, enabled jobs, fields, destinations, region, access and retention. Review account data-localization settings and applicable provider terms. Obtain provider confirmation where infrastructure processing or backup locations and retention are undisclosed. Operator export settings alone cannot establish internal retention. |
+| HTTPS, headers and cache | Inspect SSL/TLS → Edge Certificates, HTTPS redirect, minimum TLS and HSTS on the actual hostname. Inspect Cache Rules, custom headers and transforms. Record effective scope separately for pages.dev and any custom domain. Compare live headers, redirects, cache validators and 404 responses after authorization. |
+| Preview and rollback | Inspect preview access policies and existing production deployment history read-only. Preview URLs can be reachable publicly. Test access restrictions before sharing any authorized preview. For a first release agree a withdrawal procedure. Otherwise identify a known-good production deployment and owner responsible for rollback, containment and incident triage. |
+
+The static candidate includes nine routes, explicit 404.html, hashed inline-script CSP and security headers. CI simulates their application. Published Free limits include 20,000 files per site and 25 MiB per asset. Static requests are free under the documented static model; Functions have separate metering. Account subscription, domains, paid features, effective cache and actual network behavior still require verification. [Limits](https://developers.cloudflare.com/pages/platform/limits/) · [Pricing](https://developers.cloudflare.com/pages/functions/pricing/) · [Serving and caching](https://developers.cloudflare.com/pages/configuration/serving-pages/) · [Preview access](https://developers.cloudflare.com/pages/configuration/preview-deployments/)
+
 ## A. Verified release identity (fill after independent frozen build)
 
 | Item | Actual value / evidence | Current decision |
