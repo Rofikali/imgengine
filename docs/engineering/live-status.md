@@ -1,5 +1,8 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+**Hosting decision, 23 November 2026.** The owner selected Netlify Free for preparation. Cloudflare Pages is the documented fallback. Publication is BLOCKED pending Netlify account evidence, updated notices and release approvals. [Provider comparison and continuation steps](../releases/free/v1.0.0/hosting-provider-decision.md).
+
+
 **Free browser bundle licenses (22 November 2026).** Vite emits client dependency licenses to _nuxt/third-party-licenses.txt and Terms links to them. The local review matched all 16 MIT-labelled package versions to the production inventory. Independent notice and artifact approval remain pending.
 
 

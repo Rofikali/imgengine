@@ -1,5 +1,7 @@
 # Free v1.0.0 operator review, 22 November 2026
 
+**Hosting decision, 23 November 2026.** The owner selected Netlify Free for preparation. Cloudflare Pages is the documented fallback. Publication is BLOCKED pending Netlify account evidence, updated notices and release approvals. [Provider comparison and continuation steps](hosting-provider-decision.md).
+
 ## Monthly Gmail review
 
 Rofik Ali owns the support mailbox. This proposed manual procedure requires approval and a rehearsal with synthetic messages. The Gmail account also receives unrelated mail. Apply a dedicated IMGENGINE support label to verified incoming and outgoing correspondence. Each month inspect labelled conversations across All Mail, including sent and archived messages. Check for missed replies and attachments. Archiving only removes the inbox label. For each case record the last interaction and its 12-calendar-month anniversary. Schedule cases expiring before the next review for action on their due dates. An old first message does not establish that the whole thread has expired.
