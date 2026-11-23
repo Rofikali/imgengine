@@ -1,6 +1,6 @@
 # Free v1.0.0 operator review, 22 November 2026
 
-**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Billable Usage and hosting/privacy checks are BLOCKED_PENDING_OWNER_EVIDENCE. Use the [read-only evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
+**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Account inventory and RUM site count are verified. Billable Usage and production evidence remain pending. See the [consolidated matrix](evidence-matrix.md). Use the [read-only evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
 
 ## Monthly Gmail review
 

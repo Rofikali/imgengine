@@ -9,7 +9,7 @@ See [owner A-to-Z guide](HOST_ON_CLOUDFLARE_A_TO_Z.md), [policy runbook](CLOUDFL
 
 ## Read-only owner evidence collection, 23 November 2026
 
-Cloudflare Pages is primary. Subscription settings have dated owner evidence. An earlier Workers & Pages screenshot, as reported by the owner, showed no projects in the inspected account. Its capture date was not supplied. Outstanding checks below are **BLOCKED_PENDING_OWNER_EVIDENCE**. Record inspection date, account or zone alias, observed setting and scope. Share redacted summaries. Omit credentials, customer records, full identifiers and raw logs. If an account feature is unavailable, record the dashboard result and its scope. An empty project list only establishes absence within the inspected account.
+Cloudflare Pages is primary. Consult the [consolidated matrix](evidence-matrix.md) for completed account observations. Use the worksheet below for remaining evidence and future changes. Record inspection date, account or zone alias, observed setting and scope. Share redacted summaries. Omit credentials, customer records, full identifiers and raw logs. If an account feature is unavailable, record the dashboard result and its scope. An empty project list only establishes absence within the inspected account.
 
 | Check | Where to inspect and what to record |
 |---|---|
