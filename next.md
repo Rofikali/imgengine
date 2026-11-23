@@ -1,6 +1,7 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
-**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Account verification is BLOCKED_PENDING_OWNER_EVIDENCE. Use the [read-only evidence worksheet](docs/releases/free/v1.0.0/CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
+
+**Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Billable Usage and hosting/privacy checks are BLOCKED_PENDING_OWNER_EVIDENCE. Use the [read-only evidence worksheet](docs/releases/free/v1.0.0/CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
 
 
 **23 November 2026 — governance proposal prepared, publication BLOCKED.** The [owner compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md) records source evidence, legal uncertainties, synthetic Gmail decisions and account checks awaiting verification. Independent legal review remains required pending a separate governance decision.
