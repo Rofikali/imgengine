@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+Notice review — IMPLEMENTED on a local review branch. Three focused notice and guard tests passed in Ubuntu 24.04 Docker. GitHub verification of the changed pages awaits branch publication.
+
 24 November — COMPLETED. Updated the standing session-start rule and contributor entry points. Verified the root links, Linux Docker engine and Ubuntu 24.04 identity in the local P7 container.
 
 

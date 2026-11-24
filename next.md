@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+Notice review — IMPLEMENTED. Three focused tests passed in Ubuntu Docker. Full PR browser CI is pending.
+
 Every new or resumed task starts with the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md).
 
 
