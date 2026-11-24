@@ -16,7 +16,7 @@ test('Shared metadata identifies the contact and pending date', () => {
   const source = readFileSync(new URL('../free-static/FreeNoticeContact.vue', import.meta.url), 'utf8')
   assert.match(source, /Rofik Ali — Independent operator of IMGENGINE/)
   assert.ok(source.includes('href="mailto:alirofikr@gmail.com"'))
-  assert.match(source, /Effective date pending publication approval/)
+  assert.match(source, /Effective date: pending actual publication approval/)
 })
 
 test('Free public release preflight refuses unsigned/unapproved draft publication', () => {

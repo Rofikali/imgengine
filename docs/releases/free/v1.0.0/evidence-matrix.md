@@ -1,5 +1,7 @@
 # IMGENGINE Free v1.0.0 — Release evidence and go/no-go
 
+The full static browser matrix passed for [candidate source 6629660](https://github.com/Rofikali/imgengine/actions/runs/45139483255/job/137573743841) and [main 79f469d](https://github.com/Rofikali/imgengine/actions/runs/45322482675/job/138204163667). The local archive replay awaits the image. Revised notice copy requires its own PR CI.
+
 ## Consolidated release-readiness matrix — 23 November 2026
 
 **NO-GO.** This is the current decision record. Older tables below preserve historical results and final-freeze acceptance criteria. Account evidence is attributed to the owner-supplied Cloudflare AI account audit and billing-dashboard inspection. Product documentation describes capabilities. The release source evaluated here is 00bbdc4272af55d19214713ffe36ae1d05a88853. The documentation reconciliation does not change that build. The local build used Ubuntu 24.04, the frozen pnpm lockfile, Node 24 and the previously prepared dependency image. The archive writer supplies a fixed Playwright build-environment label; use the exact-source CI run for browser evidence. Fresh Nuxt builds can differ even when serializing a given tree is deterministic.

@@ -1,6 +1,10 @@
 # imgengine
 
+The proposed Free notices are available for review. Their effective date is pending actual publication approval.
+
 **First session or returning contributor?** Start with the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md). Docker Desktop fetches images, and Ubuntu 24.04 containers download dependencies, build and run tests.
+
+When local Docker verification cannot acquire the required image, a review branch may use required PR CI. The resulting job verifies only its recorded commit. See the [CI evidence procedure](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md).
 
 **Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Account inventory and RUM site count are verified. Billable Usage and production evidence remain pending. See the [consolidated matrix](docs/releases/free/v1.0.0/evidence-matrix.md). Use the [read-only evidence worksheet](docs/releases/free/v1.0.0/CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
 

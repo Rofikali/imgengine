@@ -1,6 +1,10 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
+For notice changes, record the PR revision and browser job before transferring CI evidence to the release dossier.
+
 **Start here every session.** Every agent and engineer, including anyone returning after a handoff or a long absence, must follow the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md) before downloading project tools or dependencies, building, or testing. Use local Git to find the checked-out revision's Docker configuration. Verify Docker Desktop's Linux engine and the selected Ubuntu 24.04 runtime. If either check fails, stop runtime work and record the blocker.
+
+When the required Ubuntu image cannot be acquired locally, publish the review branch and use required PR CI. Record the PR, commit, job and relevant step outcome in `next.md` and the engineering activity log. Follow the [CI evidence procedure](docs/CI_FIRST_MINIMAL_AI_CONTEXT_POLICY.md).
 
 **Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Account inventory and RUM site count are verified. Billable Usage and production evidence remain pending. See the [consolidated matrix](docs/releases/free/v1.0.0/evidence-matrix.md). Use the [read-only evidence worksheet](docs/releases/free/v1.0.0/CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
 
