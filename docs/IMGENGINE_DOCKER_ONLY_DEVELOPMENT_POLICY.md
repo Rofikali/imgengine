@@ -1,6 +1,8 @@
 # IMGENGINE — Docker-only development and new-session bootstrap
 
-**Status:** Owner-requested binding policy **after this PR is reviewed and merged**. Windows 11 + VS Code + Docker Desktop are the host; Ubuntu 24.04 Linux containers are the project development runtime. This PR makes no F4 feature changes and does not execute tests, merge or deploy anything.
+This standing local-development policy applies to every agent and engineer across milestones, worktrees and handoffs. Windows 11 provides the editor, Git and Docker Desktop orchestration. Ubuntu 24.04 containers provide the project runtime.
+
+At session start, run `docker info --format '{{.OSType}}'` and require `linux`. Select the service from the checked-out Compose configuration or the image from the relevant CI job. For browser verification use the image pinned by that revision's browser workflow. Have Docker acquire the image. Inside the selected container, check `/etc/os-release` for `ID=ubuntu` and `VERSION_ID="24.04"` before installing dependencies or running the project. If acquisition or runtime verification fails, record the failed step in the task board. Keep recovery within Docker as described in section B.
 
 ## A. Every new session: read only the minimum
 
@@ -15,6 +17,10 @@ For **each new Codex/agent/engineering session**, after a context reset, or when
 **Permanent `go ahead` behavior:** resume the **highest-priority approved READY/in-progress job** in `next.md`, repair its blockers before advancing, and reconcile already merged work. It does not authorize automatic push/merge/deploy or public release.
 
 ## B. Host/toolchain security boundary
+
+On Windows 11, run `docker pull`, `docker build` or `docker compose` through Docker Desktop in Linux container mode. Docker's engine or builder fetches registry layers into Docker-managed storage. Run package and browser downloads, builds and tests inside the project's Ubuntu 24.04 containers. Keep dependency caches in container storage or Docker volumes. The source checkout may stay on the Windows bind mount.
+
+This boundary includes recovery from failed downloads. Retry the Docker operation or record the registry error and outstanding test. Do not fetch layers, toolchains, browser archives or dependencies with Windows curl, PowerShell download commands or a Windows Temp staging directory. For the Free browser matrix, use the Playwright Noble image and engine versions specified in the [browser CI job](../.github/workflows/ci.yml).
 
 | Windows 11 host — allowed | Docker Desktop Ubuntu 24.04 Linux container — required |
 | --- | --- |
