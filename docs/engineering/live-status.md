@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+24 November — COMPLETED. Updated the standing session-start rule and contributor entry points. Verified the root links, Linux Docker engine and Ubuntu 24.04 identity in the local P7 container.
+
 
 **Billing evidence update — COMPLETED.** Recorded dated subscription and earlier project evidence in the register, matrix and worksheet. Next owner evidence: Billable Usage period and result.
 
