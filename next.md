@@ -2,6 +2,8 @@
 
 Notice review — IMPLEMENTED. Three focused tests passed in Ubuntu Docker. Full PR browser CI is pending.
 
+PR CI evidence — IN_PROGRESS. The notice-review branch will use required CI because the local Playwright image remains unavailable. Record the exact branch commit, job and browser step outcome here after the run completes.
+
 Every new or resumed task starts with the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md).
 
 
