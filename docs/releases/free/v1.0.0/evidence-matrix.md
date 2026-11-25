@@ -1,6 +1,20 @@
 # IMGENGINE Free v1.0.0 — Release evidence and go/no-go
 
-The full static browser matrix passed for [candidate source 6629660](https://github.com/Rofikali/imgengine/actions/runs/45139483255/job/137573743841) and [main 79f469d](https://github.com/Rofikali/imgengine/actions/runs/45322482675/job/138204163667). The local archive replay awaits the image. Revised notice copy requires its own PR CI.
+## 25 November 2026 owner decision packet
+
+**Decision proposed: hold the freeze.** Main `080029325a7862c8dab89fa28dfdc2b1242de689` includes the proposed notices. Its [12 required jobs passed](https://github.com/Rofikali/imgengine/actions/runs/45338597623), including the published-shape browser step. Its [manual preflight](https://github.com/Rofikali/imgengine/actions/runs/45546232678) passed the strict production dependency audit and static privacy/CSP checks. Two desktop Chromium tests selected the server homepage assertion and the archive step was skipped. The guard reported all three draft notices and missing detached owner, provenance, legal/security and hosting evidence. A source freeze requires the final notice revision and rerun at that exact SHA.
+
+| Proposed notice | Changes for review |
+| --- | --- |
+| [Privacy](../../../../imgengine-saas/frontend/free-static/privacy.vue) | Distinguishes browser-local images from Cloudflare delivery metadata and Gmail correspondence. Proposes 12 months from the last interaction with earlier sensitive-attachment removal, deletion requests and documented exceptions. |
+| [Terms](../../../../imgengine-saas/frontend/free-static/terms.vue) | Covers rights to edit, output review and possible withdrawal. Preserves mandatory rights and links shipped licenses. |
+| [Support](../../../../imgengine-saas/frontend/free-static/support.vue) | Names help, privacy, security and accessibility channels, what to send, what to omit and the mailbox rehearsal. |
+
+All three share the supplied operator identity and monitored contact. The effective date reads “pending actual publication approval”. Independent legal review remains open. The owner must decide retention and grievance ownership after the live Gmail rehearsal. The [compliance register](owner-compliance-register.md) identifies questions for Indian counsel about SPDI and phased DPDP applicability, whether CERT-In reporting and India-based record retention apply to these systems, and any additional grievance or consumer disclosures.
+
+**Local review candidate.** A clean copy of the main frontend built in Ubuntu 24.04 Docker with Node 24.22.3, frozen offline pnpm 10.34.9 and cached dependencies. The static verifier counted 49 files across nine routes. Two serializations of the same tree compared byte-for-byte equal. Tar SHA-256 `fd266ad05f2e8f14f7fd9e284e4781a0941bde325adc2b1a8ab77b8083d330a0`. This local image lacked the pinned browser matrix. The detached local production inventory contained 586 distinct name/version pairs from the installed dependency tree; all 16 MIT-labelled emitted client packages matched. Review inventory SHA-256 `d3db90872ac4713737b437f17c9b21c509a854433afb0deb4617c68457108c13`. Independent final-archive license and provenance approval remain pending.
+
+**Hosting and release decisions.** The account rows below retain the subscription, inventory, user MFA, audit events and aggregate analytics already supplied. The dated Billable Usage period and charges remain necessary under the zero-spend gate. Confirm applicable request-log availability, access, location and retention against the legal decision. Review least privilege before issuing a deploy credential. After notice approval, verify and freeze the exact source, retain and approve its exact immutable tar, SBOM, licenses and provenance, and approve the [first-release withdrawal procedure](deployment-runbook.md). A protected rehearsal or production upload needs separate authority. Check effective Pages settings, HTTPS, CSP, caching, 404s, injection, network privacy and withdrawal on the authorized host before announcement.
 
 ## Consolidated release-readiness matrix — 23 November 2026
 

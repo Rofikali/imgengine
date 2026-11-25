@@ -1,5 +1,8 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
+When verifying a release candidate, check both the required browser job and the manual preflight for the exact source. The static matrix launcher selects the Free homepage contract for every caller.
+
+
 For notice changes, record the PR revision and browser job before transferring CI evidence to the release dossier.
 
 **Start here every session.** Every agent and engineer, including anyone returning after a handoff or a long absence, must follow the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md) before downloading project tools or dependencies, building, or testing. Use local Git to find the checked-out revision's Docker configuration. Verify Docker Desktop's Linux engine and the selected Ubuntu 24.04 runtime. If either check fails, stop runtime work and record the blocker.

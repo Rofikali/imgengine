@@ -108,6 +108,7 @@ test('Free static matrix runs 55 independent Firefox and WebKit test shards with
     assert.deepEqual(args.slice(0, 5), ['exec', 'playwright', 'test', '--config', 'playwright.free-static.config.ts'])
     assert.equal(args[5].startsWith('--project='), true)
     assert.equal(options.stdio, 'inherit')
+    assert.equal(options.env.IMGENGINE_STATIC_E2E, '1')
     assert.match(options.cwd, /frontend\/?$/)
     const isFirefox = i >= 2 && i < ISOLATED_BROWSER_TEST_SHARDS + 2
     const isWebKit = i >= ISOLATED_BROWSER_TEST_SHARDS + 2

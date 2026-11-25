@@ -37,6 +37,7 @@ export function runFreeStaticBrowserMatrix(run = spawnSync) {
         stdio: 'inherit',
         env: {
           ...process.env,
+          IMGENGINE_STATIC_E2E: '1',
           // Test-only server instrumentation: logs bounded static-route names,
           // status and completion times, never image/filename/metadata bytes.
           // Keep bounded, metadata-free request-completion diagnostics for

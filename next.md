@@ -1,8 +1,8 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
-Notice review — IMPLEMENTED. Three focused tests passed in Ubuntu Docker. Full PR browser CI is pending.
+**25 November 2026 · F5-BROWSER-VERIFY-REPAIR-01.** [Notice PR #120](https://github.com/Rofikali/imgengine/pull/120) merged. All 12 jobs passed at PR head `18f19d6e1678671ae14826d2605c9c94df30aca6` and main `080029325a7862c8dab89fa28dfdc2b1242de689`, including the full static matrix. [PR browser job](https://github.com/Rofikali/imgengine/actions/runs/45336581571/job/138250029844) · [main browser job](https://github.com/Rofikali/imgengine/actions/runs/45338597623/job/138256544053).
 
-PR CI evidence — IN_PROGRESS. The notice-review branch will use required CI because the local Playwright image remains unavailable. Record the exact branch commit, job and browser step outcome here after the run completes.
+The [manual preflight](https://github.com/Rofikali/imgengine/actions/runs/45546232678) exposed a separate launcher defect. It inherited the caller's homepage mode. Desktop Chromium then expected the server heading on the Free homepage. The repair sets the static mode in every browser subprocess. All 23 focused checks passed in Ubuntu Docker with a conflicting caller setting. Run the manual preflight at the repair commit to verify the four projects, archive and independent guard. F5 publication remains blocked.
 
 Every new or resumed task starts with the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md).
 
