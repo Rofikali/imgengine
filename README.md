@@ -1,5 +1,8 @@
 # imgengine
 
+Free v1.0.0 remains in review. The [release decision record](docs/releases/free/v1.0.0/evidence-matrix.md) includes the merged notice revisions, candidate checksum and outstanding approvals.
+
+
 The proposed Free notices are available for review. Their effective date is pending actual publication approval.
 
 **First session or returning contributor?** Start with the [Docker bootstrap](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md). Docker Desktop fetches images, and Ubuntu 24.04 containers download dependencies, build and run tests.

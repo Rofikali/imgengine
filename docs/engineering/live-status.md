@@ -1,6 +1,11 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
-Notice review — IMPLEMENTED on a local review branch. Three focused notice and guard tests passed in Ubuntu 24.04 Docker. GitHub verification of the changed pages awaits branch publication.
+**25 November 2026 · F5-BROWSER-VERIFY-REPAIR-01.** [Notice PR #120](https://github.com/Rofikali/imgengine/pull/120) merged. All 12 jobs passed at PR head `18f19d6e1678671ae14826d2605c9c94df30aca6` and main `080029325a7862c8dab89fa28dfdc2b1242de689`, including the full static matrix. [PR browser job](https://github.com/Rofikali/imgengine/actions/runs/45336581571/job/138250029844) · [main browser job](https://github.com/Rofikali/imgengine/actions/runs/45338597623/job/138256544053).
+
+The [manual preflight](https://github.com/Rofikali/imgengine/actions/runs/45546232678) exposed a separate launcher defect. It inherited the caller's homepage mode. Desktop Chromium then expected the server heading on the Free homepage. The repair sets the static mode in every browser subprocess. All 23 focused checks passed in Ubuntu Docker with a conflicting caller setting. Run the manual preflight at the repair commit to verify the four projects, archive and independent guard. F5 publication remains blocked.
+
+
+Historical pre-merge checkpoint. Notice review — IMPLEMENTED on a local review branch. Three focused notice and guard tests passed in Ubuntu 24.04 Docker. GitHub verification of the changed pages awaits branch publication.
 
 PR CI evidence — IN_PROGRESS. Required local Playwright image acquisition remains unavailable. After publication, record the review commit, PR URL, job URL and browser-step conclusion for the changed notice sources.
 

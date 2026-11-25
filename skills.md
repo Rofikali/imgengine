@@ -1,5 +1,8 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+For a discrepancy between CI and manual preflight, compare the environment passed to each browser subprocess. Verify the static launcher with a conflicting inherited mode and run its four browser projects on the repair commit.
+
+
 Use the browser job step results for the tested commit when a local image pull stalls. A publication guard rejection is expected for draft notices.
 
 Start each engineering session with the [Docker bootstrap and recovery procedure](docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md). Discover the service or browser image from the current checkout and verify the engine and container OS before running project commands.
