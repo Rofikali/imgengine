@@ -1,5 +1,7 @@
 # imgengine
 
+A review tar, license text and component inventory for the #121 merge are retained in Docker Desktop. The [Free release dossier](docs/releases/free/v1.0.0/evidence-matrix.md) identifies the volume and hashes.
+
 Free v1.0.0 remains in review. The [release decision record](docs/releases/free/v1.0.0/evidence-matrix.md) includes the merged notice revisions, candidate checksum and outstanding approvals.
 
 

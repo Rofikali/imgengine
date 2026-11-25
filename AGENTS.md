@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
+The #121 merge includes the static-mode launcher repair. Use the [release matrix](docs/releases/free/v1.0.0/evidence-matrix.md) to identify which source produced each candidate and whether its tar was retained.
+
 When verifying a release candidate, check both the required browser job and the manual preflight for the exact source. The static matrix launcher selects the Free homepage contract for every caller.
 
 
