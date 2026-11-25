@@ -1,5 +1,7 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+To reproduce the candidate serialization check, export the exact Git tree to Ubuntu 24.04 Docker, build with the frozen lockfile, serialize the verified public tree twice and compare the tar bytes. Record separate digests for independently generated trees.
+
 For a discrepancy between CI and manual preflight, compare the environment passed to each browser subprocess. Verify the static launcher with a conflicting inherited mode and run its four browser projects on the repair commit.
 
 
