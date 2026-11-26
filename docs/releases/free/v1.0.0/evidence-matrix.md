@@ -1,5 +1,7 @@
 # IMGENGINE Free v1.0.0 — Release evidence and go/no-go
 
+26 November 2026. The owner confirmed Rofik Ali as the contact responsible for privacy and deletion requests and endorsed the proposed 12-month retention period for ordinary correspondence after the last support interaction. Final adoption awaits the live mailbox rehearsal and legal review. The owner confirmed prior delivery of the Cloudflare Billable Usage period and displayed charges. Their exact values were unavailable in the repository and PR records reviewed. Reconcile the existing private evidence before signing the zero-spend decision.
+
 ## Merged browser repair and freeze proposal · 25 November
 
 Review source `214fb6a27c4c831aae13949dfc84787e003241d4` includes [PR #121](https://github.com/Rofikali/imgengine/pull/121). The [PR verification](https://github.com/Rofikali/imgengine/actions/runs/45547115705) passed all 12 jobs. The [PR manual preflight](https://github.com/Rofikali/imgengine/actions/runs/45547116421) passed the dependency audit and four-browser candidate job. Its guard rejected the three drafts and absent attestations. The PR candidate tar checksum was `006b7f758cec9a72318aaf8e0a79e73ba6f37898a81697658835ef7c6d3b41ce`.
