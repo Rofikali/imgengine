@@ -1,5 +1,7 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+26 November 2026. The owner selected operator self-assessment for the proposed static Free release. The governance implementation and completed assessment are pending review. See the [compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md).
+
 See the [26 November owner decision](docs/releases/free/v1.0.0/evidence-matrix.md) for the mailbox retention proposal and previously supplied Cloudflare billing evidence.
 
 To reproduce the candidate serialization check, export the exact Git tree to Ubuntu 24.04 Docker, build with the frozen lockfile, serialize the verified public tree twice and compare the tar bytes. Record separate digests for independently generated trees.

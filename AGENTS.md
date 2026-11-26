@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE Engineering Constitution
 
+26 November 2026. The owner selected operator self-assessment for the proposed static Free release. The governance implementation and completed assessment are pending review. See the [compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md).
+
 See the [26 November owner decision](docs/releases/free/v1.0.0/evidence-matrix.md) for the mailbox retention proposal and previously supplied Cloudflare billing evidence.
 
 The #121 merge includes the static-mode launcher repair. Use the [release matrix](docs/releases/free/v1.0.0/evidence-matrix.md) to identify which source produced each candidate and whether its tar was retained.

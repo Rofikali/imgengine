@@ -1,5 +1,7 @@
 # imgengine
 
+26 November 2026. The owner selected operator self-assessment for the proposed static Free release. The governance implementation and completed assessment are pending review. See the [compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md).
+
 See the [26 November owner decision](docs/releases/free/v1.0.0/evidence-matrix.md) for the mailbox retention proposal and previously supplied Cloudflare billing evidence.
 
 A review tar, license text and component inventory for the #121 merge are retained in Docker Desktop. The [Free release dossier](docs/releases/free/v1.0.0/evidence-matrix.md) identifies the volume and hashes.
