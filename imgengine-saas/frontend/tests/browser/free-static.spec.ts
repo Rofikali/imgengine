@@ -18,7 +18,15 @@ for (const route of freeRoutes) {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
     expect(response.headers()['content-type']).toContain('text/html')
-    await page.goto(route, { waitUntil: 'domcontentloaded' })
+    const errors: string[] = []
+    const origin = new URL(response.url()).origin
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()) })
+    page.on('pageerror', error => errors.push(error.message))
+    page.on('request', req => {
+      if (/^https?:/.test(req.url()) && new URL(req.url()).origin !== origin) errors.push(req.url())
+    })
+    await page.goto(route, { waitUntil: 'networkidle' })
+    expect(errors).toEqual([])
     await expect(page.getByRole('main')).toBeVisible()
     await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
     await expect(page.getByText('Create printable photo layouts.')).toHaveCount(0)
@@ -89,12 +97,12 @@ for (const [route, heading] of [
   ['/terms', 'Terms of use'],
   ['/support', 'Support and contact'],
 ] as const) {
-  test(`Free legal notice ${route} remains visibly draft`, async ({ page, request }) => {
+  test(`Free legal notice ${route} shows the operator contact`, async ({ page, request }) => {
     const response = await request.get(route, { maxRedirects: 0 })
     expect(response.status(), route).toBe(200)
     await page.goto(route, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: heading })).toBeVisible()
-    await expect(page.getByText('IMGENGINE · FREE · PRE-LAUNCH DRAFT')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'alirofikr@gmail.com' })).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Privacy, terms and support' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Create printable photo layouts.' })).toHaveCount(0)
     await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
@@ -129,7 +137,7 @@ for (const route of freeRoutes) {
     expect(scriptDirective).not.toContain('unsafe-inline')
     expect(headers['x-content-type-options']).toBe('nosniff')
     expect(headers['x-frame-options']).toBe('DENY')
-    expect(headers['referrer-policy']).toBe('no-referrer')
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin')
     expect(headers['x-robots-tag']).toContain('noindex')
     await page.addInitScript(() => {
       const store = window as Window & { __imgengineCspViolations?: string[] }

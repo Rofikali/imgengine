@@ -1,5 +1,7 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.
+
 26 November 2026. The owner selected operator self-assessment for the proposed static Free release. The governance implementation and completed assessment are pending review. See the [compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md).
 
 See the [26 November owner decision](docs/releases/free/v1.0.0/evidence-matrix.md) for the mailbox retention proposal and previously supplied Cloudflare billing evidence.

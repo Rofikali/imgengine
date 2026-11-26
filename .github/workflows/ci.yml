@@ -445,7 +445,9 @@ jobs:
         run: pnpm run build:free-static
       - name: Reject forbidden runtime, secrets, API and missing static routes
         working-directory: imgengine-saas/frontend
-        run: pnpm run verify:free-static
+        run: |
+          pnpm run verify:free-static
+          pnpm run verify:free-publication-ready
       - name: Run full local-tool and static-boundary browser matrix
         working-directory: imgengine-saas/frontend
         env:

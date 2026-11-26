@@ -47,7 +47,19 @@ export default defineNuxtConfig({
   // asset prefetch (which may fall back to default-src across browsers).
   // Normal server-backed Nuxt behavior remains unchanged.
   experimental: freeStatic ? { defaults: { nuxtLink: { prefetch: false } } } : {},
-  vite: freeStatic ? { build: { license: { fileName: '_nuxt/third-party-licenses.txt' } } } : {},
+  vite: freeStatic ? {
+    build: { license: { fileName: '_nuxt/third-party-licenses.txt' } },
+    plugins: [{
+      name: 'free-payload-relative-url-base',
+      enforce: 'pre',
+      transform(code, id) {
+        if (!id.endsWith('/nuxt/dist/app/composables/payload.js')) return
+        // Nuxt uses a synthetic origin to parse relative paths and check their host.
+        return code.replaceAll('"http://localhost"', '"https://payload.invalid"')
+          .replaceAll('"localhost"', '"payload.invalid"')
+      },
+    }],
+  } : {},
   devtools: { enabled: !freeStatic },
   typescript: { strict: true },
 })

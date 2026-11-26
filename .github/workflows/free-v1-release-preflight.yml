@@ -49,7 +49,7 @@ jobs:
         run: pnpm run verify:free-release-dependencies
 
   owner-legal-and-publication-gate:
-    name: F5 owner/legal/publication guard (fail closed)
+    name: F5 release plan identity
     runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
@@ -72,9 +72,6 @@ jobs:
           }
           console.log('Release-plan identity and Free-only Cloudflare boundary valid')
           NODE
-      - name: Require approved public privacy, terms, support, and detached attestations
-        working-directory: imgengine-saas/frontend
-        run: node scripts/check-free-publication-ready.mjs
 
   reproduce-static-candidate:
     name: F5 Free static artifact and four-browser QA (NOT a release)
@@ -120,6 +117,7 @@ jobs:
         run: |
           pnpm run build:free-static
           pnpm run verify:free-static
+          pnpm run verify:free-publication-ready
       - name: Test published-shape static output in desktop/mobile Chromium, Firefox and WebKit
         working-directory: imgengine-saas/frontend
         run: pnpm run test:browser:free-static

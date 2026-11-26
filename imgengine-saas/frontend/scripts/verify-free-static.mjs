@@ -15,7 +15,9 @@ const forbiddenContent = [
   /Server print layouts \(uploads on Render\)/,
   /Create printable photo layouts\./,
   /\/api\/(?:render|layout-render|sheet-render|v2\/sheet-render)/,
-  /https?:\/\/(?:localhost|127\.0\.0\.1):8000/,
+  /-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----/,
+  /(?:https?|wss?):\/\/(?:localhost\b|127\.\d+\.\d+\.\d+|0\.0\.0\.0|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|[\w.-]+\.(?:internal|local)\b)/i,
+  /(?:^|\n)\s*(?:[A-Z_]*(?:PASSWORD|SECRET|ACCESS_TOKEN|PRIVATE_KEY|API_KEY))\s*=\s*[^\s]+/m,
 ]
 
 function walk(root) {
