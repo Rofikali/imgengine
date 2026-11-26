@@ -1,5 +1,7 @@
 # IMGENGINE Frontend Excellence Program (F6) — Post-Free v1 strategy
 
+Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
+
 **Status (2026-11-19): OWNER-REQUESTED DOCUMENTATION PROGRAM / PROPOSED EXECUTION, NOT IMPLEMENTED OR RELEASED.** This records direction and reviewable work packages, not approval for new services, dependencies, analytics, ads, cloud spend, public launch, merges or a Wasm rewrite. The actual next READY task must always come from [live next.md](../next.md) and current GitHub evidence; a dated status assertion is not fresh CI proof. [F6 acceptance & verification matrix](IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md) provides testable exit conditions.
 
 ## 1. Mission, scope and source of truth
