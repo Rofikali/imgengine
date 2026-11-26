@@ -1,5 +1,9 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.
+
+Solo-owner release checks implemented. Local Ubuntu static build and publication preflight passed. Required browser CI verifies the review branch.
+
 26 November 2026. The owner selected operator self-assessment for the proposed static Free release. The governance implementation and completed assessment are pending review. See the [compliance register](docs/releases/free/v1.0.0/owner-compliance-register.md).
 
 26 November 2026. The owner confirmed Rofik Ali as the contact responsible for privacy and deletion requests and endorsed the proposed 12-month retention period for ordinary correspondence after the last support interaction. Final adoption awaits the live mailbox rehearsal and legal review. The owner confirmed prior delivery of the Cloudflare Billable Usage period and displayed charges. Their exact values were unavailable in the repository and PR records reviewed. Reconcile the existing private evidence before signing the zero-spend decision.

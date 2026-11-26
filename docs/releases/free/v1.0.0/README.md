@@ -1,5 +1,7 @@
 # IMGENGINE Free v1.0.0 — Release dossier
 
+Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.
+
 The [26 November owner decision](evidence-matrix.md) updates the mailbox and billing entries below.
 
 **Hosting decision — 23 November 2026.** Cloudflare Pages is primary. Netlify is deferred. The release manifest and privacy draft already name Cloudflare. Workers Free subscription settings were verified by the owner on 23 November. Account inventory and RUM site count are verified. Billable Usage and production evidence remain pending. See the [consolidated matrix](evidence-matrix.md). Use the [read-only evidence worksheet](CLOUDFLARE_LAUNCH_GATE_AND_SMOKE_TEST.md). PR #115 records a proposal. Governance, artifact and deployment approvals remain separate and publication is BLOCKED.
