@@ -36,12 +36,25 @@ for (const route of freeRoutes) {
 test('Free landing page links to exactly five local tools', async ({ page }) => {
   test.slow() // One deliberate SPA journey through all five tools.
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Edit images privately.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Free image tools that run in your browser.' })).toBeVisible()
+  const header = page.getByRole('navigation', { name: 'Site navigation' })
+  const toggle = header.locator('summary')
+  if (await toggle.isVisible()) {
+    await toggle.focus()
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Tab')
+    await expect(header.getByRole('link', { name: 'Resize', exact: true })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(toggle).toBeFocused()
+  }
+  await header.getByRole('link', { name: 'Home', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  await expect(header.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page')
   const nav = page.getByRole('navigation', { name: 'Free image tools' })
   await expect(nav.getByRole('link')).toHaveCount(5)
   for (const [name, path, heading] of freeTools) {
-    await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute('href', path)
-    await nav.getByRole('link', { name, exact: true }).click()
+    await expect(nav.getByRole('link', { name: new RegExp('^' + name.split(' ')[0] + ' ') })).toHaveAttribute('href', path)
+    await nav.getByRole('link', { name: new RegExp('^' + name.split(' ')[0] + ' ') }).click()
     await expect(page.getByRole('heading', { name: heading })).toBeVisible()
     await page.goto('/')
   }

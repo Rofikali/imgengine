@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import FreeSiteHeader from './free-static/FreeSiteHeader.vue'
 const showFreeNotices = useRuntimeConfig().public.imgengineFreeStatic === true
 </script>
 
 <template>
   <div>
-    <NuxtPage />
+    <FreeSiteHeader v-if="showFreeNotices" />
+    <div v-if="showFreeNotices" id="free-content" tabindex="-1"><NuxtPage /></div>
+    <NuxtPage v-else />
     <footer v-if="showFreeNotices" class="free-site-footer">
       <nav aria-label="Privacy, terms and support">
         <NuxtLink to="/privacy">Privacy</NuxtLink>
