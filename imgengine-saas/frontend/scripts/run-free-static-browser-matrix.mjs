@@ -20,8 +20,9 @@ export const ISOLATED_BROWSER_TEST_SHARDS = 55
 
 const frontendRoot = fileURLToPath(new URL('../', import.meta.url))
 
-export function runFreeStaticBrowserMatrix(run = spawnSync) {
-  for (const project of FREE_STATIC_BROWSER_PROJECTS) {
+export function runFreeStaticBrowserMatrix(run = spawnSync, projects = FREE_STATIC_BROWSER_PROJECTS) {
+  if (!projects.length || new Set(projects).size !== projects.length || projects.some(p => !FREE_STATIC_BROWSER_PROJECTS.includes(p))) throw Error('Invalid browser project selection')
+  for (const project of projects) {
     const shards = ['desktop-firefox', 'desktop-webkit'].includes(project) ? ISOLATED_BROWSER_TEST_SHARDS : 1
     for (let i = 1; i <= shards; i++) {
       const label = project + (shards > 1 ? ' shard ' + i + '/' + shards : '')
@@ -52,10 +53,16 @@ export function runFreeStaticBrowserMatrix(run = spawnSync) {
       }
     }
   }
-  console.log('Free static browser matrix: all Chromium, Firefox and WebKit privacy/static tests passed')
+  console.log('Free static browser matrix: selected projects passed: ' + projects.join(', '))
   return 0
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  process.exitCode = runFreeStaticBrowserMatrix()
+  const lane = process.argv[2]
+  if (process.argv.length === 2) process.exitCode = runFreeStaticBrowserMatrix()
+  else if (process.argv.length === 3 && process.env.IMGENGINE_STATIC_PARALLEL_EXPERIMENT === '1' && lane === '--experiment-lane=a' && process.env.IMGENGINE_STATIC_TEST_PORT === '3100') {
+    process.exitCode = runFreeStaticBrowserMatrix(spawnSync, ['desktop-chromium', 'mobile-chromium', 'desktop-webkit'])
+  } else if (process.argv.length === 3 && process.env.IMGENGINE_STATIC_PARALLEL_EXPERIMENT === '1' && lane === '--experiment-lane=b' && process.env.IMGENGINE_STATIC_TEST_PORT === '3101') {
+    process.exitCode = runFreeStaticBrowserMatrix(spawnSync, ['desktop-firefox'])
+  } else { console.error('Invalid browser matrix arguments'); process.exitCode = 1 }
 }

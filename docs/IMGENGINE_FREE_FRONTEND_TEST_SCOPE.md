@@ -1,5 +1,8 @@
 # IMGENGINE Free — isolated frontend test scope
 
+**CI-EFF-01 opt-in parallel browser experiment — 27 November 2026:** Candidate prepared on existing `codex/free-frontend-f6-batch`; main #130 post-merge CI 45976692568 still running at inspection. Static Firefox (55 shards) uses loopback port 3101; Chromium desktop/mobile and WebKit (55 shards) use 3100. All 112 invocations retained, with one-test Firefox/WebKit process isolation, separate result directories and lane logs, strict same-origin/no-upload assertions bound to explicitly validated test origin. Default serial launcher remains required and unchanged in behavior; experiment only via `node scripts/run-free-static-browser-parallel-experiment.mjs` inside approved Ubuntu 24.04 Playwright Docker after audited static build, no CI workflow switch. Fixture command `node --test scripts/run-free-static-browser-parallel-experiment.node-test.mjs`; fixture, typecheck, browsers and measured savings NOT RUN. Compare serial vs parallel elapsed/runner resource and failure coverage on same SHA/artifact; reject if any privacy, correctness, flaky, cleanup or output isolation regression. No extra PR attempt yet; five-PR ceiling unchanged. F5 live URL retrieval failed again; no live or release assertion. F6 shell and Products dropdown remain gated. No new dependencies, paid service, native/Rust or deployment changes.
+
+
 Owner direction 2026-11-27. Candidate on existing PR #130, no new PR. #128/#129 merged; repaired measurement retained from main 74b4eedaf7373ea345f6a4291e2bb603727f1bbe. Tests NOT RUN for new candidate.
 
 ## Product and scope boundaries

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectedLocalToolOrigin } from './static-payload'
 
 const freeTools = [
   ['Resize locally — no upload', '/resize-image', 'Resize an image'],
@@ -77,7 +78,7 @@ for (const route of privacyRoutes) {
     context.on('request', request => {
       if (!request.url().startsWith('http')) return
       const url = new URL(request.url())
-      if (url.origin !== 'http://127.0.0.1:3100' ||
+      if (url.origin !== expectedLocalToolOrigin() ||
           request.method() !== 'GET' ||
           request.postData() ||
           url.pathname.startsWith('/api/')) requests.push(request.url())

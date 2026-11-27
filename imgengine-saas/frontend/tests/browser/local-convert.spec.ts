@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectedLocalToolOrigin } from './static-payload'
 import AxeBuilder from '@axe-core/playwright'
 
 async function fixture(page: import('@playwright/test').Page) {
@@ -35,7 +36,7 @@ test('converts locally to PNG and JPEG, preserves the documented alpha behavior,
   const download = page.waitForEvent('download'); await page.getByRole('link', { name: 'Download JPEG' }).click(); expect((await download).suggestedFilename()).toBe('imgengine-converted.jpg')
   expect((await new AxeBuilder({ page }).include('.local-convert').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map(v => v.id)).toEqual([])
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  expect(requests.every(request => request.method === 'GET' && !request.body && new URL(request.url).origin === 'http://127.0.0.1:3100'), JSON.stringify(requests)).toBe(true)
+  expect(requests.every(request => request.method === 'GET' && !request.body && new URL(request.url).origin === expectedLocalToolOrigin()), JSON.stringify(requests)).toBe(true)
   expect(await page.evaluate(async () => [localStorage.length, sessionStorage.length, (await indexedDB.databases()).length])).toEqual([0, 0, 0])
 })
 

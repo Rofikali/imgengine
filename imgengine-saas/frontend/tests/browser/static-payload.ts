@@ -11,3 +11,12 @@ export function isApprovedStaticNuxtPayload(url: URL): boolean {
   if (keys.length !== 1 || keys[0] !== '_b') return false
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(url.searchParams.get('_b') || '')
 }
+
+// Only the opt-in isolated static test lane may select another loopback origin.
+// Never infer the trusted origin from an observed network request.
+export function expectedLocalToolOrigin(): string {
+  const port = process.env.IMGENGINE_STATIC_TEST_PORT
+  if (port === undefined) return 'http://127.0.0.1:3100'
+  if (process.env.IMGENGINE_STATIC_E2E !== '1' || process.env.IMGENGINE_STATIC_PARALLEL_EXPERIMENT !== '1' || (port !== '3100' && port !== '3101')) throw Error('Invalid static experiment origin')
+  return `http://127.0.0.1:${port}`
+}
