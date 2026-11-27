@@ -106,7 +106,7 @@ test('Free-only workflow keeps static gates and normal mode fails safe', () => {
 // retain both frontend suites; the isolated static spec may use static-only mode.
 const push = { ref: 'refs/heads/main', before: a, after: b, created: false, deleted: false, forced: false }
 const pushGit = raw => args => {
-  if (args[0] === 'rev-parse') return args[1] === 'HEAD' ? a : b
+  if (args[0] === 'rev-parse') return args[1] === 'HEAD' || args[1] === b + '^' ? a : b
   if (args[0] === 'merge-base' && args[1] === '--is-ancestor') return ''
   if (args[0] === 'diff') return raw
   throw Error('unexpected git command')
@@ -131,4 +131,8 @@ test('main push requires previous checkout, validated ancestry and unforced even
 test('static-specific spec selects isolated lane; normal-mode local spec does not', () => {
   assert.equal(classifyDiff(record('imgengine-saas/frontend/tests/browser/free-static.spec.ts')).freeOnly,true)
   assert.equal(classifyDiff(record('imgengine-saas/frontend/tests/browser/local-resize.spec.ts')).freeOnly,false)
+})
+
+test('multi-commit main push cannot narrow verification', () => {
+  assert.equal(selectFromEvent('push', push, args => args[0] === 'rev-parse' && args[1] === b + '^' ? 'c'.repeat(40) : pushGit(record('README.md'))(args)).full, true)
 })

@@ -138,6 +138,8 @@ export function selectFromEvent(eventName, event, git) {
       if (base === head || git(['rev-parse', 'HEAD']).trim() !== base) return full('untrusted-push-base')
       if (git(['rev-parse', head + '^{commit}']).trim() !== head) return full('untrusted-push-head')
       git(['merge-base', '--is-ancestor', base, head])
+      // The always-on diff guard covers HEAD^..HEAD. Require the same range.
+      if (git(['rev-parse', head + '^']).trim() !== base) return full('main-multi-commit-or-unexpected-parent')
       const raw = git(['diff', '--name-status', '-z', '--find-renames', base, head, '--'])
       const decision = classifyDiff(raw)
       if (decision.full) return decision

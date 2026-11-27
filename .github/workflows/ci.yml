@@ -8,7 +8,7 @@ on:
   merge_group:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.head_ref || github.ref_name }}
   # Never cancel previous main verification when a later push selects fewer jobs.
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.event.pull_request.base.sha || (github.event_name == 'push' && github.event.before) || github.sha }}
+          ref: ${{ github.event.pull_request.base.sha || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Classify pull request using trusted base policy
@@ -605,7 +605,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.event.pull_request.base.sha || (github.event_name == 'push' && github.event.before) || github.sha }}
+          ref: ${{ github.event.pull_request.base.sha || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || github.sha }}
           persist-credentials: false
       - name: Verify every selected job actually passed
         env:
