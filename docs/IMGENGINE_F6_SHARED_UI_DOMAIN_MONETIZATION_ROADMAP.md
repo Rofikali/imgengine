@@ -36,6 +36,10 @@ Suggested incremental structure: assets/css/tokens.css and base.css; scoped comp
 | UI-PLATFORM-01 | Frontend-first shared UI compatibility; extraction only when second app needs it | Evaluate shared Nuxt Layer vs versioned internal package; no cross-product feature leakage, contract tests, independent release compatibility. |
 | F6-09/10 | Existing conditional/later | Localization and selected Free v1.x release review under existing F6 controls. |
 
+### Deferred work — original phases 4, 6 and 7
+
+| ID | Priority / dependency | Scope and exit evidence |
+| --- | --- | --- |
 | DOM-01 | DEFERRED — original phase 4; owner reopens | Check domain availability, trademark/name collision, registration AND renewal, taxes/currency and registrar terms. Candidate imgengine.com; fallback .in/.app/.dev or getimgengine.com, not verified. Compare Cloudflare and alternatives. |
 | DOM-02 | DEFERRED — OWNER decision after DOM-01 | Choose one parent domain, budget and registrar; explicit purchase approval, MFA/recovery/lock, renewal ownership, DNSSEC. No purchase in ordinary go ahead. |
 | DOM-03 | DEFERRED — OWNER decision after F5 and DOM-02 | Attach domain to approved static deployment; validate DNS/TLS/headers/cache/404/rollback; redirect old paths if supported; document exact provenance and charges. No automatic switch. |
