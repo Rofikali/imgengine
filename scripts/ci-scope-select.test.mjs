@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import { JOBS, classifyDiff, encodeOutputs, full, selectFromEvent } from './ci-scope-select.mjs'
 
@@ -36,7 +37,7 @@ test('outputs carry exact nine boolean jobs', () => {
   const s = encodeOutputs(classifyDiff(record('next.md')))
   assert.match(s, /version=ci-scope-02-v1/)
   assert.match(s, /frontend_browser_quality=false/)
-  assert.equal(s.trim().split('\n').length, JOBS.length + 3)
+  assert.equal(s.trim().split('\n').length, JOBS.length + 4)
 })
 const a = 'a'.repeat(40), b = 'b'.repeat(40), event = { pull_request: { number: 76, base: { sha: a }, head: { sha: b } } }
 test('PR diff uses trusted SHA and read-only numeric PR ref', () => {
@@ -71,3 +72,32 @@ for (const path of shellPaths) test('shell + mandatory docs: ' + path, () => ass
 test('PR 127 planning-only path set selects no runtime jobs', () => assert.deepEqual(names(classifyDiff([...planningDocs, 'README.md', 'next.md'].map(p => record(p)).join(''))), []))
 for (const path of ['docs/releases/free/v1.0.0/release-manifest.json','docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md','imgengine-saas/frontend/free-static/empty-server/unknown.ts','imgengine-saas/frontend/nuxt.config.ts','scripts/ci-scope-select.mjs','imgengine/src/a.c']) test('planning plus high-risk stays full: ' + path, () => assert.deepEqual(names(classifyDiff(record('AGENTS.md') + record(path))), all))
 test('planning deletion still fails closed', () => assert.deepEqual(names(classifyDiff(record('AGENTS.md', 'D'))), all))
+
+test('only existing Free presentation paths plus planning docs opt in', () => {
+  for (const path of ['FreeSiteHeader.vue', 'landing.vue', 'tools.ts']) {
+    const d = classifyDiff(record('AGENTS.md') + record('imgengine-saas/frontend/free-static/' + path))
+    assert.equal(d.freeOnly, true)
+    assert.deepEqual(names(d), frontend)
+    assert.match(encodeOutputs(d), /free_only=true/)
+  }
+})
+test('mixed, added, unknown, config, native and full scope never opt in', () => {
+  const freePath = 'imgengine-saas/frontend/free-static/landing.vue'
+  for (const path of ['imgengine-saas/frontend/app.vue', 'imgengine-saas/frontend/assets/css/tokens.css', 'imgengine-saas/frontend/pages/resize-image.vue', 'imgengine-saas/frontend/free-static/unknown.vue', 'imgengine-saas/frontend/nuxt.config.ts', 'imgengine/src/a.c', '.github/workflows/ci.yml']) {
+    assert.equal(classifyDiff(record(freePath) + record(path)).freeOnly, false)
+  }
+  assert.equal(classifyDiff(record(freePath, 'A')).freeOnly, false)
+  assert.equal(classifyDiff(record(freePath, 'D')).freeOnly, false)
+  assert.equal(classifyDiff(record('README.md')).freeOnly, false)
+  assert.equal(full().freeOnly, false)
+})
+test('Free-only workflow keeps static gates and normal mode fails safe', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
+  for (const step of ['Run frontend unit tests', 'Build production Nuxt application', 'Generate Nuxt production output', 'Run local tool browser quality matrix']) {
+    assert.ok(workflow.includes("      - name: " + step + "\n        if: ${{ needs.ci-scope.outputs.free_only != 'true' }}"))
+  }
+  for (const step of ['Generate static Free-only distribution (Docker Ubuntu 24.04)', 'Reject forbidden runtime, secrets, API and missing static routes', 'Record audited Free CSS and JavaScript size inventory', 'Run full local-tool and static-boundary browser matrix']) {
+    assert.ok(workflow.includes('      - name: ' + step + '\n        working-directory:'))
+  }
+  assert.ok(workflow.includes("if: ${{ needs.ci-scope.outputs.free_only == 'true' }}"))
+})

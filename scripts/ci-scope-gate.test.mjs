@@ -52,3 +52,20 @@ test('full mode cannot omit jobs', () => {
   const n = fixture([], 'full')
   assert.throws(() => verifyNeeds(n))
 })
+
+test('Free-only scope requires exactly both successful frontend jobs', () => {
+  const n = fixture(['frontend-verification', 'frontend-browser-quality'], 'selective')
+  n['ci-scope'].outputs.free_only = 'true'
+  assert.equal(verifyNeeds(n).selected, 2)
+  n['frontend-browser-quality'].result = 'skipped'
+  assert.throws(() => verifyNeeds(n))
+})
+test('Free-only flag fails closed for incompatible or invalid scope', () => {
+  for (const n of [fixture(), fixture([], 'selective'), fixture(['frontend-verification', 'rust-api-container'], 'selective')]) {
+    n['ci-scope'].outputs.free_only = 'true'
+    assert.throws(() => verifyNeeds(n), /Free-only mode/)
+  }
+  const n = fixture()
+  n['ci-scope'].outputs.free_only = 'unexpected'
+  assert.throws(() => verifyNeeds(n), /invalid Free-only flag/)
+})
