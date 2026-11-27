@@ -14,7 +14,7 @@
         130
       ],
       "status": "PARTIAL",
-      "note": "129 stacked on 128; conservative attribution pending independent diff reconciliation; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain."
+      "note": "129 stacked on 128; conservative attribution pending independent diff reconciliation; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial."
     },
     {
       "id": "F6-01A",
@@ -24,7 +24,7 @@
         130
       ],
       "status": "PARTIAL",
-      "note": "129 includes inherited token change until 128 merges; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain."
+      "note": "129 includes inherited token change until 128 merges; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial."
     },
     {
       "id": "F6-00",
@@ -34,7 +34,7 @@
         130
       ],
       "status": "PARTIAL",
-      "note": "128 source baseline; 129 measurement tooling and CI evidence; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain."
+      "note": "128 source baseline; 129 measurement tooling and CI evidence; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial."
     },
     {
       "id": "GOV-FREE-SCOPE-01",
@@ -42,7 +42,7 @@
         130
       ],
       "status": "PARTIAL",
-      "note": "Existing governance PR reconciled with merged prerequisites; narrow lane candidate, not verified."
+      "note": "Existing governance PR reconciled with merged prerequisites; narrow lane candidate, not verified. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial."
     }
   ],
   "planning_prs": [
