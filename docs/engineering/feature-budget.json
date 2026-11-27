@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "policy": "maximum-five-opened-prs-per-stable-feature",
+  "limit": 5,
+  "as_of": "2026-11-27",
+  "enforcement": "agent-maintained; CI enforcement not implemented",
+  "historical_inventory": "partial; reconcile prior PRs before opening more feature PRs",
+  "features": [
+    {
+      "id": "CI-EFF-01",
+      "prs": [
+        128,
+        129
+      ],
+      "status": "PARTIAL",
+      "note": "129 stacked on 128; conservative attribution pending independent diff reconciliation"
+    },
+    {
+      "id": "F6-01A",
+      "prs": [
+        128,
+        129
+      ],
+      "status": "PARTIAL",
+      "note": "129 includes inherited token change until 128 merges"
+    },
+    {
+      "id": "F6-00",
+      "prs": [
+        128,
+        129
+      ],
+      "status": "PARTIAL",
+      "note": "128 source baseline; 129 measurement tooling and CI evidence"
+    }
+  ],
+  "planning_prs": [
+    127
+  ]
+}

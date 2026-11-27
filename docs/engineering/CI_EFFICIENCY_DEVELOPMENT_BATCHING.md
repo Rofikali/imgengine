@@ -1,5 +1,7 @@
 # CI-EFF-01 — Efficient development batching and trusted scope refinement
 
+**Owner override — 27 November 2026, GO AHEAD ONLY:** `go ahead` is the sole manual continuation keyword (case-insensitive, optionally followed by IMGENGINE). Retire `next` as a shortcut; `next.md` remains the live board, not a command. Apply the five-step execution cycle and maximum five opened PR attempts per stable feature ID in [continuation policy](../IMGENGINE_FIVE_STEP_CONTINUATION_POLICY.md). Count all authors, including closed/failed PRs; same-PR fixes and ordinary development pushes do not consume another slot. Finish earlier if accepted, stop on required blockers, and do not reset counts by renaming. Preserve explicit merge/deploy/spend approval boundaries, no new autopilot, no security bypass. This owner instruction supersedes any older shortcut aliases.
+
 2026-11-27. Owner requested quicker frontend development. Work state: IMPLEMENTED candidate on an unmerged development branch; verification NOT RUN. Base PR #127 head 9937aeeeb80eec7f04e35a327f6800fd832f7108; main at 1f57493bb0d0b6545bc03da12aed195bc5a87b1e. PR #127 must not be reset or have its running checks cancelled. Branch is dependent on that roadmap; reconcile ancestry after owner merge (especially squash). No release or deployment approval.
 
 ## Evidence and root cause

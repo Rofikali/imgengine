@@ -1,5 +1,7 @@
 # F6-00 / F6-01A — source baseline and first design tokens
 
+**Owner override — 27 November 2026, GO AHEAD ONLY:** `go ahead` is the sole manual continuation keyword (case-insensitive, optionally followed by IMGENGINE). Retire `next` as a shortcut; `next.md` remains the live board, not a command. Apply the five-step execution cycle and maximum five opened PR attempts per stable feature ID in [continuation policy](IMGENGINE_FIVE_STEP_CONTINUATION_POLICY.md). Count all authors, including closed/failed PRs; same-PR fixes and ordinary development pushes do not consume another slot. Finish earlier if accepted, stop on required blockers, and do not reset counts by renaming. Preserve explicit merge/deploy/spend approval boundaries, no new autopilot, no security bypass. This owner instruction supersedes any older shortcut aliases.
+
 27 November 2026. F6-00 source inventory PARTIAL; F6-01A IMPLEMENTED development candidate, runtime verification NOT RUN. Base ab1112f0f1a014a3a93ebb8c2c614e70066d4114, includes unmerged CI-EFF-01 and roadmap. Main 1f57493bb0d0b6545bc03da12aed195bc5a87b1e. [PR #127](https://github.com/Rofikali/imgengine/pull/127) exact head 9937aeeeb80eec7f04e35a327f6800fd832f7108 [CI run 45967764812](https://github.com/Rofikali/imgengine/actions/runs/45967764812) passed all 12 jobs; this is evidence for that documentation PR only. PR #127 subsequently merged as cfb788635b8ff553794b90707c24d93946f93fdf; PR #128 is open at 95b85f0 and its CI remains in progress. No release/deploy authorization.
 
 ## Source baseline
