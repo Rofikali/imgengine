@@ -1,0 +1,10 @@
+/* Shared IMGENGINE design tokens. Preserve the existing palette and font stack. */
+:root {
+  --img-color-text: #eef4ff;
+  --img-color-background: #08111f;
+  --img-color-surface: #101d31;
+  --img-color-muted: #bdcae0;
+  --img-color-accent: #89b6ff;
+  --img-color-link-focus: #b7d0ff;
+  --img-font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+}

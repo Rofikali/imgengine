@@ -20,7 +20,27 @@ const select = (...names) => new Set(names)
 const FRONTEND = select('frontend-verification', 'frontend-browser-quality')
 const HTTP = select(...FRONTEND, 'rust-api-container')
 
+// Exact planning/agent Markdown paths only: executable policy and release/security docs remain full.
+const PLANNING_DOCS = new Set([
+  "AGENTS.md",
+  "skills.md",
+  "docs/engineering/live-status.md",
+  "imgengine-saas/frontend/AGENTS.md",
+  "docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md",
+  "docs/IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md",
+  "docs/IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md",
+  "docs/IMGENGINE_COMMERCIAL_READINESS_AND_UNIT_ECONOMICS.md"
+])
+const FRONTEND_SHELL = new Set([
+  "imgengine-saas/frontend/app.vue",
+  "imgengine-saas/frontend/free-static/FreeSiteHeader.vue",
+  "imgengine-saas/frontend/free-static/landing.vue",
+  "imgengine-saas/frontend/free-static/tools.ts"
+])
+
 function impact(path) {
+  if (PLANNING_DOCS.has(path)) return new Set()
+  if (FRONTEND_SHELL.has(path)) return FRONTEND
   if (['README.md', 'next.md', 'next-history.md', 'docs/README.md'].includes(path) || /^docs\/notes\/[^/]+\.md$/.test(path)) return new Set()
   if (/^docs\/(FRONTEND_[A-Z0-9_]+|IMGENGINE_FRONTEND_[A-Z0-9_]+)\.md$/.test(path)) return FRONTEND
   if (path === 'docs/api.md' || /^docs\/P1[23]_[A-Z0-9_]+\.md$/.test(path)) return HTTP
