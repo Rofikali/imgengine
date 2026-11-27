@@ -48,6 +48,10 @@ Use **P7 active Rust/C/Nuxt Compose**, not `imgengine-saas/infra/docker-compose.
 
 ## D. Focused frontend tests in Ubuntu container
 
+### Free-only lightweight environment proposal
+
+`FREE-FRONTEND-DOCKER-LOCAL-01` adds a dedicated Ubuntu 24.04 `free-frontend` service with only Node/Corepack/pnpm and named Linux dependency/cache volumes. It does not replace P7, start a backend/native/database dependency, publish a host port, mount the Docker socket, or include real credentials. Run isolated Free commands through this service with `--no-deps`; run browser checks only in the revision-pinned Playwright image. See [the environment contract](engineering/FREE_FRONTEND_LOCAL_DOCKER_PROPOSAL.md). A successful compiled-candidate check is not external release approval.
+
 From the repository root, on the **Windows host** use only Git/Docker orchestration. First check `docker info --format '{{.OSType}}'` returns `linux`. Create the ignored `infra/p7-frontend-dev.env` from the example **only if missing**, substitute a synthetic development key, never overwrite an existing file or print real secrets.
 
 ```bash

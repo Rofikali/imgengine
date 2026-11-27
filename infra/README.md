@@ -11,6 +11,7 @@
 | Purpose | Files | Do not infer |
 | --- | --- | --- |
 | **P7 local developer integration** | `Dockerfile.p7-frontend-dev`, `docker-compose.p7-frontend-dev.yml`, `p7-frontend-dev.env.example`, `scripts/run-p7-*.sh` and `scripts/verify-p7-frontend-stack.*` | Not production image, public TLS or hardening evidence |
+| **Free frontend-only local development** | `Dockerfile.free-frontend-dev`, `docker-compose.free-frontend-dev.yml` | One Ubuntu 24.04 Node/Corepack/pnpm service with Linux dependency/cache volumes; no Rust/C/database/browser engine, port, credential, or integrated-runtime evidence. Browser tests still require the pinned Playwright image. |
 | **P8 Docker Desktop VPS simulation** | `docker-compose.p8-vps-sim.yml`, `backend/Dockerfile`, `imgengine-saas/frontend/Dockerfile`, `Dockerfile.p8-vps-workload`, `scripts/run-p8-vps-sim.ps1`, `scripts/run-p8-vps-workload.sh` | Not a real 1 GiB host, precise RSS peak, or public release; clean-checkout runtime builds need live verification |
 | **P12 disposable candidate rehearsal** | `scripts/run-p12-local-candidate.ps1` | No Caddy/TLS, live host, public secrets or go/no-go |
 | **P14 single-host production *configuration*** | `docker-compose.production.yml`, `Caddyfile.production`, `production.env.example`, existing `scripts/verify-production-compose.py` | No live TLS, public monitoring, actual VPS capacity or release approval |
