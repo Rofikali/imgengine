@@ -1,5 +1,10 @@
 # IMGENGINE approved technology policy and repository-structure ADR
 
+**Owner-approved architecture direction — 27 November 2026:** One protected `main`, short-lived product-scoped feature branches, five product families with independently versioned, tested and released artifacts. Free remains the only active product; reuse visual UI without implementing paid logic. No permanent per-product branches, bulk directory moves, new toolchains, public paid source, new services or spending. This decision approves architecture direction and documentation, not releases or new product implementation. #130 merged `92703496208572f1ff07ec1cedb065bcf9b5b8af`, [main CI passed](https://github.com/Rofikali/imgengine/actions/runs/45976692568). #131 exact head `8818d6fa2258a3f4acfb066050535a7e008eb07d` has policy and frontend verification PASS, browser quality running at inspection ([run](https://github.com/Rofikali/imgengine/actions/runs/45977976019)). Preserve active CI; this documentation candidate is staged as an unreferenced commit for later integration, not pushed to the active branch or main. Candidate tests NOT RUN. See [approved portfolio direction](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md).
+
+Use current paths; no new C/Rust/Wasm dependency for Free, no bulk restructuring. Shared visual components only; enforce no-upload and independent product builds. Extract shared packages only after real reuse evidence.
+
+
 **Decision:** ADR-TECH-001 — Accepted for **all new product development**, 2026-11-14.
 **Status of implementation:** Target C17 + Rust/Axum + Nuxt already has implemented P5/P8/P12 slices; this ADR **does not** mean the legacy services have been removed or the target is publicly released.
 **Audited repository baseline:** `fee24bdff441e6ef735afaa06c024d4948fb623f`. This document makes an explicit product-stack choice; it does not contain fresh CI, capacity or deployment evidence.
