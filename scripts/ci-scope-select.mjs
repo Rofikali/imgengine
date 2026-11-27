@@ -35,6 +35,38 @@ const FREE_ONLY = new Set([
   'imgengine-saas/frontend/free-static/FreeSiteHeader.vue',
   'imgengine-saas/frontend/free-static/landing.vue',
   'imgengine-saas/frontend/free-static/tools.ts',
+  'imgengine-saas/frontend/tests/browser/free-static.spec.ts',
+])
+const REVIEWED_LOCAL_FRONTEND = new Set([
+  "imgengine-saas/frontend/app.vue",
+  "imgengine-saas/frontend/assets/css/tokens.css",
+  "imgengine-saas/frontend/pages/resize-image.vue",
+  "imgengine-saas/frontend/pages/crop-image.vue",
+  "imgengine-saas/frontend/pages/compress-image.vue",
+  "imgengine-saas/frontend/pages/rotate-image.vue",
+  "imgengine-saas/frontend/pages/convert-image.vue",
+  "imgengine-saas/frontend/composables/useLocalResize.ts",
+  "imgengine-saas/frontend/composables/useLocalCompress.ts",
+  "imgengine-saas/frontend/composables/useLocalConvert.ts",
+  "imgengine-saas/frontend/utils/local-resize.ts",
+  "imgengine-saas/frontend/utils/local-resize.test.ts",
+  "imgengine-saas/frontend/tests/browser/local-resize.spec.ts",
+  "imgengine-saas/frontend/utils/local-crop.ts",
+  "imgengine-saas/frontend/utils/local-crop.test.ts",
+  "imgengine-saas/frontend/tests/browser/local-crop.spec.ts",
+  "imgengine-saas/frontend/utils/local-compress.ts",
+  "imgengine-saas/frontend/utils/local-compress.test.ts",
+  "imgengine-saas/frontend/tests/browser/local-compress.spec.ts",
+  "imgengine-saas/frontend/utils/local-rotate.ts",
+  "imgengine-saas/frontend/utils/local-rotate.test.ts",
+  "imgengine-saas/frontend/tests/browser/local-rotate.spec.ts",
+  "imgengine-saas/frontend/utils/local-convert.ts",
+  "imgengine-saas/frontend/utils/local-convert.test.ts",
+  "imgengine-saas/frontend/tests/browser/local-convert.spec.ts",
+  "imgengine-saas/frontend/utils/local-canvas-fallback.ts",
+  "imgengine-saas/frontend/tests/browser/tool-navigation.spec.ts",
+  "imgengine-saas/frontend/tests/browser/orientation.ts",
+  "imgengine-saas/frontend/tests/browser/static-payload.ts"
 ])
 const FRONTEND_SHELL = new Set([
   "imgengine-saas/frontend/app.vue",
@@ -45,7 +77,7 @@ const FRONTEND_SHELL = new Set([
 
 function impact(path) {
   if (PLANNING_DOCS.has(path)) return new Set()
-  if (FRONTEND_SHELL.has(path)) return FRONTEND
+  if (FREE_ONLY.has(path) || REVIEWED_LOCAL_FRONTEND.has(path) || FRONTEND_SHELL.has(path)) return FRONTEND
   if (['README.md', 'next.md', 'next-history.md', 'docs/README.md'].includes(path) || /^docs\/notes\/[^/]+\.md$/.test(path)) return new Set()
   if (/^docs\/(FRONTEND_[A-Z0-9_]+|IMGENGINE_FRONTEND_[A-Z0-9_]+)\.md$/.test(path)) return FRONTEND
   if (path === 'docs/api.md' || /^docs\/P1[23]_[A-Z0-9_]+\.md$/.test(path)) return HTTP
@@ -97,7 +129,30 @@ function validateSha(value) {
 }
 
 export function selectFromEvent(eventName, event, git) {
-  if (eventName === 'push' || eventName === 'merge_group') return full('push-or-merge-queue-full')
+  if (eventName === 'merge_group') return full('merge-queue-full')
+  if (eventName === 'push') {
+    try {
+      if (event?.ref !== 'refs/heads/main' || event.created !== false || event.deleted !== false || event.forced !== false) return full('unsupported-main-push')
+      const base = validateSha(event.before)
+      const head = validateSha(event.after)
+      if (base === head || git(['rev-parse', 'HEAD']).trim() !== base) return full('untrusted-push-base')
+      if (git(['rev-parse', head + '^{commit}']).trim() !== head) return full('untrusted-push-head')
+      git(['merge-base', '--is-ancestor', base, head])
+      const raw = git(['diff', '--name-status', '-z', '--find-renames', base, head, '--'])
+      const decision = classifyDiff(raw)
+      if (decision.full) return decision
+      // Only reviewed existing frontend paths and known planning docs can opt in on main.
+      // New paths, other product changes and unknown/mixed changes keep full CI.
+      const fields = raw.slice(0, -1).split('\0')
+      for (let i = 0; i < fields.length; i += 2) {
+        const [status, path] = fields.slice(i, i + 2)
+        const required = impact(path)
+        if (status !== 'M' || !(PLANNING_DOCS.has(path) || ['README.md', 'next.md', 'docs/README.md'].includes(path) || FREE_ONLY.has(path) || REVIEWED_LOCAL_FRONTEND.has(path))) return full('main-path-not-reviewed')
+        if (required === null || [...required].some(job => !FRONTEND.has(job))) return full('main-non-frontend')
+      }
+      return decision
+    } catch { return full('push-git-or-history-failure') }
+  }
   if (eventName !== 'pull_request') return full('unsupported-event')
   try {
     const pr = event?.pull_request

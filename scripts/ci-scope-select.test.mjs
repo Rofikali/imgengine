@@ -101,3 +101,34 @@ test('Free-only workflow keeps static gates and normal mode fails safe', () => {
   }
   assert.ok(workflow.includes("if: ${{ needs.ci-scope.outputs.free_only == 'true' }}"))
 })
+
+// Owner-approved ordinary protected-main frontend selection. Shared local tools
+// retain both frontend suites; the isolated static spec may use static-only mode.
+const push = { ref: 'refs/heads/main', before: a, after: b, created: false, deleted: false, forced: false }
+const pushGit = raw => args => {
+  if (args[0] === 'rev-parse') return args[1] === 'HEAD' ? a : b
+  if (args[0] === 'merge-base' && args[1] === '--is-ancestor') return ''
+  if (args[0] === 'diff') return raw
+  throw Error('unexpected git command')
+}
+test('main push selects only verified isolated or shared frontend boundaries', () => {
+  const isolated = selectFromEvent('push', push, pushGit(record('imgengine-saas/frontend/free-static/FreeSiteHeader.vue') + record('AGENTS.md')))
+  assert.deepEqual(names(isolated), frontend); assert.equal(isolated.freeOnly, true)
+  const local = selectFromEvent('push', push, pushGit(record('imgengine-saas/frontend/pages/resize-image.vue')))
+  assert.deepEqual(names(local), frontend); assert.equal(local.freeOnly, false)
+  assert.deepEqual(names(selectFromEvent('push', push, pushGit(record('README.md')))), [])
+})
+test('main push fails closed for mixed, unknown, new, deleted, policy and native changes', () => {
+  for (const raw of [record('imgengine/src/a.c'), record('scripts/ci-scope-select.mjs'), record('.github/workflows/ci.yml'), record('imgengine-saas/frontend/pages/new.vue','A'), record('imgengine-saas/frontend/free-static/tools.ts','D'), record('imgengine-saas/frontend/free-static/tools.ts') + record('backend/imgengine-api/src/lib.rs'), record('imgengine-saas/frontend/components/unknown.vue')]) {
+    assert.equal(selectFromEvent('push', push, pushGit(raw)).full, true)
+  }
+})
+test('main push requires previous checkout, validated ancestry and unforced event', () => {
+  for (const event of [{...push, forced:true}, {...push, created:true}, {...push, ref:'refs/heads/other'}, {...push,before:'0'.repeat(40)}, {...push,after:'--help'}]) assert.equal(selectFromEvent('push',event,()=>assert.fail()).full,true)
+  assert.equal(selectFromEvent('push',push,args=>args[0]==='rev-parse'?b:assert.fail()).full,true)
+  assert.equal(selectFromEvent('push',push,args=>{if(args[0]==='merge-base')throw Error('not ancestor');return pushGit(record('README.md'))(args)}).full,true)
+})
+test('static-specific spec selects isolated lane; normal-mode local spec does not', () => {
+  assert.equal(classifyDiff(record('imgengine-saas/frontend/tests/browser/free-static.spec.ts')).freeOnly,true)
+  assert.equal(classifyDiff(record('imgengine-saas/frontend/tests/browser/local-resize.spec.ts')).freeOnly,false)
+})

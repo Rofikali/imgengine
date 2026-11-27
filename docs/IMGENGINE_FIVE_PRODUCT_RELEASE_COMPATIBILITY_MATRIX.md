@@ -1,5 +1,10 @@
 # IMGENGINE — Five-family artifact, versioning and release compatibility matrix
 
+**Owner-approved architecture direction — 27 November 2026:** One protected `main`, short-lived product-scoped feature branches, five product families with independently versioned, tested and released artifacts. Free remains the only active product; reuse visual UI without implementing paid logic. No permanent per-product branches, bulk directory moves, new toolchains, public paid source, new services or spending. This decision approves architecture direction and documentation, not releases or new product implementation. #130 merged `92703496208572f1ff07ec1cedb065bcf9b5b8af`, [main CI passed](https://github.com/Rofikali/imgengine/actions/runs/45976692568). #131 exact head `8818d6fa2258a3f4acfb066050535a7e008eb07d` has policy and frontend verification PASS, browser quality running at inspection ([run](https://github.com/Rofikali/imgengine/actions/runs/45977976019)). Preserve active CI; this documentation candidate is staged as an unreferenced commit for later integration, not pushed to the active branch or main. Candidate tests NOT RUN. See [approved portfolio direction](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md).
+
+Independent product/artifact tags, manifests and rollback; a main merge is not deployment or version bump. C ABI, HTTP contract, Rust crate, SDK and desktop versions remain distinct. Release only affected approved artifacts.
+
+
 **Status:** PROPOSAL / DOCUMENTATION ONLY (2026-11-19). This is a future control matrix, not evidence of shipping SDKs, a desktop app, public API or release automation. Read [ADR-PORTFOLIO-005](ADR_PORTFOLIO_FIVE_PRODUCT_RELEASE_STRATEGY_2026-11-19.md), [existing four-product portfolio](IMGENGINE_FOUR_PRODUCT_PORTFOLIO.md), [current next.md](../next.md) and [ABI](ABI.md) first. **The latest live board and exact GitHub revisions override dated samples.**
 
 ## 1. Two levels: commercial families and technical release artifacts
