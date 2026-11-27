@@ -20,7 +20,7 @@ for (const [path, expected] of [
     '.github/workflows/ci.yml', 'scripts/ci-scope-select.mjs', 'infra/docker-compose.production.yml',
     'imgengine-saas/frontend/pnpm-lock.yaml', 'imgengine-saas/frontend/package.json',
     'docs/api-policy.md', 'docs/IMGENGINE_DOCKER_ONLY_DEVELOPMENT_POLICY.md',
-    'Cargo.lock', 'Makefile', 'AGENTS.md', 'future-wasm/src/lib.rs', 'imgengine-saas/backend/app.py'].map(path => [path, all]),
+    'Cargo.lock', 'Makefile', 'future-wasm/src/lib.rs', 'imgengine-saas/backend/app.py'].map(path => [path, all]),
 ]) test(`impact: ${path}`, () => assert.deepEqual(names(classifyDiff(record(path))), expected))
 for (const [label, raw] of [
   ['empty', ''], ['truncated', 'M\0x'], ['delete', record('next.md', 'D')],
@@ -62,3 +62,12 @@ test('push, merge queue, unknown event always full', () => {
   for (const eventName of ['push', 'merge_group', 'workflow_dispatch', 'pull_request_target']) assert.deepEqual(names(selectFromEvent(eventName, {}, () => assert.fail())), all)
 })
 test('full policy has no missing job', () => assert.deepEqual(names(full()), all))
+
+// Mandatory doc-sync must not turn an otherwise isolated frontend PR into full CI.
+const planningDocs = ["AGENTS.md","skills.md","docs/engineering/live-status.md","imgengine-saas/frontend/AGENTS.md","docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md","docs/IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md","docs/IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md","docs/IMGENGINE_COMMERCIAL_READINESS_AND_UNIT_ECONOMICS.md"]
+const shellPaths = ["imgengine-saas/frontend/app.vue","imgengine-saas/frontend/free-static/FreeSiteHeader.vue","imgengine-saas/frontend/free-static/landing.vue","imgengine-saas/frontend/free-static/tools.ts"]
+for (const path of planningDocs) test('planning only: ' + path, () => assert.deepEqual(names(classifyDiff(record(path))), []))
+for (const path of shellPaths) test('shell + mandatory docs: ' + path, () => assert.deepEqual(names(classifyDiff(planningDocs.map(p => record(p)).join('') + record(path))), frontend))
+test('PR 127 planning-only path set selects no runtime jobs', () => assert.deepEqual(names(classifyDiff([...planningDocs, 'README.md', 'next.md'].map(p => record(p)).join(''))), []))
+for (const path of ['docs/releases/free/v1.0.0/release-manifest.json','docs/engineering/DOCUMENTATION_SYNC_CONTRACT.md','imgengine-saas/frontend/free-static/empty-server/unknown.ts','imgengine-saas/frontend/nuxt.config.ts','scripts/ci-scope-select.mjs','imgengine/src/a.c']) test('planning plus high-risk stays full: ' + path, () => assert.deepEqual(names(classifyDiff(record('AGENTS.md') + record(path))), all))
+test('planning deletion still fails closed', () => assert.deepEqual(names(classifyDiff(record('AGENTS.md', 'D'))), all))
