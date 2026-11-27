@@ -1,5 +1,7 @@
 # IMGENGINE — F6 shared frontend, domain and commercial roadmap
 
+**Owner priority override — 27 November:** Execute original phases 1 → 2 → 3 → 5 → 8 first (live safety reconciliation, shared frontend, website/editor UX, hostname-independent performance/SEO/accessibility, and reusable Free/Pro/Studio UI foundation). Move original phases 4 → 6 → 7 to the bottom (custom domain, finance/marketing, monetization). Domain ownership is not confirmed; use the existing hostname for approved development/verification. Do not select DOM, commercial FIN/MKT or MON work on ordinary `go ahead` / `next` until the owner reopens it. Hostname-dependent canonical/sitemap/redirect/Search Console work waits for the permanent hostname. Existing F5 security, billing safety, approvals and cost controls still apply; no paid product implementation or speculative package extraction is implied by shared UI work.
+
 Owner-directed planning, 2026-11-27. Status: PROPOSED FUTURE MILESTONES; documentation only. This extends the existing [F6 program](IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md), [acceptance matrix](IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md), [commercial model](IMGENGINE_COMMERCIAL_READINESS_AND_UNIT_ECONOMICS.md) and [live board](../next.md). Existing F5 release/security gates take precedence. No purchase, deployment, paid service, ads, analytics, new dependencies, release tag, or implementation authorized by this plan alone.
 
 ## Current baseline and immediate continuation
@@ -27,20 +29,24 @@ Suggested incremental structure: assets/css/tokens.css and base.css; scoped comp
 | F6-02D | P1 after navigation | Refine homepage, tool cards and trust messaging; no speculative features, layout shifts or false claims. |
 | F6-02E | P1 after shell | About and Contact pages; email/support-first, no form server; extend static allowlist, CSP verification and browser route tests. |
 | F6-03A/B | P1 after shell | Extract only reused UI primitives and image-editor workflow components; preserve accuracy, metadata behavior, cleanup, error/progress, download and mobile/keyboard flows. |
-| DOM-01 | P0 read-only; can parallelize | Check domain availability, trademark/name collision, registration AND renewal, taxes/currency and registrar terms. Candidate imgengine.com; fallback .in/.app/.dev or getimgengine.com, not verified. Compare Cloudflare and alternatives. |
-| DOM-02 | OWNER decision after DOM-01 | Choose one parent domain, budget and registrar; explicit purchase approval, MFA/recovery/lock, renewal ownership, DNSSEC. No purchase in ordinary go ahead. |
-| DOM-03 | OWNER decision after F5 and DOM-02 | Attach domain to approved static deployment; validate DNS/TLS/headers/cache/404/rollback; redirect old paths if supported; document exact provenance and charges. No automatic switch. |
-| F6-04 / SEO-01 | P1 after hostname decision | Unique titles/descriptions, crawlable tool guides, canonical, robots and sitemap; verify rendered output and redirects, optional Search Console ownership with approval; no keyword-page factory. |
+| F6-04A | P1 — hostname-independent | Unique titles/descriptions, crawlable tool guides, useful internal links and rendered HTML checks; no premature permanent-host canonical URLs or indexing claims. |
 | F6-05 | P1 after baseline | Compare compressed route CSS/JS, main-thread, mobile memory, LCP/INP/CLS; proposed budgets CSS <=25 KB, incremental shell JS <=10 KB compressed, no external font or unapproved third-party requests; document measurement method and exceptions. Good CWV targets LCP <=2.5s, INP <=200ms, CLS <=0.1 at 75th percentile field data when available; synthetic results labelled separately. |
 | F6-06 | Conditional | Worker/OffscreenCanvas/Wasm only if measured improvement with correctness, resource bounds, fallback and privacy parity; no mandatory rewrite. |
 | F6-07 | P1 alongside work | Vitest/Playwright four profiles, axe plus manual keyboard/screen reader, zoom/reflow, route/404, no-upload/storage, CSP, static output, visual regression and bundle evidence; preserve CI fail-closed aggregate. |
-| UX-01 / MKT-01 | P1 after stable Free | Observe 10 real users (consented, synthetic/non-sensitive fixtures); success, retries, time saved and support feedback; privacy-reviewed aggregate metrics only, no tracking by default. Grow through useful guides and referrals; no fabricated traffic. |
-| FIN-01 | P1 before spending/earning | Record domain renewal, cost ceilings, actual expenses, cash, deferred revenue, fees/refunds, tax and product-level margin; CA review for GST/export/place of supply/LUT and accounting as applicable. |
-| MON-01 | P2 after user evidence | Compare ads, sponsorship, voluntary contributions, affiliate content, freemium; current provider policy/eligibility/consent/legal/third-party risks and economics. No ad approval assumed. |
-| MON-02 | OWNER decision after MON-01 | Bounded sponsorship or ad pilot on isolated content origin, never editor/selection/download or image-bearing document; restrictive CSP, no cross-origin file access or shared broad cookies, consent, opt-out and rollback. No ad scripts in existing Free artifact. |
-| PRO-01 / STU-01 | P2 after independent customer discovery | Coordinate existing product milestones/open PRs rather than duplicate. Pro batch/recipes, Studio print/DPI/paper presets; separate entitlements, notices, performance, costs and release gates. |
-| UI-PLATFORM-01 | P2 when second app actually needs it | Evaluate shared Nuxt Layer vs versioned internal package; no cross-product feature leakage, contract tests, independent release compatibility. |
-| F6-08/09/10 | Existing conditional/later | Privacy-safe events, localization and selected Free v1.x release review only under existing F6 controls. |
+| UI-PLATFORM-01 | Frontend-first shared UI compatibility; extraction only when second app needs it | Evaluate shared Nuxt Layer vs versioned internal package; no cross-product feature leakage, contract tests, independent release compatibility. |
+| F6-09/10 | Existing conditional/later | Localization and selected Free v1.x release review under existing F6 controls. |
+
+| DOM-01 | DEFERRED — original phase 4; owner reopens | Check domain availability, trademark/name collision, registration AND renewal, taxes/currency and registrar terms. Candidate imgengine.com; fallback .in/.app/.dev or getimgengine.com, not verified. Compare Cloudflare and alternatives. |
+| DOM-02 | DEFERRED — OWNER decision after DOM-01 | Choose one parent domain, budget and registrar; explicit purchase approval, MFA/recovery/lock, renewal ownership, DNSSEC. No purchase in ordinary go ahead. |
+| DOM-03 | DEFERRED — OWNER decision after F5 and DOM-02 | Attach domain to approved static deployment; validate DNS/TLS/headers/cache/404/rollback; redirect old paths if supported; document exact provenance and charges. No automatic switch. |
+| F6-04B / SEO-01 | DEFERRED — after permanent hostname decision | Canonical URLs, robots/sitemap for final host, migration redirects and optional Search Console with approval. |
+| UX-01 / MKT-01 | DEFERRED — original phase 6; after stable Free | Observe 10 real users (consented, synthetic/non-sensitive fixtures); success, retries, time saved and support feedback; privacy-reviewed aggregate metrics only, no tracking by default. Grow through useful guides and referrals; no fabricated traffic. |
+| FIN-01 | DEFERRED — original phase 6; before any future spending/earning | Record domain renewal, cost ceilings, actual expenses, cash, deferred revenue, fees/refunds, tax and product-level margin; CA review for GST/export/place of supply/LUT and accounting as applicable. |
+| MON-01 | DEFERRED — original phase 7; after user evidence | Compare ads, sponsorship, voluntary contributions, affiliate content, freemium; current provider policy/eligibility/consent/legal/third-party risks and economics. No ad approval assumed. |
+| MON-02 | DEFERRED — OWNER decision after MON-01 | Bounded sponsorship or ad pilot on isolated content origin, never editor/selection/download or image-bearing document; restrictive CSP, no cross-origin file access or shared broad cookies, consent, opt-out and rollback. No ad scripts in existing Free artifact. |
+| PRO-01 / STU-01 | LATER — separate paid product work; after customer discovery | Coordinate existing product milestones/open PRs rather than duplicate. Pro batch/recipes, Studio print/DPI/paper presets; separate entitlements, notices, performance, costs and release gates. |
+| F6-08 | DEFERRED — commercial measurement | Privacy-safe events only after separate privacy/owner review; no analytics by default. |
+
 
 ## Domain, networking, Linux/SRE and security
 
