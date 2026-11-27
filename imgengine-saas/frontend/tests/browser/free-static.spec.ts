@@ -31,6 +31,39 @@ for (const route of freeRoutes) {
     await expect(page.getByRole('main')).toBeVisible()
     await expect(page.getByText('Server print layouts (uploads on Render)')).toHaveCount(0)
     await expect(page.getByText('Create printable photo layouts.')).toHaveCount(0)
+
+    // F6-00: synthetic cold-page evidence from this existing static test.
+    // No image content, filenames, resource URLs, cookies or visitor telemetry.
+    // Local HTTP transfer and browser timings are not production field CWV.
+    const baseline = await page.evaluate(() => {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+      const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+      const assets = resources.filter(entry => {
+        const url = new URL(entry.name)
+        return url.origin === location.origin && /\.(?:css|m?js)$/i.test(url.pathname)
+      })
+      return {
+        navigation: navigation ? {
+          domContentLoadedMs: navigation.domContentLoadedEventEnd,
+          loadMs: navigation.loadEventEnd,
+          documentTransferBytes: navigation.transferSize,
+        } : null,
+        assetRequests: assets.length,
+        assetTransferBytes: assets.reduce((sum, entry) => sum + entry.transferSize, 0),
+        assetEncodedBodyBytes: assets.reduce((sum, entry) => sum + entry.encodedBodySize, 0),
+        assetDecodedBodyBytes: assets.reduce((sum, entry) => sum + entry.decodedBodySize, 0),
+        viewportWidth: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+      }
+    })
+    expect(baseline.navigation, 'Navigation timing entry must exist').not.toBeNull()
+    for (const value of Object.values(baseline.navigation ?? {})) {
+      expect(Number.isFinite(value) && value >= 0).toBe(true)
+    }
+    expect(baseline.viewportWidth).toBeGreaterThan(0)
+    console.log('F6_STATIC_BASELINE ' + JSON.stringify({
+      route, project: test.info().project.name, ...baseline,
+    }))
   })
 }
 
