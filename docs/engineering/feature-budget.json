@@ -11,10 +11,11 @@
       "prs": [
         128,
         129,
-        130
+        130,
+        131
       ],
       "status": "PARTIAL",
-      "note": "129 stacked on 128; conservative attribution pending independent diff reconciliation; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial."
+      "note": "129 stacked on 128; conservative attribution pending independent diff reconciliation; #130 inherited prior work, conservatively counted; #128/#129 merged; independent acceptance gaps remain. #130 merged 9270349; exact PR CI 12/12, main CI running at inspection; independent acceptance remains partial. PR #131 opened; opt-in parallel experiment, policy/diff whitespace repair and owner Free-only direction; acceptance pending."
     },
     {
       "id": "F6-01A",
