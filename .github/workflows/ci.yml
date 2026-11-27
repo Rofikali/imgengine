@@ -453,7 +453,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/measure-free-static-assets.mjs .output/public "$(git rev-parse HEAD)" > "$RUNNER_TEMP/imgengine-free-static-size.json"
+          # Playwright runs with a different UID/HOME from the checkout action.
+          # Trust only this runner-controlled checkout for this Git invocation.
+          source_sha="$(git -c safe.directory="$GITHUB_WORKSPACE" -C "$GITHUB_WORKSPACE" rev-parse --verify HEAD)"
+          test "$source_sha" = "$GITHUB_SHA"
+          node scripts/measure-free-static-assets.mjs .output/public "$source_sha" > "$RUNNER_TEMP/imgengine-free-static-size.json"
       - name: Retain detached static size evidence
         uses: actions/upload-artifact@v4
         with:
