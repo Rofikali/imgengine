@@ -1,5 +1,9 @@
 # IMGENGINE F6 — Frontend acceptance, tests, benchmark and release evidence matrix
 
+**Owner priority override — 27 November:** Execute original phases 1 → 2 → 3 → 5 → 8 first (live safety reconciliation, shared frontend, website/editor UX, hostname-independent performance/SEO/accessibility, and reusable Free/Pro/Studio UI foundation). Move original phases 4 → 6 → 7 to the bottom (custom domain, finance/marketing, monetization). Domain ownership is not confirmed; use the existing hostname for approved development/verification. Do not select DOM, commercial FIN/MKT or MON work on ordinary `go ahead` / `next` until the owner reopens it. Hostname-dependent canonical/sitemap/redirect/Search Console work waits for the permanent hostname. Existing F5 security, billing safety, approvals and cost controls still apply; no paid product implementation or speculative package extraction is implied by shared UI work.
+
+**27 November extension:** [Shared UI/domain/monetization roadmap](IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md) supplies additional work-package exit evidence: shared-shell regression, native disclosure accessibility, explicit static route additions, compiled-output/CSP/no-upload checks, baseline-relative compressed CSS/JS, hostname/TLS/redirect/rollback, and isolated monetization review. No new test pass claimed. Existing F5/F6 gates remain mandatory.
+
 **Status:** PLANNED TEST CONTRACT / NO F6 CODE OR TEST RUN CLAIMED (2026-11-19). Governing strategy: [Frontend Excellence Program](IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md). Binding instructions: [root AGENTS](../AGENTS.md), [frontend AGENTS](../imgengine-saas/frontend/AGENTS.md), [live next.md](../next.md). Existing [F2c 12-category requirements](FRONTEND_F2C_CI_QUALITY_GATES.md) and [Free v1 F5 release checklist](MVP_RELEASE_CHECKLIST.md) are independent; this matrix **does not postpone, replace or weaken either**.
 
 ## 1. Evidence record (one row per feature/PR)
