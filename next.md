@@ -1,5 +1,9 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+**F6-00 — CI evidence wiring candidate (27 November):** Add measurement fixture execution to the existing Nuxt verification job and retain a detached JSON asset inventory from the already-built, audited Free static distribution in the existing browser job. No new build, dependency, browser matrix or job; no timing or measured bundle-size claim yet. PR #128 exact head 95b85f0 remains untouched during its [integration run](https://github.com/Rofikali/imgengine/actions/runs/45969914525). New dependent branch changes are NOT RUN, NOT MERGED. See [baseline and measurement procedure](docs/IMGENGINE_FRONTEND_F6_BASELINE_AND_TOKENS.md). F5 release reconciliation, existing gates and owner approvals remain binding.
+
+Next: finish PR #128 review, then reconcile measurement branch and run CI. F6-00 remains partial; domain, finance and monetization deferred. Do not advance shell migration before baseline and F5 disposition.
+
 **F6-00 measurement preparation — 27 November:** PR #127 merged as cfb7886; PR #128 head 95b85f0 is under integration CI ([run 45969914525](https://github.com/Rofikali/imgengine/actions/runs/45969914525)). Prepare a dependent, non-PR development branch with read-only compiled asset sizing and fixtures; do not disturb active CI. No dependencies or workflow changes. Tests and actual artifact measurements NOT RUN. See [baseline and tokens](docs/IMGENGINE_FRONTEND_F6_BASELINE_AND_TOKENS.md). F5 live host retrieval returned DisabledError; release/hosting verification and owner approvals remain open. No further shell/layout migration until F5 disposition and required baseline.
 
 Next: finish PR #128 integration review; reconcile dependent measurement branch after merge, run approved fixture tests and capture baseline/candidate artifact sizes. Domain, finance and monetization deferred.

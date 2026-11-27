@@ -380,7 +380,7 @@ jobs:
         run: pnpm exec nuxi prepare
       - name: Test Free static artifact allowlist and forbidden-server cases
         working-directory: imgengine-saas/frontend
-        run: node --test scripts/verify-free-static.node-check.mjs scripts/free-security-headers.node-check.mjs scripts/write-free-static-archive.node-test.mjs
+        run: node --test scripts/verify-free-static.node-check.mjs scripts/free-security-headers.node-check.mjs scripts/write-free-static-archive.node-test.mjs scripts/measure-free-static-assets.node-check.mjs
       - name: Verify draft legal notices block public publication (expected fail-closed)
         working-directory: imgengine-saas/frontend
         run: node --test scripts/check-free-publication-ready.node-check.mjs
@@ -448,6 +448,19 @@ jobs:
         run: |
           pnpm run verify:free-static
           pnpm run verify:free-publication-ready
+      - name: Record audited Free CSS and JavaScript size inventory
+        working-directory: imgengine-saas/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/measure-free-static-assets.mjs .output/public "$(git rev-parse HEAD)" > "$RUNNER_TEMP/imgengine-free-static-size.json"
+      - name: Retain detached static size evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgengine-free-static-size-evidence
+          path: ${{ runner.temp }}/imgengine-free-static-size.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Run full local-tool and static-boundary browser matrix
         working-directory: imgengine-saas/frontend
         env:
