@@ -1,0 +1,18 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# This image deliberately contains only the Ubuntu/Node tooling required for
+# browser-local Free frontend development. Browser engines are supplied by the
+# separately pinned Playwright image, never by this development image.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && corepack enable \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace/imgengine/imgengine-saas/frontend

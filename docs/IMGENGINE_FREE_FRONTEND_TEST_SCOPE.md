@@ -1,6 +1,6 @@
 # IMGENGINE Free — isolated frontend test scope
 
-**Local container boundary (27 November 2026):** P7 `frontend --no-deps` is the current approved isolated Free execution route. A lightweight one-service Ubuntu 24.04 Free environment is [proposed](engineering/FREE_FRONTEND_LOCAL_DOCKER_PROPOSAL.md), not implemented; it may not start Rust/C/database services. The four-profile browser matrix remains in the CI-pinned Playwright image. If that image is unavailable, report browser/a11y/privacy/no-upload as **NOT RUN**.
+**Local container boundary (27 November 2026):** `free-frontend --no-deps` is the locally implemented isolated Free execution route; P7 remains the integrated route. The lightweight one-service Ubuntu 24.04 environment is described [here](engineering/FREE_FRONTEND_LOCAL_DOCKER_PROPOSAL.md) and may not start Rust/C/database services. The four-profile browser matrix remains in the CI-pinned Playwright image. If that image is unavailable, report browser/a11y/privacy/no-upload as **NOT RUN**. Candidate validation is not release authorization.
 
 **Candidate safety refinement:** use a unique main-push concurrency group per SHA (GitHub can cancel pending runs even with cancel-in-progress disabled); require prior main to equal the new head's first parent so the selected range matches the existing diff guard. Multi-commit pushes stay full. Zero previous SHA uses current checkout and full fallback. No local/CI tests executed for this candidate.
 

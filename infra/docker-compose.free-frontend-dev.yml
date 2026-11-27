@@ -1,0 +1,20 @@
+name: imgengine-free-frontend-dev
+
+services:
+  free-frontend:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.free-frontend-dev
+    working_dir: /workspace/imgengine/imgengine-saas/frontend
+    # `docker compose run --rm --no-deps` supplies the focused command. The
+    # idle default intentionally starts neither a browser server nor a backend.
+    command: ["bash", "-lc", "sleep infinity"]
+    volumes:
+      - ..:/workspace/imgengine
+      - free-frontend-node-modules:/workspace/imgengine/imgengine-saas/frontend/node_modules
+      - free-frontend-corepack:/root/.cache/node/corepack
+
+volumes:
+  # Linux-only dependencies and Corepack's pinned-pnpm cache; neither is source.
+  free-frontend-node-modules:
+  free-frontend-corepack:
