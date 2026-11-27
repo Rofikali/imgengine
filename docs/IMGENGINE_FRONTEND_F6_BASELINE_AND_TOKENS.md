@@ -1,0 +1,23 @@
+# F6-00 / F6-01A — source baseline and first design tokens
+
+27 November 2026. F6-00 source inventory PARTIAL; F6-01A IMPLEMENTED development candidate, runtime verification NOT RUN. Base ab1112f0f1a014a3a93ebb8c2c614e70066d4114, includes unmerged CI-EFF-01 and roadmap. Main 1f57493bb0d0b6545bc03da12aed195bc5a87b1e. [PR #127](https://github.com/Rofikali/imgengine/pull/127) exact head 9937aeeeb80eec7f04e35a327f6800fd832f7108 [CI run 45967764812](https://github.com/Rofikali/imgengine/actions/runs/45967764812) passed all 12 jobs; this is evidence for that documentation PR only. Owner merge pending. No release/deploy authorization.
+
+## Source baseline
+
+| Component | Existing CSS characters | Candidate CSS characters | Substitutions |
+| --- | ---: | ---: | ---: |
+| app.vue | 4086 | 4249 | 12 |
+| free-static/FreeSiteHeader.vue | 1253 | 1307 | 3 |
+| free-static/landing.vue | 922 | 983 | 4 |
+
+Only three inspected SFC style blocks, not entire frontend or compressed assets. New token sheet 350 characters. Nuxt 4.6.4 and Vue 3.5.44 direct production dependencies. Nine static routes including five tools, homepage and three notices. Global app CSS owns typography/form/notice/editor defaults, header scoped CSS owns navigation/mobile native disclosure, landing scoped CSS owns cards. Existing browser tests cover navigation, focus, no-upload, static routes, privacy notices and CSP. Actual compressed bundle, field/synthetic CWV, mobile peak memory, screen reader, visual regression and complete source inventory still NOT RUN. Do not infer faster runtime from token extraction.
+
+## Candidate
+
+Import one plain CSS token sheet from app.vue. Seven semantic custom properties for background, surface, text, muted text, accent, link/focus color and existing system fallback font stack. Replace exact literals only in the three SFC style blocks. No layout values, selectors, HTML, JS behavior, dependencies, routes, legal text, native/Rust code, server isolation or CSP changed. Intentionally leave distinct color values and additional token categories for later bounded work. No remote fonts or new requests. The original CSS style bodies are reconstructible byte-for-character from candidate values; static string round-trip verified for each block during preparation, not a browser equivalence test.
+
+## Required verification before integration/release
+
+Ubuntu 24.04 Docker only; locked install, pnpm test, typecheck, build, normal local-tool browser matrix, static build, verify:free-static, verify:free-publication-ready, full static browser matrix; compare computed token values, keyboard focus, desktop/mobile screenshots, and compressed CSS/JS baseline vs candidate. Full CI required because batch includes CI selector changes and new docs. Test commands NOT RUN for this candidate. Reconcile branch ancestry after #127 owner merge; do not skip tests or merge/deploy on ordinary go ahead. F5 owner-reported Workers URL could not be fetched by current browsing tool (DisabledError), so live HTTPS/CSP/provenance/billing remain unverified; no live changes. No F6 completion claim.
+
+Cross-functional review: L1–L7 bounded reuse and separation of responsibilities; CISSP no new executable dependencies or trust boundary; CCIE no network change; Linux/SRE reproducible verification; CA/MBA/management no additional service or spending, no measured savings. Native/ABI, Rust, deployment and privacy contracts reviewed — no change. Domain, finance and monetization remain deferred.

@@ -28,7 +28,7 @@ function closeMenu() {
 </template>
 
 <style scoped>
-.free-header { background: #101d31; border-bottom: 1px solid #334764; }
+.free-header { background: var(--img-color-surface); border-bottom: 1px solid #334764; }
 .free-bar { max-width: 68rem; margin: auto; padding: .55rem 1rem; display: flex; align-items: center; gap: .25rem; }
 .free-bar a, summary { color: #d8e4f4; padding: .75rem; text-decoration: none; }
 .free-bar a:hover, summary:hover, a[aria-current="page"]:not(.wordmark) { color: white; background: #233955; }
@@ -36,8 +36,8 @@ function closeMenu() {
 .mark { width: 1rem; height: 1rem; border: 3px solid #88b9ff; border-radius: .28rem; transform: rotate(-10deg); }
 .mobile-tools { display: none; position: relative; }
 summary { cursor: pointer; font-weight: 700; }
-summary:focus-visible { outline: 3px solid #b7d0ff; }
-.tool-menu { position: absolute; z-index: 5; right: 0; min-width: 10rem; padding: .35rem; border: 1px solid #456180; border-radius: .75rem; background: #101d31; }
+summary:focus-visible { outline: 3px solid var(--img-color-link-focus); }
+.tool-menu { position: absolute; z-index: 5; right: 0; min-width: 10rem; padding: .35rem; border: 1px solid #456180; border-radius: .75rem; background: var(--img-color-surface); }
 .tool-menu a { display: block; }
 .skip-content { position: absolute; top: .5rem; left: .5rem; padding: .75rem; z-index: 10; background: #fff; color: #152941; transform: translateY(-200%); }
 .skip-content:focus { transform: none; }

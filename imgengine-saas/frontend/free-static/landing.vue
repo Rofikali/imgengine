@@ -23,11 +23,11 @@ useSeoMeta({
 <style scoped>
 .home { max-width: 66rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 1.5rem 2rem; }
 .home h1 { max-width: 16ch; font-size: clamp(2.5rem, 6vw, 4.75rem); line-height: 1.02; letter-spacing: -.045em; }
-.summary { color: #bdcae0; max-width: 54ch; line-height: 1.6; font-size: 1.1rem; }
+.summary { color: var(--img-color-muted); max-width: 54ch; line-height: 1.6; font-size: 1.1rem; }
 .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: .85rem; margin: 2rem 0 1rem; }
-.tool-card { position: relative; padding: 1.4rem 2.5rem 1.4rem 1.4rem; background: #122139; border: 1px solid #354d6e; text-decoration: none; color: #eef4ff; }
-.tool-card:hover, .tool-card:focus-visible { border-color: #89b6ff; background: #182c48; }
+.tool-card { position: relative; padding: 1.4rem 2.5rem 1.4rem 1.4rem; background: #122139; border: 1px solid #354d6e; text-decoration: none; color: var(--img-color-text); }
+.tool-card:hover, .tool-card:focus-visible { border-color: var(--img-color-accent); background: #182c48; }
 .tool-card strong { display: block; font-size: 1.45rem; }
 .tool-card span { display: block; margin-top: .5rem; color: #c0cfe2; font-weight: 400; line-height: 1.5; }
-.tool-card .arrow { position: absolute; top: .9rem; right: 1rem; color: #89b6ff; }
+.tool-card .arrow { position: absolute; top: .9rem; right: 1rem; color: var(--img-color-accent); }
 </style>
