@@ -1,5 +1,7 @@
 # imgengine
 
+**27 November — future frontend platform roadmap:** [Shared UI, domain and monetization](docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md) extends F6 for Free, Pro and Studio. Owner-reported live URL: https://white-tooth-f003.alirofikr.workers.dev/ (deployment/artifact and approval not independently verified; reconcile with F5 before claiming release). `go ahead` / `next` resume the live board. No domain purchase, ad integration or paid feature is approved by this documentation.
+
 Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
 
 Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.

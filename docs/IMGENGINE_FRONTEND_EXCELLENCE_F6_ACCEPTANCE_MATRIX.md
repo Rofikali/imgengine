@@ -1,5 +1,7 @@
 # IMGENGINE F6 — Frontend acceptance, tests, benchmark and release evidence matrix
 
+**27 November extension:** [Shared UI/domain/monetization roadmap](IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md) supplies additional work-package exit evidence: shared-shell regression, native disclosure accessibility, explicit static route additions, compiled-output/CSP/no-upload checks, baseline-relative compressed CSS/JS, hostname/TLS/redirect/rollback, and isolated monetization review. No new test pass claimed. Existing F5/F6 gates remain mandatory.
+
 **Status:** PLANNED TEST CONTRACT / NO F6 CODE OR TEST RUN CLAIMED (2026-11-19). Governing strategy: [Frontend Excellence Program](IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md). Binding instructions: [root AGENTS](../AGENTS.md), [frontend AGENTS](../imgengine-saas/frontend/AGENTS.md), [live next.md](../next.md). Existing [F2c 12-category requirements](FRONTEND_F2C_CI_QUALITY_GATES.md) and [Free v1 F5 release checklist](MVP_RELEASE_CHECKLIST.md) are independent; this matrix **does not postpone, replace or weaken either**.
 
 ## 1. Evidence record (one row per feature/PR)

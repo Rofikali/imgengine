@@ -1,5 +1,7 @@
 # AGENTS.md — IMGENGINE SaaS Frontend Engineering Constitution
 
+**27 November — shared frontend direction:** [F6 shared UI/domain/monetization roadmap](../../docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md). Use shared semantic tokens, native CSS, Vue components and configurable shell/layouts; preserve Free allowlist, empty server, CSP and browser-local processing. No speculative UI library or cross-product business logic. New About/Contact routes require explicit static verifier and browser coverage. `go ahead` and `next` resume current approved work, not deployment or spending.
+
 Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
 
 Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.

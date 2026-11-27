@@ -1,5 +1,7 @@
 # IMGENGINE — Agent-maintained engineering activity log
 
+**27 November — documentation work prepared for review:** owner requested the [shared UI/domain/monetization roadmap](../IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md) and manual `go ahead` / `next` continuation. Baseline main 1f57493; owner-reported live URL needs read-only F5 reconciliation. Documentation proposal only; no code/build/deploy/charge/ad change or CI pass claimed for this revision.
+
 Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
 
 Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.

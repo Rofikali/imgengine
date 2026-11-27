@@ -1,5 +1,11 @@
 # IMGENGINE — Agent-owned NOW / IN_PROGRESS / COMPLETED / NEXT
 
+## Current continuation priority — 27 November (owner-directed planning)
+
+- **F5-LIVE-RECON-01 — next evidence task, NOT RUN:** reconcile owner-reported https://white-tooth-f003.alirofikr.workers.dev/ with the Pages release plan, actual artifact/approval, live security/privacy, billing and rollback. No fresh deployment, tag or release claim.
+- **F6 / DOM / SEO / UX / FIN / MON — FUTURE:** [ordered shared UI, domain and monetization work packages](docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md). F6-00 baseline precedes tokens, shell, header/dropdown/footer, homepage, About/Contact, shared editor, SEO and optimization. Read-only domain research may proceed without spending; purchases, hostname changes, ads and commercial launches need independent approval. Preserve existing Pro/Studio milestones and open PRs.
+- **Manual continuation:** `go ahead` / `next` are equivalent. Read fresh main, open PRs/CI and scoped rules; finish or repair relevant active work before selecting the highest-priority approved unblocked task. Report exact blockers; no duplicate PRs or automatic owner-only action. The new roadmap refines existing F6 IDs, not a competing queue.
+
 Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
 
 Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.

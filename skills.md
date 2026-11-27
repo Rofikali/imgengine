@@ -1,5 +1,7 @@
 # IMGENGINE — Engineering Skills and Workflow Recipes
 
+**Continuation and frontend platform recipe (27 November):** [F6 shared UI/domain/monetization roadmap](docs/IMGENGINE_F6_SHARED_UI_DOMAIN_MONETIZATION_ROADMAP.md). Treat `go ahead` and `next` as aliases; reconcile current main/open PRs/CI and F5 live evidence, select a bounded eligible milestone, verify exact evidence and update the four primary docs plus scoped records. Preserve Free isolation, use native HTML/CSS/Vue composition and product-specific configurations, measure performance/cost, and stop at owner-only decisions.
+
 Free navigation and homepage implemented for review. All nine Free routes share a labelled header with Home, desktop tool links and a native mobile Tools disclosure. Keyboard checks cover Enter, Tab, Escape and focus restoration. The homepage presents five descriptive cards. Canonical URLs and the sitemap await the permanent public hostname decision.
 
 Free v1.0.0 uses the owner-adopted solo assessment for the five browser-local tools. Build with pnpm run build:free-static from imgengine-saas/frontend in Ubuntu 24.04, then run pnpm run verify:free-publication-ready on that build. Upload only .output/public after separate exact-artifact deployment authorization. The compiled-output gate checks notices, headers/CSP, static boundaries, secret patterns and the reviewed client license report against the installed production inventory.
