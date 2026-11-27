@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { isApprovedStaticNuxtPayload } from './static-payload'
+import { isApprovedStaticNuxtPayload, expectedLocalToolOrigin } from './static-payload'
 import AxeBuilder from '@axe-core/playwright'
 import { oriented } from './orientation'
 
@@ -98,7 +98,7 @@ test('compresses locally to JPEG, composites alpha onto white, downloads, and pa
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   const localAsset = (request: typeof requests[number]) => {
     const url = new URL(request.url)
-    return request.method === 'GET' && !request.body && url.origin === 'http://127.0.0.1:3100'
+    return request.method === 'GET' && !request.body && url.origin === expectedLocalToolOrigin()
       && (( !url.search && (/^\/_nuxt\//.test(url.pathname) || url.pathname === '/compress-image' || url.pathname === '/')) || isApprovedStaticNuxtPayload(url))
   }
   expect(requests.every(localAsset), JSON.stringify(requests)).toBe(true)
@@ -162,7 +162,7 @@ test('recovers locally if Worker image decoding fails, with no image-bearing req
   await page.getByRole('button', { name: 'Compress locally', exact: true }).click()
   const output = await exportedJpeg(page)
   expect(jpegMetadataSegments(output).some(s => s.marker === 0xe1)).toBe(false)
-  expect(requests.every(r => r.method === 'GET' && !r.body && new URL(r.url).origin === 'http://127.0.0.1:3100')).toBe(true)
+  expect(requests.every(r => r.method === 'GET' && !r.body && new URL(r.url).origin === expectedLocalToolOrigin())).toBe(true)
   await page.getByRole('button', { name: 'Remove image' }).click()
   await expect(page.getByAltText('Compressed JPEG preview')).toHaveCount(0)
 })
