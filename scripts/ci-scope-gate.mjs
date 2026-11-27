@@ -26,6 +26,14 @@ export function verifyNeeds(needs) {
   }
   if (outputs.mode === 'full' && selected !== JOBS.length) throw Error('full mode omitted tests')
   if (outputs.mode === 'selective' && selected === JOBS.length) throw Error('selective mode selected all jobs')
+  // Older trusted-base selectors do not emit this flag. Missing means normal mode.
+  if (![undefined, '', 'false', 'true'].includes(outputs.free_only)) throw Error('invalid Free-only flag')
+  if (outputs.free_only === 'true') {
+    if (outputs.mode !== 'selective' || selected !== 2 ||
+        outputs.frontend_verification !== 'true' || outputs.frontend_browser_quality !== 'true') {
+      throw Error('Free-only mode requires exactly both frontend jobs')
+    }
+  }
   return { mode: outputs.mode, selected, skipped: JOBS.length - selected }
 }
 

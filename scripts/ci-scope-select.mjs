@@ -11,9 +11,9 @@ export const OUTPUT_KEYS = Object.freeze(Object.fromEntries(JOBS.map(id => [id, 
 const ALL = new Set(JOBS)
 const SHA = /^[a-f0-9]{40}$/
 
-function result(jobs, reason) {
+function result(jobs, reason, freeOnly = false) {
   const full = jobs.size === JOBS.length
-  return { version: 'ci-scope-02-v1', full, reason, jobs: Object.fromEntries(JOBS.map(id => [id, jobs.has(id)])) }
+  return { version: 'ci-scope-02-v1', full, reason, freeOnly, jobs: Object.fromEntries(JOBS.map(id => [id, jobs.has(id)])) }
 }
 export function full(reason = 'fail-closed') { return result(ALL, reason) }
 const select = (...names) => new Set(names)
@@ -30,6 +30,11 @@ const PLANNING_DOCS = new Set([
   "docs/IMGENGINE_FRONTEND_EXCELLENCE_PROGRAM_F6.md",
   "docs/IMGENGINE_FRONTEND_EXCELLENCE_F6_ACCEPTANCE_MATRIX.md",
   "docs/IMGENGINE_COMMERCIAL_READINESS_AND_UNIT_ECONOMICS.md"
+])
+const FREE_ONLY = new Set([
+  'imgengine-saas/frontend/free-static/FreeSiteHeader.vue',
+  'imgengine-saas/frontend/free-static/landing.vue',
+  'imgengine-saas/frontend/free-static/tools.ts',
 ])
 const FRONTEND_SHELL = new Set([
   "imgengine-saas/frontend/app.vue",
@@ -70,6 +75,8 @@ export function classifyDiff(raw) {
   const entries = raw.slice(0, -1).split('\0')
   if (entries.length < 2 || entries.length > 20000 || entries.length % 2) return full('empty-large-or-malformed-diff')
   const selected = new Set()
+  let hasFree = false
+  let onlyFree = true
   for (let i = 0; i < entries.length; i += 2) {
     const [status, path] = [entries[i], entries[i + 1]]
     // Renames, deletions, submodules and unresolved conflicts all fail closed.
@@ -77,9 +84,11 @@ export function classifyDiff(raw) {
     if (!path || path.length > 1024 || /[\\\x00-\x1f\x7f]/.test(path) || path.startsWith('/') || path.split('/').some(p => !p || p === '.' || p === '..')) return full('unsafe-git-path')
     const required = impact(path)
     if (required === null) return full('shared-policy-unknown-or-high-risk')
+    if (status === 'M' && FREE_ONLY.has(path)) hasFree = true
+    else if (required.size !== 0) onlyFree = false
     for (const name of required) selected.add(name)
   }
-  return result(selected, selected.size ? 'impacted-boundaries' : 'docs-only')
+  return result(selected, selected.size ? 'impacted-boundaries' : 'docs-only', hasFree && onlyFree)
 }
 
 function validateSha(value) {
@@ -110,7 +119,7 @@ export function selectFromEvent(eventName, event, git) {
 
 export function encodeOutputs(selection) {
   if (selection.version !== 'ci-scope-02-v1' || !selection.jobs || JOBS.some(id => typeof selection.jobs[id] !== 'boolean')) throw Error('invalid selector result')
-  const fields = [`version=${selection.version}`, `mode=${selection.full ? 'full' : 'selective'}`, `reason=${selection.reason}`]
+  const fields = [`version=${selection.version}`, `mode=${selection.full ? 'full' : 'selective'}`, `reason=${selection.reason}`, `free_only=${selection.freeOnly === true}`]
   for (const job of JOBS) fields.push(`${OUTPUT_KEYS[job]}=${selection.jobs[job]}`)
   return `${fields.join('\n')}\n`
 }
@@ -125,5 +134,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // The caller supplied GITHUB_OUTPUT; do not emit raw paths, tokens or logs.
   if (!process.env.GITHUB_OUTPUT) throw Error('missing GITHUB_OUTPUT')
   appendFileSync(process.env.GITHUB_OUTPUT, encodeOutputs(selection))
-  console.log(JSON.stringify({ version: selection.version, full: selection.full, reason: selection.reason, selected: JOBS.filter(id => selection.jobs[id]) }))
+  console.log(JSON.stringify({ version: selection.version, full: selection.full, reason: selection.reason, freeOnly: selection.freeOnly, selected: JOBS.filter(id => selection.jobs[id]) }))
 }

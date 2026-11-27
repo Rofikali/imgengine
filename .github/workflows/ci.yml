@@ -20,6 +20,7 @@ jobs:
     outputs:
       version: ${{ steps.select.outputs.version }}
       mode: ${{ steps.select.outputs.mode }}
+      free_only: ${{ steps.select.outputs.free_only }}
       infra_p8_parser: ${{ steps.select.outputs.infra_p8_parser }}
       native_build_test: ${{ steps.select.outputs.native_build_test }}
       native_sanitizers: ${{ steps.select.outputs.native_sanitizers }}
@@ -385,12 +386,18 @@ jobs:
         working-directory: imgengine-saas/frontend
         run: node --test scripts/check-free-publication-ready.node-check.mjs
       - name: Run frontend unit tests
+        if: ${{ needs.ci-scope.outputs.free_only != 'true' }}
         working-directory: imgengine-saas/frontend
         run: pnpm test
+      - name: Run Free-focused unit tests
+        if: ${{ needs.ci-scope.outputs.free_only == 'true' }}
+        working-directory: imgengine-saas/frontend
+        run: pnpm exec vitest run local- free-static/
       - name: Type-check Nuxt application
         working-directory: imgengine-saas/frontend
         run: pnpm run typecheck
       - name: Build production Nuxt application
+        if: ${{ needs.ci-scope.outputs.free_only != 'true' }}
         working-directory: imgengine-saas/frontend
         run: pnpm run build
 
@@ -431,9 +438,11 @@ jobs:
         working-directory: imgengine-saas/frontend
         run: pnpm install --frozen-lockfile
       - name: Generate Nuxt production output
+        if: ${{ needs.ci-scope.outputs.free_only != 'true' }}
         working-directory: imgengine-saas/frontend
         run: pnpm exec nuxi prepare && pnpm run build
       - name: Run local tool browser quality matrix
+        if: ${{ needs.ci-scope.outputs.free_only != 'true' }}
         working-directory: imgengine-saas/frontend
         # Playwright image runs as root; GitHub's /github/home belongs to pwuser.
         # Firefox refuses a root session using another owner's HOME.
